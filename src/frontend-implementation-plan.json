@@ -1,23 +1,37 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Render chatroom category tags as bottom-right thumbnail overlays in lobby cards",
+  "title": "Adjust chatroom header stat spacing and LIVE badge placement",
   "requirements": [
     {
       "id": "REQ-3",
-      "summary": "Move chatroom category tag from under-title placement into a bottom-right overlay within the chatroom thumbnail, keeping it legible and non-overlapping with the LIVE badge.",
+      "summary": "Reduce the horizontal gap in the ChatArea header stats row to 0.5rem between message/reply count, view count, and category badge.",
       "acceptanceCriteria": [
-        "In the lobby grid, for any chatroom with a non-empty category, the category tag appears inside the thumbnail area as a bottom-right overlay.",
-        "The category tag no longer renders next to the chatroom title under the thumbnail.",
-        "The overlay tag remains legible over bright/dark thumbnails (e.g., via background scrim/opacity and appropriate text styling).",
-        "The overlay tag does not overlap the existing LIVE badge (LIVE stays top-left; category stays bottom-right).",
-        "Chatroom cards without a category render no category tag overlay and the layout does not shift unexpectedly."
+        "In `ChatArea.tsx`, the container that lays out message/reply count, view count, and category badge uses a 0.5rem horizontal gap (e.g., Tailwind `gap-2`).",
+        "Visual verification: the spacing between the message/reply count group and view count group is 0.5rem.",
+        "Visual verification: the spacing between the view count group and the category badge (when present) is 0.5rem."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/ChatroomCard.tsx",
+          "path": "frontend/src/components/ChatArea.tsx",
           "operation": "modify",
-          "description": "Update the card layout so the category label renders as an absolute-positioned bottom-right overlay within the thumbnail container (and remove the existing category <Badge> next to the title). Use the existing shadcn-ui Badge component for the overlay styling with an added readability treatment (e.g., semi-opaque background/scrim and appropriate text styling) and ensure it stays clear of the existing top-left LIVE badge. Verify the component's usage instructions before implementing."
+          "description": "Update the header stats-row container spacing from 1rem to 0.5rem by changing the horizontal gap utility (e.g., `gap-4` to `gap-2`) for the row containing message count, view count, and category badge."
+        }
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "summary": "Move the LIVE indicator into the ChatArea header stats row to the right of the category badge (or after other stats when category is absent) with 0.5rem spacing.",
+      "acceptanceCriteria": [
+        "When `chatroom.isLive` is true and `chatroom.category` is present, the LIVE indicator renders immediately to the right of the category badge in the stats row.",
+        "The horizontal gap between the category badge and the LIVE indicator is 0.5rem.",
+        "When `chatroom.category` is not present and `chatroom.isLive` is true, the LIVE indicator still renders in the stats row to the right of the existing stats items with consistent 0.5rem spacing."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/ChatArea.tsx",
+          "operation": "modify",
+          "description": "Reposition the LIVE indicator so it renders within the header stats row after the category badge when present (otherwise after the view-count group), ensuring the stats-row container uses 0.5rem spacing (e.g., `gap-2`) so the category↔LIVE separation is also 0.5rem. Remove the existing LIVE indicator rendering next to the chatroom title so it appears only in the stats row."
         }
       ]
     }

@@ -1,35 +1,45 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-07T02:28:37.530Z",
+  "generatedAt": "2026-02-04T20:26:32.273Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 1,
-    "implemented": 1,
+    "total": 2,
+    "implemented": 2,
     "items": [
       {
         "id": "REQ-3",
-        "summary": "Update the lobby chatroom cards so that each chatroom’s category tag is rendered as an overlay inside the thumbnail, positioned at the bottom-right corner of the thumbnail image area (instead of next to the title under the thumbnail).",
+        "summary": "Update the chatroom header stats row in `frontend/src/components/ChatArea.tsx` so the horizontal gap between the message/reply count, view count, and category badge is 0.5rem (instead of 1rem).",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/ChatroomCard.tsx"
+          "frontend/src/components/ChatArea.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/ChatroomCard.tsx"
+          "frontend/src/components/ChatArea.tsx"
+        ]
+      },
+      {
+        "id": "REQ-4",
+        "summary": "Move the LIVE indicator in `frontend/src/components/ChatArea.tsx` so it appears to the right of the category badge in the same stats row, and ensure the horizontal gap between the category badge and the LIVE indicator is 0.5rem.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/ChatArea.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/ChatArea.tsx"
         ]
       }
     ]
   },
   "changedFiles": [
     "build-request.json",
-    "caffeine.lock.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/components/ChatroomCard.tsx",
+    "frontend/src/components/ChatArea.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

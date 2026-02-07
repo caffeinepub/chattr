@@ -1,39 +1,53 @@
 {
   "kind": "build_request",
-  "title": "Overlay chatroom category tags inside lobby thumbnails (bottom-right)",
+  "title": "Tighten chatroom header stat gaps and reposition LIVE badge",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-3",
-      "text": "Update the lobby chatroom cards so that each chatroom’s category tag is rendered as an overlay inside the thumbnail, positioned at the bottom-right corner of the thumbnail image area (instead of next to the title under the thumbnail).",
+      "text": "Update the chatroom header stats row in `frontend/src/components/ChatArea.tsx` so the horizontal gap between the message/reply count, view count, and category badge is 0.5rem (instead of 1rem).",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-5",
           "msg-7"
         ],
         "quotes": [
-          "can you place the category tags inside the actual thumbnails in the bottom right of them. do you know what i mean?",
-          "yes go ahead"
+          "can you make the gap for the replies views and category tag .5 rem instead of 1 rem."
         ]
       },
       "acceptanceCriteria": [
-        "In the lobby grid, for any chatroom with a non-empty category, the category tag appears inside the thumbnail area as a bottom-right overlay.",
-        "The category tag no longer renders next to the chatroom title under the thumbnail.",
-        "The overlay tag remains legible over bright/dark thumbnails (e.g., via background scrim/opacity and appropriate text styling).",
-        "The overlay tag does not overlap the existing LIVE badge (LIVE stays top-left; category stays bottom-right).",
-        "Chatroom cards without a category render no category tag overlay and the layout does not shift unexpectedly."
+        "In `ChatArea.tsx`, the container that lays out message/reply count, view count, and category badge uses a 0.5rem horizontal gap (e.g., Tailwind `gap-2`).",
+        "Visual verification: the spacing between the message/reply count group and view count group is 0.5rem.",
+        "Visual verification: the spacing between the view count group and the category badge (when present) is 0.5rem."
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "Move the LIVE indicator in `frontend/src/components/ChatArea.tsx` so it appears to the right of the category badge in the same stats row, and ensure the horizontal gap between the category badge and the LIVE indicator is 0.5rem.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-7"
+        ],
+        "quotes": [
+          "can you also move live tag to be to the right of the category tag. make the gap for that also .5rem"
+        ]
+      },
+      "acceptanceCriteria": [
+        "When `chatroom.isLive` is true and `chatroom.category` is present, the LIVE indicator renders immediately to the right of the category badge in the stats row.",
+        "The horizontal gap between the category badge and the LIVE indicator is 0.5rem.",
+        "When `chatroom.category` is not present and `chatroom.isLive` is true, the LIVE indicator still renders in the stats row to the right of the existing stats items with consistent 0.5rem spacing."
       ]
     }
   ],
   "constraints": [
-    "Frontend immutable paths (frontend/src/components/ui/* and specified hooks/main entry points) must not be edited; compose existing UI components instead.",
-    "Do not introduce any backend changes or schema/state migrations for this UI-only change."
+    "Do not modify any files under `frontend/src/components/ui` (compose existing Shadcn components only).",
+    "Do not edit immutable paths listed in SYSTEM_CONTEXT (e.g., `frontend/src/hooks/useInternetIdentity.ts(x)`, `frontend/src/hooks/useActor.ts`, `frontend/src/main.tsx`).",
+    "Backend canister code and data model must remain unchanged for this layout-only update."
   ],
   "nonGoals": [
-    "Changing how categories are created, stored, filtered, or searched.",
-    "Changing the LIVE indicator design/placement beyond avoiding overlap with the category overlay.",
-    "Adding new categories or modifying the existing category list."
+    "Do not change chatroom view-count/message-count logic or polling behavior.",
+    "Do not redesign the header beyond the requested spacing and LIVE badge placement."
   ],
   "imageRequirements": {
     "required": [],

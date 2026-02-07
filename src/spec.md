@@ -1,13 +1,10 @@
 # Specification
 
 ## Summary
-**Goal:** Move chatroom category tags into the lobby thumbnail as a bottom-right overlay for clearer, more compact chatroom cards.
+**Goal:** Tighten spacing in the chatroom header stats row and reposition the LIVE badge next to the category badge.
 
 **Planned changes:**
-- Update lobby chatroom cards to render the category tag as an overlay inside the thumbnail, positioned bottom-right when the chatroom has a non-empty category.
-- Remove the category tag from its current placement next to/under the chatroom title.
-- Ensure overlay legibility across bright/dark thumbnails (e.g., with a subtle background scrim/opacity and appropriate text styling).
-- Maintain existing LIVE badge placement (top-left) and ensure the category overlay does not overlap it.
-- Keep cards without a category visually stable (no overlay and no unexpected layout shift).
+- Update the stats row layout in `frontend/src/components/ChatArea.tsx` so the horizontal gap between message/reply count, view count, and category badge is 0.5rem (instead of 1rem).
+- Adjust the LIVE indicator placement in `frontend/src/components/ChatArea.tsx` to render to the right of the category badge within the same stats row, with a 0.5rem gap (and keep consistent 0.5rem spacing when the category badge is absent).
 
-**User-visible outcome:** In the lobby grid, chatrooms with categories show a readable category label inside the thumbnail at the bottom-right, while chatrooms without categories show no label and the card layout remains consistent.
+**User-visible outcome:** The chatroom header stats appear more compact, and the LIVE badge displays immediately to the right of the category tag (or at the end of the stats row when no category is present) with consistent 0.5rem spacing.

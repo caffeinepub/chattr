@@ -262,21 +262,18 @@ export default function ChatroomCard({ chatroom, onClick }: ChatroomCardProps) {
             </span>
           </div>
         )}
-        {chatroom.category && (
-          <div className="absolute bottom-2 right-2">
-            <Badge 
-              variant="secondary" 
-              className="text-xs bg-background/90 backdrop-blur-sm shadow-lg border border-border/50"
-            >
-              {chatroom.category}
-            </Badge>
-          </div>
-        )}
       </div>
       <div className="mt-2 space-y-1 px-1">
-        <h3 className="line-clamp-2 text-base font-semibold leading-tight text-foreground md:text-base">
-          {chatroom.topic}
-        </h3>
+        <div className="flex items-center gap-2 flex-wrap">
+          <h3 className="line-clamp-2 text-base font-semibold leading-tight text-foreground md:text-base flex-1">
+            {chatroom.topic}
+          </h3>
+          {chatroom.category && (
+            <Badge variant="secondary" className="text-xs">
+              {chatroom.category}
+            </Badge>
+          )}
+        </div>
         <p className="line-clamp-2 text-sm text-muted-foreground md:text-sm">
           {chatroom.description}
         </p>

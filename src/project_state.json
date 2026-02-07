@@ -1,32 +1,7 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 21,
+  "projectStateVersion": 17,
   "summary": "Chattr is an anonymous, media-centric chatroom web app with a React + TanStack Router/React Query frontend and an Internet Computer (ICP) Motoko canister backend. Users browse a lobby of chatrooms (with live/active-user indicators), search or filter by category, create new chatrooms that require a media item (image upload, YouTube/Twitch URL, or Twitter/X post URL), and chat inside rooms with polling-based near-realtime updates. Messages support replies, emoji reactions (per-user), optional media (images, YouTube/Twitch embeds, Twitter embeds), and voice messages recorded in-browser. Rooms track view counts, compute “live” status from recent activity, and support pinning/unpinning a video message to a persistent pinned-player area. Users have a lightweight anonymous identity (local userId) plus editable username and avatar that are persisted to a backend profile and retroactively applied to past messages.",
-  "architectural_notes": [
-    "Frontend is a SPA built with TanStack Router (route tree, deep linking, notFound UI) and TailwindCSS + shadcn/ui component primitives.",
-    "Data fetching/mutations are centralized in TanStack React Query hooks, using polling for chatrooms/messages and cache invalidation after mutations.",
-    "ICP canister access is encapsulated in a useActor hook that creates an authenticated or anonymous actor and invalidates/refetches queries when identity changes.",
-    "Internet Identity (AuthClient) integration is provided via a React context provider; authenticated identities trigger backend access-control initialization.",
-    "Backend is a single Motoko canister using OrderedMap for chatroom/message/profile storage and List encoding for reactions/active users, returning enriched DTOs like ChatroomWithLiveStatus and MessageWithReactions.",
-    "“Live” chatrooms are computed server-side from per-room active user records updated by sendMessage and incrementViewCount, with a server method for cleanup.",
-    "Media handling on the client uses data URLs tagged with a synthetic blob-storage-id and optional localStorage caching; backend also includes a Caffeine blob-storage mixin (authorization + GC-related endpoints).",
-    "Twitter embeds are rendered client-side via widgets.js; thumbnails/previews come from a mix of client-side heuristics and oEmbed fetching.",
-    "UI layout uses a fixed chat header + optional pinned-video area + scrollable message list + fixed composer, with safe-area padding for mobile and iOS input zoom mitigation.",
-    "Utility modules (videoUtils/formatters) encapsulate ID parsing, embed URL construction (including Twitch parent param), thumbnail URL generation, and compact number formatting."
-  ],
-  "known_issues": [
-    "Client “uploads” store base64 data URLs in localStorage/inline strings; this can exceed browser limits and produces large payloads (no true remote blob store in the main flow).",
-    "Duplicate media-upload implementations exist (shared uploadImage in hooks vs separate uploadImage/uploadAudio in MessageInput), increasing drift risk and inconsistent limits (e.g., avatar 5MB vs room/image 10MB).",
-    "Backend viewCount increments on every open and does not deduplicate by userId; userId is only used for active-user tracking.",
-    "Active user/live status depends on clients calling sendMessage/incrementViewCount; cleanupInactiveUsers is not scheduled automatically and may require an external trigger to keep lists fresh.",
-    "Backend HTTP outcall helper decodes response bodies as UTF-8 text; it is unsuitable for binary thumbnail fetching and may trap/return invalid data for non-text responses.",
-    "Reaction removal in backend decrements count regardless of whether the user previously reacted, and does not prune zero-count reactions; frontend compensates in optimistic UI but server state can accumulate/underflow logically.",
-    "Pin/unpin endpoints do not validate that the pinned message is a video message (any messageId can be pinned).",
-    "Access-control roles (admin/user/guest) are implemented but do not gate chatroom/message/reaction operations; roles currently have limited product impact.",
-    "Twitter widgets.js is loaded/used in multiple places; rendering many tweet embeds can be heavy and is sensitive to theme switching/rehydration quirks.",
-    "Some components are placeholders/empty (e.g., LoginPrompt.tsx, ProfileSetupModal.tsx), suggesting incomplete or unused onboarding/auth UX."
-  ],
-  "isFixRequest": false,
   "existing_features": [
     {
       "id": "IF-1",
@@ -316,21 +291,18 @@
       "version": 1
     },
     {
-      "id": "IF-26",
-      "title": "Chatroom header spacing + LIVE tag placement refinements",
-      "synonyms": [
-        "header stats row gap adjustments",
-        "LIVE badge next to category"
+      "id": "feature-update-the-chatroom-header-stats-row-in-frontend-src-components-chatarea-tsx-so-the-horizontal-gap-between-the-message-reply-count-view-count-and-category-badge-is-0-5rem-instead-of-1rem",
+      "title": "Update the chatroom header stats row in `frontend/src/components/ChatArea.tsx` so the horizontal gap between the message/reply count, view count, and category badge is 0.5rem (instead of 1rem).",
+      "reqIds": [
+        "REQ-3"
       ],
-      "description": "Adjusts chatroom header stats row spacing to 0.5rem gaps and moves the LIVE badge to the right of the category tag with a 0.5rem gap for a tighter, more consistent header layout.",
-      "reqIds": [],
       "version": 1
     },
     {
-      "id": "feature-update-the-lobby-chatroom-cards-so-that-each-chatroom-s-category-tag-is-rendered-as-an-overlay-inside-the-thumbnail-positioned-at-the-bottom-right-corner-of-the-thumbnail-image-area-instead-of-next-to-the-title-under-the-thumbnail",
-      "title": "Update the lobby chatroom cards so that each chatroom’s category tag is rendered as an overlay inside the thumbnail, positioned at the bottom-right corner of the thumbnail image area (instead of next to the title under the thumbnail).",
+      "id": "feature-move-the-live-indicator-in-frontend-src-components-chatarea-tsx-so-it-appears-to-the-right-of-the-category-badge-in-the-same-stats-row-and-ensure-the-horizontal-gap-between-the-category-badge-and-the-live-indicator-is-0-5rem",
+      "title": "Move the LIVE indicator in `frontend/src/components/ChatArea.tsx` so it appears to the right of the category badge in the same stats row, and ensure the horizontal gap between the category badge and the LIVE indicator is 0.5rem.",
       "reqIds": [
-        "REQ-3"
+        "REQ-4"
       ],
       "version": 1
     }
@@ -338,11 +310,36 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Place chatroom category tags as an overlay inside each room thumbnail, positioned at the bottom-right corner.",
+      "summary": "Adjust chatroom header layout spacing: set gaps between replies/views/category tag to 0.5rem (from 1rem) and move LIVE tag to the right of the category tag with 0.5rem gap.",
       "reqIds": [],
       "status": "pending"
     }
   ],
+  "architectural_notes": [
+    "Frontend is a SPA built with TanStack Router (route tree, deep linking, notFound UI) and TailwindCSS + shadcn/ui component primitives.",
+    "Data fetching/mutations are centralized in TanStack React Query hooks, using polling for chatrooms/messages and cache invalidation after mutations.",
+    "ICP canister access is encapsulated in a useActor hook that creates an authenticated or anonymous actor and invalidates/refetches queries when identity changes.",
+    "Internet Identity (AuthClient) integration is provided via a React context provider; authenticated identities trigger backend access-control initialization.",
+    "Backend is a single Motoko canister using OrderedMap for chatroom/message/profile storage and List encoding for reactions/active users, returning enriched DTOs like ChatroomWithLiveStatus and MessageWithReactions.",
+    "“Live” chatrooms are computed server-side from per-room active user records updated by sendMessage and incrementViewCount, with a server method for cleanup.",
+    "Media handling on the client uses data URLs tagged with a synthetic blob-storage-id and optional localStorage caching; backend also includes a Caffeine blob-storage mixin (authorization + GC-related endpoints).",
+    "Twitter embeds are rendered client-side via widgets.js; thumbnails/previews come from a mix of client-side heuristics and oEmbed fetching.",
+    "UI layout uses a fixed chat header + optional pinned-video area + scrollable message list + fixed composer, with safe-area padding for mobile and iOS input zoom mitigation.",
+    "Utility modules (videoUtils/formatters) encapsulate ID parsing, embed URL construction (including Twitch parent param), thumbnail URL generation, and compact number formatting."
+  ],
+  "known_issues": [
+    "Client “uploads” store base64 data URLs in localStorage/inline strings; this can exceed browser limits and produces large payloads (no true remote blob store in the main flow).",
+    "Duplicate media-upload implementations exist (shared uploadImage in hooks vs separate uploadImage/uploadAudio in MessageInput), increasing drift risk and inconsistent limits (e.g., avatar 5MB vs room/image 10MB).",
+    "Backend viewCount increments on every open and does not deduplicate by userId; userId is only used for active-user tracking.",
+    "Active user/live status depends on clients calling sendMessage/incrementViewCount; cleanupInactiveUsers is not scheduled automatically and may require an external trigger to keep lists fresh.",
+    "Backend HTTP outcall helper decodes response bodies as UTF-8 text; it is unsuitable for binary thumbnail fetching and may trap/return invalid data for non-text responses.",
+    "Reaction removal in backend decrements count regardless of whether the user previously reacted, and does not prune zero-count reactions; frontend compensates in optimistic UI but server state can accumulate/underflow logically.",
+    "Pin/unpin endpoints do not validate that the pinned message is a video message (any messageId can be pinned).",
+    "Access-control roles (admin/user/guest) are implemented but do not gate chatroom/message/reaction operations; roles currently have limited product impact.",
+    "Twitter widgets.js is loaded/used in multiple places; rendering many tweet embeds can be heavy and is sensitive to theme switching/rehydration quirks.",
+    "Some components are placeholders/empty (e.g., LoginPrompt.tsx, ProfileSetupModal.tsx), suggesting incomplete or unused onboarding/auth UX."
+  ],
+  "isFixRequest": false,
   "gameProjectType": "none",
   "projectName": "Chattr",
   "clarification_mode": "pro",
