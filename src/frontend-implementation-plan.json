@@ -1,0 +1,25 @@
+{
+  "kind": "implementation_plan",
+  "version": "1.0",
+  "title": "Render chatroom category tags as bottom-right thumbnail overlays in lobby cards",
+  "requirements": [
+    {
+      "id": "REQ-3",
+      "summary": "Move chatroom category tag from under-title placement into a bottom-right overlay within the chatroom thumbnail, keeping it legible and non-overlapping with the LIVE badge.",
+      "acceptanceCriteria": [
+        "In the lobby grid, for any chatroom with a non-empty category, the category tag appears inside the thumbnail area as a bottom-right overlay.",
+        "The category tag no longer renders next to the chatroom title under the thumbnail.",
+        "The overlay tag remains legible over bright/dark thumbnails (e.g., via background scrim/opacity and appropriate text styling).",
+        "The overlay tag does not overlap the existing LIVE badge (LIVE stays top-left; category stays bottom-right).",
+        "Chatroom cards without a category render no category tag overlay and the layout does not shift unexpectedly."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/ChatroomCard.tsx",
+          "operation": "modify",
+          "description": "Update the card layout so the category label renders as an absolute-positioned bottom-right overlay within the thumbnail container (and remove the existing category <Badge> next to the title). Use the existing shadcn-ui Badge component for the overlay styling with an added readability treatment (e.g., semi-opaque background/scrim and appropriate text styling) and ensure it stays clear of the existing top-left LIVE badge. Verify the component's usage instructions before implementing."
+        }
+      ]
+    }
+  ]
+}
