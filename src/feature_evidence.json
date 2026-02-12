@@ -2,10 +2,11 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-remove-the-numeric-live-user-count-from-the-live-tag-displayed-on-lobby-chatroom-cards-so-the-badge-text-shows-only-live-while-keeping-the-pulsing-dot-indicator",
-      "featureTitle": "Remove the numeric live user count from the LIVE tag displayed on lobby chatroom cards, so the badge text shows only \"LIVE\" while keeping the pulsing dot indicator.",
+      "featureId": "feature-replace-the-current-x-twitter-lobby-thumbnail-approach-offscreen-embed-html2canvas-screenshot-with-an-option-2-approach-that-reconstructs-a-lightweight-preview-using-twitter-s-oembed-endpoint-https-publish-twitter-com-oembed-url-omit-script-true-and-public-data-so-thumbnails-no-longer-depend-on-html2canvas-or-cross-origin-canvas-capture",
+      "featureTitle": "Replace the current X/Twitter lobby thumbnail approach (offscreen embed + html2canvas screenshot) with an Option 2 approach that reconstructs a lightweight preview using Twitter’s oEmbed endpoint (`https://publish.twitter.com/oembed?url=...&omit_script=true`) and public data, so thumbnails no longer depend on html2canvas or cross-origin canvas capture.",
       "files": [
-        "frontend/src/components/ChatroomCard.tsx"
+        "frontend/src/components/ChatroomCard.tsx",
+        "frontend/src/lib/twitterOEmbedPreview.ts"
       ],
       "components": [
         "authorization@1.0.1",
@@ -23,10 +24,11 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-in-the-lobby-only-change-the-live-tag-styling-so-its-top-and-bottom-padding-is-exactly-0-125rem-tailwind-py-0-5-without-changing-its-left-right-padding",
-      "featureTitle": "In the lobby only, change the LIVE tag styling so its top and bottom padding is exactly 0.125rem (Tailwind: py-0.5), without changing its left/right padding.",
+      "featureId": "feature-add-a-new-frontend-utility-that-fetches-twitter-oembed-json-for-a-given-tweet-url-and-parses-out-safe-preview-fields-at-minimum-author-display-name-author-url-tweet-text-snippet-when-available-if-media-image-urls-can-be-extracted-safely-from-the-oembed-html-e-g-pbs-twimg-com-include-the-first-image-url-as-an-optional-preview-image-otherwise-render-a-text-only-preview",
+      "featureTitle": "Add a new frontend utility that fetches Twitter oEmbed JSON for a given tweet URL and parses out safe preview fields (at minimum: author display name, author URL, tweet text snippet when available). If media image URLs can be extracted safely from the oEmbed HTML (e.g., `pbs.twimg.com/...`), include the first image URL as an optional preview image; otherwise render a text-only preview.",
       "files": [
-        "frontend/src/components/ChatroomCard.tsx"
+        "frontend/src/components/ChatroomCard.tsx",
+        "frontend/src/lib/twitterOEmbedPreview.ts"
       ],
       "components": [
         "authorization@1.0.1",
@@ -44,10 +46,10 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-remove-the-numeric-live-user-count-from-the-live-tag-displayed-in-the-chatroom-page-header-so-the-badge-text-shows-only-live-while-keeping-the-pulsing-dot-indicator",
-      "featureTitle": "Remove the numeric live user count from the LIVE tag displayed in the chatroom page header, so the badge text shows only \"LIVE\" while keeping the pulsing dot indicator.",
+      "featureId": "feature-update-frontend-src-components-chatroomcard-tsx-to-render-the-new-reconstructed-x-twitter-preview-in-the-card-thumbnail-area-the-card-should-show-either-a-an-extracted-preview-image-if-available-with-a-simple-overlay-label-or-b-a-clean-text-only-preview-author-snippet-styled-to-match-the-existing-card-aesthetic",
+      "featureTitle": "Update `frontend/src/components/ChatroomCard.tsx` to render the new reconstructed X/Twitter preview in the card thumbnail area. The card should show either (a) an extracted preview image (if available) with a simple overlay label, or (b) a clean text-only preview (author + snippet) styled to match the existing card aesthetic.",
       "files": [
-        "frontend/src/components/ChatArea.tsx"
+        "frontend/src/components/ChatroomCard.tsx"
       ],
       "components": [
         "authorization@1.0.1",
@@ -61,6 +63,52 @@
       ],
       "testIds": [
         "REQ-3"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-implement-caching-for-the-reconstructed-x-twitter-preview-data-in-localstorage-with-a-stable-key-prefer-tweet-status-id-when-available-otherwise-the-full-url-and-an-expiration-policy-to-avoid-re-fetching-oembed-data-repeatedly-while-browsing-the-lobby",
+      "featureTitle": "Implement caching for the reconstructed X/Twitter preview data in localStorage with a stable key (prefer tweet/status ID when available, otherwise the full URL) and an expiration policy, to avoid re-fetching oEmbed data repeatedly while browsing the lobby.",
+      "files": [
+        "frontend/src/lib/twitterOEmbedPreview.ts",
+        "frontend/src/lib/twitterOEmbedPreviewCache.ts"
+      ],
+      "components": [
+        "authorization@1.0.1",
+        "blob-storage@2.0.3",
+        "http-outcalls@1.1.1",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-4"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-remove-or-disable-the-lobby-thumbnail-generation-path-that-uses-frontend-src-lib-twitterthumbnail-ts-frontend-src-lib-twitterembedrenderer-ts-and-frontend-src-lib-html2canvasloader-ts-and-any-related-state-in-chatroomcard-so-that-x-twitter-thumbnails-no-longer-rely-on-html2canvas-snapshotting",
+      "featureTitle": "Remove or disable the lobby thumbnail generation path that uses `frontend/src/lib/twitterThumbnail.ts`, `frontend/src/lib/twitterEmbedRenderer.ts`, and `frontend/src/lib/html2canvasLoader.ts` (and any related state in `ChatroomCard`) so that X/Twitter thumbnails no longer rely on html2canvas snapshotting.",
+      "files": [
+        "frontend/src/components/ChatroomCard.tsx",
+        "frontend/src/lib/html2canvasLoader.ts",
+        "frontend/src/lib/twitterEmbedRenderer.ts",
+        "frontend/src/lib/twitterThumbnail.ts"
+      ],
+      "components": [
+        "authorization@1.0.1",
+        "blob-storage@2.0.3",
+        "http-outcalls@1.1.1",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-5"
       ],
       "confidence": "high"
     }

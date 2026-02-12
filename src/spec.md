@@ -1,11 +1,12 @@
 # Specification
 
 ## Summary
-**Goal:** Update the LIVE badge to remove the numeric live user count and adjust its padding in the lobby.
+**Goal:** Replace the current X/Twitter lobby thumbnail generation (offscreen embed + html2canvas) with a lightweight, reliable reconstructed preview based on Twitter’s public oEmbed JSON.
 
 **Planned changes:**
-- In lobby chatroom cards, render the LIVE badge text as only "LIVE" (no numeric count) while keeping the pulsing dot indicator.
-- In the lobby only, update the LIVE badge top/bottom padding to 0.125rem (py-0.5) without changing left/right padding.
-- In the chatroom page header, render the LIVE badge text as only "LIVE" (no numeric count) while keeping the pulsing dot indicator and leaving the separate connected indicator/count unchanged.
+- Add a frontend utility to fetch `https://publish.twitter.com/oembed?url=...&omit_script=true`, parse safe preview fields (author name/URL, text snippet, optional first image URL when safely extractable), and return a typed result with handled error states.
+- Update `frontend/src/components/ChatroomCard.tsx` to render the reconstructed X/Twitter preview in the thumbnail area (image+label when available, otherwise a clean text-only author+snippet preview), including a non-blocking loading state.
+- Implement localStorage caching for reconstructed X/Twitter preview data with a stable key (prefer tweet/status ID when available, otherwise full URL) and expiration, with graceful invalidation/re-fetch on expiry or invalid entries.
+- Remove/disable the lobby thumbnail generation path that snapshots Twitter embeds (stop using `twitterThumbnail.ts`, `twitterEmbedRenderer.ts`, and `html2canvasLoader.ts` for lobby cards; eliminate related imports/state/warnings).
 
-**User-visible outcome:** LIVE badges in both the lobby and chatroom header display only “LIVE” with the pulsing dot, and the lobby LIVE badge appears slightly tighter vertically without affecting other room metadata.
+**User-visible outcome:** In the lobby grid, X/Twitter chatroom cards show consistent previews (author/snippet and sometimes an image) that load smoothly and no longer fail due to cross-origin canvas screenshotting; non-Twitter cards remain unchanged.

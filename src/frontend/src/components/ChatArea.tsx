@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
-import { useGetMessages, useSendMessage } from '../hooks/useQueries';
+import { useGetMessages, useSendMessage, useGetCurrentUsername } from '../hooks/useQueries';
 import type { ChatroomWithLiveStatus, MessageWithReactions } from '../backend';
 import MessageBubble from './MessageBubble';
 import MessageInput from './MessageInput';
 import { Loader2, MessageCircle, Users, X } from 'lucide-react';
 import { Badge } from './ui/badge';
 import PinnedVideo from './PinnedVideo';
+import { formatCompactNumber } from '../lib/formatters';
 import { Button } from './ui/button';
 
 interface ChatAreaProps {
@@ -20,18 +21,9 @@ interface ReplyContext {
   mediaThumbnail?: string;
 }
 
-// Get user ID from localStorage
-function getUserId(): string {
-  let userId = localStorage.getItem('chatUserId');
-  if (!userId) {
-    userId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    localStorage.setItem('chatUserId', userId);
-  }
-  return userId;
-}
-
 export default function ChatArea({ chatroomId, chatroom }: ChatAreaProps) {
   const { data: messages, isLoading } = useGetMessages(chatroomId);
+  const { data: currentUsername } = useGetCurrentUsername();
   const sendMessage = useSendMessage();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -39,8 +31,6 @@ export default function ChatArea({ chatroomId, chatroom }: ChatAreaProps) {
   const [highlightedMessageId, setHighlightedMessageId] = useState<bigint | null>(null);
   const messageRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const previousMessageCountRef = useRef<number>(0);
-
-  const currentUserId = getUserId();
 
   const scrollToBottom = (behavior: ScrollBehavior = 'smooth') => {
     messagesEndRef.current?.scrollIntoView({ behavior });
@@ -148,7 +138,7 @@ export default function ChatArea({ chatroomId, chatroom }: ChatAreaProps) {
             </div>
             <p className="text-sm text-muted-foreground md:text-sm">{chatroom.description}</p>
           </div>
-          <div className="mt-2 flex items-center gap-4 text-xs text-muted-foreground md:mt-0 md:text-sm">
+          <div className="mt-2 flex items-center gap-4 text-sm text-muted-foreground md:mt-0">
             <div className="flex items-center gap-1">
               <MessageCircle className="h-3.5 w-3.5" />
               <span>{Number(chatroom.messageCount)} messages</span>
@@ -171,14 +161,11 @@ export default function ChatArea({ chatroomId, chatroom }: ChatAreaProps) {
       {/* Messages Area - Scrollable with flex-1 and min-h-0 to constrain height */}
       <div
         ref={scrollContainerRef}
-        className="flex-1 overflow-y-auto px-4 py-4 min-h-0"
+        className="flex-1 min-h-0 overflow-y-auto px-4 py-4"
       >
-        <div className="space-y-4">
-          {messages?.map((message: MessageWithReactions) => {
-            const isOwnMessage = message.senderId === currentUserId;
-            const isPinned = chatroom.pinnedVideoId === message.id;
-            
-            return (
+        <div className="mx-auto max-w-3xl space-y-4">
+          {messages && messages.length > 0 ? (
+            messages.map((message) => (
               <div
                 key={message.id.toString()}
                 ref={(el) => {
@@ -191,17 +178,21 @@ export default function ChatArea({ chatroomId, chatroom }: ChatAreaProps) {
               >
                 <MessageBubble
                   message={message}
-                  isOwnMessage={isOwnMessage}
+                  isOwnMessage={currentUsername === message.sender}
                   chatroomId={chatroomId}
-                  isPinned={isPinned}
+                  isPinned={chatroom.pinnedVideoId === message.id}
                   onReply={handleReply}
                   onScrollToMessage={handleScrollToMessage}
                   allMessages={messages}
                   isHighlighted={highlightedMessageId === message.id}
                 />
               </div>
-            );
-          })}
+            ))
+          ) : (
+            <div className="flex h-full items-center justify-center">
+              <p className="text-sm text-muted-foreground">No messages yet. Start the conversation!</p>
+            </div>
+          )}
           <div ref={messagesEndRef} />
         </div>
       </div>
@@ -209,7 +200,7 @@ export default function ChatArea({ chatroomId, chatroom }: ChatAreaProps) {
       {/* Reply Preview - Fixed above input */}
       {replyingTo && (
         <div className="flex-shrink-0 border-t border-border bg-muted/50 px-4 py-2">
-          <div className="flex items-start justify-between gap-2">
+          <div className="mx-auto flex max-w-3xl items-start justify-between gap-2">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
                 <span className="text-xs font-medium text-muted-foreground">
@@ -224,14 +215,14 @@ export default function ChatArea({ chatroomId, chatroom }: ChatAreaProps) {
               <img
                 src={replyingTo.mediaThumbnail}
                 alt="Reply preview"
-                className="h-10 w-10 rounded object-cover flex-shrink-0"
+                className="h-10 w-10 rounded object-cover"
               />
             )}
             <Button
               variant="ghost"
               size="icon"
-              className="h-6 w-6 flex-shrink-0"
               onClick={handleCancelReply}
+              className="h-8 w-8 flex-shrink-0"
             >
               <X className="h-4 w-4" />
             </Button>
@@ -241,7 +232,9 @@ export default function ChatArea({ chatroomId, chatroom }: ChatAreaProps) {
 
       {/* Message Input - Fixed at bottom */}
       <div className="flex-shrink-0 border-t border-border bg-card px-4 py-3">
-        <MessageInput onSendMessage={handleSendMessage} disabled={sendMessage.isPending} />
+        <div className="mx-auto max-w-3xl">
+          <MessageInput onSendMessage={handleSendMessage} />
+        </div>
       </div>
     </div>
   );

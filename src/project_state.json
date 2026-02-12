@@ -1,32 +1,54 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "New project",
-  "architectural_notes": [],
-  "known_issues": [],
-  "isFixRequest": false,
+  "summary": "Project to generate reliable X/Twitter post thumbnails for a lobby view by reconstructing a lightweight preview (Option 2) using Twitter oEmbed/public data instead of html2canvas screenshots.",
+  "architectural_notes": [
+    "html2canvas cannot reliably capture X/Twitter embeds due to CORS-tainted canvas from cross-origin resources.",
+    "Option 2 approach: use Twitter oEmbed/public endpoints to fetch minimal tweet data and render a custom lightweight thumbnail component.",
+    "Server-side/headless browser rendering cannot run inside an Internet Computer canister; any such rendering must be off-chain."
+  ],
+  "known_issues": [
+    "X/Twitter embed thumbnails via html2canvas fail/return blank due to CORS-tainted canvas from cross-origin media/iframes."
+  ],
+  "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-remove-the-numeric-live-user-count-from-the-live-tag-displayed-on-lobby-chatroom-cards-so-the-badge-text-shows-only-live-while-keeping-the-pulsing-dot-indicator",
-      "title": "Remove the numeric live user count from the LIVE tag displayed on lobby chatroom cards, so the badge text shows only \"LIVE\" while keeping the pulsing dot indicator.",
+      "id": "feature-replace-the-current-x-twitter-lobby-thumbnail-approach-offscreen-embed-html2canvas-screenshot-with-an-option-2-approach-that-reconstructs-a-lightweight-preview-using-twitter-s-oembed-endpoint-https-publish-twitter-com-oembed-url-omit-script-true-and-public-data-so-thumbnails-no-longer-depend-on-html2canvas-or-cross-origin-canvas-capture",
+      "title": "Replace the current X/Twitter lobby thumbnail approach (offscreen embed + html2canvas screenshot) with an Option 2 approach that reconstructs a lightweight preview using Twitter’s oEmbed endpoint (`https://publish.twitter.com/oembed?url=...&omit_script=true`) and public data, so thumbnails no longer depend on html2canvas or cross-origin canvas capture.",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-in-the-lobby-only-change-the-live-tag-styling-so-its-top-and-bottom-padding-is-exactly-0-125rem-tailwind-py-0-5-without-changing-its-left-right-padding",
-      "title": "In the lobby only, change the LIVE tag styling so its top and bottom padding is exactly 0.125rem (Tailwind: py-0.5), without changing its left/right padding.",
+      "id": "feature-add-a-new-frontend-utility-that-fetches-twitter-oembed-json-for-a-given-tweet-url-and-parses-out-safe-preview-fields-at-minimum-author-display-name-author-url-tweet-text-snippet-when-available-if-media-image-urls-can-be-extracted-safely-from-the-oembed-html-e-g-pbs-twimg-com-include-the-first-image-url-as-an-optional-preview-image-otherwise-render-a-text-only-preview",
+      "title": "Add a new frontend utility that fetches Twitter oEmbed JSON for a given tweet URL and parses out safe preview fields (at minimum: author display name, author URL, tweet text snippet when available). If media image URLs can be extracted safely from the oEmbed HTML (e.g., `pbs.twimg.com/...`), include the first image URL as an optional preview image; otherwise render a text-only preview.",
       "reqIds": [
         "REQ-2"
       ],
       "version": 1
     },
     {
-      "id": "feature-remove-the-numeric-live-user-count-from-the-live-tag-displayed-in-the-chatroom-page-header-so-the-badge-text-shows-only-live-while-keeping-the-pulsing-dot-indicator",
-      "title": "Remove the numeric live user count from the LIVE tag displayed in the chatroom page header, so the badge text shows only \"LIVE\" while keeping the pulsing dot indicator.",
+      "id": "feature-update-frontend-src-components-chatroomcard-tsx-to-render-the-new-reconstructed-x-twitter-preview-in-the-card-thumbnail-area-the-card-should-show-either-a-an-extracted-preview-image-if-available-with-a-simple-overlay-label-or-b-a-clean-text-only-preview-author-snippet-styled-to-match-the-existing-card-aesthetic",
+      "title": "Update `frontend/src/components/ChatroomCard.tsx` to render the new reconstructed X/Twitter preview in the card thumbnail area. The card should show either (a) an extracted preview image (if available) with a simple overlay label, or (b) a clean text-only preview (author + snippet) styled to match the existing card aesthetic.",
       "reqIds": [
         "REQ-3"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-caching-for-the-reconstructed-x-twitter-preview-data-in-localstorage-with-a-stable-key-prefer-tweet-status-id-when-available-otherwise-the-full-url-and-an-expiration-policy-to-avoid-re-fetching-oembed-data-repeatedly-while-browsing-the-lobby",
+      "title": "Implement caching for the reconstructed X/Twitter preview data in localStorage with a stable key (prefer tweet/status ID when available, otherwise the full URL) and an expiration policy, to avoid re-fetching oEmbed data repeatedly while browsing the lobby.",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-remove-or-disable-the-lobby-thumbnail-generation-path-that-uses-frontend-src-lib-twitterthumbnail-ts-frontend-src-lib-twitterembedrenderer-ts-and-frontend-src-lib-html2canvasloader-ts-and-any-related-state-in-chatroomcard-so-that-x-twitter-thumbnails-no-longer-rely-on-html2canvas-snapshotting",
+      "title": "Remove or disable the lobby thumbnail generation path that uses `frontend/src/lib/twitterThumbnail.ts`, `frontend/src/lib/twitterEmbedRenderer.ts`, and `frontend/src/lib/html2canvasLoader.ts` (and any related state in `ChatroomCard`) so that X/Twitter thumbnails no longer rely on html2canvas snapshotting.",
+      "reqIds": [
+        "REQ-5"
       ],
       "version": 1
     }
@@ -34,12 +56,12 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Update LIVE tag UI: remove the live user count from the LIVE tag in both lobby and chatroom pages; in lobby set LIVE tag top/bottom padding to 0.125rem",
+      "summary": "Implement Option 2: reconstruct X/Twitter thumbnail preview using oEmbed/public data (no html2canvas screenshot)",
       "reqIds": [],
-      "status": "in_progress"
+      "status": "pending"
     }
   ],
-  "projectName": "Update LIVE tag: remove user count text and adjust lobby padding",
+  "projectName": "Implement Option 2: Reconstruct X/Twitter lobby thumbnails using oEmbed/public data (no html2canvas)",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

@@ -1,84 +1,111 @@
 {
   "kind": "build_request",
-  "title": "Update LIVE tag: remove user count text and adjust lobby padding",
+  "title": "Implement Option 2: Reconstruct X/Twitter lobby thumbnails using oEmbed/public data (no html2canvas)",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Remove the numeric live user count from the LIVE tag displayed on lobby chatroom cards, so the badge text shows only \"LIVE\" while keeping the pulsing dot indicator.",
+      "text": "Replace the current X/Twitter lobby thumbnail approach (offscreen embed + html2canvas screenshot) with an Option 2 approach that reconstructs a lightweight preview using Twitter’s oEmbed endpoint (`https://publish.twitter.com/oembed?url=...&omit_script=true`) and public data, so thumbnails no longer depend on html2canvas or cross-origin canvas capture.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-4"
+          "msg-1"
         ],
         "quotes": [
-          "remove the count from the live tag (in both the lobby and chatroom page)"
+          "ok lets try option 2"
         ]
       },
       "acceptanceCriteria": [
-        "In the lobby (chatroom cards), when a room is live, the LIVE badge text renders as \"LIVE\" with no preceding number.",
-        "The pulsing dot indicator remains visible on the LIVE badge.",
-        "No other lobby card counts/metadata (e.g., the connected/users row) are removed or altered."
+        "For chatrooms where `mediaType === \"twitter\"` and `mediaUrl` is an X/Twitter post URL, the lobby renders a consistent preview without using html2canvas.",
+        "No code path for lobby thumbnails attempts to snapshot the Twitter embed DOM or call `loadHtml2Canvas()`.",
+        "The preview still renders when the tweet contains images/video/iframes (no blank thumbnails due to CORS-tainted canvas)."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "In the lobby only, change the LIVE tag styling so its top and bottom padding is exactly 0.125rem (Tailwind: py-0.5), without changing its left/right padding.",
+      "text": "Add a new frontend utility that fetches Twitter oEmbed JSON for a given tweet URL and parses out safe preview fields (at minimum: author display name, author URL, tweet text snippet when available). If media image URLs can be extracted safely from the oEmbed HTML (e.g., `pbs.twimg.com/...`), include the first image URL as an optional preview image; otherwise render a text-only preview.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-4"
+          "msg-1"
         ],
         "quotes": [
-          "make the padding for the top and bottom padding for the live tag .125rem (in the lobby)"
+          "ok lets try option 2"
         ]
       },
       "acceptanceCriteria": [
-        "Lobby LIVE badge uses top/bottom padding equivalent to 0.125rem (e.g., Tailwind class py-0.5).",
-        "Left/right padding stays the same as before (e.g., px-2 remains unchanged).",
-        "Visual change applies only to the lobby LIVE badge, not the chatroom page LIVE badge."
+        "Given a valid tweet URL, the utility requests `publish.twitter.com/oembed` with `omit_script=true` and returns a typed result (e.g., `{ authorName, authorUrl, text, imageUrl? }`) or a handled error state.",
+        "If the oEmbed response is missing fields or fetch fails, the UI falls back to the existing icon-based Twitter/X placeholder rather than throwing or breaking the lobby.",
+        "No Twitter widgets script (`platform.twitter.com/widgets.js`) is required for the lobby thumbnail rendering path."
       ]
     },
     {
       "id": "REQ-3",
-      "text": "Remove the numeric live user count from the LIVE tag displayed in the chatroom page header, so the badge text shows only \"LIVE\" while keeping the pulsing dot indicator.",
+      "text": "Update `frontend/src/components/ChatroomCard.tsx` to render the new reconstructed X/Twitter preview in the card thumbnail area. The card should show either (a) an extracted preview image (if available) with a simple overlay label, or (b) a clean text-only preview (author + snippet) styled to match the existing card aesthetic.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-4"
+          "msg-1"
         ],
         "quotes": [
-          "remove the count from the live tag (in both the lobby and chatroom page)"
+          "ok lets try option 2"
         ]
       },
       "acceptanceCriteria": [
-        "In the chatroom page header, when a room is live, the LIVE badge text renders as \"LIVE\" with no preceding number.",
-        "The pulsing dot indicator remains visible on the LIVE badge.",
-        "The separate \"connected\" indicator and its numeric count remain unchanged."
+        "In the lobby grid (`LobbyPage`), X/Twitter chatroom cards show the reconstructed preview rather than an html2canvas-generated data URL image.",
+        "While the preview is loading, the card shows a non-blocking loading state (keeping the current UX pattern of a placeholder with a loading label/spinner).",
+        "Non-Twitter card behavior (YouTube/Twitch/image/no media) remains unchanged."
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "Implement caching for the reconstructed X/Twitter preview data in localStorage with a stable key (prefer tweet/status ID when available, otherwise the full URL) and an expiration policy, to avoid re-fetching oEmbed data repeatedly while browsing the lobby.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "ok lets try option 2"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Repeated renders of the same tweet URL reuse cached preview data until it expires.",
+        "Cache entries are invalidated when expired or structurally invalid, and the app recovers gracefully by re-fetching.",
+        "Cache keying uses tweet/status ID when available (consistent with existing patterns in `twitterThumbnailCache.ts`)."
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "text": "Remove or disable the lobby thumbnail generation path that uses `frontend/src/lib/twitterThumbnail.ts`, `frontend/src/lib/twitterEmbedRenderer.ts`, and `frontend/src/lib/html2canvasLoader.ts` (and any related state in `ChatroomCard`) so that X/Twitter thumbnails no longer rely on html2canvas snapshotting.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "ok lets try option 2"
+        ]
+      },
+      "acceptanceCriteria": [
+        "`ChatroomCard` no longer imports or calls `generateTwitterThumbnail` from `frontend/src/lib/twitterThumbnail.ts`.",
+        "The lobby does not fetch oEmbed HTML for the purpose of snapshotting; it only fetches oEmbed JSON for preview reconstruction.",
+        "Twitter thumbnail-related console warnings about html2canvas/snapshotting no longer appear during normal lobby usage."
       ]
     }
   ],
   "constraints": [
-    "Do not modify any files under frontend/src/components/ui (read-only UI primitives); compose them as-is.",
-    "Do not add authentication, identity gating, or login prompts; the app must remain fully anonymous."
+    "Do not edit any files under `frontend/src/components/ui` (compose them instead).",
+    "Do not modify files listed as immutable in SYSTEM_CONTEXT (e.g., `frontend/src/hooks/useInternetIdentity.ts(x)`, `frontend/src/hooks/useActor.ts`, `frontend/src/main.tsx`).",
+    "Keep all backend logic in the single Motoko actor (`backend/main.mo`); this change should not require backend changes."
   ],
   "nonGoals": [
-    "Do not change how active/connected user counts are calculated or refreshed.",
-    "Do not remove or alter the connected user count display outside of the LIVE badge text.",
-    "Do not redesign the lobby or chatroom layouts beyond the specified LIVE badge text/padding changes."
+    "Do not implement an off-chain/headless-browser screenshot service (Option 1).",
+    "Do not integrate paid X/Twitter APIs or require authentication to fetch tweet data.",
+    "Do not add real-time updates or WebSocket-based refresh for lobby thumbnails."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
-  },
-  "userProfileUpdate": {
-    "goalsToAdd": [],
-    "goalsToRemove": [],
-    "preferencesToAdd": [],
-    "preferencesToRemove": [],
-    "miscToAdd": [],
-    "miscToRemove": [],
-    "fieldsToSet": {},
-    "fieldsToDelete": []
   }
 }

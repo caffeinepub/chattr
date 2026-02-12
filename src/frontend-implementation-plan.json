@@ -1,53 +1,120 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Update LIVE badge text and lobby padding",
+  "title": "Reconstruct X/Twitter lobby thumbnails via oEmbed/public data (no html2canvas)",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Lobby cards: remove numeric count from the LIVE badge text while keeping the pulsing dot.",
+      "summary": "Replace lobby X/Twitter thumbnails with a lightweight reconstructed preview driven by Twitter oEmbed JSON and safe public fields, removing any html2canvas/offscreen snapshot dependency.",
       "acceptanceCriteria": [
-        "In the lobby (chatroom cards), when a room is live, the LIVE badge text renders as \"LIVE\" with no preceding number.",
-        "The pulsing dot indicator remains visible on the LIVE badge.",
-        "No other lobby card counts/metadata (e.g., the connected/users row) are removed or altered."
+        "For chatrooms where `mediaType === \"twitter\"` and `mediaUrl` is an X/Twitter post URL, the lobby renders a consistent preview without using html2canvas.",
+        "No code path for lobby thumbnails attempts to snapshot the Twitter embed DOM or call `loadHtml2Canvas()`.",
+        "The preview still renders when the tweet contains images/video/iframes (no blank thumbnails due to CORS-tainted canvas)."
       ],
       "file_operations": [
         {
           "path": "frontend/src/components/ChatroomCard.tsx",
           "operation": "modify",
-          "description": "Update the lobby card LIVE badge to render text as only \"LIVE\" (remove formatted activeUserCount from the badge text) while keeping the pulsing dot indicator; keep the separate Users/displayCount row unchanged. Remove any now-unused imports (e.g., formatCompactNumber) caused by this change."
+          "description": "Switch X/Twitter thumbnail rendering from html2canvas snapshotting to the new reconstructed preview data (author/snippet/image when available), ensuring no DOM snapshot/canvas capture occurs."
+        },
+        {
+          "path": "frontend/src/lib/twitterOEmbedPreview.ts",
+          "operation": "create",
+          "description": "Add an oEmbed-driven preview reconstruction helper that fetches Twitter oEmbed JSON (omit_script=true) and derives safe preview fields used by lobby thumbnails."
         }
       ]
     },
     {
       "id": "REQ-2",
-      "summary": "Lobby only: set LIVE badge vertical padding to py-0.5 without changing horizontal padding.",
+      "summary": "Create a typed frontend utility to fetch Twitter oEmbed JSON and parse safe preview fields (author name, author URL, text snippet, optional image URL) with graceful error handling and no widgets script requirement.",
       "acceptanceCriteria": [
-        "Lobby LIVE badge uses top/bottom padding equivalent to 0.125rem (e.g., Tailwind class py-0.5).",
-        "Left/right padding stays the same as before (e.g., px-2 remains unchanged).",
-        "Visual change applies only to the lobby LIVE badge, not the chatroom page LIVE badge."
+        "Given a valid tweet URL, the utility requests `publish.twitter.com/oembed` with `omit_script=true` and returns a typed result (e.g., `{ authorName, authorUrl, text, imageUrl? }`) or a handled error state.",
+        "If the oEmbed response is missing fields or fetch fails, the UI falls back to the existing icon-based Twitter/X placeholder rather than throwing or breaking the lobby.",
+        "No Twitter widgets script (`platform.twitter.com/widgets.js`) is required for the lobby thumbnail rendering path."
       ],
       "file_operations": [
         {
+          "path": "frontend/src/lib/twitterOEmbedPreview.ts",
+          "operation": "create",
+          "description": "Implement `fetchTwitterOEmbedPreview(tweetUrl)` that calls `https://publish.twitter.com/oembed?url=...&omit_script=true`, returns a typed preview result, and parses a safe author/snippet and optional first `pbs.twimg.com` image URL from the oEmbed HTML when possible."
+        },
+        {
           "path": "frontend/src/components/ChatroomCard.tsx",
           "operation": "modify",
-          "description": "Adjust the lobby LIVE badge container Tailwind classes to use py-0.5 for top/bottom padding, keeping existing left/right padding (px-2) unchanged; ensure this change is limited to the lobby card badge styling."
+          "description": "Integrate the new oEmbed preview utility with robust try/catch and fallback to the existing icon-based Twitter/X placeholder on failure; ensure no platform widgets script is loaded for lobby thumbnails."
         }
       ]
     },
     {
       "id": "REQ-3",
-      "summary": "Chatroom header: remove numeric count from the LIVE badge text while keeping the pulsing dot and leaving the connected count unchanged.",
+      "summary": "Update ChatroomCard to render reconstructed X/Twitter previews (image + overlay label, or text-only author + snippet) with a non-blocking loading state, without changing non-Twitter behavior.",
       "acceptanceCriteria": [
-        "In the chatroom page header, when a room is live, the LIVE badge text renders as \"LIVE\" with no preceding number.",
-        "The pulsing dot indicator remains visible on the LIVE badge.",
-        "The separate \"connected\" indicator and its numeric count remain unchanged."
+        "In the lobby grid (`LobbyPage`), X/Twitter chatroom cards show the reconstructed preview rather than an html2canvas-generated data URL image.",
+        "While the preview is loading, the card shows a non-blocking loading state (keeping the current UX pattern of a placeholder with a loading label/spinner).",
+        "Non-Twitter card behavior (YouTube/Twitch/image/no media) remains unchanged."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/ChatArea.tsx",
+          "path": "frontend/src/components/ChatroomCard.tsx",
           "operation": "modify",
-          "description": "Update the chatroom header LIVE badge to render text as only \"LIVE\" (remove formatted activeUserCount from the badge text) while keeping the pulsing dot indicator; ensure the separate \"connected\" count line remains unchanged. Remove any now-unused imports (e.g., formatCompactNumber) caused by this change."
+          "description": "Replace `twitterThumbnail` state with `twitterPreview` state (typed preview object) and render either: (a) extracted preview image with a simple overlay label, or (b) a clean text-only preview (author + snippet) styled to match the existing card aesthetic; preserve existing loading placeholder pattern."
+        }
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "summary": "Cache reconstructed X/Twitter preview data in localStorage using a stable key (prefer tweet/status ID) and expiration policy to reduce repeated oEmbed fetches.",
+      "acceptanceCriteria": [
+        "Repeated renders of the same tweet URL reuse cached preview data until it expires.",
+        "Cache entries are invalidated when expired or structurally invalid, and the app recovers gracefully by re-fetching.",
+        "Cache keying uses tweet/status ID when available (consistent with existing patterns in `twitterThumbnailCache.ts`)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/lib/twitterOEmbedPreviewCache.ts",
+          "operation": "create",
+          "description": "Add localStorage caching utilities for the reconstructed oEmbed preview object (authorName/authorUrl/text/imageUrl?) including: stable keying that prefers tweet/status ID, schema/version validation, and TTL-based expiration with graceful invalidation."
+        },
+        {
+          "path": "frontend/src/lib/videoUtils.ts",
+          "operation": "modify",
+          "description": "Ensure the existing `getTwitterPostId()` is used as the canonical tweet/status ID extraction for cache keying, keeping behavior consistent for both twitter.com and x.com URLs."
+        },
+        {
+          "path": "frontend/src/lib/twitterOEmbedPreview.ts",
+          "operation": "modify",
+          "description": "Integrate the preview cache (read-through cache + write on success) so oEmbed fetches are skipped when a valid unexpired cache entry exists; re-fetch automatically when cache is missing/expired/invalid."
+        }
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "summary": "Remove/disable the html2canvas-based Twitter thumbnail generation path and related imports so lobby thumbnails no longer rely on snapshotting or offscreen embed rendering.",
+      "acceptanceCriteria": [
+        "`ChatroomCard` no longer imports or calls `generateTwitterThumbnail` from `frontend/src/lib/twitterThumbnail.ts`.",
+        "The lobby does not fetch oEmbed HTML for the purpose of snapshotting; it only fetches oEmbed JSON for preview reconstruction.",
+        "Twitter thumbnail-related console warnings about html2canvas/snapshotting no longer appear during normal lobby usage."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/ChatroomCard.tsx",
+          "operation": "modify",
+          "description": "Remove the `generateTwitterThumbnail` import and the effect/state that generates data URL thumbnails via html2canvas; ensure the X/Twitter branch only uses the reconstructed oEmbed preview and never attempts canvas capture."
+        },
+        {
+          "path": "frontend/src/lib/twitterThumbnail.ts",
+          "operation": "delete",
+          "description": "Remove the html2canvas-based Twitter thumbnail generator to prevent any remaining snapshotting code path from being used."
+        },
+        {
+          "path": "frontend/src/lib/twitterEmbedRenderer.ts",
+          "operation": "delete",
+          "description": "Remove the offscreen oEmbed HTML renderer used for snapshotting, since lobby previews must not rely on offscreen DOM rendering for capture."
+        },
+        {
+          "path": "frontend/src/lib/html2canvasLoader.ts",
+          "operation": "delete",
+          "description": "Remove the lazy html2canvas loader so the lobby thumbnail rendering path cannot load or depend on html2canvas."
         }
       ]
     }

@@ -1,38 +1,47 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-12T19:47:11.443Z",
-  "summary": "REQ-1/REQ-2/REQ-3 appear to be addressed via updates to ChatroomCard (lobby LIVE badge) and ChatArea (chatroom header LIVE badge), but the diff also introduces unrequested changes to lobby card metadata and media thumbnail behavior that may violate the “no other lobby card counts/metadata altered” constraint.",
-  "missing_requirements": [],
-  "hallucinated_features": [
+  "generatedAt": "2026-02-12T20:35:25.901Z",
+  "summary": "Diff adds a new oEmbed-based Twitter/X preview fetch + localStorage cache utility and updates ChatroomCard to use it (with loading state). However, the diff summary does not provide enough evidence that the previous html2canvas-based thumbnail generation path has been fully removed/disabled everywhere, since the legacy thumbnail-related files are still present and only shown as “modified” without details.",
+  "missing_requirements": [
     {
-      "description": "Lobby chatroom card metadata row changed to show activeUserCount instead of viewCount when activeUserCount > 0 (alters counts/metadata outside the LIVE badge text).",
-      "reason": "BuildRequest explicitly says not to remove or alter connected user count display outside of the LIVE badge text and not to change lobby layout beyond specified LIVE badge text/padding changes.",
+      "id": "REQ-5",
+      "requirement": "Remove or disable the lobby thumbnail generation path that uses `frontend/src/lib/twitterThumbnail.ts`, `frontend/src/lib/twitterEmbedRenderer.ts`, and `frontend/src/lib/html2canvasLoader.ts` (and any related state in `ChatroomCard`) so that X/Twitter thumbnails no longer rely on html2canvas snapshotting.",
+      "reason": "Although ChatroomCard now imports `fetchTwitterOEmbedPreview` and legacy thumbnail files are marked as modified, the diff summary does not show the contents of `twitterThumbnail.ts`, `twitterEmbedRenderer.ts`, or `html2canvasLoader.ts` changes, nor does it show that other lobby code paths no longer call into these modules. With only the provided summary, it’s not verifiable that html2canvas snapshotting has been fully removed/disabled across the lobby thumbnail path.",
       "evidence": [
-        "frontend-file-summaries.txt (entry for frontend/src/components/ChatroomCard.tsx: \"now showing activeUserCount instead of viewCount when activeUserCount > 0 in the metadata row\")"
-      ]
-    },
-    {
-      "description": "Added/enhanced dynamic thumbnail fetching/preview logic for Twitch and Twitter/X (including calling publish.twitter.com oEmbed).",
-      "reason": "Not requested by any REQ; outside the scope of LIVE badge text/padding changes.",
-      "evidence": [
-        "frontend/src/components/ChatroomCard.tsx (code adds Twitter oEmbed fetch and Twitch thumbnail logic)",
-        "frontend-file-summaries.txt (entry for frontend/src/components/ChatroomCard.tsx mentions enhanced dynamic thumbnails)"
-      ]
-    },
-    {
-      "description": "Category badges repositioned as overlays inside the thumbnail container on chatroom cards.",
-      "reason": "Not requested; could be considered a lobby card layout redesign beyond the specified LIVE badge changes.",
-      "evidence": [
-        "frontend-file-summaries.txt (entry for frontend/src/components/ChatroomCard.tsx: \"category badges positioned as overlays inside the thumbnail container\")"
+        "frontend/src/components/ChatroomCard.tsx",
+        "frontend/src/lib/html2canvasLoader.ts",
+        "frontend/src/lib/twitterEmbedRenderer.ts",
+        "frontend/src/lib/twitterThumbnail.ts"
       ]
     }
   ],
-  "confidence": 0.66,
+  "hallucinated_features": [
+    {
+      "description": "Added an explicit in-flight request deduplication map for oEmbed preview fetches.",
+      "reason": "REQs specify caching in localStorage, but do not explicitly request in-flight request deduplication; this is additional behavior beyond the stated requirements.",
+      "evidence": [
+        "frontend/src/lib/twitterOEmbedPreview.ts"
+      ]
+    },
+    {
+      "description": "Added a utility to clear all Twitter preview caches (`clearAllCaches`).",
+      "reason": "REQ-4 requires caching with expiration and invalidation, but does not request a manual/programmable cache-clearing API.",
+      "evidence": [
+        "frontend/src/lib/twitterOEmbedPreviewCache.ts"
+      ]
+    }
+  ],
+  "confidence": 0.63,
   "changed_files": [
     "frontend-file-summaries.txt",
-    "frontend/src/components/ChatArea.tsx",
     "frontend/src/components/ChatroomCard.tsx",
+    "frontend/src/lib/html2canvasLoader.ts",
+    "frontend/src/lib/twitterEmbedRenderer.ts",
+    "frontend/src/lib/twitterOEmbedPreview.ts",
+    "frontend/src/lib/twitterOEmbedPreviewCache.ts",
+    "frontend/src/lib/twitterThumbnail.ts",
+    "frontend/src/lib/twitterThumbnailCache.ts",
     "project_state.json"
   ]
 }

@@ -106,9 +106,12 @@ export function getTwitchThumbnailUrl(url: string): string | null {
 
 /**
  * Extract Twitter/X post ID from URL
+ * Enhanced to handle both twitter.com and x.com with query strings
  */
 export function getTwitterPostId(url: string): string | null {
-  const match = url.match(/(?:twitter\.com|x\.com)\/[^/]+\/status\/(\d+)/);
+  // Remove query parameters and fragments for cleaner matching
+  const cleanUrl = url.split('?')[0].split('#')[0];
+  const match = cleanUrl.match(/(?:twitter\.com|x\.com)\/[^/]+\/status\/(\d+)/);
   return match ? match[1] : null;
 }
 
@@ -128,9 +131,11 @@ export function isTwitchUrl(url: string): boolean {
 
 /**
  * Check if URL is a Twitter/X URL
+ * Enhanced to support both domains
  */
 export function isTwitterUrl(url: string): boolean {
-  return url.includes('twitter.com') || url.includes('x.com');
+  const lowerUrl = url.toLowerCase();
+  return lowerUrl.includes('twitter.com') || lowerUrl.includes('x.com');
 }
 
 /**

@@ -4,6 +4,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { MessageCircle, Play, Users } from 'lucide-react';
 import { SiX, SiTwitch } from 'react-icons/si';
 import { Badge } from './ui/badge';
+import { formatCompactNumber } from '../lib/formatters';
 import { 
   getYouTubeVideoId, 
   getYouTubeThumbnailUrl, 
@@ -16,6 +17,7 @@ import {
   isTwitterUrl,
   getTwitterPostId
 } from '../lib/videoUtils';
+import { fetchTwitterOEmbedPreview, type TwitterPreview } from '../lib/twitterOEmbedPreview';
 
 interface ChatroomCardProps {
   chatroom: ChatroomWithLiveStatus;
@@ -24,7 +26,8 @@ interface ChatroomCardProps {
 
 export default function ChatroomCard({ chatroom, onClick }: ChatroomCardProps) {
   const [twitchThumbnail, setTwitchThumbnail] = useState<string | null>(null);
-  const [twitterThumbnail, setTwitterThumbnail] = useState<string | null>(null);
+  const [twitterPreview, setTwitterPreview] = useState<TwitterPreview | null>(null);
+  const [twitterPreviewLoading, setTwitterPreviewLoading] = useState(false);
 
   const formatTimestamp = (timestamp: bigint) => {
     const date = new Date(Number(timestamp) / 1000000);
@@ -47,37 +50,32 @@ export default function ChatroomCard({ chatroom, onClick }: ChatroomCardProps) {
     }
   }, [chatroom.mediaUrl, chatroom.mediaType]);
 
-  // Fetch Twitter thumbnail via oEmbed
+  // Fetch Twitter oEmbed preview (no html2canvas)
   useEffect(() => {
     if (chatroom.mediaType === 'twitter' && isTwitterUrl(chatroom.mediaUrl)) {
-      const fetchTwitterThumb = async () => {
+      let cancelled = false;
+      
+      const fetchPreview = async () => {
+        setTwitterPreviewLoading(true);
         try {
-          const response = await fetch(
-            `https://publish.twitter.com/oembed?url=${encodeURIComponent(chatroom.mediaUrl)}&omit_script=true`
-          );
-          
-          if (response.ok) {
-            const data = await response.json();
-            
-            // Extract thumbnail from HTML if available
-            if (data.html) {
-              const imgMatch = data.html.match(/src="([^"]+)"/);
-              if (imgMatch && imgMatch[1]) {
-                setTwitterThumbnail(imgMatch[1]);
-              }
-            }
-            
-            // Try author profile image as fallback
-            if (!twitterThumbnail && data.author_url) {
-              setTwitterThumbnail(data.author_url);
-            }
+          const preview = await fetchTwitterOEmbedPreview(chatroom.mediaUrl);
+          if (!cancelled && preview) {
+            setTwitterPreview(preview);
           }
         } catch (error) {
-          console.error('Failed to fetch Twitter thumbnail:', error);
+          console.warn('[ChatroomCard] Twitter preview fetch failed:', error);
+        } finally {
+          if (!cancelled) {
+            setTwitterPreviewLoading(false);
+          }
         }
       };
       
-      fetchTwitterThumb();
+      fetchPreview();
+      
+      return () => {
+        cancelled = true;
+      };
     }
   }, [chatroom.mediaUrl, chatroom.mediaType]);
 
@@ -189,34 +187,69 @@ export default function ChatroomCard({ chatroom, onClick }: ChatroomCardProps) {
       );
     }
 
-    // Twitter/X thumbnail with enhanced preview
+    // Twitter/X thumbnail with reconstructed oEmbed preview
     if (chatroom.mediaType === 'twitter' && isTwitterUrl(chatroom.mediaUrl)) {
       const tweetId = getTwitterPostId(chatroom.mediaUrl);
       
-      // If we have a fetched thumbnail, show it
-      if (twitterThumbnail) {
+      // If we have a preview with an image, show it
+      if (twitterPreview?.imageUrl) {
         return (
           <div className="relative h-full w-full overflow-hidden rounded-lg">
             <img
-              src={twitterThumbnail}
+              src={twitterPreview.imageUrl}
               alt={chatroom.topic}
-              className="h-full w-full object-contain transition-transform group-hover:scale-105"
+              className="h-full w-full object-cover transition-transform group-hover:scale-105"
               onError={(e) => {
                 e.currentTarget.style.display = 'none';
-                setTwitterThumbnail(null);
+                // Fall back to text-only preview
+                setTwitterPreview(prev => prev ? { ...prev, imageUrl: undefined } : null);
               }}
             />
-            <div className="absolute top-2 left-2">
-              <span className="text-white text-xs font-bold px-2 py-1 bg-slate-800/90 rounded shadow-md">
-                Post
-              </span>
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+            <div className="absolute bottom-0 left-0 right-0 p-3">
+              <div className="flex items-center gap-2 mb-1">
+                <SiX className="h-4 w-4 text-white" />
+                <span className="text-white text-xs font-semibold truncate">
+                  {twitterPreview.authorName}
+                </span>
+              </div>
+              <p className="text-white/90 text-xs line-clamp-2">
+                {twitterPreview.text}
+              </p>
+            </div>
+          </div>
+        );
+      }
+      
+      // If we have a text-only preview, show it
+      if (twitterPreview) {
+        return (
+          <div className="relative h-full w-full overflow-hidden rounded-lg">
+            <div className="h-full w-full bg-gradient-to-br from-slate-900/80 to-slate-700/80 p-4 flex flex-col justify-between">
+              <div className="flex items-center gap-2 mb-3">
+                <SiX className="h-6 w-6 text-white" />
+                <span className="text-white text-sm font-semibold truncate">
+                  {twitterPreview.authorName}
+                </span>
+              </div>
+              <p className="text-white/90 text-sm line-clamp-4 flex-1">
+                {twitterPreview.text}
+              </p>
+              <div className="mt-3 flex items-center justify-between">
+                <span className="text-white/60 text-xs">Post</span>
+                {tweetId && (
+                  <span className="text-white/50 text-[10px] font-mono">
+                    {tweetId.slice(0, 8)}...
+                  </span>
+                )}
+              </div>
             </div>
             <div className="absolute inset-0 bg-black/10 transition-opacity group-hover:bg-black/20" />
           </div>
         );
       }
       
-      // Fallback to icon-based thumbnail
+      // Fallback to icon-based thumbnail while loading or on failure
       return (
         <div className="relative h-full w-full overflow-hidden rounded-lg">
           <div className="h-full w-full bg-gradient-to-br from-slate-900/60 to-slate-700/60">
@@ -224,9 +257,9 @@ export default function ChatroomCard({ chatroom, onClick }: ChatroomCardProps) {
               <SiX className="h-16 w-16 text-white drop-shadow-lg" />
               <div className="flex flex-col items-center gap-1">
                 <span className="text-white text-xs font-bold px-3 py-1 bg-slate-800/90 rounded-full shadow-md">
-                  Post
+                  {twitterPreviewLoading ? 'Loading...' : 'Post'}
                 </span>
-                {tweetId && (
+                {tweetId && !twitterPreviewLoading && (
                   <span className="text-white/70 text-[10px] font-mono px-2 py-0.5 bg-black/40 rounded">
                     ID: {tweetId.slice(0, 8)}...
                   </span>
