@@ -1,47 +1,35 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-12T20:35:25.901Z",
-  "summary": "Diff adds a new oEmbed-based Twitter/X preview fetch + localStorage cache utility and updates ChatroomCard to use it (with loading state). However, the diff summary does not provide enough evidence that the previous html2canvas-based thumbnail generation path has been fully removed/disabled everywhere, since the legacy thumbnail-related files are still present and only shown as “modified” without details.",
+  "generatedAt": "2026-02-12T21:36:27.512Z",
+  "summary": "Diff adds client-side Giphy search utilities (config constant, fetch helper), a debouncing hook, and begins integrating Giphy state/handlers into AvatarPickerDialog. However, the diff snippet does not provide clear evidence that the avatar picker UI renders a searchable results list/grid, displays empty/error state messaging, and wires selection to close the dialog in the same way as upload (though handler exists). It also includes changes to non-requested meta files.",
   "missing_requirements": [
     {
-      "id": "REQ-5",
-      "requirement": "Remove or disable the lobby thumbnail generation path that uses `frontend/src/lib/twitterThumbnail.ts`, `frontend/src/lib/twitterEmbedRenderer.ts`, and `frontend/src/lib/html2canvasLoader.ts` (and any related state in `ChatroomCard`) so that X/Twitter thumbnails no longer rely on html2canvas snapshotting.",
-      "reason": "Although ChatroomCard now imports `fetchTwitterOEmbedPreview` and legacy thumbnail files are marked as modified, the diff summary does not show the contents of `twitterThumbnail.ts`, `twitterEmbedRenderer.ts`, or `html2canvasLoader.ts` changes, nor does it show that other lobby code paths no longer call into these modules. With only the provided summary, it’s not verifiable that html2canvas snapshotting has been fully removed/disabled across the lobby thumbnail path.",
+      "id": "REQ-1",
+      "requirement": "Users can search Giphy from the avatar picker and see a list/grid of results; selecting a result sets avatarUrl to the GIF URL via useUpdateAvatar(..., isPreset=false) and closes the dialog; show an English error/empty-state message on failure/no results while upload/remove still work; no style/layout changes to existing UI elements.",
+      "reason": "While Giphy state and a selection handler are present, the provided truncated diff does not show any additive UI that renders the Giphy search input/results grid/list or displays the error/empty state message within the dialog, nor does it show that existing UI elements/className strings were preserved (cannot be verified from the truncated snippet).",
       "evidence": [
-        "frontend/src/components/ChatroomCard.tsx",
-        "frontend/src/lib/html2canvasLoader.ts",
-        "frontend/src/lib/twitterEmbedRenderer.ts",
-        "frontend/src/lib/twitterThumbnail.ts"
+        "frontend/src/components/AvatarPickerDialog.tsx (truncated; shows giphy state + handleGiphySelect but not the results/empty-state UI)"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Added an explicit in-flight request deduplication map for oEmbed preview fetches.",
-      "reason": "REQs specify caching in localStorage, but do not explicitly request in-flight request deduplication; this is additional behavior beyond the stated requirements.",
+      "description": "Updates to project metadata/state tracking files unrelated to the requested Giphy avatar picker functionality.",
+      "reason": "BuildRequest only asks for frontend Giphy avatar picker integration and config; it does not request changes to project_state.json or frontend-file-summaries.txt.",
       "evidence": [
-        "frontend/src/lib/twitterOEmbedPreview.ts"
-      ]
-    },
-    {
-      "description": "Added a utility to clear all Twitter preview caches (`clearAllCaches`).",
-      "reason": "REQ-4 requires caching with expiration and invalidation, but does not request a manual/programmable cache-clearing API.",
-      "evidence": [
-        "frontend/src/lib/twitterOEmbedPreviewCache.ts"
+        "project_state.json",
+        "frontend-file-summaries.txt"
       ]
     }
   ],
-  "confidence": 0.63,
+  "confidence": 0.55,
   "changed_files": [
     "frontend-file-summaries.txt",
-    "frontend/src/components/ChatroomCard.tsx",
-    "frontend/src/lib/html2canvasLoader.ts",
-    "frontend/src/lib/twitterEmbedRenderer.ts",
-    "frontend/src/lib/twitterOEmbedPreview.ts",
-    "frontend/src/lib/twitterOEmbedPreviewCache.ts",
-    "frontend/src/lib/twitterThumbnail.ts",
-    "frontend/src/lib/twitterThumbnailCache.ts",
+    "frontend/src/components/AvatarPickerDialog.tsx",
+    "frontend/src/hooks/useDebouncedValue.ts",
+    "frontend/src/lib/config.ts",
+    "frontend/src/lib/giphy.ts",
     "project_state.json"
   ]
 }

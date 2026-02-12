@@ -82,7 +82,7 @@ export default function ChatroomCard({ chatroom, onClick }: ChatroomCardProps) {
   const renderThumbnail = () => {
     if (!chatroom.mediaUrl) {
       return (
-        <div className="relative h-full w-full overflow-hidden rounded-lg">
+        <div className="absolute inset-0 overflow-hidden rounded-lg">
           <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">
             <MessageCircle className="h-12 w-12 text-primary/40" />
           </div>
@@ -96,11 +96,11 @@ export default function ChatroomCard({ chatroom, onClick }: ChatroomCardProps) {
       if (videoId) {
         const thumbnailUrl = getYouTubeThumbnailUrl(videoId);
         return (
-          <div className="relative h-full w-full overflow-hidden rounded-lg">
+          <div className="absolute inset-0 overflow-hidden rounded-lg flex items-center justify-center">
             <img
               src={thumbnailUrl}
               alt={chatroom.topic}
-              className="h-full w-full object-contain transition-transform group-hover:scale-105"
+              className="max-h-full max-w-full object-contain transition-transform group-hover:scale-105"
               onError={(e) => {
                 e.currentTarget.src = '/assets/generated/default-chatroom-thumbnail.dim_200x150.png';
               }}
@@ -131,11 +131,11 @@ export default function ChatroomCard({ chatroom, onClick }: ChatroomCardProps) {
       // If we have a thumbnail, show it
       if (twitchThumbnail) {
         return (
-          <div className="relative h-full w-full overflow-hidden rounded-lg">
+          <div className="absolute inset-0 overflow-hidden rounded-lg flex items-center justify-center">
             <img
               src={twitchThumbnail}
               alt={chatroom.topic}
-              className="h-full w-full object-contain transition-transform group-hover:scale-105"
+              className="max-h-full max-w-full object-contain transition-transform group-hover:scale-105"
               onError={(e) => {
                 e.currentTarget.style.display = 'none';
                 setTwitchThumbnail(null);
@@ -162,7 +162,7 @@ export default function ChatroomCard({ chatroom, onClick }: ChatroomCardProps) {
       
       // Fallback to icon-based thumbnail
       return (
-        <div className="relative h-full w-full overflow-hidden rounded-lg">
+        <div className="absolute inset-0 overflow-hidden rounded-lg">
           <div className="h-full w-full bg-gradient-to-br from-purple-900/50 to-purple-600/50">
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
               <SiTwitch className="h-16 w-16 text-purple-400 drop-shadow-lg" />
@@ -194,7 +194,7 @@ export default function ChatroomCard({ chatroom, onClick }: ChatroomCardProps) {
       // If we have a preview with an image, show it
       if (twitterPreview?.imageUrl) {
         return (
-          <div className="relative h-full w-full overflow-hidden rounded-lg">
+          <div className="absolute inset-0 overflow-hidden rounded-lg">
             <img
               src={twitterPreview.imageUrl}
               alt={chatroom.topic}
@@ -224,7 +224,7 @@ export default function ChatroomCard({ chatroom, onClick }: ChatroomCardProps) {
       // If we have a text-only preview, show it
       if (twitterPreview) {
         return (
-          <div className="relative h-full w-full overflow-hidden rounded-lg">
+          <div className="absolute inset-0 overflow-hidden rounded-lg">
             <div className="h-full w-full bg-gradient-to-br from-slate-900/80 to-slate-700/80 p-4 flex flex-col justify-between">
               <div className="flex items-center gap-2 mb-3">
                 <SiX className="h-6 w-6 text-white" />
@@ -251,7 +251,7 @@ export default function ChatroomCard({ chatroom, onClick }: ChatroomCardProps) {
       
       // Fallback to icon-based thumbnail while loading or on failure
       return (
-        <div className="relative h-full w-full overflow-hidden rounded-lg">
+        <div className="absolute inset-0 overflow-hidden rounded-lg">
           <div className="h-full w-full bg-gradient-to-br from-slate-900/60 to-slate-700/60">
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
               <SiX className="h-16 w-16 text-white drop-shadow-lg" />
@@ -274,11 +274,11 @@ export default function ChatroomCard({ chatroom, onClick }: ChatroomCardProps) {
 
     // Image or other media
     return (
-      <div className="relative h-full w-full overflow-hidden rounded-lg">
+      <div className="absolute inset-0 overflow-hidden rounded-lg flex items-center justify-center">
         <img
           src={chatroom.mediaUrl}
           alt={chatroom.topic}
-          className="h-full w-full object-contain transition-transform group-hover:scale-105"
+          className="max-h-full max-w-full object-contain transition-transform group-hover:scale-105"
           onError={(e) => {
             e.currentTarget.src = '/assets/generated/default-chatroom-thumbnail.dim_200x150.png';
           }}

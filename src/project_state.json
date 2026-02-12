@@ -1,54 +1,29 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Project to generate reliable X/Twitter post thumbnails for a lobby view by reconstructing a lightweight preview (Option 2) using Twitter oEmbed/public data instead of html2canvas screenshots.",
+  "summary": "Add Giphy search/support to the avatar picker while preserving existing UI styles/layout (redo integration after revert due to unintended style changes).",
   "architectural_notes": [
-    "html2canvas cannot reliably capture X/Twitter embeds due to CORS-tainted canvas from cross-origin resources.",
-    "Option 2 approach: use Twitter oEmbed/public endpoints to fetch minimal tweet data and render a custom lightweight thumbnail component.",
-    "Server-side/headless browser rendering cannot run inside an Internet Computer canister; any such rendering must be off-chain."
+    "Giphy integration must not modify existing avatar picker styles/layout (functional change only).",
+    "Store the Giphy API key securely (env/secret) and do not hardcode it in the client."
   ],
   "known_issues": [
-    "X/Twitter embed thumbnails via html2canvas fail/return blank due to CORS-tainted canvas from cross-origin media/iframes."
+    "Previous Giphy update caused unexpected style/layout changes, requiring revert to v144."
   ],
   "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-replace-the-current-x-twitter-lobby-thumbnail-approach-offscreen-embed-html2canvas-screenshot-with-an-option-2-approach-that-reconstructs-a-lightweight-preview-using-twitter-s-oembed-endpoint-https-publish-twitter-com-oembed-url-omit-script-true-and-public-data-so-thumbnails-no-longer-depend-on-html2canvas-or-cross-origin-canvas-capture",
-      "title": "Replace the current X/Twitter lobby thumbnail approach (offscreen embed + html2canvas screenshot) with an Option 2 approach that reconstructs a lightweight preview using Twitter’s oEmbed endpoint (`https://publish.twitter.com/oembed?url=...&omit_script=true`) and public data, so thumbnails no longer depend on html2canvas or cross-origin canvas capture.",
+      "id": "feature-add-giphy-search-selection-support-to-the-existing-avatar-picker-so-users-can-set-their-avatar-to-a-giphy-gif-url-without-changing-any-existing-styles-layout-in-the-app",
+      "title": "Add Giphy search + selection support to the existing avatar picker so users can set their avatar to a Giphy GIF URL, without changing any existing styles/layout in the app.",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-add-a-new-frontend-utility-that-fetches-twitter-oembed-json-for-a-given-tweet-url-and-parses-out-safe-preview-fields-at-minimum-author-display-name-author-url-tweet-text-snippet-when-available-if-media-image-urls-can-be-extracted-safely-from-the-oembed-html-e-g-pbs-twimg-com-include-the-first-image-url-as-an-optional-preview-image-otherwise-render-a-text-only-preview",
-      "title": "Add a new frontend utility that fetches Twitter oEmbed JSON for a given tweet URL and parses out safe preview fields (at minimum: author display name, author URL, tweet text snippet when available). If media image URLs can be extracted safely from the oEmbed HTML (e.g., `pbs.twimg.com/...`), include the first image URL as an optional preview image; otherwise render a text-only preview.",
+      "id": "feature-store-and-reference-the-giphy-api-key-in-the-frontend-in-a-way-that-does-not-introduce-any-new-styling-layout-changes-e-g-configuration-constant-usage-and-ensure-network-requests-to-giphy-are-made-directly-from-the-frontend",
+      "title": "Store and reference the Giphy API key in the frontend in a way that does not introduce any new styling/layout changes (e.g., configuration/constant usage), and ensure network requests to Giphy are made directly from the frontend.",
       "reqIds": [
         "REQ-2"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-update-frontend-src-components-chatroomcard-tsx-to-render-the-new-reconstructed-x-twitter-preview-in-the-card-thumbnail-area-the-card-should-show-either-a-an-extracted-preview-image-if-available-with-a-simple-overlay-label-or-b-a-clean-text-only-preview-author-snippet-styled-to-match-the-existing-card-aesthetic",
-      "title": "Update `frontend/src/components/ChatroomCard.tsx` to render the new reconstructed X/Twitter preview in the card thumbnail area. The card should show either (a) an extracted preview image (if available) with a simple overlay label, or (b) a clean text-only preview (author + snippet) styled to match the existing card aesthetic.",
-      "reqIds": [
-        "REQ-3"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-implement-caching-for-the-reconstructed-x-twitter-preview-data-in-localstorage-with-a-stable-key-prefer-tweet-status-id-when-available-otherwise-the-full-url-and-an-expiration-policy-to-avoid-re-fetching-oembed-data-repeatedly-while-browsing-the-lobby",
-      "title": "Implement caching for the reconstructed X/Twitter preview data in localStorage with a stable key (prefer tweet/status ID when available, otherwise the full URL) and an expiration policy, to avoid re-fetching oEmbed data repeatedly while browsing the lobby.",
-      "reqIds": [
-        "REQ-4"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-remove-or-disable-the-lobby-thumbnail-generation-path-that-uses-frontend-src-lib-twitterthumbnail-ts-frontend-src-lib-twitterembedrenderer-ts-and-frontend-src-lib-html2canvasloader-ts-and-any-related-state-in-chatroomcard-so-that-x-twitter-thumbnails-no-longer-rely-on-html2canvas-snapshotting",
-      "title": "Remove or disable the lobby thumbnail generation path that uses `frontend/src/lib/twitterThumbnail.ts`, `frontend/src/lib/twitterEmbedRenderer.ts`, and `frontend/src/lib/html2canvasLoader.ts` (and any related state in `ChatroomCard`) so that X/Twitter thumbnails no longer rely on html2canvas snapshotting.",
-      "reqIds": [
-        "REQ-5"
       ],
       "version": 1
     }
@@ -56,12 +31,12 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Implement Option 2: reconstruct X/Twitter thumbnail preview using oEmbed/public data (no html2canvas screenshot)",
+      "summary": "Redo Giphy support for avatars (avatar picker integration) without any style/layout changes",
       "reqIds": [],
       "status": "pending"
     }
   ],
-  "projectName": "Implement Option 2: Reconstruct X/Twitter lobby thumbnails using oEmbed/public data (no html2canvas)",
+  "projectName": "Redo Giphy avatar support (no style/layout changes)",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

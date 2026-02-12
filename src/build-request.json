@@ -1,108 +1,56 @@
 {
   "kind": "build_request",
-  "title": "Implement Option 2: Reconstruct X/Twitter lobby thumbnails using oEmbed/public data (no html2canvas)",
-  "priority": "normal",
+  "title": "Redo Giphy avatar support (no style/layout changes)",
+  "priority": "high",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Replace the current X/Twitter lobby thumbnail approach (offscreen embed + html2canvas screenshot) with an Option 2 approach that reconstructs a lightweight preview using Twitter’s oEmbed endpoint (`https://publish.twitter.com/oembed?url=...&omit_script=true`) and public data, so thumbnails no longer depend on html2canvas or cross-origin canvas capture.",
+      "text": "Add Giphy search + selection support to the existing avatar picker so users can set their avatar to a Giphy GIF URL, without changing any existing styles/layout in the app.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-6"
         ],
         "quotes": [
-          "ok lets try option 2"
+          "i had to revert to version 144 because the giphy update you did caused unexpected style/layout changes. please redo the giphy update but dont change any styles, dont do anything other than add the giphy support for avatars. heres the api key again: rDA2nx5ya4RMgjd6KOJ0lrAtm9KLBWUv"
         ]
       },
       "acceptanceCriteria": [
-        "For chatrooms where `mediaType === \"twitter\"` and `mediaUrl` is an X/Twitter post URL, the lobby renders a consistent preview without using html2canvas.",
-        "No code path for lobby thumbnails attempts to snapshot the Twitter embed DOM or call `loadHtml2Canvas()`.",
-        "The preview still renders when the tweet contains images/video/iframes (no blank thumbnails due to CORS-tainted canvas)."
+        "Avatar picker (frontend/src/components/AvatarPickerDialog.tsx) retains all existing elements and their current Tailwind className strings unchanged; only additive UI/logic for Giphy selection is allowed.",
+        "Users can search Giphy from the avatar picker using API key rDA2nx5ya4RMgjd6KOJ0lrAtm9KLBWUv and see a list/grid of results.",
+        "Selecting a Giphy result sets the avatar by calling the existing useUpdateAvatar mutation with avatarUrl set to the chosen GIF URL and isPreset=false, then closes the dialog (same behavior as upload).",
+        "No changes are made to global styling (e.g., frontend/src/index.css, tailwind config) as part of this update.",
+        "If the Giphy request fails or returns no results, the user is shown an English error/empty-state message and the rest of the avatar picker continues to function (upload/remove still work)."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Add a new frontend utility that fetches Twitter oEmbed JSON for a given tweet URL and parses out safe preview fields (at minimum: author display name, author URL, tweet text snippet when available). If media image URLs can be extracted safely from the oEmbed HTML (e.g., `pbs.twimg.com/...`), include the first image URL as an optional preview image; otherwise render a text-only preview.",
+      "text": "Store and reference the Giphy API key in the frontend in a way that does not introduce any new styling/layout changes (e.g., configuration/constant usage), and ensure network requests to Giphy are made directly from the frontend.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-6"
         ],
         "quotes": [
-          "ok lets try option 2"
+          "heres the api key again: rDA2nx5ya4RMgjd6KOJ0lrAtm9KLBWUv"
         ]
       },
       "acceptanceCriteria": [
-        "Given a valid tweet URL, the utility requests `publish.twitter.com/oembed` with `omit_script=true` and returns a typed result (e.g., `{ authorName, authorUrl, text, imageUrl? }`) or a handled error state.",
-        "If the oEmbed response is missing fields or fetch fails, the UI falls back to the existing icon-based Twitter/X placeholder rather than throwing or breaking the lobby.",
-        "No Twitter widgets script (`platform.twitter.com/widgets.js`) is required for the lobby thumbnail rendering path."
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "text": "Update `frontend/src/components/ChatroomCard.tsx` to render the new reconstructed X/Twitter preview in the card thumbnail area. The card should show either (a) an extracted preview image (if available) with a simple overlay label, or (b) a clean text-only preview (author + snippet) styled to match the existing card aesthetic.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "ok lets try option 2"
-        ]
-      },
-      "acceptanceCriteria": [
-        "In the lobby grid (`LobbyPage`), X/Twitter chatroom cards show the reconstructed preview rather than an html2canvas-generated data URL image.",
-        "While the preview is loading, the card shows a non-blocking loading state (keeping the current UX pattern of a placeholder with a loading label/spinner).",
-        "Non-Twitter card behavior (YouTube/Twitch/image/no media) remains unchanged."
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "text": "Implement caching for the reconstructed X/Twitter preview data in localStorage with a stable key (prefer tweet/status ID when available, otherwise the full URL) and an expiration policy, to avoid re-fetching oEmbed data repeatedly while browsing the lobby.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "ok lets try option 2"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Repeated renders of the same tweet URL reuse cached preview data until it expires.",
-        "Cache entries are invalidated when expired or structurally invalid, and the app recovers gracefully by re-fetching.",
-        "Cache keying uses tweet/status ID when available (consistent with existing patterns in `twitterThumbnailCache.ts`)."
-      ]
-    },
-    {
-      "id": "REQ-5",
-      "text": "Remove or disable the lobby thumbnail generation path that uses `frontend/src/lib/twitterThumbnail.ts`, `frontend/src/lib/twitterEmbedRenderer.ts`, and `frontend/src/lib/html2canvasLoader.ts` (and any related state in `ChatroomCard`) so that X/Twitter thumbnails no longer rely on html2canvas snapshotting.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "ok lets try option 2"
-        ]
-      },
-      "acceptanceCriteria": [
-        "`ChatroomCard` no longer imports or calls `generateTwitterThumbnail` from `frontend/src/lib/twitterThumbnail.ts`.",
-        "The lobby does not fetch oEmbed HTML for the purpose of snapshotting; it only fetches oEmbed JSON for preview reconstruction.",
-        "Twitter thumbnail-related console warnings about html2canvas/snapshotting no longer appear during normal lobby usage."
+        "The Giphy API key value rDA2nx5ya4RMgjd6KOJ0lrAtm9KLBWUv is used for Giphy requests exactly as provided.",
+        "Giphy fetch logic is implemented client-side (no new backend endpoints/canister methods added).",
+        "Giphy requests are limited/debounced to avoid sending a request on every keystroke (e.g., only after a short pause or on explicit search action), without changing existing styling/layout."
       ]
     }
   ],
   "constraints": [
-    "Do not edit any files under `frontend/src/components/ui` (compose them instead).",
-    "Do not modify files listed as immutable in SYSTEM_CONTEXT (e.g., `frontend/src/hooks/useInternetIdentity.ts(x)`, `frontend/src/hooks/useActor.ts`, `frontend/src/main.tsx`).",
-    "Keep all backend logic in the single Motoko actor (`backend/main.mo`); this change should not require backend changes."
+    "Do not modify existing styles or layout; do not change any existing Tailwind className strings in existing UI elements (only additive markup/classes for new Giphy UI is allowed).",
+    "Do not edit any files under frontend/src/components/ui (read-only).",
+    "Do not add any backend (Motoko) changes for this update."
   ],
   "nonGoals": [
-    "Do not implement an off-chain/headless-browser screenshot service (Option 1).",
-    "Do not integrate paid X/Twitter APIs or require authentication to fetch tweet data.",
-    "Do not add real-time updates or WebSocket-based refresh for lobby thumbnails."
+    "Adding Giphy support anywhere other than avatar selection (e.g., message composer, chat media embeds).",
+    "Refactoring or restyling the avatar picker dialog, global theme tokens, or Tailwind configuration.",
+    "Adding third-party authentication or any non-Internet-Identity auth changes."
   ],
   "imageRequirements": {
     "required": [],

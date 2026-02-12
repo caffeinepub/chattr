@@ -1,12 +1,12 @@
 # Specification
 
 ## Summary
-**Goal:** Replace the current X/Twitter lobby thumbnail generation (offscreen embed + html2canvas) with a lightweight, reliable reconstructed preview based on Twitter’s public oEmbed JSON.
+**Goal:** Re-add Giphy GIF avatar selection in the existing avatar picker without any style/layout changes.
 
 **Planned changes:**
-- Add a frontend utility to fetch `https://publish.twitter.com/oembed?url=...&omit_script=true`, parse safe preview fields (author name/URL, text snippet, optional first image URL when safely extractable), and return a typed result with handled error states.
-- Update `frontend/src/components/ChatroomCard.tsx` to render the reconstructed X/Twitter preview in the thumbnail area (image+label when available, otherwise a clean text-only author+snippet preview), including a non-blocking loading state.
-- Implement localStorage caching for reconstructed X/Twitter preview data with a stable key (prefer tweet/status ID when available, otherwise full URL) and expiration, with graceful invalidation/re-fetch on expiry or invalid entries.
-- Remove/disable the lobby thumbnail generation path that snapshots Twitter embeds (stop using `twitterThumbnail.ts`, `twitterEmbedRenderer.ts`, and `html2canvasLoader.ts` for lobby cards; eliminate related imports/state/warnings).
+- Add client-side Giphy search + results browsing UI/logic inside `frontend/src/components/AvatarPickerDialog.tsx`, keeping all existing elements and their current Tailwind `className` strings unchanged (only additive markup/logic for Giphy support).
+- Implement debounced (or explicit-action) Giphy requests from the frontend using API key `rDA2nx5ya4RMgjd6KOJ0lrAtm9KLBWUv`, with no new backend endpoints and no changes to global styling/Tailwind configuration.
+- On selecting a Giphy result, set the avatar via the existing `useUpdateAvatar` mutation (`avatarUrl` = chosen GIF URL, `isPreset=false`) and close the dialog (matching existing upload behavior).
+- Add English empty/error states for “no results” and request failures while keeping existing avatar picker features (upload/remove) working.
 
-**User-visible outcome:** In the lobby grid, X/Twitter chatroom cards show consistent previews (author/snippet and sometimes an image) that load smoothly and no longer fail due to cross-origin canvas screenshotting; non-Twitter cards remain unchanged.
+**User-visible outcome:** Users can search Giphy in the avatar picker and set their avatar to a selected GIF URL, with the app’s existing styling/layout unchanged.
