@@ -1,20 +1,32 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Add proper rounded corners to lobby thumbnails by wrapping images in a clipping container.",
-  "architectural_notes": [
-    "For thumbnail corner rounding with object-fit: contain, apply border-radius and overflow: hidden to a wrapper container that clips the image."
-  ],
-  "known_issues": [
-    "Lobby thumbnails do not visually show rounded corners due to object-fit: contain leaving unrounded empty space; needs wrapper clipping."
-  ],
-  "isFixRequest": true,
+  "summary": "New project",
+  "architectural_notes": [],
+  "known_issues": [],
+  "isFixRequest": false,
   "existing_features": [
     {
-      "id": "feature-update-lobby-chatroom-card-thumbnails-so-the-visible-media-including-when-using-object-fit-contain-is-clipped-to-rounded-corners-by-wrapping-the-img-and-any-overlay-layers-in-a-rounded-container-with-overflow-hidden-across-all-thumbnail-types-youtube-twitch-twitter-x-and-generic-media",
-      "title": "Update lobby chatroom card thumbnails so the visible media (including when using `object-fit: contain`) is clipped to rounded corners by wrapping the `<img>` (and any overlay layers) in a rounded container with `overflow-hidden`, across all thumbnail types (YouTube, Twitch, Twitter/X, and generic media).",
+      "id": "feature-remove-the-numeric-live-user-count-from-the-live-tag-displayed-on-lobby-chatroom-cards-so-the-badge-text-shows-only-live-while-keeping-the-pulsing-dot-indicator",
+      "title": "Remove the numeric live user count from the LIVE tag displayed on lobby chatroom cards, so the badge text shows only \"LIVE\" while keeping the pulsing dot indicator.",
       "reqIds": [
         "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-in-the-lobby-only-change-the-live-tag-styling-so-its-top-and-bottom-padding-is-exactly-0-125rem-tailwind-py-0-5-without-changing-its-left-right-padding",
+      "title": "In the lobby only, change the LIVE tag styling so its top and bottom padding is exactly 0.125rem (Tailwind: py-0.5), without changing its left/right padding.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-remove-the-numeric-live-user-count-from-the-live-tag-displayed-in-the-chatroom-page-header-so-the-badge-text-shows-only-live-while-keeping-the-pulsing-dot-indicator",
+      "title": "Remove the numeric live user count from the LIVE tag displayed in the chatroom page header, so the badge text shows only \"LIVE\" while keeping the pulsing dot indicator.",
+      "reqIds": [
+        "REQ-3"
       ],
       "version": 1
     }
@@ -22,12 +34,12 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Update lobby thumbnails to display border radius correctly by wrapping the image in a rounded container with overflow hidden (works with object-fit: contain).",
+      "summary": "Update LIVE tag UI: remove the live user count from the LIVE tag in both lobby and chatroom pages; in lobby set LIVE tag top/bottom padding to 0.125rem",
       "reqIds": [],
-      "status": "pending"
+      "status": "in_progress"
     }
   ],
-  "projectName": "Fix lobby thumbnail border radius by clipping media inside a rounded wrapper",
+  "projectName": "Update LIVE tag: remove user count text and adjust lobby padding",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

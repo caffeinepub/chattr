@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
 import type { ChatroomWithLiveStatus } from '../backend';
 import { formatDistanceToNow } from 'date-fns';
-import { MessageCircle, Play, Eye } from 'lucide-react';
+import { MessageCircle, Play, Users } from 'lucide-react';
 import { SiX, SiTwitch } from 'react-icons/si';
 import { Badge } from './ui/badge';
-import { formatCompactNumber } from '../lib/formatters';
 import { 
   getYouTubeVideoId, 
   getYouTubeThumbnailUrl, 
@@ -255,6 +254,10 @@ export default function ChatroomCard({ chatroom, onClick }: ChatroomCardProps) {
     );
   };
 
+  // Determine which count to show: activeUserCount if > 0, otherwise viewCount
+  const showActiveUsers = chatroom.activeUserCount > 0;
+  const displayCount = showActiveUsers ? chatroom.activeUserCount : chatroom.viewCount;
+
   return (
     <div
       className="group cursor-pointer transition-opacity hover:opacity-80"
@@ -263,10 +266,10 @@ export default function ChatroomCard({ chatroom, onClick }: ChatroomCardProps) {
       <div className="relative aspect-square w-full">
         {renderThumbnail()}
         {chatroom.isLive && (
-          <div className="absolute left-2 top-2 flex items-center gap-1.5 rounded-md bg-primary px-2 py-1 shadow-lg">
+          <div className="absolute left-2 top-2 flex items-center gap-1.5 rounded-md bg-primary px-2 py-0.5 shadow-lg">
             <div className="h-2 w-2 animate-pulse rounded-full bg-white" />
             <span className="text-xs font-bold uppercase tracking-wide text-white">
-              {formatCompactNumber(chatroom.activeUserCount)} LIVE
+              LIVE
             </span>
           </div>
         )}
@@ -291,8 +294,8 @@ export default function ChatroomCard({ chatroom, onClick }: ChatroomCardProps) {
             <span>{Number(chatroom.messageCount)}</span>
           </div>
           <div className="flex items-center gap-1">
-            <Eye className="h-3 w-3" />
-            <span>{Number(chatroom.viewCount)}</span>
+            <Users className="h-3 w-3" />
+            <span>{Number(displayCount)}</span>
           </div>
           <span>•</span>
           <span>{formatTimestamp(chatroom.createdAt)}</span>

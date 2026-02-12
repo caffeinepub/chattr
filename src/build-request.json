@@ -1,37 +1,71 @@
 {
   "kind": "build_request",
-  "title": "Fix lobby thumbnail border radius by clipping media inside a rounded wrapper",
+  "title": "Update LIVE tag: remove user count text and adjust lobby padding",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Update lobby chatroom card thumbnails so the visible media (including when using `object-fit: contain`) is clipped to rounded corners by wrapping the `<img>` (and any overlay layers) in a rounded container with `overflow-hidden`, across all thumbnail types (YouTube, Twitch, Twitter/X, and generic media).",
+      "text": "Remove the numeric live user count from the LIVE tag displayed on lobby chatroom cards, so the badge text shows only \"LIVE\" while keeping the pulsing dot indicator.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-12"
+          "msg-4"
         ],
         "quotes": [
-          "ok do it."
+          "remove the count from the live tag (in both the lobby and chatroom page)"
         ]
       },
       "acceptanceCriteria": [
-        "In the Lobby (chatroom cards), thumbnails visually show rounded corners for all media types (YouTube/Twitch/Twitter/other), even when the image does not fill the container due to `object-contain`.",
-        "No square/uncut corners are visible around thumbnails during normal display or on hover.",
-        "Existing hover effects (e.g., image scale on hover) still work and remain clipped within the rounded thumbnail bounds.",
-        "Changes are implemented in the existing lobby card thumbnail component (e.g., `frontend/src/components/ChatroomCard.tsx`) without introducing backend changes."
+        "In the lobby (chatroom cards), when a room is live, the LIVE badge text renders as \"LIVE\" with no preceding number.",
+        "The pulsing dot indicator remains visible on the LIVE badge.",
+        "No other lobby card counts/metadata (e.g., the connected/users row) are removed or altered."
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "text": "In the lobby only, change the LIVE tag styling so its top and bottom padding is exactly 0.125rem (Tailwind: py-0.5), without changing its left/right padding.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-4"
+        ],
+        "quotes": [
+          "make the padding for the top and bottom padding for the live tag .125rem (in the lobby)"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Lobby LIVE badge uses top/bottom padding equivalent to 0.125rem (e.g., Tailwind class py-0.5).",
+        "Left/right padding stays the same as before (e.g., px-2 remains unchanged).",
+        "Visual change applies only to the lobby LIVE badge, not the chatroom page LIVE badge."
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Remove the numeric live user count from the LIVE tag displayed in the chatroom page header, so the badge text shows only \"LIVE\" while keeping the pulsing dot indicator.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-4"
+        ],
+        "quotes": [
+          "remove the count from the live tag (in both the lobby and chatroom page)"
+        ]
+      },
+      "acceptanceCriteria": [
+        "In the chatroom page header, when a room is live, the LIVE badge text renders as \"LIVE\" with no preceding number.",
+        "The pulsing dot indicator remains visible on the LIVE badge.",
+        "The separate \"connected\" indicator and its numeric count remain unchanged."
       ]
     }
   ],
   "constraints": [
-    "Do not modify files under `frontend/src/components/ui` (compose existing UI components instead).",
-    "Do not edit immutable frontend hook/entry files listed in SYSTEM_CONTEXT (e.g., `frontend/src/hooks/useActor.ts`, `frontend/src/hooks/useInternetIdentity.ts(x)`, `frontend/src/main.tsx`).",
-    "Backend remains single-actor; no backend changes are required for this UI-only fix."
+    "Do not modify any files under frontend/src/components/ui (read-only UI primitives); compose them as-is.",
+    "Do not add authentication, identity gating, or login prompts; the app must remain fully anonymous."
   ],
   "nonGoals": [
-    "Changing thumbnail aspect ratio, sizing, or switching away from `object-fit: contain`.",
-    "Adding new media types or changing thumbnail fetching logic (YouTube/Twitch/Twitter).",
-    "Redesigning the lobby page layout beyond what is necessary to ensure rounded thumbnail clipping."
+    "Do not change how active/connected user counts are calculated or refreshed.",
+    "Do not remove or alter the connected user count display outside of the LIVE badge text.",
+    "Do not redesign the lobby or chatroom layouts beyond the specified LIVE badge text/padding changes."
   ],
   "imageRequirements": {
     "required": [],

@@ -1,24 +1,46 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-12T18:30:58.525Z",
+  "generatedAt": "2026-02-12T19:47:11.445Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 1,
-    "implemented": 1,
+    "total": 3,
+    "implemented": 3,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Update lobby chatroom card thumbnails so the visible media (including when using `object-fit: contain`) is clipped to rounded corners by wrapping the `<img>` (and any overlay layers) in a rounded container with `overflow-hidden`, across all thumbnail types (YouTube, Twitch, Twitter/X, and generic media).",
+        "summary": "Remove the numeric live user count from the LIVE tag displayed on lobby chatroom cards, so the badge text shows only \"LIVE\" while keeping the pulsing dot indicator.",
         "status": "implemented",
         "plannedFiles": [
           "frontend/src/components/ChatroomCard.tsx"
         ],
         "matchedFiles": [
           "frontend/src/components/ChatroomCard.tsx"
+        ]
+      },
+      {
+        "id": "REQ-2",
+        "summary": "In the lobby only, change the LIVE tag styling so its top and bottom padding is exactly 0.125rem (Tailwind: py-0.5), without changing its left/right padding.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/ChatroomCard.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/ChatroomCard.tsx"
+        ]
+      },
+      {
+        "id": "REQ-3",
+        "summary": "Remove the numeric live user count from the LIVE tag displayed in the chatroom page header, so the badge text shows only \"LIVE\" while keeping the pulsing dot indicator.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/ChatArea.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/ChatArea.tsx"
         ]
       }
     ]
@@ -28,6 +50,7 @@
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
+    "frontend/src/components/ChatArea.tsx",
     "frontend/src/components/ChatroomCard.tsx",
     "project_state.json",
     "scratch/component-selection.json",

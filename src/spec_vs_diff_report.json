@@ -1,28 +1,37 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-12T18:30:58.523Z",
-  "summary": "REQ-1 appears implemented by wrapping lobby chatroom card thumbnail media in a rounded, overflow-hidden container (e.g., `rounded-lg overflow-hidden`) so `object-contain` media and hover effects are clipped to rounded corners. No backend changes are shown.",
+  "generatedAt": "2026-02-12T19:47:11.443Z",
+  "summary": "REQ-1/REQ-2/REQ-3 appear to be addressed via updates to ChatroomCard (lobby LIVE badge) and ChatArea (chatroom header LIVE badge), but the diff also introduces unrequested changes to lobby card metadata and media thumbnail behavior that may violate the “no other lobby card counts/metadata altered” constraint.",
   "missing_requirements": [],
   "hallucinated_features": [
     {
-      "description": "Project tracking/metadata updates in `project_state.json` (adding new_feature_requests AR-1/AR-2 and marking status pending) were made even though the BuildRequest only asked for a UI thumbnail clipping fix.",
-      "reason": "BuildRequest does not request changes to project metadata/state files; only UI behavior in the lobby card thumbnail component.",
+      "description": "Lobby chatroom card metadata row changed to show activeUserCount instead of viewCount when activeUserCount > 0 (alters counts/metadata outside the LIVE badge text).",
+      "reason": "BuildRequest explicitly says not to remove or alter connected user count display outside of the LIVE badge text and not to change lobby layout beyond specified LIVE badge text/padding changes.",
       "evidence": [
-        "project_state.json"
+        "frontend-file-summaries.txt (entry for frontend/src/components/ChatroomCard.tsx: \"now showing activeUserCount instead of viewCount when activeUserCount > 0 in the metadata row\")"
       ]
     },
     {
-      "description": "Updates to the repository’s frontend file summary documentation were made (`frontend-file-summaries.txt`).",
-      "reason": "BuildRequest does not request documentation/summary file updates; it only requests the UI thumbnail clipping fix.",
+      "description": "Added/enhanced dynamic thumbnail fetching/preview logic for Twitch and Twitter/X (including calling publish.twitter.com oEmbed).",
+      "reason": "Not requested by any REQ; outside the scope of LIVE badge text/padding changes.",
       "evidence": [
-        "frontend-file-summaries.txt"
+        "frontend/src/components/ChatroomCard.tsx (code adds Twitter oEmbed fetch and Twitch thumbnail logic)",
+        "frontend-file-summaries.txt (entry for frontend/src/components/ChatroomCard.tsx mentions enhanced dynamic thumbnails)"
+      ]
+    },
+    {
+      "description": "Category badges repositioned as overlays inside the thumbnail container on chatroom cards.",
+      "reason": "Not requested; could be considered a lobby card layout redesign beyond the specified LIVE badge changes.",
+      "evidence": [
+        "frontend-file-summaries.txt (entry for frontend/src/components/ChatroomCard.tsx: \"category badges positioned as overlays inside the thumbnail container\")"
       ]
     }
   ],
-  "confidence": 0.68,
+  "confidence": 0.66,
   "changed_files": [
     "frontend-file-summaries.txt",
+    "frontend/src/components/ChatArea.tsx",
     "frontend/src/components/ChatroomCard.tsx",
     "project_state.json"
   ]

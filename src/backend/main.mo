@@ -13,8 +13,6 @@ import MixinStorage "blob-storage/Mixin";
 import OutCall "http-outcalls/outcall";
 import AccessControl "authorization/access-control";
 
-
-
 actor {
   let storage = Storage.new();
   include MixinStorage(storage);
@@ -84,6 +82,21 @@ actor {
     createdAt : Int;
     messageCount : Nat;
     viewCount : Nat;
+    pinnedVideoId : ?Nat;
+    isLive : Bool;
+    activeUserCount : Nat;
+    category : Text;
+  };
+
+  public type LobbyChatroomCard = {
+    id : Nat;
+    topic : Text;
+    description : Text;
+    mediaUrl : Text;
+    mediaType : Text;
+    createdAt : Int;
+    messageCount : Nat;
+    presenceIndicator : Nat;
     pinnedVideoId : ?Nat;
     isLive : Bool;
     activeUserCount : Nat;
@@ -238,6 +251,49 @@ actor {
     hasAudioExtension;
   };
 
+  // New method for lobby chatroom cards (no authentication required)
+  public query func getLobbyChatroomCards() : async [LobbyChatroomCard] {
+    if (natMap.size(chatrooms) == 0) {
+      return [];
+    };
+
+    let currentTime = Time.now();
+    let activeThreshold = 60 * 1_000_000_000;
+
+    let lobbyCards = Iter.map<Chatroom, LobbyChatroomCard>(
+      natMap.vals(chatrooms),
+      func(chatroom) {
+        let activeUsersForRoom = switch (natMap.get(activeUsers, chatroom.id)) {
+          case (null) { List.nil<ActiveUser>() };
+          case (?users) { users };
+        };
+
+        let activeUserCount = List.size(
+          List.filter<ActiveUser>(
+            activeUsersForRoom,
+            func(user) {
+              Int.abs(currentTime - user.lastActive) <= activeThreshold;
+            },
+          )
+        );
+
+        {
+          chatroom with
+          presenceIndicator = if (activeUserCount > 0) {
+            activeUserCount;
+          } else {
+            chatroom.viewCount;
+          };
+          isLive = activeUserCount > 0;
+          activeUserCount;
+        };
+      },
+    );
+
+    Iter.toArray(lobbyCards);
+  };
+
+  // Existing methods (no changes required for authentication)
   public query func getChatrooms() : async [ChatroomWithLiveStatus] {
     if (natMap.size(chatrooms) == 0) {
       return [];
@@ -715,6 +771,11 @@ actor {
   public func fetchTwitterOEmbed(tweetUrl : Text) : async Text {
     let oembedUrl = "https://publish.twitter.com/oembed?url=" # tweetUrl;
     await OutCall.httpGetRequest(oembedUrl, [], transform);
+  };
+
+  public func fetchTwitterThumbnail(tweetUrl : Text) : async Text {
+    let apiUrl = "https://api.twitter.com/1.1/statuses/show.json?id=" # tweetUrl;
+    await OutCall.httpGetRequest(apiUrl, [], transform);
   };
 
   public query func getMessageWithReactionsAndReplies(chatroomId : Nat) : async [MessageWithReactions] {

@@ -151,6 +151,7 @@ export function useGetChatroom(chatroomId: bigint) {
       }
     },
     enabled: !!actor && !actorFetching,
+    refetchInterval: 5000,
     retry: 3,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000),
     staleTime: 30000,
@@ -536,13 +537,7 @@ export function useAddReaction() {
                 ];
               }
               
-              // Convert back to List format
-              let reactionsList: any = null;
-              for (let i = updatedReactions.length - 1; i >= 0; i--) {
-                reactionsList = [updatedReactions[i], reactionsList];
-              }
-              
-              return { ...msg, reactions: reactionsList };
+              return { ...msg, reactions: updatedReactions as any };
             }
             return msg;
           });
@@ -552,17 +547,11 @@ export function useAddReaction() {
       return { previousMessages };
     },
     onError: (err, params, context) => {
-      // Rollback on error
       if (context?.previousMessages) {
-        queryClient.setQueryData(
-          ['messages', params.chatroomId.toString()],
-          context.previousMessages
-        );
+        queryClient.setQueryData(['messages', params.chatroomId.toString()], context.previousMessages);
       }
-      toast.error('Failed to add reaction');
     },
     onSettled: (data, error, params) => {
-      // Always refetch after error or success
       queryClient.invalidateQueries({ queryKey: ['messages', params.chatroomId.toString()] });
     },
   });
@@ -583,13 +572,10 @@ export function useRemoveReaction() {
       const userId = getUserId();
       const queryKey = ['messages', params.chatroomId.toString()];
       
-      // Cancel outgoing refetches
       await queryClient.cancelQueries({ queryKey });
       
-      // Snapshot previous value
       const previousMessages = queryClient.getQueryData<MessageWithReactions[]>(queryKey);
       
-      // Optimistically update
       if (previousMessages) {
         queryClient.setQueryData<MessageWithReactions[]>(queryKey, (old) => {
           if (!old) return old;
@@ -602,30 +588,17 @@ export function useRemoveReaction() {
                   if (r.emoji === params.emoji) {
                     const users = listToArray<string>(r.users);
                     const filteredUsers = users.filter((u) => u !== userId);
-                    
-                    // Convert back to List format
-                    let usersList: any = null;
-                    for (let i = filteredUsers.length - 1; i >= 0; i--) {
-                      usersList = [filteredUsers[i], usersList];
-                    }
-                    
                     return {
                       ...r,
-                      count: r.count > 0n ? r.count - 1n : 0n,
-                      users: usersList,
+                      count: BigInt(Math.max(0, Number(r.count) - 1)),
+                      users: filteredUsers.reduceRight((acc, user) => [user, acc] as any, null as any),
                     };
                   }
                   return r;
                 })
-                .filter((r) => r.count > 0n);
+                .filter((r) => Number(r.count) > 0);
               
-              // Convert back to List format
-              let reactionsList: any = null;
-              for (let i = updatedReactions.length - 1; i >= 0; i--) {
-                reactionsList = [updatedReactions[i], reactionsList];
-              }
-              
-              return { ...msg, reactions: reactionsList };
+              return { ...msg, reactions: updatedReactions as any };
             }
             return msg;
           });
@@ -635,17 +608,11 @@ export function useRemoveReaction() {
       return { previousMessages };
     },
     onError: (err, params, context) => {
-      // Rollback on error
       if (context?.previousMessages) {
-        queryClient.setQueryData(
-          ['messages', params.chatroomId.toString()],
-          context.previousMessages
-        );
+        queryClient.setQueryData(['messages', params.chatroomId.toString()], context.previousMessages);
       }
-      toast.error('Failed to remove reaction');
     },
     onSettled: (data, error, params) => {
-      // Always refetch after error or success
       queryClient.invalidateQueries({ queryKey: ['messages', params.chatroomId.toString()] });
     },
   });
@@ -656,34 +623,27 @@ export function useFetchTwitchThumbnail() {
   const { actor } = useActor();
 
   return useMutation({
-    mutationFn: async (url: string) => {
+    mutationFn: async (channelName: string) => {
       if (!actor) throw new Error('Actor not available');
-      
-      // Extract clip slug or video ID
-      const clipMatch = url.match(/clips\.twitch\.tv\/([^/?]+)/);
-      const videoMatch = url.match(/twitch\.tv\/videos\/(\d+)/);
-      
-      if (clipMatch) {
-        return actor.fetchTwitchThumbnail(clipMatch[1]);
-      } else if (videoMatch) {
-        // For VODs, construct thumbnail URL
-        return `https://static-cdn.jtvnw.net/cf_vods/${videoMatch[1]}/thumb/thumb0-640x360.jpg`;
-      }
-      
-      return null;
+      return actor.fetchTwitchThumbnail(channelName);
+    },
+    onError: (error: Error) => {
+      console.error('[FetchTwitchThumbnail] Error:', error);
     },
   });
 }
 
-// Fetch Twitter oEmbed
-export function useFetchTwitterOEmbed() {
+// Fetch Twitter thumbnail
+export function useFetchTwitterThumbnail() {
   const { actor } = useActor();
 
   return useMutation({
     mutationFn: async (tweetUrl: string) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.fetchTwitterOEmbed(tweetUrl);
+      return actor.fetchTwitterThumbnail(tweetUrl);
+    },
+    onError: (error: Error) => {
+      console.error('[FetchTwitterThumbnail] Error:', error);
     },
   });
 }
-

@@ -1,22 +1,53 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Lobby thumbnail rounded-corner clipping fix",
+  "title": "Update LIVE badge text and lobby padding",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Ensure lobby chatroom card thumbnail media and overlays are clipped to rounded corners via an overflow-hidden rounded wrapper for all media types.",
+      "summary": "Lobby cards: remove numeric count from the LIVE badge text while keeping the pulsing dot.",
       "acceptanceCriteria": [
-        "In the Lobby (chatroom cards), thumbnails visually show rounded corners for all media types (YouTube/Twitch/Twitter/other), even when the image does not fill the container due to `object-contain`.",
-        "No square/uncut corners are visible around thumbnails during normal display or on hover.",
-        "Existing hover effects (e.g., image scale on hover) still work and remain clipped within the rounded thumbnail bounds.",
-        "Changes are implemented in the existing lobby card thumbnail component (e.g., `frontend/src/components/ChatroomCard.tsx`) without introducing backend changes."
+        "In the lobby (chatroom cards), when a room is live, the LIVE badge text renders as \"LIVE\" with no preceding number.",
+        "The pulsing dot indicator remains visible on the LIVE badge.",
+        "No other lobby card counts/metadata (e.g., the connected/users row) are removed or altered."
       ],
       "file_operations": [
         {
           "path": "frontend/src/components/ChatroomCard.tsx",
           "operation": "modify",
-          "description": "Refactor the thumbnail rendering so each thumbnail type (YouTube/Twitch/Twitter/generic media) wraps the <img> and any overlay layers (badges/labels/hover overlays) in a shared rounded container with `overflow-hidden` (e.g., a `div` like `relative h-full w-full overflow-hidden rounded-lg`). Move the rounding responsibility to this wrapper (remove/avoid relying on `rounded-lg` directly on the <img>) so object-contain letterboxing/background and hover scale effects remain clipped to the rounded bounds across all thumbnail variants."
+          "description": "Update the lobby card LIVE badge to render text as only \"LIVE\" (remove formatted activeUserCount from the badge text) while keeping the pulsing dot indicator; keep the separate Users/displayCount row unchanged. Remove any now-unused imports (e.g., formatCompactNumber) caused by this change."
+        }
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "summary": "Lobby only: set LIVE badge vertical padding to py-0.5 without changing horizontal padding.",
+      "acceptanceCriteria": [
+        "Lobby LIVE badge uses top/bottom padding equivalent to 0.125rem (e.g., Tailwind class py-0.5).",
+        "Left/right padding stays the same as before (e.g., px-2 remains unchanged).",
+        "Visual change applies only to the lobby LIVE badge, not the chatroom page LIVE badge."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/ChatroomCard.tsx",
+          "operation": "modify",
+          "description": "Adjust the lobby LIVE badge container Tailwind classes to use py-0.5 for top/bottom padding, keeping existing left/right padding (px-2) unchanged; ensure this change is limited to the lobby card badge styling."
+        }
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "summary": "Chatroom header: remove numeric count from the LIVE badge text while keeping the pulsing dot and leaving the connected count unchanged.",
+      "acceptanceCriteria": [
+        "In the chatroom page header, when a room is live, the LIVE badge text renders as \"LIVE\" with no preceding number.",
+        "The pulsing dot indicator remains visible on the LIVE badge.",
+        "The separate \"connected\" indicator and its numeric count remain unchanged."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/ChatArea.tsx",
+          "operation": "modify",
+          "description": "Update the chatroom header LIVE badge to render text as only \"LIVE\" (remove formatted activeUserCount from the badge text) while keeping the pulsing dot indicator; ensure the separate \"connected\" count line remains unchanged. Remove any now-unused imports (e.g., formatCompactNumber) caused by this change."
         }
       ]
     }

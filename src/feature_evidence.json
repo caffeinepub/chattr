@@ -2,8 +2,8 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-update-lobby-chatroom-card-thumbnails-so-the-visible-media-including-when-using-object-fit-contain-is-clipped-to-rounded-corners-by-wrapping-the-img-and-any-overlay-layers-in-a-rounded-container-with-overflow-hidden-across-all-thumbnail-types-youtube-twitch-twitter-x-and-generic-media",
-      "featureTitle": "Update lobby chatroom card thumbnails so the visible media (including when using `object-fit: contain`) is clipped to rounded corners by wrapping the `<img>` (and any overlay layers) in a rounded container with `overflow-hidden`, across all thumbnail types (YouTube, Twitch, Twitter/X, and generic media).",
+      "featureId": "feature-remove-the-numeric-live-user-count-from-the-live-tag-displayed-on-lobby-chatroom-cards-so-the-badge-text-shows-only-live-while-keeping-the-pulsing-dot-indicator",
+      "featureTitle": "Remove the numeric live user count from the LIVE tag displayed on lobby chatroom cards, so the badge text shows only \"LIVE\" while keeping the pulsing dot indicator.",
       "files": [
         "frontend/src/components/ChatroomCard.tsx"
       ],
@@ -19,6 +19,48 @@
       ],
       "testIds": [
         "REQ-1"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-in-the-lobby-only-change-the-live-tag-styling-so-its-top-and-bottom-padding-is-exactly-0-125rem-tailwind-py-0-5-without-changing-its-left-right-padding",
+      "featureTitle": "In the lobby only, change the LIVE tag styling so its top and bottom padding is exactly 0.125rem (Tailwind: py-0.5), without changing its left/right padding.",
+      "files": [
+        "frontend/src/components/ChatroomCard.tsx"
+      ],
+      "components": [
+        "authorization@1.0.1",
+        "blob-storage@2.0.3",
+        "http-outcalls@1.1.1",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-2"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-remove-the-numeric-live-user-count-from-the-live-tag-displayed-in-the-chatroom-page-header-so-the-badge-text-shows-only-live-while-keeping-the-pulsing-dot-indicator",
+      "featureTitle": "Remove the numeric live user count from the LIVE tag displayed in the chatroom page header, so the badge text shows only \"LIVE\" while keeping the pulsing dot indicator.",
+      "files": [
+        "frontend/src/components/ChatArea.tsx"
+      ],
+      "components": [
+        "authorization@1.0.1",
+        "blob-storage@2.0.3",
+        "http-outcalls@1.1.1",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-3"
       ],
       "confidence": "high"
     }

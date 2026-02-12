@@ -7,6 +7,20 @@ export interface None {
     __kind__: "None";
 }
 export type Option<T> = Some<T> | None;
+export interface LobbyChatroomCard {
+    id: bigint;
+    topic: string;
+    activeUserCount: bigint;
+    createdAt: bigint;
+    description: string;
+    isLive: boolean;
+    mediaUrl: string;
+    messageCount: bigint;
+    mediaType: string;
+    category: string;
+    pinnedVideoId?: bigint;
+    presenceIndicator: bigint;
+}
 export interface UserProfile {
     name: string;
     presetAvatar?: string;
@@ -95,12 +109,14 @@ export interface backendInterface {
     createChatroom(topic: string, description: string, mediaUrl: string, mediaType: string, category: string): Promise<bigint>;
     fetchTwitchThumbnail(channelName: string): Promise<string>;
     fetchTwitterOEmbed(tweetUrl: string): Promise<string>;
+    fetchTwitterThumbnail(tweetUrl: string): Promise<string>;
     fetchYouTubeThumbnail(videoId: string): Promise<string>;
     filterChatroomsByCategory(category: string): Promise<Array<ChatroomWithLiveStatus>>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
     getChatroom(id: bigint): Promise<ChatroomWithLiveStatus | null>;
     getChatrooms(): Promise<Array<ChatroomWithLiveStatus>>;
+    getLobbyChatroomCards(): Promise<Array<LobbyChatroomCard>>;
     getMessageWithReactionsAndReplies(chatroomId: bigint): Promise<Array<MessageWithReactions>>;
     getMessages(chatroomId: bigint): Promise<Array<Message>>;
     getPinnedVideo(chatroomId: bigint): Promise<bigint | null>;

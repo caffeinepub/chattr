@@ -1,12 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
-import { useGetMessages, useSendMessage, useGetCurrentUsername } from '../hooks/useQueries';
+import { useGetMessages, useSendMessage } from '../hooks/useQueries';
 import type { ChatroomWithLiveStatus, MessageWithReactions } from '../backend';
 import MessageBubble from './MessageBubble';
 import MessageInput from './MessageInput';
-import { Loader2, MessageCircle, Eye, X } from 'lucide-react';
+import { Loader2, MessageCircle, Users, X } from 'lucide-react';
 import { Badge } from './ui/badge';
 import PinnedVideo from './PinnedVideo';
-import { formatCompactNumber } from '../lib/formatters';
 import { Button } from './ui/button';
 
 interface ChatAreaProps {
@@ -21,9 +20,18 @@ interface ReplyContext {
   mediaThumbnail?: string;
 }
 
+// Get user ID from localStorage
+function getUserId(): string {
+  let userId = localStorage.getItem('chatUserId');
+  if (!userId) {
+    userId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    localStorage.setItem('chatUserId', userId);
+  }
+  return userId;
+}
+
 export default function ChatArea({ chatroomId, chatroom }: ChatAreaProps) {
   const { data: messages, isLoading } = useGetMessages(chatroomId);
-  const { data: currentUsername } = useGetCurrentUsername();
   const sendMessage = useSendMessage();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -31,6 +39,8 @@ export default function ChatArea({ chatroomId, chatroom }: ChatAreaProps) {
   const [highlightedMessageId, setHighlightedMessageId] = useState<bigint | null>(null);
   const messageRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const previousMessageCountRef = useRef<number>(0);
+
+  const currentUserId = getUserId();
 
   const scrollToBottom = (behavior: ScrollBehavior = 'smooth') => {
     messagesEndRef.current?.scrollIntoView({ behavior });
@@ -131,7 +141,7 @@ export default function ChatArea({ chatroomId, chatroom }: ChatAreaProps) {
                 <div className="flex items-center gap-1.5 rounded-md bg-primary px-2 py-0.5">
                   <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" />
                   <span className="text-xs font-bold uppercase tracking-wide text-white">
-                    {formatCompactNumber(chatroom.activeUserCount)} LIVE
+                    LIVE
                   </span>
                 </div>
               )}
@@ -144,8 +154,8 @@ export default function ChatArea({ chatroomId, chatroom }: ChatAreaProps) {
               <span>{Number(chatroom.messageCount)} messages</span>
             </div>
             <div className="flex items-center gap-1">
-              <Eye className="h-3.5 w-3.5" />
-              <span>{Number(chatroom.viewCount)} views</span>
+              <Users className="h-3.5 w-3.5" />
+              <span>{Number(chatroom.activeUserCount)} connected</span>
             </div>
           </div>
         </div>
@@ -161,93 +171,77 @@ export default function ChatArea({ chatroomId, chatroom }: ChatAreaProps) {
       {/* Messages Area - Scrollable with flex-1 and min-h-0 to constrain height */}
       <div
         ref={scrollContainerRef}
-        className="min-h-0 flex-1 overflow-y-auto px-4 py-6"
+        className="flex-1 overflow-y-auto px-4 py-4 min-h-0"
       >
-        <div className="mx-auto max-w-4xl space-y-4">
-          {messages && messages.length === 0 ? (
-            <div className="flex h-full items-center justify-center">
-              <div className="text-center">
-                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
-                  <img
-                    src="/assets/generated/chat-icon-transparent.dim_64x64.png"
-                    alt="Chat"
-                    className="h-10 w-10"
-                  />
-                </div>
-                <h3 className="text-lg font-semibold text-foreground">No messages yet</h3>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Start the conversation by sending a message below
-                </p>
-              </div>
-            </div>
-          ) : (
-            messages && messages.map((message) => (
-              <div 
+        <div className="space-y-4">
+          {messages?.map((message: MessageWithReactions) => {
+            const isOwnMessage = message.senderId === currentUserId;
+            const isPinned = chatroom.pinnedVideoId === message.id;
+            
+            return (
+              <div
                 key={message.id.toString()}
                 ref={(el) => {
                   if (el) {
                     messageRefs.current.set(message.id.toString(), el);
+                  } else {
+                    messageRefs.current.delete(message.id.toString());
                   }
                 }}
               >
                 <MessageBubble
                   message={message}
-                  isOwnMessage={message.sender === currentUsername}
+                  isOwnMessage={isOwnMessage}
                   chatroomId={chatroomId}
-                  isPinned={chatroom.pinnedVideoId === message.id}
+                  isPinned={isPinned}
                   onReply={handleReply}
                   onScrollToMessage={handleScrollToMessage}
                   allMessages={messages}
                   isHighlighted={highlightedMessageId === message.id}
                 />
               </div>
-            ))
-          )}
+            );
+          })}
           <div ref={messagesEndRef} />
         </div>
       </div>
 
-      {/* Message Input - Fixed at bottom with safe area padding for mobile */}
-      <div className="flex-shrink-0 border-t border-border bg-card/95 backdrop-blur-sm">
-        <div className="mx-auto max-w-4xl px-4 py-3 pb-[max(12px,env(safe-area-inset-bottom))]">
-          {replyingTo && (
-            <div className="mb-2 rounded-lg border border-border bg-muted/50 p-3">
-              <div className="flex items-start gap-3">
-                {replyingTo.mediaThumbnail && (
-                  <img 
-                    src={replyingTo.mediaThumbnail} 
-                    alt="Reply thumbnail" 
-                    className="h-12 w-12 flex-shrink-0 rounded object-cover"
-                  />
-                )}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <img src="/assets/generated/reply-icon-transparent.dim_24x24.png" alt="Reply" className="h-4 w-4 opacity-60" />
-                    <span className="text-xs text-muted-foreground">
-                      Replying to <span className="font-medium text-foreground">{replyingTo.sender}</span>
-                    </span>
-                  </div>
-                  <p className="text-sm text-muted-foreground line-clamp-2">
-                    {replyingTo.contentSnippet}
-                  </p>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleCancelReply}
-                  className="h-6 w-6 flex-shrink-0 p-0"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
+      {/* Reply Preview - Fixed above input */}
+      {replyingTo && (
+        <div className="flex-shrink-0 border-t border-border bg-muted/50 px-4 py-2">
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-medium text-muted-foreground">
+                  Replying to {replyingTo.sender}
+                </span>
               </div>
+              <p className="text-sm text-foreground truncate">
+                {replyingTo.contentSnippet}
+              </p>
             </div>
-          )}
-          <MessageInput
-            onSendMessage={handleSendMessage}
-            disabled={sendMessage.isPending}
-            isSending={sendMessage.isPending}
-          />
+            {replyingTo.mediaThumbnail && (
+              <img
+                src={replyingTo.mediaThumbnail}
+                alt="Reply preview"
+                className="h-10 w-10 rounded object-cover flex-shrink-0"
+              />
+            )}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6 flex-shrink-0"
+              onClick={handleCancelReply}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
+      )}
+
+      {/* Message Input - Fixed at bottom */}
+      <div className="flex-shrink-0 border-t border-border bg-card px-4 py-3">
+        <MessageInput onSendMessage={handleSendMessage} disabled={sendMessage.isPending} />
       </div>
     </div>
   );
