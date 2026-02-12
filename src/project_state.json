@@ -3,30 +3,35 @@
   "projectStateVersion": 3,
   "summary": "New project",
   "architectural_notes": [],
-  "known_issues": [
-    "GIF/Giphy avatar search is non-functional because the search logic is wired to useState initialization instead of an effect (useEffect), so no API call runs when the search term changes."
-  ],
-  "isFixRequest": true,
+  "known_issues": [],
+  "isFixRequest": false,
   "existing_features": [
     {
-      "id": "feature-fix-the-giphy-search-trigger-in-frontend-src-components-avatarpickerdialog-tsx-so-that-searching-runs-when-the-debounced-search-term-changes-replace-the-incorrect-usestate-side-effect-usage-with-a-proper-useeffect-tied-to-debouncedsearchterm",
-      "title": "Fix the Giphy search trigger in `frontend/src/components/AvatarPickerDialog.tsx` so that searching runs when the debounced search term changes (replace the incorrect `useState(() => { ... })` side-effect usage with a proper `useEffect` tied to `debouncedSearchTerm`).",
+      "id": "feature-update-the-collapsible-chatroom-header-in-frontend-src-components-chatarea-tsx-so-that-collapsing-expanding-the-header-does-not-change-the-header-text-sizes-e-g-the-chatroom-topic-and-description-should-use-the-same-text-sizing-in-both-expanded-and-collapsed-states",
+      "title": "Update the collapsible chatroom header in `frontend/src/components/ChatArea.tsx` so that collapsing/expanding the header does not change the header text sizes (e.g., the chatroom topic and description should use the same text sizing in both expanded and collapsed states).",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-prevent-stale-or-out-of-order-giphy-responses-from-overwriting-newer-search-results-in-avatarpickerdialog-e-g-ensure-only-the-latest-debounced-search-updates-giphyresults-giphyerror-and-avoid-setting-state-after-the-component-unmounts",
-      "title": "Prevent stale or out-of-order Giphy responses from overwriting newer search results in `AvatarPickerDialog` (e.g., ensure only the latest debounced search updates `giphyResults`/`giphyError`, and avoid setting state after the component unmounts).",
+      "id": "feature-in-the-chatroom-header-expanded-and-collapsed-states-display-the-message-count-and-active-user-count-as-icon-number-only-no-label-text-such-as-messages-or-connected-use-the-existing-messagecircle-and-users-icons-and-format-the-numbers-compactly-using-formatcompactnumber",
+      "title": "In the chatroom header (expanded and collapsed states) display the message count and active user count as icon + number only (no label text such as \"messages\" or \"connected\"). Use the existing `MessageCircle` and `Users` icons and format the numbers compactly using `formatCompactNumber`.",
       "reqIds": [
         "REQ-2"
       ],
       "version": 1
     }
   ],
-  "new_feature_requests": [],
-  "projectName": "Fix non-functional Giphy GIF search in AvatarPickerDialog",
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Update collapsible header: preserve existing text sizes; add message count and user count displayed as icon + number only (no label text).",
+      "reqIds": [],
+      "status": "pending"
+    }
+  ],
+  "projectName": "Update collapsible chatroom header: preserve text sizes and show icon-only message/user counts",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

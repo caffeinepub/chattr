@@ -1,11 +1,10 @@
 # Specification
 
 ## Summary
-**Goal:** Fix the non-functional Giphy GIF search in `AvatarPickerDialog` so typing in the search bar actually fetches and displays results reliably.
+**Goal:** Improve the collapsible chatroom header so text sizing stays consistent across expanded/collapsed states and message/user counts display as icon + compact number only.
 
 **Planned changes:**
-- Replace the incorrect `useState(() => { ... })` side-effect usage with a `useEffect` that runs when `debouncedSearchTerm` changes to trigger the Giphy search request.
-- Ensure clearing the search input clears `giphyResults` and `giphyError` and does not issue a Giphy request.
-- Guard against stale/out-of-order responses (and dialog close/unmount) so only the latest debounced search updates `giphyResults`/`giphyError` and no state updates occur after unmount.
+- Update `frontend/src/components/ChatArea.tsx` so collapsing/expanding the chatroom header does not change the font sizes for the chatroom topic and description, avoiding layout shift from font-size changes.
+- In both expanded and collapsed header states, show message count and active user count as `MessageCircle`/`Users` icon + compact-formatted number (via `formatCompactNumber`) with no label text, sourced from `chatroom.messageCount` and `chatroom.activeUserCount`.
 
-**User-visible outcome:** Typing into the Giphy search input triggers a debounced search that updates GIF results; clearing the input clears results/errors; rapid typing or closing the dialog won’t cause incorrect results or React unmounted-update warnings.
+**User-visible outcome:** Toggling the chatroom header no longer changes the topic/description text size, and the header shows message/user counts as icon + compact number in both expanded and collapsed views.

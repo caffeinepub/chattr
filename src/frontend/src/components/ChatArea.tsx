@@ -129,7 +129,7 @@ export default function ChatArea({ chatroomId, chatroom }: ChatAreaProps) {
             <div className="md:flex md:items-center md:justify-center md:gap-8">
               <div className="md:text-center">
                 <div className="flex items-center gap-2 md:justify-center">
-                  <h2 className="text-base font-semibold text-foreground md:text-base">{chatroom.topic}</h2>
+                  <h2 className="text-base font-semibold text-foreground">{chatroom.topic}</h2>
                   {chatroom.category && (
                     <Badge variant="secondary" className="text-xs">
                       {chatroom.category}
@@ -154,16 +154,16 @@ export default function ChatArea({ chatroomId, chatroom }: ChatAreaProps) {
                     <ChevronUp className="h-4 w-4" />
                   </Button>
                 </div>
-                <p className="text-sm text-muted-foreground md:text-sm">{chatroom.description}</p>
+                <p className="text-sm text-muted-foreground">{chatroom.description}</p>
               </div>
               <div className="mt-2 flex items-center gap-4 text-sm text-muted-foreground md:mt-0">
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1.5">
                   <MessageCircle className="h-3.5 w-3.5" />
-                  <span>{Number(chatroom.messageCount)} messages</span>
+                  <span>{formatCompactNumber(chatroom.messageCount)}</span>
                 </div>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1.5">
                   <Users className="h-3.5 w-3.5" />
-                  <span>{Number(chatroom.activeUserCount)} connected</span>
+                  <span>{formatCompactNumber(chatroom.activeUserCount)}</span>
                 </div>
               </div>
             </div>
@@ -172,7 +172,7 @@ export default function ChatArea({ chatroomId, chatroom }: ChatAreaProps) {
           // Collapsed header - compact bar
           <div className="flex items-center justify-between gap-2 px-4 py-2">
             <div className="flex min-w-0 flex-1 items-center gap-2">
-              <h2 className="truncate text-sm font-semibold text-foreground">{chatroom.topic}</h2>
+              <h2 className="truncate text-base font-semibold text-foreground">{chatroom.topic}</h2>
               {chatroom.isLive && (
                 <div className="flex items-center gap-1.5 rounded-md bg-primary px-2 py-0.5">
                   <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" />
@@ -181,6 +181,16 @@ export default function ChatArea({ chatroomId, chatroom }: ChatAreaProps) {
                   </span>
                 </div>
               )}
+            </div>
+            <div className="flex items-center gap-3 text-sm text-muted-foreground">
+              <div className="flex items-center gap-1.5">
+                <MessageCircle className="h-3.5 w-3.5" />
+                <span>{formatCompactNumber(chatroom.messageCount)}</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Users className="h-3.5 w-3.5" />
+                <span>{formatCompactNumber(chatroom.activeUserCount)}</span>
+              </div>
             </div>
             <Button
               variant="ghost"

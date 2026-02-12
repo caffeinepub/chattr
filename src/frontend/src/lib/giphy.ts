@@ -50,3 +50,36 @@ export async function searchGiphy(searchTerm: string): Promise<GiphySearchResult
     };
   }
 }
+
+export async function fetchTrendingGiphy(): Promise<GiphySearchResult> {
+  try {
+    const url = `https://api.giphy.com/v1/gifs/trending?api_key=${GIPHY_API_KEY}&limit=${GIPHY_RESULT_LIMIT}&rating=g`;
+
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      throw new Error(`Giphy API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (!data.data || data.data.length === 0) {
+      return { gifs: [], error: 'No trending GIFs available' };
+    }
+
+    const gifs: GiphyGif[] = data.data.map((gif: any) => ({
+      id: gif.id,
+      title: gif.title || 'Untitled',
+      previewUrl: gif.images.fixed_height_small.url,
+      originalUrl: gif.images.original.url,
+    }));
+
+    return { gifs };
+  } catch (error) {
+    console.error('Giphy trending fetch error:', error);
+    return {
+      gifs: [],
+      error: 'Failed to load trending GIFs. Please try again.',
+    };
+  }
+}

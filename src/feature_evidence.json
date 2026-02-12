@@ -2,10 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-fix-the-giphy-search-trigger-in-frontend-src-components-avatarpickerdialog-tsx-so-that-searching-runs-when-the-debounced-search-term-changes-replace-the-incorrect-usestate-side-effect-usage-with-a-proper-useeffect-tied-to-debouncedsearchterm",
-      "featureTitle": "Fix the Giphy search trigger in `frontend/src/components/AvatarPickerDialog.tsx` so that searching runs when the debounced search term changes (replace the incorrect `useState(() => { ... })` side-effect usage with a proper `useEffect` tied to `debouncedSearchTerm`).",
+      "featureId": "feature-update-the-collapsible-chatroom-header-in-frontend-src-components-chatarea-tsx-so-that-collapsing-expanding-the-header-does-not-change-the-header-text-sizes-e-g-the-chatroom-topic-and-description-should-use-the-same-text-sizing-in-both-expanded-and-collapsed-states",
+      "featureTitle": "Update the collapsible chatroom header in `frontend/src/components/ChatArea.tsx` so that collapsing/expanding the header does not change the header text sizes (e.g., the chatroom topic and description should use the same text sizing in both expanded and collapsed states).",
       "files": [
-        "frontend/src/components/AvatarPickerDialog.tsx"
+        "frontend/src/components/ChatArea.tsx"
       ],
       "components": [
         "authorization@1.0.1",
@@ -23,10 +23,10 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-prevent-stale-or-out-of-order-giphy-responses-from-overwriting-newer-search-results-in-avatarpickerdialog-e-g-ensure-only-the-latest-debounced-search-updates-giphyresults-giphyerror-and-avoid-setting-state-after-the-component-unmounts",
-      "featureTitle": "Prevent stale or out-of-order Giphy responses from overwriting newer search results in `AvatarPickerDialog` (e.g., ensure only the latest debounced search updates `giphyResults`/`giphyError`, and avoid setting state after the component unmounts).",
+      "featureId": "feature-in-the-chatroom-header-expanded-and-collapsed-states-display-the-message-count-and-active-user-count-as-icon-number-only-no-label-text-such-as-messages-or-connected-use-the-existing-messagecircle-and-users-icons-and-format-the-numbers-compactly-using-formatcompactnumber",
+      "featureTitle": "In the chatroom header (expanded and collapsed states) display the message count and active user count as icon + number only (no label text such as \"messages\" or \"connected\"). Use the existing `MessageCircle` and `Users` icons and format the numbers compactly using `formatCompactNumber`.",
       "files": [
-        "frontend/src/components/AvatarPickerDialog.tsx"
+        "frontend/src/components/ChatArea.tsx"
       ],
       "components": [
         "authorization@1.0.1",

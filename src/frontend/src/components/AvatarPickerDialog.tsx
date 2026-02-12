@@ -7,7 +7,7 @@ import { useGetCurrentAvatar, useUpdateAvatar, uploadImage } from '../hooks/useQ
 import { toast } from 'sonner';
 import { Input } from './ui/input';
 import { useDebouncedValue } from '../hooks/useDebouncedValue';
-import { searchGiphy, GiphyGif } from '../lib/giphy';
+import { searchGiphy, fetchTrendingGiphy, GiphyGif } from '../lib/giphy';
 import { ScrollArea } from './ui/scroll-area';
 
 interface AvatarPickerDialogProps {
@@ -26,22 +26,25 @@ export default function AvatarPickerDialog({ open, onOpenChange }: AvatarPickerD
   const debouncedSearchTerm = useDebouncedValue(giphySearchTerm, 500);
   const requestIdRef = useRef(0);
 
-  // Perform Giphy search when debounced term changes
+  // Perform Giphy search or fetch trending when debounced term changes
   useEffect(() => {
-    // Clear results and error if search term is empty
-    if (!debouncedSearchTerm.trim()) {
-      setGiphyResults([]);
-      setGiphyError(null);
-      setIsSearchingGiphy(false);
+    // Only fetch if dialog is open
+    if (!open) {
       return;
     }
 
-    // Increment request ID to track this specific search
+    // Increment request ID to track this specific request
     const currentRequestId = ++requestIdRef.current;
     
     setIsSearchingGiphy(true);
+    setGiphyError(null);
+
+    // If search term is empty, fetch trending; otherwise search
+    const fetchPromise = debouncedSearchTerm.trim()
+      ? searchGiphy(debouncedSearchTerm)
+      : fetchTrendingGiphy();
     
-    searchGiphy(debouncedSearchTerm)
+    fetchPromise
       .then((result) => {
         // Only update state if this is still the latest request
         if (currentRequestId === requestIdRef.current) {
@@ -52,8 +55,8 @@ export default function AvatarPickerDialog({ open, onOpenChange }: AvatarPickerD
       .catch((error) => {
         // Only update state if this is still the latest request
         if (currentRequestId === requestIdRef.current) {
-          console.error('Giphy search error:', error);
-          setGiphyError('Failed to search Giphy. Please try again.');
+          console.error('Giphy fetch error:', error);
+          setGiphyError('Failed to load GIFs. Please try again.');
           setGiphyResults([]);
         }
       })
@@ -68,7 +71,7 @@ export default function AvatarPickerDialog({ open, onOpenChange }: AvatarPickerD
     return () => {
       // The next search will increment requestIdRef, making this request stale
     };
-  }, [debouncedSearchTerm]);
+  }, [debouncedSearchTerm, open]);
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -185,7 +188,7 @@ export default function AvatarPickerDialog({ open, onOpenChange }: AvatarPickerD
 
             {isSearchingGiphy && (
               <div className="text-center text-sm text-muted-foreground">
-                Searching...
+                {giphySearchTerm.trim() ? 'Searching...' : 'Loading trending GIFs...'}
               </div>
             )}
 

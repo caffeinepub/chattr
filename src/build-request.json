@@ -1,57 +1,60 @@
 {
   "kind": "build_request",
-  "title": "Fix non-functional Giphy GIF search in AvatarPickerDialog",
+  "title": "Update collapsible chatroom header: preserve text sizes and show icon-only message/user counts",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Fix the Giphy search trigger in `frontend/src/components/AvatarPickerDialog.tsx` so that searching runs when the debounced search term changes (replace the incorrect `useState(() => { ... })` side-effect usage with a proper `useEffect` tied to `debouncedSearchTerm`).",
+      "text": "Update the collapsible chatroom header in `frontend/src/components/ChatArea.tsx` so that collapsing/expanding the header does not change the header text sizes (e.g., the chatroom topic and description should use the same text sizing in both expanded and collapsed states).",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-4",
-          "msg-6"
+          "msg-7",
+          "msg-8"
         ],
         "quotes": [
-          "gifs are still not working yet. why? it only has a search bar but it doesnt work.",
-          "ok fix it"
+          "for the collapsible header, can you maintain the same text sizes.",
+          "yes go ahead"
         ]
       },
       "acceptanceCriteria": [
-        "Typing into the Giphy search input triggers a network request to Giphy after the existing debounce delay and updates results.",
-        "Clearing the search input clears `giphyResults`, clears `giphyError`, and does not perform a Giphy request.",
-        "The existing AvatarPickerDialog UI layout and styling (Tailwind classes/structure) remain unchanged aside from any minimal changes required to wire the effect correctly."
+        "When toggling the header between expanded and collapsed, the chatroom topic text size remains consistent.",
+        "When toggling the header between expanded and collapsed, the chatroom description text size remains consistent (if shown in both states).",
+        "No layout shift occurs due to font-size changes when toggling."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Prevent stale or out-of-order Giphy responses from overwriting newer search results in `AvatarPickerDialog` (e.g., ensure only the latest debounced search updates `giphyResults`/`giphyError`, and avoid setting state after the component unmounts).",
+      "text": "In the chatroom header (expanded and collapsed states) display the message count and active user count as icon + number only (no label text such as \"messages\" or \"connected\"). Use the existing `MessageCircle` and `Users` icons and format the numbers compactly using `formatCompactNumber`.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-4",
-          "msg-6"
+          "msg-7",
+          "msg-8"
         ],
         "quotes": [
-          "it only has a search bar but it doesnt work.",
-          "ok fix it"
+          "also include the message count and user count (but just the icon and count , no other text))",
+          "yes go ahead"
         ]
       },
       "acceptanceCriteria": [
-        "If the user types quickly and multiple searches are in-flight, the UI ends up showing results for the most recent debounced term (no older request overwrites newer results).",
-        "No React warnings occur for state updates on an unmounted component when closing the dialog during/after a search."
+        "The header shows a message icon followed by the message count number with no additional label text.",
+        "The header shows a users icon followed by the active user count number with no additional label text.",
+        "Counts render correctly from `chatroom.messageCount` and `chatroom.activeUserCount`.",
+        "Counts are formatted using compact notation (e.g., 1200 -> \"1.2k\").",
+        "The icon+count elements are visible in both expanded and collapsed header states."
       ]
     }
   ],
   "constraints": [
-    "Do not modify backend canister code for this fix; Giphy requests must remain frontend-only.",
-    "Do not introduce any unintended style/layout changes to the existing avatar picker UI (functional fix only).",
-    "Do not edit files under `frontend/src/components/ui` or any other immutable paths listed in SYSTEM_CONTEXT."
+    "Frontend files under `frontend/src/components/ui` must not be edited directly (compose existing UI components only).",
+    "Do not modify files in `frontend/src/hooks/useInternetIdentity.ts`, `frontend/src/hooks/useInternetIdentity.tsx`, `frontend/src/hooks/useActor.ts`, or `frontend/src/main.tsx` (immutable paths).",
+    "Backend must remain a single Motoko actor in `backend/main.mo`; do not introduce additional backend services."
   ],
   "nonGoals": [
-    "Changing or redesigning the AvatarPickerDialog UI/UX beyond what is required to make search functional.",
-    "Adding new authentication mechanisms or backend proxying for the Giphy API.",
-    "Adding new avatar-related features beyond fixing the existing search behavior."
+    "Changing how messageCount or activeUserCount are computed in the backend.",
+    "Adding new labels, tooltips, or explanatory text for the counts (beyond icon + number).",
+    "Adding new analytics, presence logic, or real-time mechanisms beyond existing polling."
   ],
   "imageRequirements": {
     "required": [],

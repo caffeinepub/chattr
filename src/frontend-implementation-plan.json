@@ -1,41 +1,39 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Fix debounced Giphy search + stale response handling in AvatarPickerDialog",
+  "title": "Collapsible chatroom header: consistent typography + icon-only compact counts",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Replace incorrect useState side-effect with a useEffect that runs Giphy search when debouncedSearchTerm changes, and clear results/errors when input is empty without making a request.",
+      "summary": "Keep chatroom header topic/description text sizing consistent between expanded and collapsed states to avoid font-size layout shift.",
       "acceptanceCriteria": [
-        "Typing into the Giphy search input triggers a network request to Giphy after the existing debounce delay and updates results.",
-        "Clearing the search input clears `giphyResults`, clears `giphyError`, and does not perform a Giphy request.",
-        "The existing AvatarPickerDialog UI layout and styling (Tailwind classes/structure) remain unchanged aside from any minimal changes required to wire the effect correctly."
+        "When toggling the header between expanded and collapsed, the chatroom topic text size remains consistent.",
+        "When toggling the header between expanded and collapsed, the chatroom description text size remains consistent (if shown in both states).",
+        "No layout shift occurs due to font-size changes when toggling."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/AvatarPickerDialog.tsx",
+          "path": "frontend/src/components/ChatArea.tsx",
           "operation": "modify",
-          "description": "Update imports to use React useEffect (and any needed hooks), then replace the current `useState(() => { ... })` side-effect block with a `useEffect` that depends on `debouncedSearchTerm`. Ensure the effect: (1) early-returns after clearing `giphyResults`, `giphyError`, and `isSearchingGiphy` when `debouncedSearchTerm.trim()` is empty, and (2) otherwise starts the search, sets loading state, and updates `giphyResults`/`giphyError` from `searchGiphy`. Keep all existing JSX/Tailwind class structure unchanged."
+          "description": "Adjust the collapsed header typography classes so the topic (and description, if displayed) uses the same text sizing as the expanded header, preventing font-size-driven layout shift when toggling."
         }
       ]
     },
     {
       "id": "REQ-2",
-      "summary": "Ensure only the latest debounced Giphy search updates state, and prevent state updates after dialog close/unmount.",
+      "summary": "Show message and active user counts as icon + compact-formatted number (no labels) in both expanded and collapsed header states.",
       "acceptanceCriteria": [
-        "If the user types quickly and multiple searches are in-flight, the UI ends up showing results for the most recent debounced term (no older request overwrites newer results).",
-        "No React warnings occur for state updates on an unmounted component when closing the dialog during/after a search."
+        "The header shows a message icon followed by the message count number with no additional label text.",
+        "The header shows a users icon followed by the active user count number with no additional label text.",
+        "Counts render correctly from `chatroom.messageCount` and `chatroom.activeUserCount`.",
+        "Counts are formatted using compact notation (e.g., 1200 -> \"1.2k\").",
+        "The icon+count elements are visible in both expanded and collapsed header states."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/AvatarPickerDialog.tsx",
+          "path": "frontend/src/components/ChatArea.tsx",
           "operation": "modify",
-          "description": "Augment the debounced-search `useEffect` to guard against stale/out-of-order responses and unmount updates. Use a request sequencing mechanism (e.g., incrementing request id via useRef) and/or effect cleanup to ignore older results, and ensure cleanup prevents calling setState after unmount or after a newer search starts. Optionally cancel fetch using AbortController if wiring through `searchGiphy` is introduced, but do not change UI layout/styling."
-        },
-        {
-          "path": "frontend/src/lib/giphy.ts",
-          "operation": "modify",
-          "description": "(If needed to support REQ-2) Extend `searchGiphy` to optionally accept a cancellation mechanism (e.g., AbortSignal) and pass it through to `fetch`, while preserving current return shape and error behavior. Keep this as a purely-frontend request (no backend changes)."
+          "description": "Update the header counts UI to render MessageCircle/Users icons with numbers only (no label text) and format values via formatCompactNumber for both expanded and collapsed header layouts."
         }
       ]
     }
