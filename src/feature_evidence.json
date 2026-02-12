@@ -2,8 +2,8 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-update-the-collapsible-chatroom-header-in-frontend-src-components-chatarea-tsx-so-that-collapsing-expanding-the-header-does-not-change-the-header-text-sizes-e-g-the-chatroom-topic-and-description-should-use-the-same-text-sizing-in-both-expanded-and-collapsed-states",
-      "featureTitle": "Update the collapsible chatroom header in `frontend/src/components/ChatArea.tsx` so that collapsing/expanding the header does not change the header text sizes (e.g., the chatroom topic and description should use the same text sizing in both expanded and collapsed states).",
+      "featureId": "feature-in-desktop-layouts-md-breakpoint-and-up-update-the-collapsed-state-of-the-chatroom-header-in-frontend-src-components-chatarea-tsx-so-that-the-header-s-inner-content-is-centered-horizontally-when-collapsed-matching-the-centered-alignment-used-in-the-expanded-state-keep-the-existing-mobile-small-screen-collapsed-layout-behavior-intact",
+      "featureTitle": "In desktop layouts (md breakpoint and up), update the collapsed state of the chatroom header in `frontend/src/components/ChatArea.tsx` so that the header’s inner content is centered horizontally when collapsed, matching the centered alignment used in the expanded state. Keep the existing mobile (small screen) collapsed layout behavior intact.",
       "files": [
         "frontend/src/components/ChatArea.tsx"
       ],
@@ -18,28 +18,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-1"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-in-the-chatroom-header-expanded-and-collapsed-states-display-the-message-count-and-active-user-count-as-icon-number-only-no-label-text-such-as-messages-or-connected-use-the-existing-messagecircle-and-users-icons-and-format-the-numbers-compactly-using-formatcompactnumber",
-      "featureTitle": "In the chatroom header (expanded and collapsed states) display the message count and active user count as icon + number only (no label text such as \"messages\" or \"connected\"). Use the existing `MessageCircle` and `Users` icons and format the numbers compactly using `formatCompactNumber`.",
-      "files": [
-        "frontend/src/components/ChatArea.tsx"
-      ],
-      "components": [
-        "authorization@1.0.1",
-        "blob-storage@2.0.3",
-        "http-outcalls@1.1.1",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-2"
+        "REQ-3"
       ],
       "confidence": "high"
     }

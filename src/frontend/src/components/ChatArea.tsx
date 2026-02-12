@@ -170,8 +170,8 @@ export default function ChatArea({ chatroomId, chatroom }: ChatAreaProps) {
           </div>
         ) : (
           // Collapsed header - compact bar
-          <div className="flex items-center justify-between gap-2 px-4 py-2">
-            <div className="flex min-w-0 flex-1 items-center gap-2">
+          <div className="flex items-center justify-between gap-2 px-4 py-2 md:justify-center">
+            <div className="flex min-w-0 flex-1 items-center gap-2 md:flex-initial md:min-w-0">
               <h2 className="truncate text-base font-semibold text-foreground">{chatroom.topic}</h2>
               {chatroom.isLive && (
                 <div className="flex items-center gap-1.5 rounded-md bg-primary px-2 py-0.5">

@@ -1,63 +1,49 @@
 {
   "kind": "build_request",
-  "title": "Update collapsible chatroom header: preserve text sizes and show icon-only message/user counts",
+  "title": "Center collapsed chatroom header content on desktop",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-1",
-      "text": "Update the collapsible chatroom header in `frontend/src/components/ChatArea.tsx` so that collapsing/expanding the header does not change the header text sizes (e.g., the chatroom topic and description should use the same text sizing in both expanded and collapsed states).",
+      "id": "REQ-3",
+      "text": "In desktop layouts (md breakpoint and up), update the collapsed state of the chatroom header in `frontend/src/components/ChatArea.tsx` so that the header’s inner content is centered horizontally when collapsed, matching the centered alignment used in the expanded state. Keep the existing mobile (small screen) collapsed layout behavior intact.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-7",
-          "msg-8"
+          "msg-1",
+          "msg-2"
         ],
         "quotes": [
-          "for the collapsible header, can you maintain the same text sizes.",
-          "yes go ahead"
+          "in desktop mode, the content in the collapsible container needs to be centered when in a collapsed state just like it is when its now collapsed. does that make sense? --- please confirm you understand. dont code yet",
+          "ok do it then"
         ]
       },
       "acceptanceCriteria": [
-        "When toggling the header between expanded and collapsed, the chatroom topic text size remains consistent.",
-        "When toggling the header between expanded and collapsed, the chatroom description text size remains consistent (if shown in both states).",
-        "No layout shift occurs due to font-size changes when toggling."
-      ]
-    },
-    {
-      "id": "REQ-2",
-      "text": "In the chatroom header (expanded and collapsed states) display the message count and active user count as icon + number only (no label text such as \"messages\" or \"connected\"). Use the existing `MessageCircle` and `Users` icons and format the numbers compactly using `formatCompactNumber`.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-7",
-          "msg-8"
-        ],
-        "quotes": [
-          "also include the message count and user count (but just the icon and count , no other text))",
-          "yes go ahead"
-        ]
-      },
-      "acceptanceCriteria": [
-        "The header shows a message icon followed by the message count number with no additional label text.",
-        "The header shows a users icon followed by the active user count number with no additional label text.",
-        "Counts render correctly from `chatroom.messageCount` and `chatroom.activeUserCount`.",
-        "Counts are formatted using compact notation (e.g., 1200 -> \"1.2k\").",
-        "The icon+count elements are visible in both expanded and collapsed header states."
+        "When the header is collapsed and the viewport is md or larger, the collapsed header content (topic + LIVE badge if present + counts + expand button) is visually centered horizontally within the header bar (not left-aligned with extra space to the right).",
+        "When the header is collapsed on small screens (below md), the current collapsed header layout and spacing behavior remain unchanged.",
+        "Expanded header layout remains unchanged."
       ]
     }
   ],
   "constraints": [
-    "Frontend files under `frontend/src/components/ui` must not be edited directly (compose existing UI components only).",
-    "Do not modify files in `frontend/src/hooks/useInternetIdentity.ts`, `frontend/src/hooks/useInternetIdentity.tsx`, `frontend/src/hooks/useActor.ts`, or `frontend/src/main.tsx` (immutable paths).",
-    "Backend must remain a single Motoko actor in `backend/main.mo`; do not introduce additional backend services."
+    "Do not edit files under `frontend/src/components/ui` (compose existing UI components instead).",
+    "Do not modify any paths listed as immutable in SYSTEM_CONTEXT."
   ],
   "nonGoals": [
-    "Changing how messageCount or activeUserCount are computed in the backend.",
-    "Adding new labels, tooltips, or explanatory text for the counts (beyond icon + number).",
-    "Adding new analytics, presence logic, or real-time mechanisms beyond existing polling."
+    "Do not change backend logic or data models.",
+    "Do not change what content appears in the header (only adjust alignment/centering in collapsed desktop layout)."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
+  },
+  "userProfileUpdate": {
+    "goalsToAdd": [],
+    "goalsToRemove": [],
+    "preferencesToAdd": [],
+    "preferencesToRemove": [],
+    "miscToAdd": [],
+    "miscToRemove": [],
+    "fieldsToSet": {},
+    "fieldsToDelete": []
   }
 }

@@ -3,35 +3,22 @@
   "projectStateVersion": 3,
   "summary": "New project",
   "architectural_notes": [],
-  "known_issues": [],
-  "isFixRequest": false,
+  "known_issues": [
+    "Desktop mode: content inside the collapsible container is not centered when the container is collapsed; should remain centered as in expanded state."
+  ],
+  "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-update-the-collapsible-chatroom-header-in-frontend-src-components-chatarea-tsx-so-that-collapsing-expanding-the-header-does-not-change-the-header-text-sizes-e-g-the-chatroom-topic-and-description-should-use-the-same-text-sizing-in-both-expanded-and-collapsed-states",
-      "title": "Update the collapsible chatroom header in `frontend/src/components/ChatArea.tsx` so that collapsing/expanding the header does not change the header text sizes (e.g., the chatroom topic and description should use the same text sizing in both expanded and collapsed states).",
+      "id": "feature-in-desktop-layouts-md-breakpoint-and-up-update-the-collapsed-state-of-the-chatroom-header-in-frontend-src-components-chatarea-tsx-so-that-the-header-s-inner-content-is-centered-horizontally-when-collapsed-matching-the-centered-alignment-used-in-the-expanded-state-keep-the-existing-mobile-small-screen-collapsed-layout-behavior-intact",
+      "title": "In desktop layouts (md breakpoint and up), update the collapsed state of the chatroom header in `frontend/src/components/ChatArea.tsx` so that the header’s inner content is centered horizontally when collapsed, matching the centered alignment used in the expanded state. Keep the existing mobile (small screen) collapsed layout behavior intact.",
       "reqIds": [
-        "REQ-1"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-in-the-chatroom-header-expanded-and-collapsed-states-display-the-message-count-and-active-user-count-as-icon-number-only-no-label-text-such-as-messages-or-connected-use-the-existing-messagecircle-and-users-icons-and-format-the-numbers-compactly-using-formatcompactnumber",
-      "title": "In the chatroom header (expanded and collapsed states) display the message count and active user count as icon + number only (no label text such as \"messages\" or \"connected\"). Use the existing `MessageCircle` and `Users` icons and format the numbers compactly using `formatCompactNumber`.",
-      "reqIds": [
-        "REQ-2"
+        "REQ-3"
       ],
       "version": 1
     }
   ],
-  "new_feature_requests": [
-    {
-      "id": "AR-1",
-      "summary": "Update collapsible header: preserve existing text sizes; add message count and user count displayed as icon + number only (no label text).",
-      "reqIds": [],
-      "status": "pending"
-    }
-  ],
-  "projectName": "Update collapsible chatroom header: preserve text sizes and show icon-only message/user counts",
+  "new_feature_requests": [],
+  "projectName": "Center collapsed chatroom header content on desktop",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

@@ -1,39 +1,21 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Collapsible chatroom header: consistent typography + icon-only compact counts",
+  "title": "Center collapsed chatroom header content on desktop",
   "requirements": [
     {
-      "id": "REQ-1",
-      "summary": "Keep chatroom header topic/description text sizing consistent between expanded and collapsed states to avoid font-size layout shift.",
+      "id": "REQ-3",
+      "summary": "Center the collapsed chatroom header inner content horizontally on md+ screens while preserving the existing mobile collapsed layout and leaving the expanded header unchanged.",
       "acceptanceCriteria": [
-        "When toggling the header between expanded and collapsed, the chatroom topic text size remains consistent.",
-        "When toggling the header between expanded and collapsed, the chatroom description text size remains consistent (if shown in both states).",
-        "No layout shift occurs due to font-size changes when toggling."
+        "When the header is collapsed and the viewport is md or larger, the collapsed header content (topic + LIVE badge if present + counts + expand button) is visually centered horizontally within the header bar (not left-aligned with extra space to the right).",
+        "When the header is collapsed on small screens (below md), the current collapsed header layout and spacing behavior remain unchanged.",
+        "Expanded header layout remains unchanged."
       ],
       "file_operations": [
         {
           "path": "frontend/src/components/ChatArea.tsx",
           "operation": "modify",
-          "description": "Adjust the collapsed header typography classes so the topic (and description, if displayed) uses the same text sizing as the expanded header, preventing font-size-driven layout shift when toggling."
-        }
-      ]
-    },
-    {
-      "id": "REQ-2",
-      "summary": "Show message and active user counts as icon + compact-formatted number (no labels) in both expanded and collapsed header states.",
-      "acceptanceCriteria": [
-        "The header shows a message icon followed by the message count number with no additional label text.",
-        "The header shows a users icon followed by the active user count number with no additional label text.",
-        "Counts render correctly from `chatroom.messageCount` and `chatroom.activeUserCount`.",
-        "Counts are formatted using compact notation (e.g., 1200 -> \"1.2k\").",
-        "The icon+count elements are visible in both expanded and collapsed header states."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/ChatArea.tsx",
-          "operation": "modify",
-          "description": "Update the header counts UI to render MessageCircle/Users icons with numbers only (no label text) and format values via formatCompactNumber for both expanded and collapsed header layouts."
+          "description": "Update the collapsed header layout classes/structure to match expanded-state centering on md+ only (e.g., switch from a simple justify-between row to an md+ centering wrapper that horizontally centers the combined collapsed header content, while keeping the current base/mobile flex layout intact). Ensure the expand button remains accessible and visually part of the centered cluster on desktop, and do not change which elements are rendered."
         }
       ]
     }

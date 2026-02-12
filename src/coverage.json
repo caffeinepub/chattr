@@ -1,29 +1,18 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-12T22:45:54.534Z",
+  "generatedAt": "2026-02-12T22:57:53.863Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 2,
-    "implemented": 2,
+    "total": 1,
+    "implemented": 1,
     "items": [
       {
-        "id": "REQ-1",
-        "summary": "Update the collapsible chatroom header in `frontend/src/components/ChatArea.tsx` so that collapsing/expanding the header does not change the header text sizes (e.g., the chatroom topic and description should use the same text sizing in both expanded and collapsed states).",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/ChatArea.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/ChatArea.tsx"
-        ]
-      },
-      {
-        "id": "REQ-2",
-        "summary": "In the chatroom header (expanded and collapsed states) display the message count and active user count as icon + number only (no label text such as \"messages\" or \"connected\"). Use the existing `MessageCircle` and `Users` icons and format the numbers compactly using `formatCompactNumber`.",
+        "id": "REQ-3",
+        "summary": "In desktop layouts (md breakpoint and up), update the collapsed state of the chatroom header in `frontend/src/components/ChatArea.tsx` so that the header’s inner content is centered horizontally when collapsed, matching the centered alignment used in the expanded state. Keep the existing mobile (small screen) collapsed layout behavior intact.",
         "status": "implemented",
         "plannedFiles": [
           "frontend/src/components/ChatArea.tsx"
