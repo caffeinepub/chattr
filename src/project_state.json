@@ -1,42 +1,32 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Add Giphy search/support to the avatar picker while preserving existing UI styles/layout (redo integration after revert due to unintended style changes).",
-  "architectural_notes": [
-    "Giphy integration must not modify existing avatar picker styles/layout (functional change only).",
-    "Store the Giphy API key securely (env/secret) and do not hardcode it in the client."
-  ],
+  "summary": "New project",
+  "architectural_notes": [],
   "known_issues": [
-    "Previous Giphy update caused unexpected style/layout changes, requiring revert to v144."
+    "GIF/Giphy avatar search is non-functional because the search logic is wired to useState initialization instead of an effect (useEffect), so no API call runs when the search term changes."
   ],
   "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-add-giphy-search-selection-support-to-the-existing-avatar-picker-so-users-can-set-their-avatar-to-a-giphy-gif-url-without-changing-any-existing-styles-layout-in-the-app",
-      "title": "Add Giphy search + selection support to the existing avatar picker so users can set their avatar to a Giphy GIF URL, without changing any existing styles/layout in the app.",
+      "id": "feature-fix-the-giphy-search-trigger-in-frontend-src-components-avatarpickerdialog-tsx-so-that-searching-runs-when-the-debounced-search-term-changes-replace-the-incorrect-usestate-side-effect-usage-with-a-proper-useeffect-tied-to-debouncedsearchterm",
+      "title": "Fix the Giphy search trigger in `frontend/src/components/AvatarPickerDialog.tsx` so that searching runs when the debounced search term changes (replace the incorrect `useState(() => { ... })` side-effect usage with a proper `useEffect` tied to `debouncedSearchTerm`).",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-store-and-reference-the-giphy-api-key-in-the-frontend-in-a-way-that-does-not-introduce-any-new-styling-layout-changes-e-g-configuration-constant-usage-and-ensure-network-requests-to-giphy-are-made-directly-from-the-frontend",
-      "title": "Store and reference the Giphy API key in the frontend in a way that does not introduce any new styling/layout changes (e.g., configuration/constant usage), and ensure network requests to Giphy are made directly from the frontend.",
+      "id": "feature-prevent-stale-or-out-of-order-giphy-responses-from-overwriting-newer-search-results-in-avatarpickerdialog-e-g-ensure-only-the-latest-debounced-search-updates-giphyresults-giphyerror-and-avoid-setting-state-after-the-component-unmounts",
+      "title": "Prevent stale or out-of-order Giphy responses from overwriting newer search results in `AvatarPickerDialog` (e.g., ensure only the latest debounced search updates `giphyResults`/`giphyError`, and avoid setting state after the component unmounts).",
       "reqIds": [
         "REQ-2"
       ],
       "version": 1
     }
   ],
-  "new_feature_requests": [
-    {
-      "id": "AR-1",
-      "summary": "Redo Giphy support for avatars (avatar picker integration) without any style/layout changes",
-      "reqIds": [],
-      "status": "pending"
-    }
-  ],
-  "projectName": "Redo Giphy avatar support (no style/layout changes)",
+  "new_feature_requests": [],
+  "projectName": "Fix non-functional Giphy GIF search in AvatarPickerDialog",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog';
 import { Button } from './ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
@@ -24,24 +24,51 @@ export default function AvatarPickerDialog({ open, onOpenChange }: AvatarPickerD
   const [giphyError, setGiphyError] = useState<string | null>(null);
   const [isSearchingGiphy, setIsSearchingGiphy] = useState(false);
   const debouncedSearchTerm = useDebouncedValue(giphySearchTerm, 500);
+  const requestIdRef = useRef(0);
 
   // Perform Giphy search when debounced term changes
-  useState(() => {
-    if (debouncedSearchTerm.trim()) {
-      setIsSearchingGiphy(true);
-      searchGiphy(debouncedSearchTerm)
-        .then((result) => {
-          setGiphyResults(result.gifs);
-          setGiphyError(result.error || null);
-        })
-        .finally(() => {
-          setIsSearchingGiphy(false);
-        });
-    } else {
+  useEffect(() => {
+    // Clear results and error if search term is empty
+    if (!debouncedSearchTerm.trim()) {
       setGiphyResults([]);
       setGiphyError(null);
+      setIsSearchingGiphy(false);
+      return;
     }
-  });
+
+    // Increment request ID to track this specific search
+    const currentRequestId = ++requestIdRef.current;
+    
+    setIsSearchingGiphy(true);
+    
+    searchGiphy(debouncedSearchTerm)
+      .then((result) => {
+        // Only update state if this is still the latest request
+        if (currentRequestId === requestIdRef.current) {
+          setGiphyResults(result.gifs);
+          setGiphyError(result.error || null);
+        }
+      })
+      .catch((error) => {
+        // Only update state if this is still the latest request
+        if (currentRequestId === requestIdRef.current) {
+          console.error('Giphy search error:', error);
+          setGiphyError('Failed to search Giphy. Please try again.');
+          setGiphyResults([]);
+        }
+      })
+      .finally(() => {
+        // Only update loading state if this is still the latest request
+        if (currentRequestId === requestIdRef.current) {
+          setIsSearchingGiphy(false);
+        }
+      });
+
+    // Cleanup function to prevent state updates after unmount or new search
+    return () => {
+      // The next search will increment requestIdRef, making this request stale
+    };
+  }, [debouncedSearchTerm]);
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];

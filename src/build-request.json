@@ -1,56 +1,57 @@
 {
   "kind": "build_request",
-  "title": "Redo Giphy avatar support (no style/layout changes)",
-  "priority": "high",
+  "title": "Fix non-functional Giphy GIF search in AvatarPickerDialog",
+  "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Add Giphy search + selection support to the existing avatar picker so users can set their avatar to a Giphy GIF URL, without changing any existing styles/layout in the app.",
+      "text": "Fix the Giphy search trigger in `frontend/src/components/AvatarPickerDialog.tsx` so that searching runs when the debounced search term changes (replace the incorrect `useState(() => { ... })` side-effect usage with a proper `useEffect` tied to `debouncedSearchTerm`).",
       "target": "frontend",
       "source": {
         "messageIds": [
+          "msg-4",
           "msg-6"
         ],
         "quotes": [
-          "i had to revert to version 144 because the giphy update you did caused unexpected style/layout changes. please redo the giphy update but dont change any styles, dont do anything other than add the giphy support for avatars. heres the api key again: rDA2nx5ya4RMgjd6KOJ0lrAtm9KLBWUv"
+          "gifs are still not working yet. why? it only has a search bar but it doesnt work.",
+          "ok fix it"
         ]
       },
       "acceptanceCriteria": [
-        "Avatar picker (frontend/src/components/AvatarPickerDialog.tsx) retains all existing elements and their current Tailwind className strings unchanged; only additive UI/logic for Giphy selection is allowed.",
-        "Users can search Giphy from the avatar picker using API key rDA2nx5ya4RMgjd6KOJ0lrAtm9KLBWUv and see a list/grid of results.",
-        "Selecting a Giphy result sets the avatar by calling the existing useUpdateAvatar mutation with avatarUrl set to the chosen GIF URL and isPreset=false, then closes the dialog (same behavior as upload).",
-        "No changes are made to global styling (e.g., frontend/src/index.css, tailwind config) as part of this update.",
-        "If the Giphy request fails or returns no results, the user is shown an English error/empty-state message and the rest of the avatar picker continues to function (upload/remove still work)."
+        "Typing into the Giphy search input triggers a network request to Giphy after the existing debounce delay and updates results.",
+        "Clearing the search input clears `giphyResults`, clears `giphyError`, and does not perform a Giphy request.",
+        "The existing AvatarPickerDialog UI layout and styling (Tailwind classes/structure) remain unchanged aside from any minimal changes required to wire the effect correctly."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Store and reference the Giphy API key in the frontend in a way that does not introduce any new styling/layout changes (e.g., configuration/constant usage), and ensure network requests to Giphy are made directly from the frontend.",
+      "text": "Prevent stale or out-of-order Giphy responses from overwriting newer search results in `AvatarPickerDialog` (e.g., ensure only the latest debounced search updates `giphyResults`/`giphyError`, and avoid setting state after the component unmounts).",
       "target": "frontend",
       "source": {
         "messageIds": [
+          "msg-4",
           "msg-6"
         ],
         "quotes": [
-          "heres the api key again: rDA2nx5ya4RMgjd6KOJ0lrAtm9KLBWUv"
+          "it only has a search bar but it doesnt work.",
+          "ok fix it"
         ]
       },
       "acceptanceCriteria": [
-        "The Giphy API key value rDA2nx5ya4RMgjd6KOJ0lrAtm9KLBWUv is used for Giphy requests exactly as provided.",
-        "Giphy fetch logic is implemented client-side (no new backend endpoints/canister methods added).",
-        "Giphy requests are limited/debounced to avoid sending a request on every keystroke (e.g., only after a short pause or on explicit search action), without changing existing styling/layout."
+        "If the user types quickly and multiple searches are in-flight, the UI ends up showing results for the most recent debounced term (no older request overwrites newer results).",
+        "No React warnings occur for state updates on an unmounted component when closing the dialog during/after a search."
       ]
     }
   ],
   "constraints": [
-    "Do not modify existing styles or layout; do not change any existing Tailwind className strings in existing UI elements (only additive markup/classes for new Giphy UI is allowed).",
-    "Do not edit any files under frontend/src/components/ui (read-only).",
-    "Do not add any backend (Motoko) changes for this update."
+    "Do not modify backend canister code for this fix; Giphy requests must remain frontend-only.",
+    "Do not introduce any unintended style/layout changes to the existing avatar picker UI (functional fix only).",
+    "Do not edit files under `frontend/src/components/ui` or any other immutable paths listed in SYSTEM_CONTEXT."
   ],
   "nonGoals": [
-    "Adding Giphy support anywhere other than avatar selection (e.g., message composer, chat media embeds).",
-    "Refactoring or restyling the avatar picker dialog, global theme tokens, or Tailwind configuration.",
-    "Adding third-party authentication or any non-Internet-Identity auth changes."
+    "Changing or redesigning the AvatarPickerDialog UI/UX beyond what is required to make search functional.",
+    "Adding new authentication mechanisms or backend proxying for the Giphy API.",
+    "Adding new avatar-related features beyond fixing the existing search behavior."
   ],
   "imageRequirements": {
     "required": [],

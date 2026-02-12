@@ -1,12 +1,11 @@
 # Specification
 
 ## Summary
-**Goal:** Re-add Giphy GIF avatar selection in the existing avatar picker without any style/layout changes.
+**Goal:** Fix the non-functional Giphy GIF search in `AvatarPickerDialog` so typing in the search bar actually fetches and displays results reliably.
 
 **Planned changes:**
-- Add client-side Giphy search + results browsing UI/logic inside `frontend/src/components/AvatarPickerDialog.tsx`, keeping all existing elements and their current Tailwind `className` strings unchanged (only additive markup/logic for Giphy support).
-- Implement debounced (or explicit-action) Giphy requests from the frontend using API key `rDA2nx5ya4RMgjd6KOJ0lrAtm9KLBWUv`, with no new backend endpoints and no changes to global styling/Tailwind configuration.
-- On selecting a Giphy result, set the avatar via the existing `useUpdateAvatar` mutation (`avatarUrl` = chosen GIF URL, `isPreset=false`) and close the dialog (matching existing upload behavior).
-- Add English empty/error states for “no results” and request failures while keeping existing avatar picker features (upload/remove) working.
+- Replace the incorrect `useState(() => { ... })` side-effect usage with a `useEffect` that runs when `debouncedSearchTerm` changes to trigger the Giphy search request.
+- Ensure clearing the search input clears `giphyResults` and `giphyError` and does not issue a Giphy request.
+- Guard against stale/out-of-order responses (and dialog close/unmount) so only the latest debounced search updates `giphyResults`/`giphyError` and no state updates occur after unmount.
 
-**User-visible outcome:** Users can search Giphy in the avatar picker and set their avatar to a selected GIF URL, with the app’s existing styling/layout unchanged.
+**User-visible outcome:** Typing into the Giphy search input triggers a debounced search that updates GIF results; clearing the input clears results/errors; rapid typing or closing the dialog won’t cause incorrect results or React unmounted-update warnings.

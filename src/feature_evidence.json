@@ -2,11 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-add-giphy-search-selection-support-to-the-existing-avatar-picker-so-users-can-set-their-avatar-to-a-giphy-gif-url-without-changing-any-existing-styles-layout-in-the-app",
-      "featureTitle": "Add Giphy search + selection support to the existing avatar picker so users can set their avatar to a Giphy GIF URL, without changing any existing styles/layout in the app.",
+      "featureId": "feature-fix-the-giphy-search-trigger-in-frontend-src-components-avatarpickerdialog-tsx-so-that-searching-runs-when-the-debounced-search-term-changes-replace-the-incorrect-usestate-side-effect-usage-with-a-proper-useeffect-tied-to-debouncedsearchterm",
+      "featureTitle": "Fix the Giphy search trigger in `frontend/src/components/AvatarPickerDialog.tsx` so that searching runs when the debounced search term changes (replace the incorrect `useState(() => { ... })` side-effect usage with a proper `useEffect` tied to `debouncedSearchTerm`).",
       "files": [
-        "frontend/src/components/AvatarPickerDialog.tsx",
-        "frontend/src/lib/giphy.ts"
+        "frontend/src/components/AvatarPickerDialog.tsx"
       ],
       "components": [
         "authorization@1.0.1",
@@ -24,13 +23,10 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-store-and-reference-the-giphy-api-key-in-the-frontend-in-a-way-that-does-not-introduce-any-new-styling-layout-changes-e-g-configuration-constant-usage-and-ensure-network-requests-to-giphy-are-made-directly-from-the-frontend",
-      "featureTitle": "Store and reference the Giphy API key in the frontend in a way that does not introduce any new styling/layout changes (e.g., configuration/constant usage), and ensure network requests to Giphy are made directly from the frontend.",
+      "featureId": "feature-prevent-stale-or-out-of-order-giphy-responses-from-overwriting-newer-search-results-in-avatarpickerdialog-e-g-ensure-only-the-latest-debounced-search-updates-giphyresults-giphyerror-and-avoid-setting-state-after-the-component-unmounts",
+      "featureTitle": "Prevent stale or out-of-order Giphy responses from overwriting newer search results in `AvatarPickerDialog` (e.g., ensure only the latest debounced search updates `giphyResults`/`giphyError`, and avoid setting state after the component unmounts).",
       "files": [
-        "frontend/src/components/AvatarPickerDialog.tsx",
-        "frontend/src/hooks/useDebouncedValue.ts",
-        "frontend/src/lib/config.ts",
-        "frontend/src/lib/giphy.ts"
+        "frontend/src/components/AvatarPickerDialog.tsx"
       ],
       "components": [
         "authorization@1.0.1",

@@ -1,59 +1,41 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Redo Giphy avatar support (no style/layout changes)",
+  "title": "Fix debounced Giphy search + stale response handling in AvatarPickerDialog",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Add Giphy GIF search and selection inside the existing avatar picker dialog to set avatarUrl via the existing avatar update mutation, without altering existing styles/layout.",
+      "summary": "Replace incorrect useState side-effect with a useEffect that runs Giphy search when debouncedSearchTerm changes, and clear results/errors when input is empty without making a request.",
       "acceptanceCriteria": [
-        "Avatar picker (frontend/src/components/AvatarPickerDialog.tsx) retains all existing elements and their current Tailwind className strings unchanged; only additive UI/logic for Giphy selection is allowed.",
-        "Users can search Giphy from the avatar picker using API key rDA2nx5ya4RMgjd6KOJ0lrAtm9KLBWUv and see a list/grid of results.",
-        "Selecting a Giphy result sets the avatar by calling the existing useUpdateAvatar mutation with avatarUrl set to the chosen GIF URL and isPreset=false, then closes the dialog (same behavior as upload).",
-        "No changes are made to global styling (e.g., frontend/src/index.css, tailwind config) as part of this update.",
-        "If the Giphy request fails or returns no results, the user is shown an English error/empty-state message and the rest of the avatar picker continues to function (upload/remove still work)."
+        "Typing into the Giphy search input triggers a network request to Giphy after the existing debounce delay and updates results.",
+        "Clearing the search input clears `giphyResults`, clears `giphyError`, and does not perform a Giphy request.",
+        "The existing AvatarPickerDialog UI layout and styling (Tailwind classes/structure) remain unchanged aside from any minimal changes required to wire the effect correctly."
       ],
       "file_operations": [
         {
           "path": "frontend/src/components/AvatarPickerDialog.tsx",
           "operation": "modify",
-          "description": "Add additive Giphy search UI and selection logic within the dialog while keeping all existing elements and their current Tailwind className strings unchanged; integrate selection to call useUpdateAvatar.mutateAsync({ avatarUrl: <gifUrl>, isPreset: false }) and then onOpenChange(false); handle loading, request failure, and empty-result states with English messages without impacting existing upload/remove flows."
-        },
-        {
-          "path": "frontend/src/lib/giphy.ts",
-          "operation": "create",
-          "description": "Implement a small client-side Giphy search utility (typed result mapping + fetch wrapper) that queries Giphy using the configured API key, returns a compact list of GIFs (id, title, preview URL, original URL), and throws/returns structured errors for failure/no-results handling in the AvatarPickerDialog."
+          "description": "Update imports to use React useEffect (and any needed hooks), then replace the current `useState(() => { ... })` side-effect block with a `useEffect` that depends on `debouncedSearchTerm`. Ensure the effect: (1) early-returns after clearing `giphyResults`, `giphyError`, and `isSearchingGiphy` when `debouncedSearchTerm.trim()` is empty, and (2) otherwise starts the search, sets loading state, and updates `giphyResults`/`giphyError` from `searchGiphy`. Keep all existing JSX/Tailwind class structure unchanged."
         }
       ]
     },
     {
       "id": "REQ-2",
-      "summary": "Centralize the Giphy API key in frontend configuration and ensure client-side, debounced Giphy search requests.",
+      "summary": "Ensure only the latest debounced Giphy search updates state, and prevent state updates after dialog close/unmount.",
       "acceptanceCriteria": [
-        "The Giphy API key value rDA2nx5ya4RMgjd6KOJ0lrAtm9KLBWUv is used for Giphy requests exactly as provided.",
-        "Giphy fetch logic is implemented client-side (no new backend endpoints/canister methods added).",
-        "Giphy requests are limited/debounced to avoid sending a request on every keystroke (e.g., only after a short pause or on explicit search action), without changing existing styling/layout."
+        "If the user types quickly and multiple searches are in-flight, the UI ends up showing results for the most recent debounced term (no older request overwrites newer results).",
+        "No React warnings occur for state updates on an unmounted component when closing the dialog during/after a search."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/lib/config.ts",
-          "operation": "create",
-          "description": "Add a frontend configuration export for the Giphy API key (rDA2nx5ya4RMgjd6KOJ0lrAtm9KLBWUv) and any related constants (e.g., default result limit), ensuring this change does not introduce any styling/layout changes."
-        },
-        {
-          "path": "frontend/src/hooks/useDebouncedValue.ts",
-          "operation": "create",
-          "description": "Create a small React hook to debounce a string value (e.g., search term) so Giphy requests are not made on every keystroke; used by AvatarPickerDialog to trigger client-side searches after a short pause."
+          "path": "frontend/src/components/AvatarPickerDialog.tsx",
+          "operation": "modify",
+          "description": "Augment the debounced-search `useEffect` to guard against stale/out-of-order responses and unmount updates. Use a request sequencing mechanism (e.g., incrementing request id via useRef) and/or effect cleanup to ignore older results, and ensure cleanup prevents calling setState after unmount or after a newer search starts. Optionally cancel fetch using AbortController if wiring through `searchGiphy` is introduced, but do not change UI layout/styling."
         },
         {
           "path": "frontend/src/lib/giphy.ts",
           "operation": "modify",
-          "description": "Wire the Giphy API key from frontend/src/lib/config.ts into the Giphy search utility to ensure the exact provided key is used for all client-side requests."
-        },
-        {
-          "path": "frontend/src/components/AvatarPickerDialog.tsx",
-          "operation": "modify",
-          "description": "Use the debounce hook to limit Giphy searches (triggered after a short pause or explicit search action) and ensure all Giphy network requests are made directly from the frontend, with no global styling changes and no edits to frontend/src/components/ui files."
+          "description": "(If needed to support REQ-2) Extend `searchGiphy` to optionally accept a cancellation mechanism (e.g., AbortSignal) and pass it through to `fetch`, while preserving current return shape and error behavior. Keep this as a purely-frontend request (no backend changes)."
         }
       ]
     }
