@@ -85,8 +85,10 @@ export default function ChatroomCard({ chatroom, onClick }: ChatroomCardProps) {
   const renderThumbnail = () => {
     if (!chatroom.mediaUrl) {
       return (
-        <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">
-          <MessageCircle className="h-12 w-12 text-primary/40" />
+        <div className="relative h-full w-full overflow-hidden rounded-lg">
+          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">
+            <MessageCircle className="h-12 w-12 text-primary/40" />
+          </div>
         </div>
       );
     }
@@ -97,11 +99,11 @@ export default function ChatroomCard({ chatroom, onClick }: ChatroomCardProps) {
       if (videoId) {
         const thumbnailUrl = getYouTubeThumbnailUrl(videoId);
         return (
-          <div className="relative h-full w-full">
+          <div className="relative h-full w-full overflow-hidden rounded-lg">
             <img
               src={thumbnailUrl}
               alt={chatroom.topic}
-              className="h-full w-full object-cover transition-transform group-hover:scale-105"
+              className="h-full w-full object-contain transition-transform group-hover:scale-105"
               onError={(e) => {
                 e.currentTarget.src = '/assets/generated/default-chatroom-thumbnail.dim_200x150.png';
               }}
@@ -132,11 +134,11 @@ export default function ChatroomCard({ chatroom, onClick }: ChatroomCardProps) {
       // If we have a thumbnail, show it
       if (twitchThumbnail) {
         return (
-          <div className="relative h-full w-full">
+          <div className="relative h-full w-full overflow-hidden rounded-lg">
             <img
               src={twitchThumbnail}
               alt={chatroom.topic}
-              className="h-full w-full object-cover transition-transform group-hover:scale-105"
+              className="h-full w-full object-contain transition-transform group-hover:scale-105"
               onError={(e) => {
                 e.currentTarget.style.display = 'none';
                 setTwitchThumbnail(null);
@@ -163,23 +165,25 @@ export default function ChatroomCard({ chatroom, onClick }: ChatroomCardProps) {
       
       // Fallback to icon-based thumbnail
       return (
-        <div className="relative h-full w-full bg-gradient-to-br from-purple-900/50 to-purple-600/50">
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
-            <SiTwitch className="h-16 w-16 text-purple-400 drop-shadow-lg" />
-            <div className="flex flex-col items-center gap-1">
-              <span className="text-white text-xs font-bold px-3 py-1 bg-purple-600/90 rounded-full shadow-md">
-                {contentType}
-              </span>
-              {channelName && (
-                <span className="text-white/80 text-[10px] font-medium px-2 py-0.5 bg-black/40 rounded">
-                  {channelName}
+        <div className="relative h-full w-full overflow-hidden rounded-lg">
+          <div className="h-full w-full bg-gradient-to-br from-purple-900/50 to-purple-600/50">
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
+              <SiTwitch className="h-16 w-16 text-purple-400 drop-shadow-lg" />
+              <div className="flex flex-col items-center gap-1">
+                <span className="text-white text-xs font-bold px-3 py-1 bg-purple-600/90 rounded-full shadow-md">
+                  {contentType}
                 </span>
-              )}
+                {channelName && (
+                  <span className="text-white/80 text-[10px] font-medium px-2 py-0.5 bg-black/40 rounded">
+                    {channelName}
+                  </span>
+                )}
+              </div>
             </div>
-          </div>
-          <div className="absolute inset-0 flex items-center justify-center bg-black/10 transition-opacity group-hover:bg-black/20">
-            <div className="rounded-full bg-purple-600 p-3 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">
-              <Play className="h-6 w-6 fill-white text-white" />
+            <div className="absolute inset-0 flex items-center justify-center bg-black/10 transition-opacity group-hover:bg-black/20">
+              <div className="rounded-full bg-purple-600 p-3 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">
+                <Play className="h-6 w-6 fill-white text-white" />
+              </div>
             </div>
           </div>
         </div>
@@ -193,11 +197,11 @@ export default function ChatroomCard({ chatroom, onClick }: ChatroomCardProps) {
       // If we have a fetched thumbnail, show it
       if (twitterThumbnail) {
         return (
-          <div className="relative h-full w-full">
+          <div className="relative h-full w-full overflow-hidden rounded-lg">
             <img
               src={twitterThumbnail}
               alt={chatroom.topic}
-              className="h-full w-full object-cover transition-transform group-hover:scale-105"
+              className="h-full w-full object-contain transition-transform group-hover:scale-105"
               onError={(e) => {
                 e.currentTarget.style.display = 'none';
                 setTwitterThumbnail(null);
@@ -215,35 +219,39 @@ export default function ChatroomCard({ chatroom, onClick }: ChatroomCardProps) {
       
       // Fallback to icon-based thumbnail
       return (
-        <div className="relative h-full w-full bg-gradient-to-br from-slate-900/60 to-slate-700/60">
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
-            <SiX className="h-16 w-16 text-white drop-shadow-lg" />
-            <div className="flex flex-col items-center gap-1">
-              <span className="text-white text-xs font-bold px-3 py-1 bg-slate-800/90 rounded-full shadow-md">
-                Post
-              </span>
-              {tweetId && (
-                <span className="text-white/70 text-[10px] font-mono px-2 py-0.5 bg-black/40 rounded">
-                  ID: {tweetId.slice(0, 8)}...
+        <div className="relative h-full w-full overflow-hidden rounded-lg">
+          <div className="h-full w-full bg-gradient-to-br from-slate-900/60 to-slate-700/60">
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
+              <SiX className="h-16 w-16 text-white drop-shadow-lg" />
+              <div className="flex flex-col items-center gap-1">
+                <span className="text-white text-xs font-bold px-3 py-1 bg-slate-800/90 rounded-full shadow-md">
+                  Post
                 </span>
-              )}
+                {tweetId && (
+                  <span className="text-white/70 text-[10px] font-mono px-2 py-0.5 bg-black/40 rounded">
+                    ID: {tweetId.slice(0, 8)}...
+                  </span>
+                )}
+              </div>
             </div>
+            <div className="absolute inset-0 bg-black/10 transition-opacity group-hover:bg-black/20" />
           </div>
-          <div className="absolute inset-0 bg-black/10 transition-opacity group-hover:bg-black/20" />
         </div>
       );
     }
 
     // Image or other media
     return (
-      <img
-        src={chatroom.mediaUrl}
-        alt={chatroom.topic}
-        className="h-full w-full object-cover transition-transform group-hover:scale-105"
-        onError={(e) => {
-          e.currentTarget.src = '/assets/generated/default-chatroom-thumbnail.dim_200x150.png';
-        }}
-      />
+      <div className="relative h-full w-full overflow-hidden rounded-lg">
+        <img
+          src={chatroom.mediaUrl}
+          alt={chatroom.topic}
+          className="h-full w-full object-contain transition-transform group-hover:scale-105"
+          onError={(e) => {
+            e.currentTarget.src = '/assets/generated/default-chatroom-thumbnail.dim_200x150.png';
+          }}
+        />
+      </div>
     );
   };
 
@@ -252,7 +260,7 @@ export default function ChatroomCard({ chatroom, onClick }: ChatroomCardProps) {
       className="group cursor-pointer transition-opacity hover:opacity-80"
       onClick={onClick}
     >
-      <div className="relative aspect-square w-full overflow-hidden rounded-lg bg-muted">
+      <div className="relative aspect-square w-full">
         {renderThumbnail()}
         {chatroom.isLive && (
           <div className="absolute left-2 top-2 flex items-center gap-1.5 rounded-md bg-primary px-2 py-1 shadow-lg">
@@ -262,18 +270,18 @@ export default function ChatroomCard({ chatroom, onClick }: ChatroomCardProps) {
             </span>
           </div>
         )}
-      </div>
-      <div className="mt-2 space-y-1 px-1">
-        <div className="flex items-center gap-2 flex-wrap">
-          <h3 className="line-clamp-2 text-base font-semibold leading-tight text-foreground md:text-base flex-1">
-            {chatroom.topic}
-          </h3>
-          {chatroom.category && (
+        {chatroom.category && (
+          <div className="absolute bottom-2 right-2">
             <Badge variant="secondary" className="text-xs">
               {chatroom.category}
             </Badge>
-          )}
-        </div>
+          </div>
+        )}
+      </div>
+      <div className="mt-2 space-y-1 px-1">
+        <h3 className="line-clamp-2 text-base font-semibold leading-tight text-foreground md:text-base">
+          {chatroom.topic}
+        </h3>
         <p className="line-clamp-2 text-sm text-muted-foreground md:text-sm">
           {chatroom.description}
         </p>

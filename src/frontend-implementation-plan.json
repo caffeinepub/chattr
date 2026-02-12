@@ -1,37 +1,22 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Adjust chatroom header stat spacing and LIVE badge placement",
+  "title": "Lobby thumbnail rounded-corner clipping fix",
   "requirements": [
     {
-      "id": "REQ-3",
-      "summary": "Reduce the horizontal gap in the ChatArea header stats row to 0.5rem between message/reply count, view count, and category badge.",
+      "id": "REQ-1",
+      "summary": "Ensure lobby chatroom card thumbnail media and overlays are clipped to rounded corners via an overflow-hidden rounded wrapper for all media types.",
       "acceptanceCriteria": [
-        "In `ChatArea.tsx`, the container that lays out message/reply count, view count, and category badge uses a 0.5rem horizontal gap (e.g., Tailwind `gap-2`).",
-        "Visual verification: the spacing between the message/reply count group and view count group is 0.5rem.",
-        "Visual verification: the spacing between the view count group and the category badge (when present) is 0.5rem."
+        "In the Lobby (chatroom cards), thumbnails visually show rounded corners for all media types (YouTube/Twitch/Twitter/other), even when the image does not fill the container due to `object-contain`.",
+        "No square/uncut corners are visible around thumbnails during normal display or on hover.",
+        "Existing hover effects (e.g., image scale on hover) still work and remain clipped within the rounded thumbnail bounds.",
+        "Changes are implemented in the existing lobby card thumbnail component (e.g., `frontend/src/components/ChatroomCard.tsx`) without introducing backend changes."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/ChatArea.tsx",
+          "path": "frontend/src/components/ChatroomCard.tsx",
           "operation": "modify",
-          "description": "Update the header stats-row container spacing from 1rem to 0.5rem by changing the horizontal gap utility (e.g., `gap-4` to `gap-2`) for the row containing message count, view count, and category badge."
-        }
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "summary": "Move the LIVE indicator into the ChatArea header stats row to the right of the category badge (or after other stats when category is absent) with 0.5rem spacing.",
-      "acceptanceCriteria": [
-        "When `chatroom.isLive` is true and `chatroom.category` is present, the LIVE indicator renders immediately to the right of the category badge in the stats row.",
-        "The horizontal gap between the category badge and the LIVE indicator is 0.5rem.",
-        "When `chatroom.category` is not present and `chatroom.isLive` is true, the LIVE indicator still renders in the stats row to the right of the existing stats items with consistent 0.5rem spacing."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/ChatArea.tsx",
-          "operation": "modify",
-          "description": "Reposition the LIVE indicator so it renders within the header stats row after the category badge when present (otherwise after the view-count group), ensuring the stats-row container uses 0.5rem spacing (e.g., `gap-2`) so the category↔LIVE separation is also 0.5rem. Remove the existing LIVE indicator rendering next to the chatroom title so it appears only in the stats row."
+          "description": "Refactor the thumbnail rendering so each thumbnail type (YouTube/Twitch/Twitter/generic media) wraps the <img> and any overlay layers (badges/labels/hover overlays) in a shared rounded container with `overflow-hidden` (e.g., a `div` like `relative h-full w-full overflow-hidden rounded-lg`). Move the rounding responsibility to this wrapper (remove/avoid relying on `rounded-lg` directly on the <img>) so object-contain letterboxing/background and hover scale effects remain clipped to the rounded bounds across all thumbnail variants."
         }
       ]
     }

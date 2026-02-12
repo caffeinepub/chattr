@@ -1,4 +1,4 @@
-import { RouterProvider, createRouter, createRoute, createRootRoute, Outlet, useMatches } from '@tanstack/react-router';
+import { RouterProvider, createRouter, createRoute, createRootRoute, Outlet, useRouterState } from '@tanstack/react-router';
 import { Toaster } from './components/ui/sonner';
 import { ThemeProvider } from 'next-themes';
 import LobbyPage from './pages/LobbyPage';
@@ -9,8 +9,8 @@ import { AlertCircle } from 'lucide-react';
 import { Button } from './components/ui/button';
 
 function RootLayout() {
-  const matches = useMatches();
-  const isChatroomRoute = matches.some(match => match.routeId === '/chatroom/$chatroomId');
+  const routerState = useRouterState();
+  const isChatroomPage = routerState.location.pathname.startsWith('/chatroom/');
 
   return (
     <div className="flex h-full flex-col bg-background">
@@ -18,7 +18,7 @@ function RootLayout() {
       <main className="flex min-h-0 flex-1 flex-col">
         <Outlet />
       </main>
-      {!isChatroomRoute && <Footer />}
+      {!isChatroomPage && <Footer />}
     </div>
   );
 }

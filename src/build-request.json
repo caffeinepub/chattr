@@ -1,56 +1,50 @@
 {
   "kind": "build_request",
-  "title": "Tighten chatroom header stat gaps and reposition LIVE badge",
+  "title": "Fix lobby thumbnail border radius by clipping media inside a rounded wrapper",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-3",
-      "text": "Update the chatroom header stats row in `frontend/src/components/ChatArea.tsx` so the horizontal gap between the message/reply count, view count, and category badge is 0.5rem (instead of 1rem).",
+      "id": "REQ-1",
+      "text": "Update lobby chatroom card thumbnails so the visible media (including when using `object-fit: contain`) is clipped to rounded corners by wrapping the `<img>` (and any overlay layers) in a rounded container with `overflow-hidden`, across all thumbnail types (YouTube, Twitch, Twitter/X, and generic media).",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-7"
+          "msg-12"
         ],
         "quotes": [
-          "can you make the gap for the replies views and category tag .5 rem instead of 1 rem."
+          "ok do it."
         ]
       },
       "acceptanceCriteria": [
-        "In `ChatArea.tsx`, the container that lays out message/reply count, view count, and category badge uses a 0.5rem horizontal gap (e.g., Tailwind `gap-2`).",
-        "Visual verification: the spacing between the message/reply count group and view count group is 0.5rem.",
-        "Visual verification: the spacing between the view count group and the category badge (when present) is 0.5rem."
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "text": "Move the LIVE indicator in `frontend/src/components/ChatArea.tsx` so it appears to the right of the category badge in the same stats row, and ensure the horizontal gap between the category badge and the LIVE indicator is 0.5rem.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-7"
-        ],
-        "quotes": [
-          "can you also move live tag to be to the right of the category tag. make the gap for that also .5rem"
-        ]
-      },
-      "acceptanceCriteria": [
-        "When `chatroom.isLive` is true and `chatroom.category` is present, the LIVE indicator renders immediately to the right of the category badge in the stats row.",
-        "The horizontal gap between the category badge and the LIVE indicator is 0.5rem.",
-        "When `chatroom.category` is not present and `chatroom.isLive` is true, the LIVE indicator still renders in the stats row to the right of the existing stats items with consistent 0.5rem spacing."
+        "In the Lobby (chatroom cards), thumbnails visually show rounded corners for all media types (YouTube/Twitch/Twitter/other), even when the image does not fill the container due to `object-contain`.",
+        "No square/uncut corners are visible around thumbnails during normal display or on hover.",
+        "Existing hover effects (e.g., image scale on hover) still work and remain clipped within the rounded thumbnail bounds.",
+        "Changes are implemented in the existing lobby card thumbnail component (e.g., `frontend/src/components/ChatroomCard.tsx`) without introducing backend changes."
       ]
     }
   ],
   "constraints": [
-    "Do not modify any files under `frontend/src/components/ui` (compose existing Shadcn components only).",
-    "Do not edit immutable paths listed in SYSTEM_CONTEXT (e.g., `frontend/src/hooks/useInternetIdentity.ts(x)`, `frontend/src/hooks/useActor.ts`, `frontend/src/main.tsx`).",
-    "Backend canister code and data model must remain unchanged for this layout-only update."
+    "Do not modify files under `frontend/src/components/ui` (compose existing UI components instead).",
+    "Do not edit immutable frontend hook/entry files listed in SYSTEM_CONTEXT (e.g., `frontend/src/hooks/useActor.ts`, `frontend/src/hooks/useInternetIdentity.ts(x)`, `frontend/src/main.tsx`).",
+    "Backend remains single-actor; no backend changes are required for this UI-only fix."
   ],
   "nonGoals": [
-    "Do not change chatroom view-count/message-count logic or polling behavior.",
-    "Do not redesign the header beyond the requested spacing and LIVE badge placement."
+    "Changing thumbnail aspect ratio, sizing, or switching away from `object-fit: contain`.",
+    "Adding new media types or changing thumbnail fetching logic (YouTube/Twitch/Twitter).",
+    "Redesigning the lobby page layout beyond what is necessary to ensure rounded thumbnail clipping."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
+  },
+  "userProfileUpdate": {
+    "goalsToAdd": [],
+    "goalsToRemove": [],
+    "preferencesToAdd": [],
+    "preferencesToRemove": [],
+    "miscToAdd": [],
+    "miscToRemove": [],
+    "fieldsToSet": {},
+    "fieldsToDelete": []
   }
 }

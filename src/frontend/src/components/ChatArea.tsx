@@ -118,21 +118,10 @@ export default function ChatArea({ chatroomId, chatroom }: ChatAreaProps) {
     <div className="flex h-full min-h-0 flex-col bg-gradient-to-b from-background to-muted/20">
       {/* Chatroom Info Header - Fixed, centered on desktop */}
       <div className="flex-shrink-0 border-b border-border bg-card px-4 py-3">
-        <div className="md:flex md:flex-col md:items-center">
+        <div className="md:flex md:items-center md:justify-center md:gap-8">
           <div className="md:text-center">
             <div className="flex items-center gap-2 md:justify-center">
               <h2 className="text-base font-semibold text-foreground md:text-base">{chatroom.topic}</h2>
-            </div>
-            <p className="text-sm text-muted-foreground md:text-sm">{chatroom.description}</p>
-            <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground md:justify-center">
-              <div className="flex items-center gap-1">
-                <MessageCircle className="h-3.5 w-3.5" />
-                <span>{formatCompactNumber(Number(chatroom.messageCount))}</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <Eye className="h-3.5 w-3.5" />
-                <span>{formatCompactNumber(Number(chatroom.viewCount))}</span>
-              </div>
               {chatroom.category && (
                 <Badge variant="secondary" className="text-xs">
                   {chatroom.category}
@@ -146,6 +135,17 @@ export default function ChatArea({ chatroomId, chatroom }: ChatAreaProps) {
                   </span>
                 </div>
               )}
+            </div>
+            <p className="text-sm text-muted-foreground md:text-sm">{chatroom.description}</p>
+          </div>
+          <div className="mt-2 flex items-center gap-4 text-xs text-muted-foreground md:mt-0 md:text-sm">
+            <div className="flex items-center gap-1">
+              <MessageCircle className="h-3.5 w-3.5" />
+              <span>{Number(chatroom.messageCount)} messages</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Eye className="h-3.5 w-3.5" />
+              <span>{Number(chatroom.viewCount)} views</span>
             </div>
           </div>
         </div>

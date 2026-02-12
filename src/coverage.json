@@ -1,35 +1,24 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-04T20:26:32.273Z",
+  "generatedAt": "2026-02-12T18:30:58.525Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 2,
-    "implemented": 2,
+    "total": 1,
+    "implemented": 1,
     "items": [
       {
-        "id": "REQ-3",
-        "summary": "Update the chatroom header stats row in `frontend/src/components/ChatArea.tsx` so the horizontal gap between the message/reply count, view count, and category badge is 0.5rem (instead of 1rem).",
+        "id": "REQ-1",
+        "summary": "Update lobby chatroom card thumbnails so the visible media (including when using `object-fit: contain`) is clipped to rounded corners by wrapping the `<img>` (and any overlay layers) in a rounded container with `overflow-hidden`, across all thumbnail types (YouTube, Twitch, Twitter/X, and generic media).",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/ChatArea.tsx"
+          "frontend/src/components/ChatroomCard.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/ChatArea.tsx"
-        ]
-      },
-      {
-        "id": "REQ-4",
-        "summary": "Move the LIVE indicator in `frontend/src/components/ChatArea.tsx` so it appears to the right of the category badge in the same stats row, and ensure the horizontal gap between the category badge and the LIVE indicator is 0.5rem.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/ChatArea.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/ChatArea.tsx"
+          "frontend/src/components/ChatroomCard.tsx"
         ]
       }
     ]
@@ -39,7 +28,7 @@
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/components/ChatArea.tsx",
+    "frontend/src/components/ChatroomCard.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

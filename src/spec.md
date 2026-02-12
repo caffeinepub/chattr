@@ -1,10 +1,11 @@
 # Specification
 
 ## Summary
-**Goal:** Tighten spacing in the chatroom header stats row and reposition the LIVE badge next to the category badge.
+**Goal:** Ensure lobby chatroom card thumbnails always display properly rounded corners by clipping the underlying media and overlays within a rounded, overflow-hidden wrapper.
 
 **Planned changes:**
-- Update the stats row layout in `frontend/src/components/ChatArea.tsx` so the horizontal gap between message/reply count, view count, and category badge is 0.5rem (instead of 1rem).
-- Adjust the LIVE indicator placement in `frontend/src/components/ChatArea.tsx` to render to the right of the category badge within the same stats row, with a 0.5rem gap (and keep consistent 0.5rem spacing when the category badge is absent).
+- Update the lobby chatroom card thumbnail markup to wrap the `<img>` and any overlay layers in a rounded container with `overflow-hidden`, so `object-fit: contain` media is clipped to the rounded shape.
+- Apply the same clipping approach consistently across all thumbnail types (YouTube, Twitch, Twitter/X, and generic media) within the existing lobby card thumbnail component (e.g., `frontend/src/components/ChatroomCard.tsx`).
+- Preserve existing hover behaviors (such as image scale on hover) while ensuring hover effects remain clipped within the rounded thumbnail bounds.
 
-**User-visible outcome:** The chatroom header stats appear more compact, and the LIVE badge displays immediately to the right of the category tag (or at the end of the stats row when no category is present) with consistent 0.5rem spacing.
+**User-visible outcome:** In the Lobby, all chatroom card thumbnails (YouTube/Twitch/Twitter/other) show clean rounded corners with no square/uncut edges, including on hover and when images are letterboxed due to `object-contain`.
