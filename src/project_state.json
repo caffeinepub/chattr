@@ -1,25 +1,25 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Project includes image compression and is planning an admin-page action to wipe/reset all application data.",
+  "summary": "Add an admin-only UI control to reset application data via an unauthenticated backend resetAll() function.",
   "architectural_notes": [
-    "Reset/wipe-all-data operation should clear all persistent state (chatrooms/messages/blobs/counters) and is intended to have no principal/caller auth checks; protection is via admin UI/password only.",
-    "Image compression feature has been deployed (Version 164)."
+    "Scope constraint: only modify the admin page to add a “Reset All Data” button wired to backend resetAll(); no unrelated page/file changes.",
+    "Backend resetAll() must be callable without requiring caller or principal (no auth/identity requirement)."
   ],
   "known_issues": [],
   "isFixRequest": false,
   "existing_features": [
     {
-      "id": "feature-expose-the-reset-capability-in-the-admin-ui-at-frontend-src-pages-admindeletechatroomspage-tsx-as-a-clearly-labeled-destructive-action-e-g-reset-wipe-all-data-that-is-protected-only-by-the-existing-admin-password-session-gating-already-used-on-that-page-the-ui-must-require-admin-authentication-the-existing-password-flow-before-the-reset-control-is-visible-usable-show-a-strong-confirmation-dialog-explaining-the-action-is-irreversible-show-loading-disabled-state-while-the-reset-is-executing-surface-success-failure-via-the-app-s-existing-toast-alert-patterns",
-      "title": "Expose the reset capability in the admin UI at `frontend/src/pages/AdminDeleteChatroomsPage.tsx` as a clearly labeled destructive action (e.g., \"Reset/Wipe All Data\") that is protected only by the existing admin password/session gating already used on that page.\n\nThe UI must:\n- Require admin authentication (the existing password flow) before the reset control is visible/usable\n- Show a strong confirmation dialog explaining the action is irreversible\n- Show loading/disabled state while the reset is executing\n- Surface success/failure via the app’s existing toast/alert patterns",
+      "id": "feature-add-a-reset-all-data-button-to-the-existing-admin-page-frontend-src-pages-admindeletechatroomspage-tsx-that-triggers-the-backend-resetall-call-with-a-destructive-confirmation-dialog-and-clear-success-error-feedback",
+      "title": "Add a \"Reset All Data\" button to the existing admin page (`frontend/src/pages/AdminDeleteChatroomsPage.tsx`) that triggers the backend `resetAll()` call, with a destructive confirmation dialog and clear success/error feedback.",
       "reqIds": [
         "REQ-2"
       ],
       "version": 1
     },
     {
-      "id": "feature-add-frontend-data-plumbing-for-the-reset-action-by-introducing-a-dedicated-react-query-mutation-hook-in-frontend-src-hooks-usequeries-ts-that-calls-the-new-backend-reset-method-after-a-successful-reset-the-app-must-invalidate-relevant-cached-queries-so-the-lobby-admin-views-immediately-reflect-an-empty-fresh-state-at-minimum-chatrooms-messages-and-any-per-chatroom-queries",
-      "title": "Add frontend data plumbing for the reset action by introducing a dedicated React Query mutation hook in `frontend/src/hooks/useQueries.ts` that calls the new backend reset method.\n\nAfter a successful reset, the app must invalidate relevant cached queries so the lobby/admin views immediately reflect an empty/fresh state (at minimum: chatrooms, messages, and any per-chatroom queries).",
+      "id": "feature-add-a-react-query-mutation-hook-to-call-backend-resetall-and-integrate-it-into-the-admin-page-without-changing-unrelated-pages",
+      "title": "Add a React Query mutation hook to call backend `resetAll()` and integrate it into the admin page without changing unrelated pages.",
       "reqIds": [
         "REQ-3"
       ],
@@ -29,20 +29,20 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Add an admin-page \"Reset/Wipe All Data\" function/button that clears all stored state and does not require principal/caller checks (frontend-only protection).",
+      "summary": "Add a “Reset All Data” button on the admin page that calls a backend resetAll() function without requiring caller/principal; do not change unrelated pages.",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-2",
-      "summary": "Add a backend function that wipes/resets all application data and can be called without any `caller`/`Principal` checks.\n\nThe reset must clear all persisted in-canister state used by the app, including:\n- all chatrooms\n- all messages\n- all active-user presence tracking\n- all reactions\n- all user profiles\n- all ID counters (e.g., next chatroom/message IDs)\n\nThe function must not require authentication/authorization in Motoko (no AccessControl checks and no use of `caller` for gating).",
+      "summary": "Implement a backend `resetAll()` function that resets all application data and does not require any caller/principal authorization.",
       "reqIds": [
         "REQ-1"
       ],
       "status": "pending"
     }
   ],
-  "projectName": "Add admin-page \"Reset/Wipe All Data\" action (frontend-password gated, no caller/principal checks)",
+  "projectName": "Add Admin \"Reset All Data\" button wired to unauthenticated backend resetAll()",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

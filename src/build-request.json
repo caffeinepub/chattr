@@ -1,87 +1,90 @@
 {
   "kind": "build_request",
-  "title": "Add admin-page \"Reset/Wipe All Data\" action (frontend-password gated, no caller/principal checks)",
+  "title": "Add Admin \"Reset All Data\" button wired to unauthenticated backend resetAll()",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Add a backend function that wipes/resets all application data and can be called without any `caller`/`Principal` checks.\n\nThe reset must clear all persisted in-canister state used by the app, including:\n- all chatrooms\n- all messages\n- all active-user presence tracking\n- all reactions\n- all user profiles\n- all ID counters (e.g., next chatroom/message IDs)\n\nThe function must not require authentication/authorization in Motoko (no AccessControl checks and no use of `caller` for gating).",
+      "text": "Implement a backend `resetAll()` function that resets all application data and does not require any caller/principal authorization.",
       "target": "backend",
       "source": {
         "messageIds": [
-          "recent-1"
+          "recent-3",
+          "recent-5",
+          "recent-7"
         ],
         "quotes": [
-          "Go ahead and do it"
+          "add a “Reset All Data” button to the admin page that calls a backend resetAll() function. do not require caller or principal for it.",
+          "DO ONLY THE FOLLOWING: add a “Reset All Data” button to the admin page that calls a backend resetAll() function. do not require caller or principal for it.",
+          "ok do it"
         ]
       },
       "acceptanceCriteria": [
-        "A new public backend method exists to reset all stored app state and is callable by any user/caller.",
-        "After calling the reset method, `getChatrooms()` returns an empty list and chatroom/message IDs start over from the initial state (as defined by the app’s counters).",
-        "User profiles/reactions/presence data are cleared (subsequent reads behave as if the app is freshly deployed).",
-        "The implementation does not introduce or require `caller`/`Principal` checks for this reset action."
+        "`backend/main.mo` exposes a public update method named `resetAll` callable without `shared ({ caller })` auth checks.",
+        "Calling `resetAll()` clears all persisted in-canister application state (including chatrooms, messages, reactions, active users, and user profiles) and resets ID counters so newly created chatrooms/messages start from a clean state.",
+        "`resetAll()` returns successfully (no trap) when called on an already-empty state.",
+        "No authorization/role/password checks are performed in `resetAll()` (no dependency on caller/principal)."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Expose the reset capability in the admin UI at `frontend/src/pages/AdminDeleteChatroomsPage.tsx` as a clearly labeled destructive action (e.g., \"Reset/Wipe All Data\") that is protected only by the existing admin password/session gating already used on that page.\n\nThe UI must:\n- Require admin authentication (the existing password flow) before the reset control is visible/usable\n- Show a strong confirmation dialog explaining the action is irreversible\n- Show loading/disabled state while the reset is executing\n- Surface success/failure via the app’s existing toast/alert patterns",
+      "text": "Add a \"Reset All Data\" button to the existing admin page (`frontend/src/pages/AdminDeleteChatroomsPage.tsx`) that triggers the backend `resetAll()` call, with a destructive confirmation dialog and clear success/error feedback.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "recent-1"
+          "recent-3",
+          "recent-5",
+          "recent-7"
         ],
         "quotes": [
-          "Go ahead and do it"
+          "add a “Reset All Data” button to the admin page that calls a backend resetAll() function.",
+          "DO ONLY THE FOLLOWING: add a “Reset All Data” button to the admin page that calls a backend resetAll() function.",
+          "ok do it"
         ]
       },
       "acceptanceCriteria": [
-        "When not authenticated on the admin page, the reset control is not accessible.",
-        "When authenticated, clicking the reset control opens a confirmation dialog and does not reset without confirmation.",
-        "While the reset call is in-flight, the reset control is disabled and indicates progress.",
-        "On success, the UI shows a success toast/message; on failure, it shows an error toast/message with a useful message."
+        "When authenticated on the admin page, the UI shows a \"Reset All Data\" destructive action in addition to the existing chatroom delete controls.",
+        "Clicking \"Reset All Data\" opens a confirmation dialog that clearly states the action is destructive and irreversible.",
+        "Confirming the dialog calls the backend `resetAll()` and shows a loading/disabled state while the request is in progress.",
+        "On success, the UI shows a success toast/message and refreshes relevant React Query caches so the chatroom list updates to empty (without requiring a manual page refresh).",
+        "On error, the UI shows an error toast/message and does not break existing admin functionality."
       ]
     },
     {
       "id": "REQ-3",
-      "text": "Add frontend data plumbing for the reset action by introducing a dedicated React Query mutation hook in `frontend/src/hooks/useQueries.ts` that calls the new backend reset method.\n\nAfter a successful reset, the app must invalidate relevant cached queries so the lobby/admin views immediately reflect an empty/fresh state (at minimum: chatrooms, messages, and any per-chatroom queries).",
+      "text": "Add a React Query mutation hook to call backend `resetAll()` and integrate it into the admin page without changing unrelated pages.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "recent-1"
+          "recent-3",
+          "recent-5"
         ],
         "quotes": [
-          "Go ahead and do it"
+          "dont make any changes except the following. strictly follow my instructions, dont make any changes to unrelated pages.",
+          "DO ONLY THE FOLLOWING: add a “Reset All Data” button to the admin page that calls a backend resetAll() function."
         ]
       },
       "acceptanceCriteria": [
-        "A new React Query mutation hook exists for the reset action and is used by the admin page.",
-        "After a successful reset, navigating to the lobby shows no chatrooms without requiring a manual refresh.",
-        "React Query caches for chatrooms/messages are invalidated (or cleared) after reset so stale data is not displayed."
+        "`frontend/src/hooks/useQueries.ts` exports a new hook (e.g., `useResetAllData`) whose mutationFn calls `actor.resetAll()`.",
+        "On successful reset, the hook invalidates chatroom/message-related query keys (at minimum `['chatrooms']`) so the UI reflects the cleared state.",
+        "Only files necessary to wire this feature are changed; no unrelated pages/routes/components are modified."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain single-actor architecture with all Motoko logic in `backend/main.mo`.",
-    "Do not edit frontend files under `frontend/src/hooks/useInternetIdentity.ts`, `frontend/src/hooks/useInternetIdentity.tsx`, `frontend/src/hooks/useActor.ts`, `frontend/src/main.tsx`, or anything in `frontend/src/components/ui` (compose instead).",
-    "User-facing text must be English."
+    "Strictly limit changes to implementing the backend `resetAll()` function and adding the \"Reset All Data\" button + wiring on the existing admin page; do not change unrelated pages.",
+    "The backend reset function must not require any caller/principal checks (no auth gating).",
+    "Respect single-actor Motoko architecture: keep all backend logic in `backend/main.mo` (use `backend/migration.mo` only if an upgrade-safe state migration is required).",
+    "Do not edit any frontend files under `frontend/src/components/ui` or any paths listed as immutable in SYSTEM_CONTEXT."
   ],
   "nonGoals": [
-    "Do not add Internet Identity or any other authentication/authorization requirement for the reset action (frontend password gating only).",
-    "Do not implement multi-canister or external database storage/backup/restore workflows.",
-    "Do not redesign existing admin authentication flow beyond what is needed to add the reset control."
+    "Do not add new admin routes or redesign the admin authentication flow.",
+    "Do not add Internet Identity restrictions for resetAll().",
+    "Do not implement partial resets, exports/backups, or undo functionality.",
+    "Do not address deployment failures or environment reset automation as part of this change."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
-  },
-  "userProfileUpdate": {
-    "goalsToAdd": [],
-    "goalsToRemove": [],
-    "preferencesToAdd": [],
-    "preferencesToRemove": [],
-    "miscToAdd": [],
-    "miscToRemove": [],
-    "fieldsToSet": {},
-    "fieldsToDelete": []
   }
 }

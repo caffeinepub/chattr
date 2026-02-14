@@ -1,80 +1,85 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-14T21:59:40.755Z",
-  "summary": "REQ-3 appears implemented (new useResetAllData mutation hook with cache clearing/invalidation is described and Admin page imports/uses it). Evidence for REQ-2’s full UI/confirmation/toast behavior is incomplete due to truncation. REQ-1 (backend public reset method with no caller/principal checks that clears all state/counters) is not evidenced in the provided backend diff snippet. Several unrelated frontend features were added/modified beyond the reset admin action.",
+  "generatedAt": "2026-02-14T23:39:18.381Z",
+  "summary": "The diff does not provide evidence that the backend exposes the required unauthenticated `resetAll()` update method, and the frontend wiring appears to call a different method name (`resetAllState()`). Additionally, many unrelated frontend components/pages were modified beyond the requested admin-page-only scope.",
   "missing_requirements": [
     {
       "id": "REQ-1",
-      "requirement": "Add a public backend function that wipes/resets all application data (chatrooms, messages, presence, reactions, user profiles, ID counters) and is callable without any caller/Principal checks.",
-      "reason": "The backend diff excerpt shows existing AccessControl-admin-gated methods (e.g., deleteChatroomWithPassword) but does not show any new public reset/wipe method, nor any code that clears the described in-canister state and resets ID counters. Because backend/main.mo is truncated, this functionality is not evidenced.",
+      "requirement": "Implement a backend `resetAll()` function that resets all application data and does not require any caller/principal authorization.",
+      "reason": "The shown portion of `backend/main.mo` includes various access-control and admin-only methods but contains no visible `public update`/`public func resetAll` method, nor evidence of state clearing/resetting ID counters. The file is truncated, so it may exist outside the snippet, but there is no affirmative evidence in the diff summary that it was implemented as specified.",
       "evidence": [
-        "backend/main.mo"
+        "backend/main.mo (truncated snippet shows no `resetAll` definition)"
       ]
     },
     {
       "id": "REQ-2",
-      "requirement": "Expose the reset capability in the admin UI with a clearly labeled destructive action, strong confirmation dialog, loading/disabled state during execution, and success/failure surfaced via existing toast/alert patterns.",
-      "reason": "AdminDeleteChatroomsPage.tsx shows authentication gating and imports/useResetAllData, but the provided excerpt is truncated before showing any reset control UI, confirmation dialog wiring, loading/disabled state, or toast/alert messaging for reset. Therefore the required UI behavior is not evidenced from the diff summary alone.",
+      "requirement": "Add a \"Reset All Data\" button to `frontend/src/pages/AdminDeleteChatroomsPage.tsx` that calls backend `resetAll()`, with destructive confirmation dialog, loading/disabled state, and success/error feedback that refreshes relevant caches.",
+      "reason": "While the admin page imports `useResetAllData` and `AlertDialog` components, the truncated diff does not show the actual \"Reset All Data\" button, confirmation dialog text, loading/disabled behavior, success/error toasts/messages, or cache refresh behavior being wired in the page.",
       "evidence": [
-        "frontend/src/pages/AdminDeleteChatroomsPage.tsx"
+        "frontend/src/pages/AdminDeleteChatroomsPage.tsx (truncated; imports `useResetAllData` and `AlertDialog` but does not show the reset UI implementation)"
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "requirement": "Export a React Query mutation hook in `frontend/src/hooks/useQueries.ts` whose mutationFn calls `actor.resetAll()` and invalidates (at minimum) `['chatrooms']` on success.",
+      "reason": "The provided project summary for `useQueries.ts` states the new hook calls `actor.resetAllState()` (different method name than required `actor.resetAll()`). The truncated code snippet also does not show the implementation of `useResetAllData` to confirm correct method name and invalidation behavior.",
+      "evidence": [
+        "frontend-file-summaries.txt (states: \"new useResetAllData mutation hook that calls actor.resetAllState()\")",
+        "frontend/src/hooks/useQueries.ts (truncated; does not show `useResetAllData` implementation)"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Introduced new frontend message type conversion module (MessageWithConvertedReactions).",
-      "reason": "The BuildRequest only asks for a reset/wipe-all-data backend method and corresponding admin UI + React Query mutation. Adding new message typing/conversion is not requested.",
+      "description": "Modified multiple unrelated frontend components (avatar picker, chat area, message bubble, pinned video) outside the requested scope of only admin page + wiring changes.",
+      "reason": "BuildRequest constraints require strictly limiting frontend changes to adding the reset button/wiring on the existing admin page and adding the necessary hook; the diff shows changes to several other components unrelated to admin reset.",
       "evidence": [
-        "frontend/src/types/message.ts",
-        "frontend/src/components/MessageBubble.tsx",
-        "frontend/src/components/PinnedVideo.tsx",
-        "frontend/src/hooks/useQueries.ts"
-      ]
-    },
-    {
-      "description": "Added/expanded avatar picker functionality with uploads, Giphy search/trending, debounced search, and related UI behaviors.",
-      "reason": "Not requested by the reset/wipe admin action scope.",
-      "evidence": [
-        "frontend/src/components/AvatarPickerDialog.tsx"
-      ]
-    },
-    {
-      "description": "Significant changes to chat UI components (collapsible header behavior, reply/scroll interactions, pinned video rendering, Twitter widgets loading, voice message support, etc.).",
-      "reason": "Not requested; outside the admin reset feature.",
-      "evidence": [
+        "frontend/src/components/AvatarPickerDialog.tsx",
         "frontend/src/components/ChatArea.tsx",
         "frontend/src/components/MessageBubble.tsx",
         "frontend/src/components/PinnedVideo.tsx"
       ]
     },
     {
-      "description": "Header UI changes (branding/layout, avatar click opens picker, inline username editing).",
-      "reason": "Not requested for the admin reset action.",
+      "description": "Added/expanded Giphy search functionality and related async state management in the avatar picker dialog.",
+      "reason": "Not requested by any requirement; unrelated to implementing `resetAll()` and the admin reset button.",
       "evidence": [
-        "frontend/src/components/Header.tsx"
+        "frontend/src/components/AvatarPickerDialog.tsx"
       ]
     },
     {
-      "description": "Added/updated a no-op LoginPrompt component to avoid introducing authentication UI.",
-      "reason": "Not requested as part of adding a reset action (and could be considered unrelated scope).",
+      "description": "Introduced/expanded Twitter widgets script loading and tweet rendering support in message UI.",
+      "reason": "Not requested by any requirement; unrelated to implementing `resetAll()` and the admin reset button.",
       "evidence": [
-        "frontend-file-summaries.txt"
+        "frontend/src/components/MessageBubble.tsx"
+      ]
+    },
+    {
+      "description": "Added/modified pinned video UI component and unpin behavior.",
+      "reason": "Not requested by any requirement; unrelated to implementing `resetAll()` and the admin reset button.",
+      "evidence": [
+        "frontend/src/components/PinnedVideo.tsx"
+      ]
+    },
+    {
+      "description": "Changed chat UI behavior (collapsible header, reply/scroll highlighting, etc.) beyond admin reset scope.",
+      "reason": "Not requested by any requirement; violates the constraint to not change unrelated pages/components.",
+      "evidence": [
+        "frontend/src/components/ChatArea.tsx"
       ]
     }
   ],
-  "confidence": 0.63,
+  "confidence": 0.72,
   "changed_files": [
     "backend/main.mo",
     "frontend-file-summaries.txt",
     "frontend/src/components/AvatarPickerDialog.tsx",
     "frontend/src/components/ChatArea.tsx",
-    "frontend/src/components/Header.tsx",
     "frontend/src/components/MessageBubble.tsx",
     "frontend/src/components/PinnedVideo.tsx",
     "frontend/src/hooks/useQueries.ts",
     "frontend/src/pages/AdminDeleteChatroomsPage.tsx",
-    "frontend/src/types/message.ts",
     "project_state.json"
   ]
 }

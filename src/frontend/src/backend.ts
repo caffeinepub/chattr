@@ -229,7 +229,7 @@ export interface backendInterface {
     isCallerAdmin(): Promise<boolean>;
     pinVideo(chatroomId: bigint, messageId: bigint): Promise<void>;
     removeReaction(messageId: bigint, emoji: string, userId: string): Promise<void>;
-    resetAllData(): Promise<void>;
+    resetAllState(): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     searchChatrooms(searchTerm: string): Promise<Array<ChatroomWithLiveStatus>>;
     sendMessage(content: string, sender: string, chatroomId: bigint, mediaUrl: string | null, mediaType: string | null, avatarUrl: string | null, senderId: string, replyToMessageId: bigint | null): Promise<void>;
@@ -703,17 +703,17 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async resetAllData(): Promise<void> {
+    async resetAllState(): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor.resetAllData();
+                const result = await this.actor.resetAllState();
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.resetAllData();
+            const result = await this.actor.resetAllState();
             return result;
         }
     }

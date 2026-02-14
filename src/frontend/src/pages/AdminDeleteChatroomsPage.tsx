@@ -120,13 +120,73 @@ function AdminChatroomList() {
   };
 
   return (
-    <div className="container mx-auto max-w-7xl p-4 md:p-6 space-y-6">
+    <div className="container mx-auto max-w-7xl p-4 md:p-6">
       <Card>
         <CardHeader>
-          <CardTitle>Chatroom Management</CardTitle>
-          <CardDescription>
-            View and delete chatrooms. This action cannot be undone.
-          </CardDescription>
+          <div className="flex items-start justify-between">
+            <div>
+              <CardTitle>Chatroom Management</CardTitle>
+              <CardDescription>
+                View and delete chatrooms. This action cannot be undone.
+              </CardDescription>
+            </div>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  disabled={resetAllData.isPending}
+                >
+                  {resetAllData.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Resetting...
+                    </>
+                  ) : (
+                    <>
+                      <AlertTriangle className="mr-2 h-4 w-4" />
+                      Reset All Data
+                    </>
+                  )}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle className="flex items-center gap-2">
+                    <AlertTriangle className="h-5 w-5 text-destructive" />
+                    Reset All Data?
+                  </AlertDialogTitle>
+                  <AlertDialogDescription className="space-y-2">
+                    <p className="font-semibold text-destructive">
+                      This action is destructive and irreversible!
+                    </p>
+                    <p>
+                      This will permanently delete:
+                    </p>
+                    <ul className="list-disc pl-6 space-y-1">
+                      <li>All chatrooms</li>
+                      <li>All messages</li>
+                      <li>All reactions</li>
+                      <li>All user profiles</li>
+                      <li>All active user data</li>
+                    </ul>
+                    <p className="font-semibold">
+                      Are you absolutely sure you want to continue?
+                    </p>
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleResetAll}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    Reset All Data
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
         </CardHeader>
         <CardContent>
           {isError && (!chatrooms || chatrooms.length === 0) && (
@@ -220,80 +280,6 @@ function AdminChatroomList() {
               </Table>
             </div>
           )}
-        </CardContent>
-      </Card>
-
-      <Card className="border-destructive">
-        <CardHeader>
-          <div className="flex items-center gap-2">
-            <AlertTriangle className="h-5 w-5 text-destructive" />
-            <CardTitle className="text-destructive">Danger Zone</CardTitle>
-          </div>
-          <CardDescription>
-            Irreversible actions that affect all application data
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col gap-4">
-            <Alert variant="destructive">
-              <AlertTriangle className="h-4 w-4" />
-              <AlertDescription>
-                <strong>Warning:</strong> Resetting all data will permanently delete all chatrooms, messages, user profiles, reactions, and reset all counters. This action cannot be undone.
-              </AlertDescription>
-            </Alert>
-            
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button
-                  variant="destructive"
-                  size="lg"
-                  disabled={resetAllData.isPending}
-                  className="w-full sm:w-auto"
-                >
-                  {resetAllData.isPending ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Resetting...
-                    </>
-                  ) : (
-                    <>
-                      <AlertTriangle className="mr-2 h-4 w-4" />
-                      Reset All Data
-                    </>
-                  )}
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle className="flex items-center gap-2 text-destructive">
-                    <AlertTriangle className="h-5 w-5" />
-                    Reset All Application Data?
-                  </AlertDialogTitle>
-                  <AlertDialogDescription className="space-y-2">
-                    <p className="font-semibold">This will permanently delete:</p>
-                    <ul className="list-disc list-inside space-y-1 text-sm">
-                      <li>All chatrooms and their messages</li>
-                      <li>All user profiles and avatars</li>
-                      <li>All reactions and active user data</li>
-                      <li>All view counts and statistics</li>
-                    </ul>
-                    <p className="font-semibold text-destructive pt-2">
-                      This action cannot be undone. Are you absolutely sure?
-                    </p>
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={handleResetAll}
-                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                  >
-                    Yes, Reset Everything
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          </div>
         </CardContent>
       </Card>
     </div>

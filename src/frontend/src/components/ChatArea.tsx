@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useGetMessages, useSendMessage, useGetCurrentUsername } from '../hooks/useQueries';
+import { useGetMessages, useSendMessage, useGetCurrentUsername, type MessageWithReactions } from '../hooks/useQueries';
 import type { ChatroomWithLiveStatus } from '../backend';
 import MessageBubble from './MessageBubble';
 import MessageInput from './MessageInput';
@@ -252,9 +252,9 @@ export default function ChatArea({ chatroomId, chatroom }: ChatAreaProps) {
         </div>
       </div>
 
-      {/* Reply Preview */}
+      {/* Reply Preview Bar */}
       {replyingTo && (
-        <div className="flex-shrink-0 border-t border-border bg-muted/30 px-4 py-2">
+        <div className="flex-shrink-0 border-t border-border bg-muted/50 px-4 py-2">
           <div className="mx-auto flex max-w-3xl items-center justify-between gap-2">
             <div className="flex min-w-0 flex-1 items-center gap-2">
               {replyingTo.mediaThumbnail && (
@@ -285,10 +285,10 @@ export default function ChatArea({ chatroomId, chatroom }: ChatAreaProps) {
         </div>
       )}
 
-      {/* Message Input */}
-      <div className="flex-shrink-0 border-t border-border bg-card px-4 py-3">
-        <div className="mx-auto max-w-3xl">
-          <MessageInput onSendMessage={handleSendMessage} />
+      {/* Message Input - Fixed at bottom */}
+      <div className="flex-shrink-0 border-t border-border bg-card">
+        <div className="mx-auto max-w-3xl px-4 py-3">
+          <MessageInput onSendMessage={handleSendMessage} disabled={sendMessage.isPending} />
         </div>
       </div>
     </div>

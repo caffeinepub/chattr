@@ -159,7 +159,7 @@ export interface _SERVICE {
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'pinVideo' : ActorMethod<[bigint, bigint], undefined>,
   'removeReaction' : ActorMethod<[bigint, string, string], undefined>,
-  'resetAllData' : ActorMethod<[], undefined>,
+  'resetAllState' : ActorMethod<[], undefined>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
   'searchChatrooms' : ActorMethod<[string], Array<ChatroomWithLiveStatus>>,
   'sendMessage' : ActorMethod<

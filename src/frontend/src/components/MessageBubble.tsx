@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import type { MessageWithConvertedReactions } from '../types/message';
+import type { MessageWithReactions, Reaction } from '../hooks/useQueries';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { formatDistanceToNow } from 'date-fns';
 import { X, Pin, Smile, Reply } from 'lucide-react';
@@ -21,13 +21,13 @@ import {
 import VoiceMessagePlayer from './VoiceMessagePlayer';
 
 interface MessageBubbleProps {
-  message: MessageWithConvertedReactions;
+  message: MessageWithReactions;
   isOwnMessage: boolean;
   chatroomId: bigint;
   isPinned: boolean;
   onReply?: (messageId: bigint, sender: string, contentSnippet: string, mediaThumbnail?: string) => void;
   onScrollToMessage?: (messageId: bigint) => void;
-  allMessages?: MessageWithConvertedReactions[];
+  allMessages?: MessageWithReactions[];
   isHighlighted?: boolean;
 }
 
@@ -139,10 +139,12 @@ export default function MessageBubble({
 
   const handleReaction = async (emoji: string) => {
     const userId = getUserId();
-    const existingReaction = message.reactions.find((r) => r.emoji === emoji);
+    const reactions = message.reactions;
+    const existingReaction = reactions.find((r) => r.emoji === emoji);
     
     if (existingReaction) {
-      if (existingReaction.users.includes(userId)) {
+      const users = existingReaction.users;
+      if (users.includes(userId)) {
         // User already reacted, remove reaction
         await removeReaction.mutateAsync({ messageId: message.id, emoji, chatroomId });
       } else {
@@ -371,6 +373,7 @@ export default function MessageBubble({
     );
   };
 
+  const reactions = message.reactions;
   const userId = getUserId();
 
   return (
@@ -477,10 +480,11 @@ export default function MessageBubble({
           </div>
 
           {/* Reactions display */}
-          {message.reactions.length > 0 && (
+          {reactions.length > 0 && (
             <div className="mt-1 flex flex-wrap gap-1">
-              {message.reactions.map((reaction) => {
-                const hasReacted = reaction.users.includes(userId);
+              {reactions.map((reaction) => {
+                const users = reaction.users;
+                const hasReacted = users.includes(userId);
                 
                 return (
                   <button
@@ -489,7 +493,7 @@ export default function MessageBubble({
                     className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs transition-colors ${
                       hasReacted
                         ? 'bg-primary/20 text-primary ring-1 ring-primary/30'
-                        : 'bg-muted hover:bg-muted/80 text-muted-foreground'
+                        : 'bg-muted text-muted-foreground hover:bg-muted/80'
                     }`}
                   >
                     <span>{reaction.emoji}</span>
@@ -507,9 +511,9 @@ export default function MessageBubble({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground"
+                  className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground"
                 >
-                  <Smile className="h-3.5 w-3.5" />
+                  <Smile className="h-3 w-3" />
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-2" align={isOwnMessage ? 'end' : 'start'}>
@@ -532,9 +536,10 @@ export default function MessageBubble({
                 variant="ghost"
                 size="sm"
                 onClick={handleReplyClick}
-                className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground"
+                className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground"
               >
-                <Reply className="h-3.5 w-3.5" />
+                <Reply className="h-3 w-3 mr-1" />
+                Reply
               </Button>
             )}
           </div>

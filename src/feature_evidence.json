@@ -2,8 +2,8 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-expose-the-reset-capability-in-the-admin-ui-at-frontend-src-pages-admindeletechatroomspage-tsx-as-a-clearly-labeled-destructive-action-e-g-reset-wipe-all-data-that-is-protected-only-by-the-existing-admin-password-session-gating-already-used-on-that-page-the-ui-must-require-admin-authentication-the-existing-password-flow-before-the-reset-control-is-visible-usable-show-a-strong-confirmation-dialog-explaining-the-action-is-irreversible-show-loading-disabled-state-while-the-reset-is-executing-surface-success-failure-via-the-app-s-existing-toast-alert-patterns",
-      "featureTitle": "Expose the reset capability in the admin UI at `frontend/src/pages/AdminDeleteChatroomsPage.tsx` as a clearly labeled destructive action (e.g., \"Reset/Wipe All Data\") that is protected only by the existing admin password/session gating already used on that page.\n\nThe UI must:\n- Require admin authentication (the existing password flow) before the reset control is visible/usable\n- Show a strong confirmation dialog explaining the action is irreversible\n- Show loading/disabled state while the reset is executing\n- Surface success/failure via the app’s existing toast/alert patterns",
+      "featureId": "feature-add-a-reset-all-data-button-to-the-existing-admin-page-frontend-src-pages-admindeletechatroomspage-tsx-that-triggers-the-backend-resetall-call-with-a-destructive-confirmation-dialog-and-clear-success-error-feedback",
+      "featureTitle": "Add a \"Reset All Data\" button to the existing admin page (`frontend/src/pages/AdminDeleteChatroomsPage.tsx`) that triggers the backend `resetAll()` call, with a destructive confirmation dialog and clear success/error feedback.",
       "files": [
         "frontend/src/pages/AdminDeleteChatroomsPage.tsx"
       ],
@@ -23,8 +23,8 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-add-frontend-data-plumbing-for-the-reset-action-by-introducing-a-dedicated-react-query-mutation-hook-in-frontend-src-hooks-usequeries-ts-that-calls-the-new-backend-reset-method-after-a-successful-reset-the-app-must-invalidate-relevant-cached-queries-so-the-lobby-admin-views-immediately-reflect-an-empty-fresh-state-at-minimum-chatrooms-messages-and-any-per-chatroom-queries",
-      "featureTitle": "Add frontend data plumbing for the reset action by introducing a dedicated React Query mutation hook in `frontend/src/hooks/useQueries.ts` that calls the new backend reset method.\n\nAfter a successful reset, the app must invalidate relevant cached queries so the lobby/admin views immediately reflect an empty/fresh state (at minimum: chatrooms, messages, and any per-chatroom queries).",
+      "featureId": "feature-add-a-react-query-mutation-hook-to-call-backend-resetall-and-integrate-it-into-the-admin-page-without-changing-unrelated-pages",
+      "featureTitle": "Add a React Query mutation hook to call backend `resetAll()` and integrate it into the admin page without changing unrelated pages.",
       "files": [
         "frontend/src/hooks/useQueries.ts"
       ],

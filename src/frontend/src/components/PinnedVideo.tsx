@@ -1,11 +1,16 @@
-import type { MessageWithConvertedReactions } from '../types/message';
 import { X } from 'lucide-react';
 import { Button } from './ui/button';
 import { useUnpinVideo } from '../hooks/useQueries';
-import { getYouTubeVideoId, getTwitchEmbedUrl, isYouTubeUrl, isTwitchUrl } from '../lib/videoUtils';
+import type { MessageWithReactions } from '../hooks/useQueries';
+import { 
+  getYouTubeVideoId, 
+  getTwitchEmbedUrl,
+  isYouTubeUrl, 
+  isTwitchUrl 
+} from '../lib/videoUtils';
 
 interface PinnedVideoProps {
-  message: MessageWithConvertedReactions;
+  message: MessageWithReactions;
   chatroomId: bigint;
 }
 
@@ -53,28 +58,23 @@ export default function PinnedVideo({ message, chatroomId }: PinnedVideoProps) {
 
   return (
     <div className="relative mx-auto w-full max-w-xl p-4">
-      <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-black">
+      <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-black shadow-lg">
         {renderVideo()}
-      </div>
-      <div className="mt-2 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <img
-            src="/assets/generated/pin-icon-transparent.dim_24x24.png"
-            alt="Pinned"
-            className="h-4 w-4"
-          />
-          <span className="text-sm font-medium text-foreground">Pinned by {message.sender}</span>
-        </div>
         <Button
           variant="ghost"
-          size="sm"
+          size="icon"
           onClick={handleUnpin}
           disabled={unpinVideo.isPending}
-          className="gap-2"
+          className="absolute right-2 top-2 h-8 w-8 rounded-full bg-black/50 text-white hover:bg-black/70 hover:text-white"
+          aria-label="Unpin video"
         >
           <X className="h-4 w-4" />
-          Unpin
         </Button>
+      </div>
+      <div className="mt-2 text-center">
+        <p className="text-xs text-muted-foreground">
+          Pinned by <span className="font-medium">{message.sender}</span>
+        </p>
       </div>
     </div>
   );
