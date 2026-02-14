@@ -1,38 +1,58 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Admin UI reset/wipe-all-data action with React Query mutation + cache invalidation",
+  "title": "Client-side compression for all File-based image uploads",
   "requirements": [
     {
-      "id": "REQ-2",
-      "summary": "Add a password-gated destructive \"Reset/Wipe All Data\" action to the existing admin page with confirmation, loading state, and toast feedback.",
+      "id": "REQ-1",
+      "summary": "Add client-side image compression and apply it to all File-based image uploads before data-URL serialization/localStorage, with graceful fallback and correct orientation.",
       "acceptanceCriteria": [
-        "When not authenticated on the admin page, the reset control is not accessible.",
-        "When authenticated, clicking the reset control opens a confirmation dialog and does not reset without confirmation.",
-        "While the reset call is in-flight, the reset control is disabled and indicates progress.",
-        "On success, the UI shows a success toast/message; on failure, it shows an error toast/message with a useful message."
+        "Uploading an image as an avatar, chatroom media image, or message image results in a visibly correct image and a smaller serialized payload than the original for typical large photos (e.g., multi-megapixel JPEGs).",
+        "All image upload flows still work end-to-end: the returned `data:...;blob-storage-id=...;base64,...` URL continues to render correctly wherever images are displayed.",
+        "If an image cannot be compressed (unsupported type, runtime error), the app still attempts to upload the original image; users are not blocked solely due to compression failure.",
+        "No compression is applied to non-file media inputs (YouTube/Twitch/Twitter URLs) or to Giphy avatar selection (remote URL)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/AdminDeleteChatroomsPage.tsx",
+          "path": "frontend/src/lib/imageCompression.ts",
+          "operation": "create",
+          "description": "Create a shared client-side image compression helper that (1) preserves correct orientation (prefer browser decoding that respects EXIF orientation), (2) downscales large images to a reasonable max dimension, (3) encodes to a lossy format/quality (prefer modern format when supported), and (4) throws or returns a structured failure so callers can fall back to the original File without blocking users."
+        },
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Within the authenticated AdminChatroomList view, add a clearly labeled destructive \"Reset/Wipe All Data\" control that calls the new React Query reset mutation. Use the existing shadcn/ui AlertDialog + Button components already used on this page for a strong irreversible confirmation message, ensure the reset UI is only rendered when authenticated, show disabled/loading state while the mutation is in-flight, and surface success/failure using the app’s existing toast pattern (sonner) via the mutation’s onSuccess/onError behavior. Verify the component's usage instructions before implementing."
+          "description": "Update the exported uploadImage(file, onProgress?) pipeline to attempt compression via the new frontend/src/lib/imageCompression.ts helper before reading/serializing to a data URL and storing in localStorage; if compression fails, silently fall back to the original file and only surface an error if the original serialization/upload path also fails; keep the returned `data:${mime};blob-storage-id=...;base64,...` contract intact and preserve existing onProgress behavior."
+        },
+        {
+          "path": "frontend/src/components/AvatarPickerDialog.tsx",
+          "operation": "modify",
+          "description": "Ensure avatar File uploads continue to call the shared uploadImage from frontend/src/hooks/useQueries.ts (now compressing internally) without changing the Giphy remote-URL selection path; keep current validation and error handling intact."
+        },
+        {
+          "path": "frontend/src/components/CreateChatroomDialog.tsx",
+          "operation": "modify",
+          "description": "Ensure chatroom media File uploads continue to call the shared uploadImage from frontend/src/hooks/useQueries.ts (now compressing internally) and that non-file media tabs (YouTube/Twitch/Twitter URLs) bypass compression; maintain existing progress UI wiring through the onProgress callback."
         }
       ]
     },
     {
-      "id": "REQ-3",
-      "summary": "Introduce a dedicated React Query mutation hook that calls the backend reset method and invalidates relevant caches so UI reflects a fresh state immediately.",
+      "id": "REQ-2",
+      "summary": "Refactor to a single canonical image upload/compress pipeline and update MessageInput to use it while preserving progress UX.",
       "acceptanceCriteria": [
-        "A new React Query mutation hook exists for the reset action and is used by the admin page.",
-        "After a successful reset, navigating to the lobby shows no chatrooms without requiring a manual refresh.",
-        "React Query caches for chatrooms/messages are invalidated (or cleared) after reset so stale data is not displayed."
+        "There is only one canonical image-upload function used by AvatarPickerDialog, CreateChatroomDialog, and MessageInput for File-based image uploads.",
+        "`CreateChatroomDialog` progress UI continues to update (0–100%) during upload/serialization.",
+        "`MessageInput` still shows its uploading progress UI and sends the message with `mediaType: 'image'` and a working `mediaUrl`."
       ],
       "file_operations": [
         {
+          "path": "frontend/src/components/MessageInput.tsx",
+          "operation": "modify",
+          "description": "Remove/retire the local uploadImage(File) implementation and switch image uploads to import and use the shared uploadImage from frontend/src/hooks/useQueries.ts; wire MessageInput’s existing isUploading/uploadProgress state to the shared function via its onProgress callback so the current progress UI remains functional; ensure non-file media inputs (YouTube/Twitch/Twitter URLs) remain unchanged and audio upload is unaffected."
+        },
+        {
           "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Add a new React Query mutation hook (e.g., useResetAllData) that calls actor.resetAllData(). On success: invalidate/remove cached queries for chatrooms, messages, and per-chatroom keys (at minimum query keys starting with ['chatrooms'], ['chatroom', ...], and ['messages', ...]) so Lobby/Admin/Chatroom views immediately reflect the empty state; also reset any local transient guards that could interfere with empty results (e.g., the post-create empty-result guard window). On error: surface a useful sonner toast message consistent with existing mutation hooks. Ensure AdminDeleteChatroomsPage consumes this hook. Verify the component's usage instructions before implementing."
+          "description": "Finalize uploadImage as the single canonical File-based image upload function used across the app (AvatarPickerDialog, CreateChatroomDialog, MessageInput), including optional onProgress callback support; ensure any prior duplicated logic is consolidated into this shared pipeline and that progress semantics remain compatible with existing UIs."
         }
       ]
     }

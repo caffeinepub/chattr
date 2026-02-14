@@ -1,11 +1,16 @@
 # Specification
 
 ## Summary
-**Goal:** Add an admin-only (frontend password gated) “Reset/Wipe All Data” action that wipes all persisted backend application state.
+**Goal:** Add client-side image compression to all File-based image uploads to reduce serialized payload size while keeping uploads working end-to-end.
 
 **Planned changes:**
-- Add a new public backend method in `backend/main.mo` that resets/clears all persisted in-canister state (chatrooms, messages, presence, reactions, user profiles, and ID counters) with no `caller`/`Principal`-based checks.
-- Add a dedicated React Query mutation hook in `frontend/src/hooks/useQueries.ts` to call the backend reset method and invalidate relevant cached queries (chatrooms, messages, and per-chatroom queries) after success.
-- Update `frontend/src/pages/AdminDeleteChatroomsPage.tsx` to expose a clearly labeled destructive “Reset/Wipe All Data” control behind the existing admin password/session gating, including an irreversible confirmation dialog, loading/disabled state during execution, and success/error toasts.
+- Implement a shared client-side image compression step that preserves orientation, downscales large images to a reasonable max dimension, and applies lossy compression before converting/storing as data URLs.
+- Integrate compression into the canonical `uploadImage` pipeline in `frontend/src/hooks/useQueries.ts`, keeping the existing optional `onProgress` behavior intact.
+- Update all File-based upload entry points to use the shared pipeline:
+  - Avatar upload in `AvatarPickerDialog.tsx`
+  - Chatroom media image upload in `CreateChatroomDialog.tsx`
+  - Message image upload in `MessageInput.tsx` (remove/replace the local `uploadImage` implementation)
+- Ensure graceful fallback: if compression fails, attempt the original (uncompressed) upload path and only surface an error if that also fails.
+- Ensure no compression is applied to non-file media inputs (YouTube/Twitch/Twitter URLs) or Giphy avatar selection (remote URL).
 
-**User-visible outcome:** An authenticated admin can confirm and trigger a full app data wipe from the admin page; afterwards the lobby/admin views immediately reflect an empty, freshly-reset state without needing a manual refresh.
+**User-visible outcome:** Users can upload avatar images, chatroom images, and in-chat message images as before, but typical large photos serialize/upload as smaller payloads while still rendering correctly; uploads continue to work even if compression fails for a given file.

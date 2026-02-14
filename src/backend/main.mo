@@ -183,22 +183,6 @@ actor {
     };
   };
 
-  // Reset all data - ADMIN ONLY: Completely wipes all application state including chatrooms, messages, active users, reactions, user profiles, and ID counters
-  public shared ({ caller }) func resetAllData() : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Debug.trap("Unauthorized: Only admins can reset all data");
-    };
-    
-    chatrooms := natMap.empty();
-    messages := natMap.empty();
-    activeUsers := natMap.empty();
-    reactions := natMap.empty();
-    userProfiles := principalMap.empty();
-    nextMessageId := 0;
-    nextChatroomId := 0;
-    adminPassword := "secret123";
-  };
-
   // Chatroom management - Open to all users (anonymous allowed, no auth required)
   public func createChatroom(topic : Text, description : Text, mediaUrl : Text, mediaType : Text, category : Text) : async Nat {
     if (Text.size(topic) == 0 or Text.size(description) == 0) {

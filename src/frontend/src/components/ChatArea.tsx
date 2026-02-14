@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useGetMessages, useSendMessage, useGetCurrentUsername } from '../hooks/useQueries';
-import type { ChatroomWithLiveStatus } from '../backend';
+import type { ChatroomWithLiveStatus, MessageWithReactions } from '../backend';
 import MessageBubble from './MessageBubble';
 import MessageInput from './MessageInput';
 import { Loader2, MessageCircle, Users, X, ChevronDown, ChevronUp } from 'lucide-react';
@@ -252,27 +252,27 @@ export default function ChatArea({ chatroomId, chatroom }: ChatAreaProps) {
         </div>
       </div>
 
-      {/* Reply Preview */}
+      {/* Reply Preview - Fixed above input */}
       {replyingTo && (
-        <div className="flex-shrink-0 border-t border-border bg-muted/30 px-4 py-2">
-          <div className="mx-auto flex max-w-3xl items-center justify-between gap-2">
-            <div className="flex min-w-0 flex-1 items-center gap-2">
-              {replyingTo.mediaThumbnail && (
-                <img
-                  src={replyingTo.mediaThumbnail}
-                  alt="Reply preview"
-                  className="h-10 w-10 flex-shrink-0 rounded object-cover"
-                />
-              )}
-              <div className="min-w-0 flex-1">
-                <p className="text-xs font-medium text-muted-foreground">
+        <div className="flex-shrink-0 border-t border-border bg-muted/50 px-4 py-2">
+          <div className="mx-auto flex max-w-3xl items-start justify-between gap-2">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-medium text-muted-foreground">
                   Replying to {replyingTo.sender}
-                </p>
-                <p className="truncate text-sm text-foreground">
-                  {replyingTo.contentSnippet}
-                </p>
+                </span>
               </div>
+              <p className="text-sm text-foreground truncate">
+                {replyingTo.contentSnippet}
+              </p>
             </div>
+            {replyingTo.mediaThumbnail && (
+              <img
+                src={replyingTo.mediaThumbnail}
+                alt="Reply preview"
+                className="h-10 w-10 rounded object-cover"
+              />
+            )}
             <Button
               variant="ghost"
               size="icon"
@@ -285,7 +285,7 @@ export default function ChatArea({ chatroomId, chatroom }: ChatAreaProps) {
         </div>
       )}
 
-      {/* Message Input */}
+      {/* Message Input - Fixed at bottom */}
       <div className="flex-shrink-0 border-t border-border bg-card px-4 py-3">
         <div className="mx-auto max-w-3xl">
           <MessageInput onSendMessage={handleSendMessage} />

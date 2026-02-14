@@ -1,80 +1,67 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-14T21:59:40.755Z",
-  "summary": "REQ-3 appears implemented (new useResetAllData mutation hook with cache clearing/invalidation is described and Admin page imports/uses it). Evidence for REQ-2’s full UI/confirmation/toast behavior is incomplete due to truncation. REQ-1 (backend public reset method with no caller/principal checks that clears all state/counters) is not evidenced in the provided backend diff snippet. Several unrelated frontend features were added/modified beyond the reset admin action.",
+  "generatedAt": "2026-02-14T00:40:37.314Z",
+  "summary": "Client-side image compression utility was added and `useQueries.uploadImage` now appears to compress before serialization, with `MessageInput` refactored to use the shared upload function. However, the diff does not show the required avatar upload flow (`AvatarPickerDialog.tsx`) being updated/verified, and the change set includes many unrelated UI/feature modifications beyond image compression.",
   "missing_requirements": [
     {
       "id": "REQ-1",
-      "requirement": "Add a public backend function that wipes/resets all application data (chatrooms, messages, presence, reactions, user profiles, ID counters) and is callable without any caller/Principal checks.",
-      "reason": "The backend diff excerpt shows existing AccessControl-admin-gated methods (e.g., deleteChatroomWithPassword) but does not show any new public reset/wipe method, nor any code that clears the described in-canister state and resets ID counters. Because backend/main.mo is truncated, this functionality is not evidenced.",
+      "requirement": "Apply client-side image compression to the avatar upload flow in `frontend/src/components/AvatarPickerDialog.tsx` (before converting to data URL / localStorage), while ensuring Giphy avatar selection (remote URL) is not compressed.",
+      "reason": "`AvatarPickerDialog.tsx` is not present in the modified files list or shown in the diff summary, so there is no evidence that the avatar upload path was updated/verified to use the new compression pipeline or that remote Giphy selection is excluded.",
       "evidence": [
-        "backend/main.mo"
-      ]
-    },
-    {
-      "id": "REQ-2",
-      "requirement": "Expose the reset capability in the admin UI with a clearly labeled destructive action, strong confirmation dialog, loading/disabled state during execution, and success/failure surfaced via existing toast/alert patterns.",
-      "reason": "AdminDeleteChatroomsPage.tsx shows authentication gating and imports/useResetAllData, but the provided excerpt is truncated before showing any reset control UI, confirmation dialog wiring, loading/disabled state, or toast/alert messaging for reset. Therefore the required UI behavior is not evidenced from the diff summary alone.",
-      "evidence": [
-        "frontend/src/pages/AdminDeleteChatroomsPage.tsx"
+        "file-diff: MODIFIED FILES list does not include frontend/src/components/AvatarPickerDialog.tsx"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Introduced new frontend message type conversion module (MessageWithConvertedReactions).",
-      "reason": "The BuildRequest only asks for a reset/wipe-all-data backend method and corresponding admin UI + React Query mutation. Adding new message typing/conversion is not requested.",
+      "description": "Multiple unrelated UI/layout changes (header layout adjustments, chat area collapsed header centering, lobby/search improvements, chatroom page loading/deep link changes, etc.).",
+      "reason": "The BuildRequest is specifically about adding client-side compression for image uploads and refactoring upload logic; UI/layout feature work is out of scope and not requested.",
       "evidence": [
-        "frontend/src/types/message.ts",
-        "frontend/src/components/MessageBubble.tsx",
-        "frontend/src/components/PinnedVideo.tsx",
-        "frontend/src/hooks/useQueries.ts"
+        "frontend-file-summaries.txt: frontend/src/components/Header.tsx",
+        "frontend-file-summaries.txt: frontend/src/components/ChatArea.tsx",
+        "frontend-file-summaries.txt: frontend/src/pages/LobbyPage.tsx",
+        "frontend-file-summaries.txt: frontend/src/pages/ChatroomPage.tsx",
+        "frontend-file-summaries.txt: frontend/src/components/ChatroomCard.tsx"
       ]
     },
     {
-      "description": "Added/expanded avatar picker functionality with uploads, Giphy search/trending, debounced search, and related UI behaviors.",
-      "reason": "Not requested by the reset/wipe admin action scope.",
+      "description": "Voice message/recording and voice message player functionality.",
+      "reason": "Non-goals explicitly exclude compressing audio uploads/voice messages; adding voice recording/player features is not requested as part of this build.",
       "evidence": [
-        "frontend/src/components/AvatarPickerDialog.tsx"
+        "frontend-file-summaries.txt: frontend/src/components/MessageBubble.tsx (voice message player)",
+        "frontend/src/components/MessageInput.tsx (imports/refs/state for recording: MediaRecorder, audioChunksRef, recordingTime, etc.)"
       ]
     },
     {
-      "description": "Significant changes to chat UI components (collapsible header behavior, reply/scroll interactions, pinned video rendering, Twitter widgets loading, voice message support, etc.).",
-      "reason": "Not requested; outside the admin reset feature.",
+      "description": "Twitter/X widgets script loading and tweet embedding behavior in CreateChatroomDialog.",
+      "reason": "The BuildRequest does not request adding or changing Twitter embedding behavior; it only specifies not compressing non-file media inputs (like Twitter URLs).",
       "evidence": [
-        "frontend/src/components/ChatArea.tsx",
-        "frontend/src/components/MessageBubble.tsx",
-        "frontend/src/components/PinnedVideo.tsx"
+        "frontend/src/components/CreateChatroomDialog.tsx (declare global window.twttr, loadTwitterScript, createTweet usage scaffolding)"
       ]
     },
     {
-      "description": "Header UI changes (branding/layout, avatar click opens picker, inline username editing).",
-      "reason": "Not requested for the admin reset action.",
+      "description": "New LoginPrompt component that renders null with documentation about not adding authentication UI.",
+      "reason": "No authentication/UI changes were requested by the BuildRequest.",
       "evidence": [
-        "frontend/src/components/Header.tsx"
+        "frontend-file-summaries.txt: frontend/src/components/LoginPrompt.tsx"
       ]
     },
     {
-      "description": "Added/updated a no-op LoginPrompt component to avoid introducing authentication UI.",
-      "reason": "Not requested as part of adding a reset action (and could be considered unrelated scope).",
+      "description": "Global CSS additions/changes related to OKLCH color system, iOS input font sizing, and voice message range styling.",
+      "reason": "Styling changes are not requested by the BuildRequest, which is focused on client-side image compression.",
       "evidence": [
-        "frontend-file-summaries.txt"
+        "frontend-file-summaries.txt: frontend/src/index.css"
       ]
     }
   ],
-  "confidence": 0.63,
+  "confidence": 0.74,
   "changed_files": [
-    "backend/main.mo",
     "frontend-file-summaries.txt",
-    "frontend/src/components/AvatarPickerDialog.tsx",
-    "frontend/src/components/ChatArea.tsx",
-    "frontend/src/components/Header.tsx",
-    "frontend/src/components/MessageBubble.tsx",
-    "frontend/src/components/PinnedVideo.tsx",
+    "frontend/src/components/CreateChatroomDialog.tsx",
+    "frontend/src/components/MessageInput.tsx",
     "frontend/src/hooks/useQueries.ts",
-    "frontend/src/pages/AdminDeleteChatroomsPage.tsx",
-    "frontend/src/types/message.ts",
+    "frontend/src/lib/imageCompression.ts",
     "project_state.json"
   ]
 }
