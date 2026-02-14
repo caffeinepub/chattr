@@ -1,58 +1,87 @@
 {
   "kind": "build_request",
-  "title": "Add client-side compression for all image uploads",
+  "title": "Add admin-page \"Reset/Wipe All Data\" action (frontend-password gated, no caller/principal checks)",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Implement client-side image compression and apply it to every place the app uploads/serializes a user-selected image file (before converting to a data URL / storing in localStorage), including:\n- Avatar upload in `frontend/src/components/AvatarPickerDialog.tsx` (currently calls `uploadImage(file)` from `frontend/src/hooks/useQueries.ts`)\n- Chatroom media image upload in `frontend/src/components/CreateChatroomDialog.tsx` (currently calls `uploadImage(selectedFile, onProgress)` from `frontend/src/hooks/useQueries.ts`)\n- In-chat message image upload in `frontend/src/components/MessageInput.tsx` (currently uses a local `uploadImage(file)` implementation)\n\nCompression should:\n- Preserve correct orientation\n- Downscale large images to a reasonable maximum dimension\n- Reduce file size using an appropriate lossy format/quality setting\n- Fail gracefully (if compression fails, fall back to original image upload path and show an error only if the original path also fails).",
-      "target": "frontend",
+      "text": "Add a backend function that wipes/resets all application data and can be called without any `caller`/`Principal` checks.\n\nThe reset must clear all persisted in-canister state used by the app, including:\n- all chatrooms\n- all messages\n- all active-user presence tracking\n- all reactions\n- all user profiles\n- all ID counters (e.g., next chatroom/message IDs)\n\nThe function must not require authentication/authorization in Motoko (no AccessControl checks and no use of `caller` for gating).",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-6"
+          "recent-1"
         ],
         "quotes": [
-          "lets add compression to all image uploads"
+          "Go ahead and do it"
         ]
       },
       "acceptanceCriteria": [
-        "Uploading an image as an avatar, chatroom media image, or message image results in a visibly correct image and a smaller serialized payload than the original for typical large photos (e.g., multi-megapixel JPEGs).",
-        "All image upload flows still work end-to-end: the returned `data:...;blob-storage-id=...;base64,...` URL continues to render correctly wherever images are displayed.",
-        "If an image cannot be compressed (unsupported type, runtime error), the app still attempts to upload the original image; users are not blocked solely due to compression failure.",
-        "No compression is applied to non-file media inputs (YouTube/Twitch/Twitter URLs) or to Giphy avatar selection (remote URL)."
+        "A new public backend method exists to reset all stored app state and is callable by any user/caller.",
+        "After calling the reset method, `getChatrooms()` returns an empty list and chatroom/message IDs start over from the initial state (as defined by the app’s counters).",
+        "User profiles/reactions/presence data are cleared (subsequent reads behave as if the app is freshly deployed).",
+        "The implementation does not introduce or require `caller`/`Principal` checks for this reset action."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Refactor the code so all image uploads use a single shared upload/compress pipeline (avoid duplicated `uploadImage` logic), while keeping existing UI progress behavior:\n- Ensure `uploadImage` exported from `frontend/src/hooks/useQueries.ts` performs compression internally (or delegates to a shared helper) and still supports the existing optional `onProgress` callback.\n- Update `frontend/src/components/MessageInput.tsx` to use the shared `uploadImage` function rather than its local `uploadImage` implementation, so message image uploads are also compressed.",
+      "text": "Expose the reset capability in the admin UI at `frontend/src/pages/AdminDeleteChatroomsPage.tsx` as a clearly labeled destructive action (e.g., \"Reset/Wipe All Data\") that is protected only by the existing admin password/session gating already used on that page.\n\nThe UI must:\n- Require admin authentication (the existing password flow) before the reset control is visible/usable\n- Show a strong confirmation dialog explaining the action is irreversible\n- Show loading/disabled state while the reset is executing\n- Surface success/failure via the app’s existing toast/alert patterns",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-6"
+          "recent-1"
         ],
         "quotes": [
-          "lets add compression to all image uploads"
+          "Go ahead and do it"
         ]
       },
       "acceptanceCriteria": [
-        "There is only one canonical image-upload function used by AvatarPickerDialog, CreateChatroomDialog, and MessageInput for File-based image uploads.",
-        "`CreateChatroomDialog` progress UI continues to update (0–100%) during upload/serialization.",
-        "`MessageInput` still shows its uploading progress UI and sends the message with `mediaType: 'image'` and a working `mediaUrl`."
+        "When not authenticated on the admin page, the reset control is not accessible.",
+        "When authenticated, clicking the reset control opens a confirmation dialog and does not reset without confirmation.",
+        "While the reset call is in-flight, the reset control is disabled and indicates progress.",
+        "On success, the UI shows a success toast/message; on failure, it shows an error toast/message with a useful message."
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Add frontend data plumbing for the reset action by introducing a dedicated React Query mutation hook in `frontend/src/hooks/useQueries.ts` that calls the new backend reset method.\n\nAfter a successful reset, the app must invalidate relevant cached queries so the lobby/admin views immediately reflect an empty/fresh state (at minimum: chatrooms, messages, and any per-chatroom queries).",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "recent-1"
+        ],
+        "quotes": [
+          "Go ahead and do it"
+        ]
+      },
+      "acceptanceCriteria": [
+        "A new React Query mutation hook exists for the reset action and is used by the admin page.",
+        "After a successful reset, navigating to the lobby shows no chatrooms without requiring a manual refresh.",
+        "React Query caches for chatrooms/messages are invalidated (or cleared) after reset so stale data is not displayed."
       ]
     }
   ],
   "constraints": [
-    "Do not modify files under `frontend/src/components/ui` (compose existing UI components instead).",
-    "Do not edit immutable frontend hook files listed in SYSTEM_CONTEXT (e.g., `frontend/src/hooks/useActor.ts`, `frontend/src/main.tsx`, Internet Identity hooks).",
-    "Keep the backend interface unchanged; image compression must happen on the client side before data URL creation/storage."
+    "Backend must remain single-actor architecture with all Motoko logic in `backend/main.mo`.",
+    "Do not edit frontend files under `frontend/src/hooks/useInternetIdentity.ts`, `frontend/src/hooks/useInternetIdentity.tsx`, `frontend/src/hooks/useActor.ts`, `frontend/src/main.tsx`, or anything in `frontend/src/components/ui` (compose instead).",
+    "User-facing text must be English."
   ],
   "nonGoals": [
-    "Adding new backend storage for images (e.g., canister chunk storage) or changing Motoko schemas for media.",
-    "Compressing audio uploads/voice messages.",
-    "Compressing images that are not uploaded as local files (e.g., external URLs such as Giphy)."
+    "Do not add Internet Identity or any other authentication/authorization requirement for the reset action (frontend password gating only).",
+    "Do not implement multi-canister or external database storage/backup/restore workflows.",
+    "Do not redesign existing admin authentication flow beyond what is needed to add the reset control."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
+  },
+  "userProfileUpdate": {
+    "goalsToAdd": [],
+    "goalsToRemove": [],
+    "preferencesToAdd": [],
+    "preferencesToRemove": [],
+    "miscToAdd": [],
+    "miscToRemove": [],
+    "fieldsToSet": {},
+    "fieldsToDelete": []
   }
 }

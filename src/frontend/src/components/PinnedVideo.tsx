@@ -1,16 +1,11 @@
-import type { MessageWithReactions } from '../backend';
+import type { MessageWithConvertedReactions } from '../types/message';
 import { X } from 'lucide-react';
 import { Button } from './ui/button';
 import { useUnpinVideo } from '../hooks/useQueries';
-import { 
-  getYouTubeVideoId, 
-  getTwitchEmbedUrl,
-  isYouTubeUrl, 
-  isTwitchUrl 
-} from '../lib/videoUtils';
+import { getYouTubeVideoId, getTwitchEmbedUrl, isYouTubeUrl, isTwitchUrl } from '../lib/videoUtils';
 
 interface PinnedVideoProps {
-  message: MessageWithReactions;
+  message: MessageWithConvertedReactions;
   chatroomId: bigint;
 }
 
@@ -24,10 +19,8 @@ export default function PinnedVideo({ message, chatroomId }: PinnedVideoProps) {
   if (!message.mediaUrl || !message.mediaType) return null;
 
   const renderVideo = () => {
-    const mediaUrl = message.mediaUrl!;
-
-    if (message.mediaType === 'youtube' && isYouTubeUrl(mediaUrl)) {
-      const videoId = getYouTubeVideoId(mediaUrl);
+    if (message.mediaType === 'youtube' && isYouTubeUrl(message.mediaUrl!)) {
+      const videoId = getYouTubeVideoId(message.mediaUrl!);
       if (videoId) {
         return (
           <iframe
@@ -41,8 +34,8 @@ export default function PinnedVideo({ message, chatroomId }: PinnedVideoProps) {
       }
     }
 
-    if (message.mediaType === 'twitch' && isTwitchUrl(mediaUrl)) {
-      const embedUrl = getTwitchEmbedUrl(mediaUrl);
+    if (message.mediaType === 'twitch' && isTwitchUrl(message.mediaUrl!)) {
+      const embedUrl = getTwitchEmbedUrl(message.mediaUrl!);
       if (embedUrl) {
         return (
           <iframe
@@ -60,29 +53,29 @@ export default function PinnedVideo({ message, chatroomId }: PinnedVideoProps) {
 
   return (
     <div className="relative mx-auto w-full max-w-xl p-4">
-      <div className="mb-2 flex items-center justify-between">
+      <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-black">
+        {renderVideo()}
+      </div>
+      <div className="mt-2 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <img 
-            src="/assets/generated/pin-icon-transparent.dim_24x24.png" 
-            alt="Pinned" 
+          <img
+            src="/assets/generated/pin-icon-transparent.dim_24x24.png"
+            alt="Pinned"
             className="h-4 w-4"
           />
-          <span className="text-sm font-medium text-foreground">Pinned Video</span>
+          <span className="text-sm font-medium text-foreground">Pinned by {message.sender}</span>
         </div>
         <Button
           variant="ghost"
           size="sm"
           onClick={handleUnpin}
           disabled={unpinVideo.isPending}
-          className="h-8 w-8 p-0"
+          className="gap-2"
         >
           <X className="h-4 w-4" />
+          Unpin
         </Button>
-      </div>
-      <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-muted">
-        {renderVideo()}
       </div>
     </div>
   );
 }
-
