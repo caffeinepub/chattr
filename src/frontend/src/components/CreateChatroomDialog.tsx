@@ -343,153 +343,142 @@ export default function CreateChatroomDialog({ open, onOpenChange }: CreateChatr
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[550px] max-h-[90vh] overflow-y-auto">
-        <form onSubmit={handleSubmit}>
-          <DialogHeader>
-            <DialogTitle>Create New Chat</DialogTitle>
-            <DialogDescription>
-              Fill in all required fields to create a new chat.
-            </DialogDescription>
-          </DialogHeader>
+      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Create New Chat</DialogTitle>
+          <DialogDescription>
+            Start a conversation around a topic with media content
+          </DialogDescription>
+        </DialogHeader>
 
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="topic">Topic *</Label>
-              <Input
-                id="topic"
-                value={topic}
-                onChange={(e) => setTopic(e.target.value)}
-                placeholder="Enter chat topic"
-                required
-                disabled={isSubmitting}
-              />
-            </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="topic">Topic</Label>
+            <Input
+              id="topic"
+              value={topic}
+              onChange={(e) => setTopic(e.target.value)}
+              placeholder="Enter chat topic"
+              disabled={isSubmitting}
+              required
+              style={{ fontSize: '16px' }}
+            />
+          </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="description">Description *</Label>
-              <Textarea
-                id="description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Describe what this chat is about"
-                required
-                disabled={isSubmitting}
-                rows={3}
-              />
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="description">Description</Label>
+            <Textarea
+              id="description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Describe what this chat is about"
+              disabled={isSubmitting}
+              required
+              rows={3}
+              style={{ fontSize: '16px' }}
+            />
+          </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="category">Category *</Label>
-              <Select value={category} onValueChange={setCategory} disabled={isSubmitting}>
-                <SelectTrigger id="category">
-                  <SelectValue placeholder="Select a category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {CATEGORIES.map((cat) => (
-                    <SelectItem key={cat} value={cat.toLowerCase()}>
-                      {cat}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="category">Category</Label>
+            <Select value={category} onValueChange={setCategory} disabled={isSubmitting}>
+              <SelectTrigger id="category">
+                <SelectValue placeholder="Select a category" />
+              </SelectTrigger>
+              <SelectContent>
+                {CATEGORIES.map((cat) => (
+                  <SelectItem key={cat} value={cat}>
+                    {cat}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-            <div className="space-y-2">
-              <Label>Media *</Label>
-              <Tabs value={mediaTab} onValueChange={(v) => setMediaTab(v as any)}>
-                <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="upload" disabled={isSubmitting}>
-                    <Upload className="mr-1 h-3 w-3" />
-                    Image
-                  </TabsTrigger>
-                  <TabsTrigger value="video" disabled={isSubmitting}>
-                    <Video className="mr-1 h-3 w-3" />
-                    Video
-                  </TabsTrigger>
-                  <TabsTrigger value="twitter" disabled={isSubmitting}>
-                    <SiX className="mr-1 h-3 w-3" />
-                    Twitter
-                  </TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value="upload" className="space-y-2">
-                  <Input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileChange}
-                    disabled={isSubmitting}
-                    className={mediaError && mediaTab === 'upload' ? 'border-destructive' : ''}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Upload an image file - Max 10MB
+          <div className="space-y-2">
+            <Label>Media Content</Label>
+            <Tabs value={mediaTab} onValueChange={(v) => setMediaTab(v as any)}>
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="upload" disabled={isSubmitting}>
+                  <Upload className="mr-1 h-3 w-3" />
+                  Image
+                </TabsTrigger>
+                <TabsTrigger value="video" disabled={isSubmitting}>
+                  <Video className="mr-1 h-3 w-3" />
+                  Video
+                </TabsTrigger>
+                <TabsTrigger value="twitter" disabled={isSubmitting}>
+                  <SiX className="mr-1 h-3 w-3" />
+                  Twitter
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="upload" className="space-y-2">
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  disabled={isSubmitting}
+                  className="text-sm"
+                />
+                {selectedFile && (
+                  <p className="text-xs text-primary">
+                    Selected: {selectedFile.name}
                   </p>
-                  {selectedFile && (
-                    <p className="text-xs text-primary">
-                      Selected: {selectedFile.name}
+                )}
+                {isUploading && (
+                  <div className="space-y-1">
+                    <Progress value={uploadProgress} className="h-2" />
+                    <p className="text-xs text-muted-foreground text-center">
+                      {uploadProgress < 40 ? 'Compressing...' : 'Uploading...'} {Math.round(uploadProgress)}%
                     </p>
-                  )}
-                  {isUploading && (
-                    <div className="space-y-1">
-                      <Progress value={uploadProgress} className="h-2" />
-                      <p className="text-xs text-muted-foreground text-center">
-                        Uploading... {Math.round(uploadProgress)}%
-                      </p>
-                    </div>
-                  )}
-                </TabsContent>
-                
-                <TabsContent value="video" className="space-y-2">
-                  <Input
-                    value={mediaUrl}
-                    onChange={(e) => handleMediaUrlChange(e.target.value)}
-                    placeholder="YouTube or Twitch URL"
-                    type="url"
-                    disabled={isSubmitting}
-                    className={mediaError && mediaTab === 'video' ? 'border-destructive' : ''}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Paste a YouTube or Twitch video URL - automatically detected
-                  </p>
-                </TabsContent>
+                  </div>
+                )}
+              </TabsContent>
 
-                <TabsContent value="twitter" className="space-y-2">
-                  <Input
-                    value={mediaUrl}
-                    onChange={(e) => handleMediaUrlChange(e.target.value)}
-                    placeholder="https://twitter.com/user/status/..."
-                    type="url"
-                    disabled={isSubmitting}
-                    className={mediaError && mediaTab === 'twitter' ? 'border-destructive' : ''}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Provide a Twitter/X post URL
-                  </p>
-                  
-                  {mediaUrl.trim() && !mediaError && (
-                    <div className="mt-3 rounded-lg border border-border bg-card p-3">
-                      <p className="text-xs font-medium text-muted-foreground mb-2">Preview:</p>
-                      <div 
-                        ref={tweetPreviewRef}
-                        className="rounded-lg overflow-hidden"
-                      />
-                      {tweetLoading && (
-                        <div className="flex items-center justify-center py-4">
-                          <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                          <span className="ml-2 text-xs text-muted-foreground">Loading preview...</span>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </TabsContent>
-              </Tabs>
-              
-              {mediaError && (
-                <Alert variant="destructive" className="py-2">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription className="text-xs">{mediaError}</AlertDescription>
-                </Alert>
-              )}
-            </div>
+              <TabsContent value="video" className="space-y-2">
+                <Input
+                  value={mediaUrl}
+                  onChange={(e) => handleMediaUrlChange(e.target.value)}
+                  placeholder="YouTube or Twitch URL"
+                  type="url"
+                  disabled={isSubmitting}
+                  className="text-sm"
+                  style={{ fontSize: '16px' }}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Paste a YouTube or Twitch video URL - automatically detected
+                </p>
+              </TabsContent>
+
+              <TabsContent value="twitter" className="space-y-2">
+                <Input
+                  value={mediaUrl}
+                  onChange={(e) => handleMediaUrlChange(e.target.value)}
+                  placeholder="https://twitter.com/user/status/..."
+                  type="url"
+                  disabled={isSubmitting}
+                  className="text-sm"
+                  style={{ fontSize: '16px' }}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Paste a Twitter/X post URL
+                </p>
+                {tweetLoading && (
+                  <div className="flex items-center justify-center py-4">
+                    <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                  </div>
+                )}
+                <div ref={tweetPreviewRef} className="min-h-[100px]" />
+              </TabsContent>
+            </Tabs>
+
+            {mediaError && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{mediaError}</AlertDescription>
+              </Alert>
+            )}
           </div>
 
           <DialogFooter>
@@ -501,22 +490,9 @@ export default function CreateChatroomDialog({ open, onOpenChange }: CreateChatr
             >
               Cancel
             </Button>
-            <Button
-              type="submit"
-              disabled={!isFormValid || isSubmitting}
-              className="gap-2"
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  {isUploading ? 'Uploading...' : 'Creating...'}
-                </>
-              ) : (
-                <>
-                  <Plus className="h-4 w-4" />
-                  Create Chat
-                </>
-              )}
+            <Button type="submit" disabled={!isFormValid || isSubmitting}>
+              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Create Chat
             </Button>
           </DialogFooter>
         </form>

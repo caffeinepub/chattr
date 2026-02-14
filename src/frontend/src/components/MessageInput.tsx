@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Progress } from './ui/progress';
+import { uploadImage } from '../hooks/useQueries';
 
 interface MessageInputProps {
   onSendMessage: (content: string, mediaUrl?: string, mediaType?: string) => void;
@@ -133,46 +134,6 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
       }
     } else {
       setMediaError('');
-    }
-  };
-
-  const uploadImage = async (file: File): Promise<string> => {
-    try {
-      if (file.size > 10 * 1024 * 1024) {
-        throw new Error('File size must be less than 10MB');
-      }
-
-      setIsUploading(true);
-      setUploadProgress(10);
-      
-      const dataUrl = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
-      
-      setUploadProgress(50);
-      
-      const imageId = `blob-storage-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-      const storageKey = `image_${imageId}`;
-      
-      try {
-        localStorage.setItem(storageKey, dataUrl);
-      } catch (e) {
-        console.warn('[MessageInput] localStorage full, using data URL directly');
-      }
-      
-      setUploadProgress(100);
-      
-      const blobStorageUrl = `data:${file.type};blob-storage-id=${imageId};base64,${dataUrl.split(',')[1]}`;
-      
-      return blobStorageUrl;
-    } catch (error) {
-      console.error('[MessageInput] Error processing image:', error);
-      throw error instanceof Error ? error : new Error('Failed to upload image');
-    } finally {
-      setIsUploading(false);
     }
   };
 
@@ -352,7 +313,10 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
         if (!validateImageFile(selectedFile)) return;
         
         try {
-          const mediaUrl = await uploadImage(selectedFile);
+          setIsUploading(true);
+          const mediaUrl = await uploadImage(selectedFile, (progress) => {
+            setUploadProgress(progress);
+          });
           const content = message.trim() || 'Image';
           onSendMessage(content, mediaUrl, 'image');
           
@@ -369,6 +333,8 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
           }
         } catch (error) {
           setMediaError(error instanceof Error ? error.message : 'Failed to upload image');
+        } finally {
+          setIsUploading(false);
         }
         return;
       } else if (mediaTab === 'video' && videoUrl.trim()) {
@@ -496,7 +462,7 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
                 <div className="space-y-1">
                   <Progress value={uploadProgress} className="h-2" />
                   <p className="text-xs text-muted-foreground text-center">
-                    Uploading... {Math.round(uploadProgress)}%
+                    {uploadProgress < 40 ? 'Compressing...' : 'Uploading...'} {Math.round(uploadProgress)}%
                   </p>
                 </div>
               )}
@@ -542,111 +508,94 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
       {isRecording && (
         <div className="rounded-lg border border-primary bg-primary/5 p-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2">
-                <div className="h-3 w-3 animate-pulse rounded-full bg-destructive" />
-                <span className="text-sm font-medium text-foreground">Recording</span>
-              </div>
-              <span className="text-sm font-mono text-muted-foreground">
-                {formatRecordingTime(recordingTime)}
-              </span>
+            <div className="flex items-center gap-2">
+              <div className="h-3 w-3 animate-pulse rounded-full bg-destructive" />
+              <span className="text-sm font-medium">Recording: {formatRecordingTime(recordingTime)}</span>
+            </div>
+            <div className="flex gap-2">
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
                 onClick={cancelRecording}
-                disabled={isUploading}
-                className="h-7 gap-1.5 px-2"
-                title="Cancel recording"
+                className="h-8"
               >
-                <X className="h-4 w-4" />
-                <span className="text-xs">Cancel</span>
+                <X className="mr-1 h-4 w-4" />
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                variant="default"
+                size="sm"
+                onClick={stopRecording}
+                className="h-8"
+              >
+                <Square className="mr-1 h-4 w-4" />
+                Stop
               </Button>
             </div>
-            <Button
-              type="button"
-              variant="destructive"
-              size="sm"
-              onClick={stopRecording}
-              disabled={isUploading}
-              className="gap-2"
-            >
-              <Square className="h-3 w-3 fill-current" />
-              Stop & Send
-            </Button>
           </div>
-          {isUploading && (
-            <div className="mt-2 space-y-1">
-              <Progress value={uploadProgress} className="h-2" />
-              <p className="text-xs text-muted-foreground text-center">
-                Processing audio... {Math.round(uploadProgress)}%
-              </p>
-            </div>
+          {recordingError && (
+            <p className="mt-2 text-xs text-destructive">{recordingError}</p>
           )}
         </div>
       )}
 
-      {recordingError && (
-        <div className="rounded-lg border border-destructive bg-destructive/5 p-3">
-          <p className="text-sm text-destructive">{recordingError}</p>
+      <div className="flex gap-2">
+        <div className="flex-1">
+          <Textarea
+            ref={textareaRef}
+            value={message}
+            onChange={handleInput}
+            onKeyDown={handleKeyDown}
+            placeholder={isRecording ? "Recording voice message..." : "Type a message..."}
+            disabled={disabled || isUploading || isSending || isRecording}
+            className="min-h-[44px] max-h-[120px] resize-none"
+            rows={1}
+            style={{ fontSize: '16px' }}
+          />
         </div>
-      )}
-
-      <div className="flex items-end gap-2">
-        {!showMediaInput && !isRecording && (
-          <>
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              onClick={() => setShowMediaInput(true)}
-              disabled={disabled || isSending}
-              className="h-11 w-11 flex-shrink-0 rounded-full"
-              title="Add media"
-            >
-              <ImageIcon className="h-5 w-5" />
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              onClick={startRecording}
-              disabled={disabled || isSending}
-              className="h-11 w-11 flex-shrink-0 rounded-full"
-              title="Record voice message"
-            >
-              <Mic className="h-5 w-5" />
-            </Button>
-          </>
-        )}
         
-        {!isRecording && (
-          <>
-            <Textarea
-              ref={textareaRef}
-              value={message}
-              onChange={handleInput}
-              onKeyDown={handleKeyDown}
-              placeholder={showMediaInput ? "Add a caption (optional)..." : "Type a message..."}
-              disabled={disabled || isUploading || isSending}
-              className="min-h-[44px] max-h-[120px] resize-none rounded-full px-4 py-3 focus-visible:ring-1"
-              style={{ fontSize: '16px' }}
-              rows={1}
-            />
-            <Button
-              onClick={handleSend}
-              disabled={!canSend}
-              size="icon"
-              className="h-11 w-11 flex-shrink-0 rounded-full"
-            >
-              {isUploading || isSending ? (
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-              ) : (
-                <Send className="h-5 w-5" />
-              )}
-            </Button>
-          </>
-        )}
+        <div className="flex gap-1">
+          {!isRecording && (
+            <>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowMediaInput(!showMediaInput)}
+                disabled={disabled || isUploading || isSending}
+                className="shrink-0"
+              >
+                <ImageIcon className="h-5 w-5" />
+              </Button>
+              
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={startRecording}
+                disabled={disabled || isUploading || isSending || showMediaInput}
+                className="shrink-0"
+              >
+                <Mic className="h-5 w-5" />
+              </Button>
+            </>
+          )}
+          
+          <Button
+            onClick={handleSend}
+            disabled={!canSend}
+            size="icon"
+            className="shrink-0"
+          >
+            {isUploading || isSending ? (
+              <div className="h-5 w-5 animate-spin rounded-full border-2 border-background border-t-transparent" />
+            ) : (
+              <Send className="h-5 w-5" />
+            )}
+          </Button>
+        </div>
       </div>
     </div>
   );

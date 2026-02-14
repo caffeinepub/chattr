@@ -1,78 +1,58 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Stabilize chatroom list queries to avoid transient empty overwrites and ensure reliable refresh after creation",
+  "title": "Client-side compression for all File-based image uploads",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Guard lobby/admin chatroom list state so transient empty/undefined fetch results (especially shortly after creation) do not overwrite previously fetched non-empty data.",
+      "summary": "Add client-side image compression and apply it to all File-based image uploads before data-URL serialization/localStorage, with graceful fallback and correct orientation.",
       "acceptanceCriteria": [
-        "After creating chatrooms repeatedly (e.g., 30+ in a row), the Lobby page does not randomly switch to showing zero rooms unless there are truly no rooms.",
-        "After creating chatrooms repeatedly, the Admin delete chatrooms page does not randomly show an empty table unless there are truly no rooms.",
-        "Clicking a tag/filter is no longer required to make rooms reappear."
+        "Uploading an image as an avatar, chatroom media image, or message image results in a visibly correct image and a smaller serialized payload than the original for typical large photos (e.g., multi-megapixel JPEGs).",
+        "All image upload flows still work end-to-end: the returned `data:...;blob-storage-id=...;base64,...` URL continues to render correctly wherever images are displayed.",
+        "If an image cannot be compressed (unsupported type, runtime error), the app still attempts to upload the original image; users are not blocked solely due to compression failure.",
+        "No compression is applied to non-file media inputs (YouTube/Twitch/Twitter URLs) or to Giphy avatar selection (remote URL)."
       ],
       "file_operations": [
         {
+          "path": "frontend/src/lib/imageCompression.ts",
+          "operation": "create",
+          "description": "Create a shared client-side image compression helper that (1) preserves correct orientation (prefer browser decoding that respects EXIF orientation), (2) downscales large images to a reasonable max dimension, (3) encodes to a lossy format/quality (prefer modern format when supported), and (4) throws or returns a structured failure so callers can fall back to the original File without blocking users."
+        },
+        {
           "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Add a small client-side stability guard for chatroom list queries: track a recent-chatroom-creation timestamp, and when a refetch returns an empty list during a short post-create window while cached data is non-empty, treat it as a transient error (throw) so React Query keeps the last known non-empty data instead of overwriting it."
+          "description": "Update the exported uploadImage(file, onProgress?) pipeline to attempt compression via the new frontend/src/lib/imageCompression.ts helper before reading/serializing to a data URL and storing in localStorage; if compression fails, silently fall back to the original file and only surface an error if the original serialization/upload path also fails; keep the returned `data:${mime};blob-storage-id=...;base64,...` contract intact and preserve existing onProgress behavior."
         },
         {
-          "path": "frontend/src/pages/LobbyPage.tsx",
+          "path": "frontend/src/components/AvatarPickerDialog.tsx",
           "operation": "modify",
-          "description": "Ensure the Lobby UI continues to render the last known chatroom list during transient refetch issues by relying on query hook behavior (previous data retained) and only showing the \"No chats found\" empty state when the active query’s data is genuinely empty and not a transient error."
+          "description": "Ensure avatar File uploads continue to call the shared uploadImage from frontend/src/hooks/useQueries.ts (now compressing internally) without changing the Giphy remote-URL selection path; keep current validation and error handling intact."
         },
         {
-          "path": "frontend/src/pages/AdminDeleteChatroomsPage.tsx",
+          "path": "frontend/src/components/CreateChatroomDialog.tsx",
           "operation": "modify",
-          "description": "Ensure the Admin chatroom table is driven by the stabilized chatroom query behavior (previous data retained) so transient empty refetch results do not replace a previously loaded non-empty list; keep the \"No chatrooms found\" state only for genuine zero-chatroom results."
+          "description": "Ensure chatroom media File uploads continue to call the shared uploadImage from frontend/src/hooks/useQueries.ts (now compressing internally) and that non-file media tabs (YouTube/Twitch/Twitter URLs) bypass compression; maintain existing progress UI wiring through the onProgress callback."
         }
       ]
     },
     {
       "id": "REQ-2",
-      "summary": "Update React Query chatroom queries to keep previous data while refetching and report fetch failures as errors (instead of converting them to empty lists).",
+      "summary": "Refactor to a single canonical image upload/compress pipeline and update MessageInput to use it while preserving progress UX.",
       "acceptanceCriteria": [
-        "If a chatroom list refetch fails, the UI continues to display the last known non-empty chatroom list (if available) instead of switching to an empty state.",
-        "The chatroom list query reports an error state on failure (so the UI can show an error banner), rather than silently converting failure into `[]`.",
-        "The Lobby page can still show the \"No chats found yet\" empty state when there are genuinely zero chatrooms in the backend."
+        "There is only one canonical image-upload function used by AvatarPickerDialog, CreateChatroomDialog, and MessageInput for File-based image uploads.",
+        "`CreateChatroomDialog` progress UI continues to update (0–100%) during upload/serialization.",
+        "`MessageInput` still shows its uploading progress UI and sends the message with `mediaType: 'image'` and a working `mediaUrl`."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/hooks/useQueries.ts",
+          "path": "frontend/src/components/MessageInput.tsx",
           "operation": "modify",
-          "description": "Refactor useGetChatrooms/useSearchChatrooms/useFilterChatroomsByCategory queryFns to throw on failures (remove catch blocks that return []), and configure React Query to keep previous data during refetch (e.g., placeholderData/keepPreviousData depending on TanStack version) so existing non-empty data is not erased during transient failures."
+          "description": "Remove/retire the local uploadImage(File) implementation and switch image uploads to import and use the shared uploadImage from frontend/src/hooks/useQueries.ts; wire MessageInput’s existing isUploading/uploadProgress state to the shared function via its onProgress callback so the current progress UI remains functional; ensure non-file media inputs (YouTube/Twitch/Twitter URLs) remain unchanged and audio upload is unaffected."
         },
-        {
-          "path": "frontend/src/pages/LobbyPage.tsx",
-          "operation": "modify",
-          "description": "Adjust Lobby error/empty rendering logic to align with new query behavior: show an error banner when the active list query is in error state, while still rendering cached/previous data when present; only render the empty-state UI when the active query successfully resolves to an empty array."
-        }
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "summary": "After chatroom creation, reliably refresh all relevant chatroom list views (base, category-filtered, and search) without requiring user interaction.",
-      "acceptanceCriteria": [
-        "After successfully creating a chatroom, the new chatroom appears in the Lobby list within one refresh cycle without needing to click a category badge or change search text.",
-        "After successfully creating a chatroom, the Admin delete chatrooms page shows the chatroom in its table within one refresh cycle without needing to navigate away/back.",
-        "If the user has an active category filter or search term when creating a chatroom, the app refetches the currently active list query (so the list is consistent with the current filter/search state)."
-      ],
-      "file_operations": [
         {
           "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Update useCreateChatroom onSuccess to invalidate and/or refetch all chatroom list queries under the shared chatrooms key (base + search + category variants) so any currently active list view refreshes automatically after creation; also update the recent-create timestamp used by the transient-empty guard."
-        },
-        {
-          "path": "frontend/src/components/CreateChatroomDialog.tsx",
-          "operation": "modify",
-          "description": "Add an optional callback prop (e.g., onCreated) invoked after successful create, allowing the parent view to trigger an immediate refresh of the currently active list query (search/category/base) without user interaction."
-        },
-        {
-          "path": "frontend/src/pages/LobbyPage.tsx",
-          "operation": "modify",
-          "description": "Wire CreateChatroomDialog’s new onCreated callback to refresh the currently active list query based on current UI state (search term vs selected category vs base), in addition to the global invalidation done by the mutation hook, ensuring the active view updates within one refresh cycle."
+          "description": "Finalize uploadImage as the single canonical File-based image upload function used across the app (AvatarPickerDialog, CreateChatroomDialog, MessageInput), including optional onProgress callback support; ensure any prior duplicated logic is consolidated into this shared pipeline and that progress semantics remain compatible with existing UIs."
         }
       ]
     }

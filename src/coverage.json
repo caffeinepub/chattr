@@ -1,55 +1,42 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-14T00:18:56.392Z",
+  "generatedAt": "2026-02-14T00:40:37.317Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 3,
-    "implemented": 3,
+    "total": 2,
+    "implemented": 2,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Prevent the lobby/admin chatroom list from being overwritten with an empty array when a chatroom fetch temporarily returns empty/undefined during or shortly after chatroom creation.",
+        "summary": "Implement client-side image compression and apply it to every place the app uploads/serializes a user-selected image file (before converting to a data URL / storing in localStorage), including:\n- Avatar upload in `frontend/src/components/AvatarPickerDialog.tsx` (currently calls `uploadImage(file)` from `frontend/src/hooks/useQueries.ts`)\n- Chatroom media image upload in `frontend/src/components/CreateChatroomDialog.tsx` (currently calls `uploadImage(selectedFile, onProgress)` from `frontend/src/hooks/useQueries.ts`)\n- In-chat message image upload in `frontend/src/components/MessageInput.tsx` (currently uses a local `uploadImage(file)` implementation)\n\nCompression should:\n- Preserve correct orientation\n- Downscale large images to a reasonable maximum dimension\n- Reduce file size using an appropriate lossy format/quality setting\n- Fail gracefully (if compression fails, fall back to original image upload path and show an error only if the original path also fails).",
         "status": "implemented",
         "plannedFiles": [
+          "frontend/src/lib/imageCompression.ts",
           "frontend/src/hooks/useQueries.ts",
-          "frontend/src/pages/LobbyPage.tsx",
-          "frontend/src/pages/AdminDeleteChatroomsPage.tsx"
+          "frontend/src/components/AvatarPickerDialog.tsx",
+          "frontend/src/components/CreateChatroomDialog.tsx"
         ],
         "matchedFiles": [
+          "frontend/src/lib/imageCompression.ts",
           "frontend/src/hooks/useQueries.ts",
-          "frontend/src/pages/LobbyPage.tsx",
-          "frontend/src/pages/AdminDeleteChatroomsPage.tsx"
+          "frontend/src/components/CreateChatroomDialog.tsx"
         ]
       },
       {
         "id": "REQ-2",
-        "summary": "Update the React Query chatroom queries so transient failures/empty responses do not erase previously fetched chatroom data (keep previous data while refetching, and treat fetch failures as errors rather than returning an empty list).",
+        "summary": "Refactor the code so all image uploads use a single shared upload/compress pipeline (avoid duplicated `uploadImage` logic), while keeping existing UI progress behavior:\n- Ensure `uploadImage` exported from `frontend/src/hooks/useQueries.ts` performs compression internally (or delegates to a shared helper) and still supports the existing optional `onProgress` callback.\n- Update `frontend/src/components/MessageInput.tsx` to use the shared `uploadImage` function rather than its local `uploadImage` implementation, so message image uploads are also compressed.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/pages/LobbyPage.tsx"
+          "frontend/src/components/MessageInput.tsx",
+          "frontend/src/hooks/useQueries.ts"
         ],
         "matchedFiles": [
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/pages/LobbyPage.tsx"
-        ]
-      },
-      {
-        "id": "REQ-3",
-        "summary": "Ensure chatroom creation triggers a reliable refresh of all relevant chatroom list views, including base list, category-filtered lists, and search lists, without requiring any user interaction.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/components/CreateChatroomDialog.tsx",
-          "frontend/src/pages/LobbyPage.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/pages/LobbyPage.tsx"
+          "frontend/src/components/MessageInput.tsx",
+          "frontend/src/hooks/useQueries.ts"
         ]
       }
     ]
@@ -59,9 +46,10 @@
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
+    "frontend/src/components/CreateChatroomDialog.tsx",
+    "frontend/src/components/MessageInput.tsx",
     "frontend/src/hooks/useQueries.ts",
-    "frontend/src/pages/AdminDeleteChatroomsPage.tsx",
-    "frontend/src/pages/LobbyPage.tsx",
+    "frontend/src/lib/imageCompression.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

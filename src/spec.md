@@ -1,11 +1,16 @@
 # Specification
 
 ## Summary
-**Goal:** Fix an intermittent bug where the Lobby and Admin chatroom lists sometimes become empty after creating chatrooms, without requiring users to click a tag/filter to recover.
+**Goal:** Add client-side image compression to all File-based image uploads to reduce serialized payload size while keeping uploads working end-to-end.
 
 **Planned changes:**
-- Update the Lobby/Admin chatroom list fetching logic to avoid overwriting previously loaded chatrooms with an empty/undefined response during transient refetches shortly after chatroom creation.
-- Adjust React Query chatroom queries to keep previously fetched data while refetching and to surface fetch failures as errors (instead of silently returning an empty list).
-- Ensure successful chatroom creation reliably triggers refresh of all relevant chatroom list queries (base list, category-filtered lists, and search-based lists) matching the user’s current filter/search state.
+- Implement a shared client-side image compression step that preserves orientation, downscales large images to a reasonable max dimension, and applies lossy compression before converting/storing as data URLs.
+- Integrate compression into the canonical `uploadImage` pipeline in `frontend/src/hooks/useQueries.ts`, keeping the existing optional `onProgress` behavior intact.
+- Update all File-based upload entry points to use the shared pipeline:
+  - Avatar upload in `AvatarPickerDialog.tsx`
+  - Chatroom media image upload in `CreateChatroomDialog.tsx`
+  - Message image upload in `MessageInput.tsx` (remove/replace the local `uploadImage` implementation)
+- Ensure graceful fallback: if compression fails, attempt the original (uncompressed) upload path and only surface an error if that also fails.
+- Ensure no compression is applied to non-file media inputs (YouTube/Twitch/Twitter URLs) or Giphy avatar selection (remote URL).
 
-**User-visible outcome:** After creating chatrooms repeatedly, the Lobby and Admin chatroom lists no longer randomly switch to showing zero rooms unless there truly are none; newly created rooms appear without needing to click a tag/filter, and failures can be reflected as an error state rather than an empty list.
+**User-visible outcome:** Users can upload avatar images, chatroom images, and in-chat message images as before, but typical large photos serialize/upload as smaller payloads while still rendering correctly; uploads continue to work even if compression fails for a given file.

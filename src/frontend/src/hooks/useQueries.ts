@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
 import type { Message, ChatroomWithLiveStatus, UserProfile, MessageWithReactions, Reaction } from '../backend';
 import { toast } from 'sonner';
+import { compressImage } from '../lib/imageCompression';
 
 // Get username from localStorage or generate a random anonymous ID
 function getUsername(): string {
@@ -295,31 +296,58 @@ export function useIncrementViewCount() {
   });
 }
 
-// Upload image file and return a data URL that includes blob-storage identifier
+/**
+ * Upload image file with compression and return a data URL that includes blob-storage identifier
+ * This is the canonical image upload function used across the app
+ */
 export async function uploadImage(file: File, onProgress?: (progress: number) => void): Promise<string> {
   try {
     console.log('[UploadImage] Starting upload for file:', file.name, 'size:', file.size, 'type:', file.type);
     
-    // Check file size (max 10MB)
+    // Check file size (max 10MB before compression)
     if (file.size > 10 * 1024 * 1024) {
       throw new Error('File size must be less than 10MB');
     }
     
     if (onProgress) {
-      onProgress(10);
+      onProgress(5);
+    }
+    
+    // Attempt compression
+    let processedFile = file;
+    try {
+      console.log('[UploadImage] Attempting compression...');
+      processedFile = await compressImage(file, {
+        maxWidth: 1920,
+        maxHeight: 1920,
+        quality: 0.85,
+      }, (compressionProgress) => {
+        // Map compression progress to 5-40% of total progress
+        if (onProgress) {
+          onProgress(5 + (compressionProgress * 0.35));
+        }
+      });
+      console.log('[UploadImage] Compression complete, using', processedFile === file ? 'original' : 'compressed', 'file');
+    } catch (compressionError) {
+      console.warn('[UploadImage] Compression failed, using original file:', compressionError);
+      // Continue with original file
+    }
+    
+    if (onProgress) {
+      onProgress(40);
     }
     
     const dataUrl = await new Promise<string>((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => resolve(reader.result as string);
       reader.onerror = reject;
-      reader.readAsDataURL(file);
+      reader.readAsDataURL(processedFile);
     });
     
     console.log('[UploadImage] File read as data URL, length:', dataUrl.length);
     
     if (onProgress) {
-      onProgress(50);
+      onProgress(70);
     }
     
     const imageId = `blob-storage-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -336,7 +364,7 @@ export async function uploadImage(file: File, onProgress?: (progress: number) =>
       onProgress(100);
     }
     
-    const blobStorageUrl = `data:${file.type};blob-storage-id=${imageId};base64,${dataUrl.split(',')[1]}`;
+    const blobStorageUrl = `data:${processedFile.type};blob-storage-id=${imageId};base64,${dataUrl.split(',')[1]}`;
     
     console.log('[UploadImage] Upload complete, blob-storage URL created');
     
@@ -535,14 +563,14 @@ export function useUpdateAvatar() {
       const userId = getUserId();
       const username = getUsername();
       
-      // Update localStorage
+      // Update avatar in localStorage
       if (params.avatarUrl) {
         localStorage.setItem('chatAvatarUrl', params.avatarUrl);
       } else {
         localStorage.removeItem('chatAvatarUrl');
       }
       
-      // Get current profile or create new one
+      // Get current profile from backend or create new one
       const currentProfile = await actor.getCallerUserProfile();
       
       // Save updated profile to backend
@@ -550,7 +578,7 @@ export function useUpdateAvatar() {
         name: username,
         anonId: userId,
         avatarUrl: params.avatarUrl || undefined,
-        presetAvatar: params.isPreset && params.avatarUrl ? params.avatarUrl : undefined,
+        presetAvatar: params.isPreset && params.avatarUrl ? params.avatarUrl : currentProfile?.presetAvatar || undefined,
       };
       
       await actor.saveCallerUserProfile(updatedProfile);
@@ -584,41 +612,52 @@ export function useAddReaction() {
       return params;
     },
     onMutate: async (params) => {
+      // Optimistic update
       await queryClient.cancelQueries({ queryKey: ['messages', params.chatroomId.toString()] });
       
       const previousMessages = queryClient.getQueryData<MessageWithReactions[]>(['messages', params.chatroomId.toString()]);
       
       if (previousMessages) {
         const userId = getUserId();
-        const optimisticMessages = previousMessages.map(msg => {
-          if (msg.id === params.messageId) {
-            const reactions = listToArray<Reaction>(msg.reactions);
-            const existingReaction = reactions.find(r => r.emoji === params.emoji);
-            
-            if (existingReaction) {
-              const users = listToArray<string>(existingReaction.users);
-              if (!users.includes(userId)) {
-                const updatedReaction: Reaction = {
-                  ...existingReaction,
-                  count: existingReaction.count + 1n,
-                  users: [userId, existingReaction.users] as any,
+        queryClient.setQueryData<MessageWithReactions[]>(
+          ['messages', params.chatroomId.toString()],
+          previousMessages.map(msg => {
+            if (msg.id === params.messageId) {
+              const reactions = listToArray<Reaction>(msg.reactions);
+              const existingReaction = reactions.find(r => r.emoji === params.emoji);
+              
+              if (existingReaction) {
+                const users = listToArray<string>(existingReaction.users);
+                if (!users.includes(userId)) {
+                  return {
+                    ...msg,
+                    reactions: [
+                      ...reactions.filter(r => r.emoji !== params.emoji),
+                      {
+                        ...existingReaction,
+                        count: existingReaction.count + BigInt(1),
+                        users: [userId, existingReaction.users] as any,
+                      },
+                    ] as any,
+                  };
+                }
+              } else {
+                return {
+                  ...msg,
+                  reactions: [
+                    ...reactions,
+                    {
+                      emoji: params.emoji,
+                      count: BigInt(1),
+                      users: [userId, null] as any,
+                    },
+                  ] as any,
                 };
-                const updatedReactions = reactions.map(r => r.emoji === params.emoji ? updatedReaction : r);
-                return { ...msg, reactions: updatedReactions.reduceRight((acc, r) => [r, acc], null as any) };
               }
-            } else {
-              const newReaction: Reaction = {
-                emoji: params.emoji,
-                count: 1n,
-                users: [userId, null] as any,
-              };
-              return { ...msg, reactions: [newReaction, msg.reactions] as any };
             }
-          }
-          return msg;
-        });
-        
-        queryClient.setQueryData(['messages', params.chatroomId.toString()], optimisticMessages);
+            return msg;
+          })
+        );
       }
       
       return { previousMessages };
@@ -645,46 +684,61 @@ export function useRemoveReaction() {
       await actor.removeReaction(params.messageId, params.emoji, userId);
       return params;
     },
-    onMutate: async (params) => {
-      await queryClient.cancelQueries({ queryKey: ['messages', params.chatroomId.toString()] });
-      
-      const previousMessages = queryClient.getQueryData<MessageWithReactions[]>(['messages', params.chatroomId.toString()]);
-      
-      if (previousMessages) {
-        const userId = getUserId();
-        const optimisticMessages = previousMessages.map(msg => {
-          if (msg.id === params.messageId) {
-            const reactions = listToArray<Reaction>(msg.reactions);
-            const updatedReactions = reactions.map(r => {
-              if (r.emoji === params.emoji) {
-                const users = listToArray<string>(r.users);
-                const filteredUsers = users.filter(u => u !== userId);
-                return {
-                  ...r,
-                  count: r.count > 0n ? r.count - 1n : 0n,
-                  users: filteredUsers.reduceRight((acc, u) => [u, acc], null as any),
-                };
-              }
-              return r;
-            }).filter(r => r.count > 0n);
-            
-            return { ...msg, reactions: updatedReactions.reduceRight((acc, r) => [r, acc], null as any) };
-          }
-          return msg;
-        });
-        
-        queryClient.setQueryData(['messages', params.chatroomId.toString()], optimisticMessages);
-      }
-      
-      return { previousMessages };
-    },
-    onError: (err, params, context) => {
-      if (context?.previousMessages) {
-        queryClient.setQueryData(['messages', params.chatroomId.toString()], context.previousMessages);
-      }
-    },
-    onSettled: (data, error, params) => {
+    onSuccess: (params) => {
       queryClient.invalidateQueries({ queryKey: ['messages', params.chatroomId.toString()] });
+    },
+  });
+}
+
+// User profile queries
+export function useGetCallerUserProfile() {
+  const { actor, isFetching: actorFetching } = useActor();
+
+  const query = useQuery<UserProfile | null>({
+    queryKey: ['currentUserProfile'],
+    queryFn: async () => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.getCallerUserProfile();
+    },
+    enabled: !!actor && !actorFetching,
+    retry: false,
+  });
+
+  // Return custom state that properly reflects actor dependency
+  return {
+    ...query,
+    isLoading: actorFetching || query.isLoading,
+    isFetched: !!actor && query.isFetched,
+  };
+}
+
+export function useSaveCallerUserProfile() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (profile: UserProfile) => {
+      if (!actor) throw new Error('Actor not available');
+      
+      // Update localStorage
+      localStorage.setItem('chatUsername', profile.name);
+      if (profile.avatarUrl) {
+        localStorage.setItem('chatAvatarUrl', profile.avatarUrl);
+      }
+      
+      await actor.saveCallerUserProfile(profile);
+      
+      // Retroactively update messages
+      await actor.updateUsernameRetroactively(profile.anonId, profile.name);
+      if (profile.avatarUrl !== undefined) {
+        await actor.updateAvatarRetroactively(profile.anonId, profile.avatarUrl || null);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
+      queryClient.invalidateQueries({ queryKey: ['currentUsername'] });
+      queryClient.invalidateQueries({ queryKey: ['currentAvatar'] });
+      queryClient.invalidateQueries({ queryKey: ['messages'] });
     },
   });
 }

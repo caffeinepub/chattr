@@ -1,27 +1,67 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-14T00:18:56.390Z",
-  "summary": "The diff implements protections in React Query to keep previously fetched chatroom lists from being overwritten by transient empty results shortly after creation (via placeholderData and a post-create empty-result guard). However, the diff does not show any explicit logic ensuring chatroom creation reliably refreshes all relevant list queries (base, category-filtered, search) after creating a room.",
+  "generatedAt": "2026-02-14T00:40:37.314Z",
+  "summary": "Client-side image compression utility was added and `useQueries.uploadImage` now appears to compress before serialization, with `MessageInput` refactored to use the shared upload function. However, the diff does not show the required avatar upload flow (`AvatarPickerDialog.tsx`) being updated/verified, and the change set includes many unrelated UI/feature modifications beyond image compression.",
   "missing_requirements": [
     {
-      "id": "REQ-3",
-      "requirement": "Ensure chatroom creation triggers a reliable refresh of all relevant chatroom list views, including base list, category-filtered lists, and search lists, without requiring any user interaction.",
-      "reason": "The diff shows query-side guarding/placeholderData to preserve previous results, but does not show any mutation-side invalidation/refetch logic tied to chatroom creation that would refresh ['chatrooms'], category-filtered, and search queries. The provided snippets only show list queries and pages consuming them; no creation-triggered queryClient.invalidateQueries/refetchQueries for the relevant keys is evidenced.",
+      "id": "REQ-1",
+      "requirement": "Apply client-side image compression to the avatar upload flow in `frontend/src/components/AvatarPickerDialog.tsx` (before converting to data URL / localStorage), while ensuring Giphy avatar selection (remote URL) is not compressed.",
+      "reason": "`AvatarPickerDialog.tsx` is not present in the modified files list or shown in the diff summary, so there is no evidence that the avatar upload path was updated/verified to use the new compression pipeline or that remote Giphy selection is excluded.",
       "evidence": [
-        "frontend/src/hooks/useQueries.ts",
-        "frontend/src/pages/LobbyPage.tsx",
-        "frontend/src/pages/AdminDeleteChatroomsPage.tsx"
+        "file-diff: MODIFIED FILES list does not include frontend/src/components/AvatarPickerDialog.tsx"
       ]
     }
   ],
-  "hallucinated_features": [],
-  "confidence": 0.62,
+  "hallucinated_features": [
+    {
+      "description": "Multiple unrelated UI/layout changes (header layout adjustments, chat area collapsed header centering, lobby/search improvements, chatroom page loading/deep link changes, etc.).",
+      "reason": "The BuildRequest is specifically about adding client-side compression for image uploads and refactoring upload logic; UI/layout feature work is out of scope and not requested.",
+      "evidence": [
+        "frontend-file-summaries.txt: frontend/src/components/Header.tsx",
+        "frontend-file-summaries.txt: frontend/src/components/ChatArea.tsx",
+        "frontend-file-summaries.txt: frontend/src/pages/LobbyPage.tsx",
+        "frontend-file-summaries.txt: frontend/src/pages/ChatroomPage.tsx",
+        "frontend-file-summaries.txt: frontend/src/components/ChatroomCard.tsx"
+      ]
+    },
+    {
+      "description": "Voice message/recording and voice message player functionality.",
+      "reason": "Non-goals explicitly exclude compressing audio uploads/voice messages; adding voice recording/player features is not requested as part of this build.",
+      "evidence": [
+        "frontend-file-summaries.txt: frontend/src/components/MessageBubble.tsx (voice message player)",
+        "frontend/src/components/MessageInput.tsx (imports/refs/state for recording: MediaRecorder, audioChunksRef, recordingTime, etc.)"
+      ]
+    },
+    {
+      "description": "Twitter/X widgets script loading and tweet embedding behavior in CreateChatroomDialog.",
+      "reason": "The BuildRequest does not request adding or changing Twitter embedding behavior; it only specifies not compressing non-file media inputs (like Twitter URLs).",
+      "evidence": [
+        "frontend/src/components/CreateChatroomDialog.tsx (declare global window.twttr, loadTwitterScript, createTweet usage scaffolding)"
+      ]
+    },
+    {
+      "description": "New LoginPrompt component that renders null with documentation about not adding authentication UI.",
+      "reason": "No authentication/UI changes were requested by the BuildRequest.",
+      "evidence": [
+        "frontend-file-summaries.txt: frontend/src/components/LoginPrompt.tsx"
+      ]
+    },
+    {
+      "description": "Global CSS additions/changes related to OKLCH color system, iOS input font sizing, and voice message range styling.",
+      "reason": "Styling changes are not requested by the BuildRequest, which is focused on client-side image compression.",
+      "evidence": [
+        "frontend-file-summaries.txt: frontend/src/index.css"
+      ]
+    }
+  ],
+  "confidence": 0.74,
   "changed_files": [
     "frontend-file-summaries.txt",
+    "frontend/src/components/CreateChatroomDialog.tsx",
+    "frontend/src/components/MessageInput.tsx",
     "frontend/src/hooks/useQueries.ts",
-    "frontend/src/pages/AdminDeleteChatroomsPage.tsx",
-    "frontend/src/pages/LobbyPage.tsx",
+    "frontend/src/lib/imageCompression.ts",
     "project_state.json"
   ]
 }
