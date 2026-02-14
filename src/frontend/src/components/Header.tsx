@@ -1,144 +1,114 @@
 import { useState } from 'react';
-import { useRouter, useRouterState } from '@tanstack/react-router';
+import { useNavigate } from '@tanstack/react-router';
+import { ArrowLeft, User } from 'lucide-react';
 import { Button } from './ui/button';
-import { MessageCircle, Check, X, ArrowLeft } from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
-import { Input } from './ui/input';
 import { useGetCurrentUsername, useUpdateUsername, useGetCurrentAvatar } from '../hooks/useQueries';
+import { Input } from './ui/input';
+import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 import AvatarPickerDialog from './AvatarPickerDialog';
 
 export default function Header() {
-  const router = useRouter();
-  const routerState = useRouterState();
-  const { data: currentUsername } = useGetCurrentUsername();
-  const { data: currentAvatar } = useGetCurrentAvatar();
+  const navigate = useNavigate();
+  const { data: username } = useGetCurrentUsername();
+  const { data: avatarUrl } = useGetCurrentAvatar();
   const updateUsername = useUpdateUsername();
-  const [isEditing, setIsEditing] = useState(false);
-  const [editValue, setEditValue] = useState('');
-  const [isAvatarPickerOpen, setIsAvatarPickerOpen] = useState(false);
+  const [isEditingUsername, setIsEditingUsername] = useState(false);
+  const [editedUsername, setEditedUsername] = useState('');
+  const [isAvatarDialogOpen, setIsAvatarDialogOpen] = useState(false);
 
-  const isInChatroom = routerState.location.pathname.startsWith('/chatroom/');
-
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map((n) => n[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
+  const handleBack = () => {
+    navigate({ to: '/' });
   };
 
-  const handleStartEdit = () => {
-    setEditValue(currentUsername || '');
-    setIsEditing(true);
+  const handleUsernameClick = () => {
+    setEditedUsername(username || '');
+    setIsEditingUsername(true);
   };
 
-  const handleSaveUsername = async () => {
-    if (editValue.trim()) {
-      await updateUsername.mutateAsync(editValue.trim());
-      setIsEditing(false);
+  const handleUsernameSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (editedUsername.trim() && editedUsername !== username) {
+      await updateUsername.mutateAsync(editedUsername.trim());
     }
+    setIsEditingUsername(false);
   };
 
-  const handleCancelEdit = () => {
-    setIsEditing(false);
-    setEditValue('');
+  const handleUsernameBlur = () => {
+    setIsEditingUsername(false);
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      handleSaveUsername();
-    } else if (e.key === 'Escape') {
-      handleCancelEdit();
-    }
-  };
-
-  const handleBackToLobby = () => {
-    router.navigate({ to: '/' });
+  const handleAvatarClick = () => {
+    setIsAvatarDialogOpen(true);
   };
 
   return (
     <>
-      <header className="border-b border-border bg-card shadow-sm">
-        <div className="mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-3">
-            {isInChatroom && (
-              <Button
-                onClick={handleBackToLobby}
-                variant="ghost"
-                size="icon"
-                className="mr-2"
-              >
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-            )}
-            <div className="flex items-center gap-2">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary">
-                <MessageCircle className="h-6 w-6 text-primary-foreground" />
-              </div>
+      <header className="sticky top-0 z-10 border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
+        <div className="mx-auto flex items-center justify-between px-4 py-3">
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleBack}
+              className="h-9 w-9"
+              aria-label="Back to lobby"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <div className="flex items-center" style={{ gap: '0.5rem' }}>
+              <img
+                src="/assets/generated/chat-icon-transparent.dim_64x64.png"
+                alt="Chattr"
+                className="h-8 w-8"
+              />
               <h1 className="text-xl font-bold text-foreground">Chattr</h1>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
-            {isEditing ? (
-              <div className="flex items-center gap-2">
+            {/* Avatar */}
+            <button
+              onClick={handleAvatarClick}
+              className="flex-shrink-0 transition-opacity hover:opacity-80"
+              aria-label="Change avatar"
+            >
+              <Avatar className="h-9 w-9">
+                <AvatarImage src={avatarUrl || undefined} alt={username || 'User'} />
+                <AvatarFallback>
+                  <User className="h-5 w-5" />
+                </AvatarFallback>
+              </Avatar>
+            </button>
+
+            {/* Username */}
+            {isEditingUsername ? (
+              <form onSubmit={handleUsernameSubmit} className="flex items-center gap-2">
                 <Input
-                  value={editValue}
-                  onChange={(e) => setEditValue(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  placeholder="Enter username"
-                  className="h-8 w-32 sm:w-40"
+                  type="text"
+                  value={editedUsername}
+                  onChange={(e) => setEditedUsername(e.target.value)}
+                  onBlur={handleUsernameBlur}
                   autoFocus
+                  className="h-9 w-32"
+                  maxLength={20}
                 />
-                <Button
-                  onClick={handleSaveUsername}
-                  size="icon"
-                  variant="ghost"
-                  className="h-8 w-8"
-                  disabled={!editValue.trim() || updateUsername.isPending}
-                >
-                  <Check className="h-4 w-4" />
-                </Button>
-                <Button
-                  onClick={handleCancelEdit}
-                  size="icon"
-                  variant="ghost"
-                  className="h-8 w-8"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
+              </form>
             ) : (
-              <div className="flex items-center gap-2">
-                <Avatar 
-                  className="h-8 w-8 cursor-pointer hover:opacity-80 transition-opacity"
-                  onClick={() => setIsAvatarPickerOpen(true)}
-                >
-                  {currentAvatar ? (
-                    <AvatarImage src={currentAvatar} alt={currentUsername || 'User'} />
-                  ) : null}
-                  <AvatarFallback className="bg-primary text-primary-foreground text-xs">
-                    {currentUsername ? getInitials(currentUsername) : '?'}
-                  </AvatarFallback>
-                </Avatar>
-                <Button
-                  onClick={handleStartEdit}
-                  variant="outline"
-                  size="sm"
-                  className="gap-2"
-                >
-                  <span>{currentUsername}</span>
-                </Button>
-              </div>
+              <Button
+                variant="ghost"
+                onClick={handleUsernameClick}
+                className="h-9 px-3 font-medium"
+              >
+                {username}
+              </Button>
             )}
           </div>
         </div>
       </header>
 
       <AvatarPickerDialog
-        open={isAvatarPickerOpen}
-        onOpenChange={setIsAvatarPickerOpen}
+        open={isAvatarDialogOpen}
+        onOpenChange={setIsAvatarDialogOpen}
       />
     </>
   );

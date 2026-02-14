@@ -1,55 +1,64 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-14T00:40:37.317Z",
+  "generatedAt": "2026-02-14T21:59:40.758Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 2,
+    "total": 3,
     "implemented": 2,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Implement client-side image compression and apply it to every place the app uploads/serializes a user-selected image file (before converting to a data URL / storing in localStorage), including:\n- Avatar upload in `frontend/src/components/AvatarPickerDialog.tsx` (currently calls `uploadImage(file)` from `frontend/src/hooks/useQueries.ts`)\n- Chatroom media image upload in `frontend/src/components/CreateChatroomDialog.tsx` (currently calls `uploadImage(selectedFile, onProgress)` from `frontend/src/hooks/useQueries.ts`)\n- In-chat message image upload in `frontend/src/components/MessageInput.tsx` (currently uses a local `uploadImage(file)` implementation)\n\nCompression should:\n- Preserve correct orientation\n- Downscale large images to a reasonable maximum dimension\n- Reduce file size using an appropriate lossy format/quality setting\n- Fail gracefully (if compression fails, fall back to original image upload path and show an error only if the original path also fails).",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/lib/imageCompression.ts",
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/components/AvatarPickerDialog.tsx",
-          "frontend/src/components/CreateChatroomDialog.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/lib/imageCompression.ts",
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/components/CreateChatroomDialog.tsx"
-        ]
+        "summary": "Add a backend function that wipes/resets all application data and can be called without any `caller`/`Principal` checks.\n\nThe reset must clear all persisted in-canister state used by the app, including:\n- all chatrooms\n- all messages\n- all active-user presence tracking\n- all reactions\n- all user profiles\n- all ID counters (e.g., next chatroom/message IDs)\n\nThe function must not require authentication/authorization in Motoko (no AccessControl checks and no use of `caller` for gating).",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
       },
       {
         "id": "REQ-2",
-        "summary": "Refactor the code so all image uploads use a single shared upload/compress pipeline (avoid duplicated `uploadImage` logic), while keeping existing UI progress behavior:\n- Ensure `uploadImage` exported from `frontend/src/hooks/useQueries.ts` performs compression internally (or delegates to a shared helper) and still supports the existing optional `onProgress` callback.\n- Update `frontend/src/components/MessageInput.tsx` to use the shared `uploadImage` function rather than its local `uploadImage` implementation, so message image uploads are also compressed.",
+        "summary": "Expose the reset capability in the admin UI at `frontend/src/pages/AdminDeleteChatroomsPage.tsx` as a clearly labeled destructive action (e.g., \"Reset/Wipe All Data\") that is protected only by the existing admin password/session gating already used on that page.\n\nThe UI must:\n- Require admin authentication (the existing password flow) before the reset control is visible/usable\n- Show a strong confirmation dialog explaining the action is irreversible\n- Show loading/disabled state while the reset is executing\n- Surface success/failure via the app’s existing toast/alert patterns",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/MessageInput.tsx",
+          "frontend/src/pages/AdminDeleteChatroomsPage.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/pages/AdminDeleteChatroomsPage.tsx"
+        ]
+      },
+      {
+        "id": "REQ-3",
+        "summary": "Add frontend data plumbing for the reset action by introducing a dedicated React Query mutation hook in `frontend/src/hooks/useQueries.ts` that calls the new backend reset method.\n\nAfter a successful reset, the app must invalidate relevant cached queries so the lobby/admin views immediately reflect an empty/fresh state (at minimum: chatrooms, messages, and any per-chatroom queries).",
+        "status": "implemented",
+        "plannedFiles": [
           "frontend/src/hooks/useQueries.ts"
         ],
         "matchedFiles": [
-          "frontend/src/components/MessageInput.tsx",
           "frontend/src/hooks/useQueries.ts"
         ]
       }
     ]
   },
   "changedFiles": [
+    "backend/main.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/components/CreateChatroomDialog.tsx",
-    "frontend/src/components/MessageInput.tsx",
+    "frontend/src/backend.d.ts",
+    "frontend/src/backend.ts",
+    "frontend/src/components/AvatarPickerDialog.tsx",
+    "frontend/src/components/ChatArea.tsx",
+    "frontend/src/components/Header.tsx",
+    "frontend/src/components/MessageBubble.tsx",
+    "frontend/src/components/PinnedVideo.tsx",
+    "frontend/src/declarations/backend.did.d.ts",
+    "frontend/src/declarations/backend.did.js",
     "frontend/src/hooks/useQueries.ts",
-    "frontend/src/lib/imageCompression.ts",
+    "frontend/src/pages/AdminDeleteChatroomsPage.tsx",
+    "frontend/src/types/message.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

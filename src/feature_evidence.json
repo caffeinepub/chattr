@@ -2,34 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-implement-client-side-image-compression-and-apply-it-to-every-place-the-app-uploads-serializes-a-user-selected-image-file-before-converting-to-a-data-url-storing-in-localstorage-including-avatar-upload-in-frontend-src-components-avatarpickerdialog-tsx-currently-calls-uploadimage-file-from-frontend-src-hooks-usequeries-ts-chatroom-media-image-upload-in-frontend-src-components-createchatroomdialog-tsx-currently-calls-uploadimage-selectedfile-onprogress-from-frontend-src-hooks-usequeries-ts-in-chat-message-image-upload-in-frontend-src-components-messageinput-tsx-currently-uses-a-local-uploadimage-file-implementation-compression-should-preserve-correct-orientation-downscale-large-images-to-a-reasonable-maximum-dimension-reduce-file-size-using-an-appropriate-lossy-format-quality-setting-fail-gracefully-if-compression-fails-fall-back-to-original-image-upload-path-and-show-an-error-only-if-the-original-path-also-fails",
-      "featureTitle": "Implement client-side image compression and apply it to every place the app uploads/serializes a user-selected image file (before converting to a data URL / storing in localStorage), including:\n- Avatar upload in `frontend/src/components/AvatarPickerDialog.tsx` (currently calls `uploadImage(file)` from `frontend/src/hooks/useQueries.ts`)\n- Chatroom media image upload in `frontend/src/components/CreateChatroomDialog.tsx` (currently calls `uploadImage(selectedFile, onProgress)` from `frontend/src/hooks/useQueries.ts`)\n- In-chat message image upload in `frontend/src/components/MessageInput.tsx` (currently uses a local `uploadImage(file)` implementation)\n\nCompression should:\n- Preserve correct orientation\n- Downscale large images to a reasonable maximum dimension\n- Reduce file size using an appropriate lossy format/quality setting\n- Fail gracefully (if compression fails, fall back to original image upload path and show an error only if the original path also fails).",
+      "featureId": "feature-expose-the-reset-capability-in-the-admin-ui-at-frontend-src-pages-admindeletechatroomspage-tsx-as-a-clearly-labeled-destructive-action-e-g-reset-wipe-all-data-that-is-protected-only-by-the-existing-admin-password-session-gating-already-used-on-that-page-the-ui-must-require-admin-authentication-the-existing-password-flow-before-the-reset-control-is-visible-usable-show-a-strong-confirmation-dialog-explaining-the-action-is-irreversible-show-loading-disabled-state-while-the-reset-is-executing-surface-success-failure-via-the-app-s-existing-toast-alert-patterns",
+      "featureTitle": "Expose the reset capability in the admin UI at `frontend/src/pages/AdminDeleteChatroomsPage.tsx` as a clearly labeled destructive action (e.g., \"Reset/Wipe All Data\") that is protected only by the existing admin password/session gating already used on that page.\n\nThe UI must:\n- Require admin authentication (the existing password flow) before the reset control is visible/usable\n- Show a strong confirmation dialog explaining the action is irreversible\n- Show loading/disabled state while the reset is executing\n- Surface success/failure via the app’s existing toast/alert patterns",
       "files": [
-        "frontend/src/components/CreateChatroomDialog.tsx",
-        "frontend/src/hooks/useQueries.ts",
-        "frontend/src/lib/imageCompression.ts"
-      ],
-      "components": [
-        "authorization@1.0.1",
-        "blob-storage@2.0.3",
-        "http-outcalls@1.1.1",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-1"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-refactor-the-code-so-all-image-uploads-use-a-single-shared-upload-compress-pipeline-avoid-duplicated-uploadimage-logic-while-keeping-existing-ui-progress-behavior-ensure-uploadimage-exported-from-frontend-src-hooks-usequeries-ts-performs-compression-internally-or-delegates-to-a-shared-helper-and-still-supports-the-existing-optional-onprogress-callback-update-frontend-src-components-messageinput-tsx-to-use-the-shared-uploadimage-function-rather-than-its-local-uploadimage-implementation-so-message-image-uploads-are-also-compressed",
-      "featureTitle": "Refactor the code so all image uploads use a single shared upload/compress pipeline (avoid duplicated `uploadImage` logic), while keeping existing UI progress behavior:\n- Ensure `uploadImage` exported from `frontend/src/hooks/useQueries.ts` performs compression internally (or delegates to a shared helper) and still supports the existing optional `onProgress` callback.\n- Update `frontend/src/components/MessageInput.tsx` to use the shared `uploadImage` function rather than its local `uploadImage` implementation, so message image uploads are also compressed.",
-      "files": [
-        "frontend/src/components/MessageInput.tsx",
-        "frontend/src/hooks/useQueries.ts"
+        "frontend/src/pages/AdminDeleteChatroomsPage.tsx"
       ],
       "components": [
         "authorization@1.0.1",
@@ -43,6 +19,27 @@
       ],
       "testIds": [
         "REQ-2"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-frontend-data-plumbing-for-the-reset-action-by-introducing-a-dedicated-react-query-mutation-hook-in-frontend-src-hooks-usequeries-ts-that-calls-the-new-backend-reset-method-after-a-successful-reset-the-app-must-invalidate-relevant-cached-queries-so-the-lobby-admin-views-immediately-reflect-an-empty-fresh-state-at-minimum-chatrooms-messages-and-any-per-chatroom-queries",
+      "featureTitle": "Add frontend data plumbing for the reset action by introducing a dedicated React Query mutation hook in `frontend/src/hooks/useQueries.ts` that calls the new backend reset method.\n\nAfter a successful reset, the app must invalidate relevant cached queries so the lobby/admin views immediately reflect an empty/fresh state (at minimum: chatrooms, messages, and any per-chatroom queries).",
+      "files": [
+        "frontend/src/hooks/useQueries.ts"
+      ],
+      "components": [
+        "authorization@1.0.1",
+        "blob-storage@2.0.3",
+        "http-outcalls@1.1.1",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-3"
       ],
       "confidence": "high"
     }

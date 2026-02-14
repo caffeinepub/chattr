@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import type { MessageWithReactions, Reaction } from '../backend';
+import type { MessageWithConvertedReactions } from '../types/message';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { formatDistanceToNow } from 'date-fns';
 import { X, Pin, Smile, Reply } from 'lucide-react';
@@ -21,13 +21,13 @@ import {
 import VoiceMessagePlayer from './VoiceMessagePlayer';
 
 interface MessageBubbleProps {
-  message: MessageWithReactions;
+  message: MessageWithConvertedReactions;
   isOwnMessage: boolean;
   chatroomId: bigint;
   isPinned: boolean;
   onReply?: (messageId: bigint, sender: string, contentSnippet: string, mediaThumbnail?: string) => void;
   onScrollToMessage?: (messageId: bigint) => void;
-  allMessages?: MessageWithReactions[];
+  allMessages?: MessageWithConvertedReactions[];
   isHighlighted?: boolean;
 }
 
@@ -71,17 +71,6 @@ function loadTwitterScript(): Promise<void> {
     script.onerror = () => reject(new Error('Failed to load Twitter widgets script'));
     document.body.appendChild(script);
   });
-}
-
-// Convert List to array helper
-function listToArray<T>(list: any): T[] {
-  const result: T[] = [];
-  let current = list;
-  while (current !== null && Array.isArray(current) && current.length === 2) {
-    result.push(current[0]);
-    current = current[1];
-  }
-  return result;
 }
 
 // Get user ID from localStorage
@@ -150,12 +139,10 @@ export default function MessageBubble({
 
   const handleReaction = async (emoji: string) => {
     const userId = getUserId();
-    const reactions = listToArray<Reaction>(message.reactions);
-    const existingReaction = reactions.find((r) => r.emoji === emoji);
+    const existingReaction = message.reactions.find((r) => r.emoji === emoji);
     
     if (existingReaction) {
-      const users = listToArray<string>(existingReaction.users);
-      if (users.includes(userId)) {
+      if (existingReaction.users.includes(userId)) {
         // User already reacted, remove reaction
         await removeReaction.mutateAsync({ messageId: message.id, emoji, chatroomId });
       } else {
@@ -384,7 +371,6 @@ export default function MessageBubble({
     );
   };
 
-  const reactions = listToArray<Reaction>(message.reactions);
   const userId = getUserId();
 
   return (
@@ -491,11 +477,10 @@ export default function MessageBubble({
           </div>
 
           {/* Reactions display */}
-          {reactions.length > 0 && (
+          {message.reactions.length > 0 && (
             <div className="mt-1 flex flex-wrap gap-1">
-              {reactions.map((reaction) => {
-                const users = listToArray<string>(reaction.users);
-                const hasReacted = users.includes(userId);
+              {message.reactions.map((reaction) => {
+                const hasReacted = reaction.users.includes(userId);
                 
                 return (
                   <button
@@ -503,42 +488,40 @@ export default function MessageBubble({
                     onClick={() => handleReaction(reaction.emoji)}
                     className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs transition-colors ${
                       hasReacted
-                        ? 'bg-primary/20 border border-primary'
-                        : 'bg-muted border border-border hover:bg-muted/80'
+                        ? 'bg-primary/20 text-primary ring-1 ring-primary/30'
+                        : 'bg-muted hover:bg-muted/80 text-muted-foreground'
                     }`}
                   >
                     <span>{reaction.emoji}</span>
-                    <span className="text-xs font-medium">{Number(reaction.count)}</span>
+                    <span className="font-medium">{Number(reaction.count)}</span>
                   </button>
                 );
               })}
             </div>
           )}
 
-          <div className="mt-1 flex items-center gap-2">
+          {/* Action buttons */}
+          <div className="mt-1 flex items-center gap-1">
             <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
               <PopoverTrigger asChild>
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-6 px-2 text-xs"
+                  className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground"
                 >
-                  <Smile className="h-3 w-3 mr-1" />
-                  React
+                  <Smile className="h-3.5 w-3.5" />
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-2" align={isOwnMessage ? 'end' : 'start'}>
-                <div className="flex gap-1">
+                <div className="grid grid-cols-4 gap-1">
                   {COMMON_EMOJIS.map((emoji) => (
-                    <Button
+                    <button
                       key={emoji}
-                      variant="ghost"
-                      size="sm"
-                      className="h-8 w-8 p-0 text-lg hover:scale-125 transition-transform"
                       onClick={() => handleReaction(emoji)}
+                      className="rounded p-2 text-2xl transition-colors hover:bg-muted"
                     >
                       {emoji}
-                    </Button>
+                    </button>
                   ))}
                 </div>
               </PopoverContent>
@@ -548,11 +531,10 @@ export default function MessageBubble({
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-6 px-2 text-xs"
                 onClick={handleReplyClick}
+                className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground"
               >
-                <Reply className="h-3 w-3 mr-1" />
-                Reply
+                <Reply className="h-3.5 w-3.5" />
               </Button>
             )}
           </div>
