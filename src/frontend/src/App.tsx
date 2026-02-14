@@ -3,6 +3,7 @@ import { Toaster } from './components/ui/sonner';
 import { ThemeProvider } from 'next-themes';
 import LobbyPage from './pages/LobbyPage';
 import ChatroomPage from './pages/ChatroomPage';
+import AdminDeleteChatroomsPage from './pages/AdminDeleteChatroomsPage';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import { AlertCircle } from 'lucide-react';
@@ -11,14 +12,15 @@ import { Button } from './components/ui/button';
 function RootLayout() {
   const routerState = useRouterState();
   const isChatroomPage = routerState.location.pathname.startsWith('/chatroom/');
+  const isAdminPage = routerState.location.pathname.startsWith('/admin');
 
   return (
     <div className="flex h-full flex-col bg-background">
-      <Header />
+      {!isAdminPage && <Header />}
       <main className="flex min-h-0 flex-1 flex-col">
         <Outlet />
       </main>
-      {!isChatroomPage && <Footer />}
+      {!isChatroomPage && !isAdminPage && <Footer />}
     </div>
   );
 }
@@ -56,7 +58,13 @@ const chatroomRoute = createRoute({
   component: ChatroomPage,
 });
 
-const routeTree = rootRoute.addChildren([lobbyRoute, chatroomRoute]);
+const adminRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/admin/delete-chatrooms',
+  component: AdminDeleteChatroomsPage,
+});
+
+const routeTree = rootRoute.addChildren([lobbyRoute, chatroomRoute, adminRoute]);
 
 const router = createRouter({ 
   routeTree,

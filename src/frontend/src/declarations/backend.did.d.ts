@@ -130,6 +130,7 @@ export interface _SERVICE {
     [string, string, string, string, string],
     bigint
   >,
+  'deleteChatroomWithPassword' : ActorMethod<[bigint, string], undefined>,
   'fetchTwitchThumbnail' : ActorMethod<[string], string>,
   'fetchTwitterOEmbed' : ActorMethod<[string], string>,
   'fetchTwitterThumbnail' : ActorMethod<[string], string>,

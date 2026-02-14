@@ -19,6 +19,8 @@ actor {
 
   let accessControlState = AccessControl.initState();
 
+  var adminPassword : Text = "secret123";
+
   public shared ({ caller }) func initializeAccessControl() : async () {
     AccessControl.initialize(accessControlState, caller);
   };
@@ -142,6 +144,45 @@ actor {
   transient let principalMap = OrderedMap.Make<Principal>(Principal.compare);
   var userProfiles = principalMap.empty<UserProfile>();
 
+  public shared ({ caller }) func deleteChatroomWithPassword(chatroomId : Nat, password : Text) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Debug.trap("Unauthorized: Only admins can delete chatrooms");
+    };
+
+    if (password != adminPassword) {
+      Debug.trap("Incorrect password");
+    };
+
+    switch (natMap.get(chatrooms, chatroomId)) {
+      case (null) {
+        Debug.trap("Chatroom does not exist");
+      };
+      case (?_chatroom) {
+        chatrooms := natMap.delete(chatrooms, chatroomId);
+        messages := natMap.delete(messages, chatroomId);
+        activeUsers := natMap.delete(activeUsers, chatroomId);
+
+        // Remove reactions associated with messages in the deleted chatroom
+        var updatedReactions = reactions;
+        for ((messageId, messageReactions) in natMap.entries(reactions)) {
+          let messageExistsInChatroom = switch (natMap.get(messages, chatroomId)) {
+            case (null) { false };
+            case (?chatroomMessages) {
+              List.some<Message>(
+                chatroomMessages,
+                func(msg) { msg.id == messageId },
+              );
+            };
+          };
+          if (messageExistsInChatroom) {
+            updatedReactions := natMap.delete(updatedReactions, messageId);
+          };
+        };
+        reactions := updatedReactions;
+      };
+    };
+  };
+
   // Chatroom management - Open to all users (anonymous allowed, no auth required)
   public func createChatroom(topic : Text, description : Text, mediaUrl : Text, mediaType : Text, category : Text) : async Nat {
     if (Text.size(topic) == 0 or Text.size(description) == 0) {
@@ -251,7 +292,6 @@ actor {
     hasAudioExtension;
   };
 
-  // New method for lobby chatroom cards (no authentication required)
   public query func getLobbyChatroomCards() : async [LobbyChatroomCard] {
     if (natMap.size(chatrooms) == 0) {
       return [];
@@ -293,7 +333,6 @@ actor {
     Iter.toArray(lobbyCards);
   };
 
-  // Existing methods (no changes required for authentication)
   public query func getChatrooms() : async [ChatroomWithLiveStatus] {
     if (natMap.size(chatrooms) == 0) {
       return [];
@@ -360,7 +399,6 @@ actor {
     };
   };
 
-  // Message management - Open to all users (anonymous allowed, no auth required)
   public func sendMessage(content : Text, sender : Text, chatroomId : Nat, mediaUrl : ?Text, mediaType : ?Text, avatarUrl : ?Text, senderId : Text, replyToMessageId : ?Nat) : async () {
     if (Text.size(content) == 0) {
       Debug.trap("Message content cannot be empty");
@@ -500,7 +538,6 @@ actor {
     };
   };
 
-  // User profile management - Open to all including anonymous users
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
     principalMap.get(userProfiles, caller);
   };
@@ -559,7 +596,6 @@ actor {
     messages := updatedMessages;
   };
 
-  // Automatic cleanup of inactive users (runs periodically, no auth needed)
   public func cleanupInactiveUsers() : async () {
     let currentTime = Time.now();
     let activeThreshold = 60 * 1_000_000_000;
@@ -579,7 +615,6 @@ actor {
     activeUsers := updatedActiveUsers;
   };
 
-  // Reaction management - Open to all users
   public func addReaction(messageId : Nat, emoji : Text, userId : Text) : async () {
     let messageReactions = switch (natMap.get(reactions, messageId)) {
       case (null) { List.nil<Reaction>() };
@@ -658,7 +693,6 @@ actor {
     };
   };
 
-  // Search functionality - Open to all users
   public query func searchChatrooms(searchTerm : Text) : async [ChatroomWithLiveStatus] {
     let lowerSearchTerm = Text.toLowercase(searchTerm);
 
@@ -753,7 +787,6 @@ actor {
     Iter.toArray(filteredChatrooms);
   };
 
-  // HTTP Outcall transformation function
   public query func transform(input : OutCall.TransformationInput) : async OutCall.TransformationOutput {
     OutCall.transform(input);
   };
@@ -872,4 +905,3 @@ actor {
     Text.fromArray(Array.tabulate(length, func(i : Nat) : Char { chars[i] }));
   };
 };
-

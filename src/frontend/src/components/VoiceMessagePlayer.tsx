@@ -20,12 +20,33 @@ export default function VoiceMessagePlayer({ audioUrl, isOwnMessage }: VoiceMess
     setWaveformBars(bars);
   }, []);
 
+  // Reset playback state when audioUrl changes
+  useEffect(() => {
+    setIsPlaying(false);
+    setCurrentTime(0);
+    setDuration(0);
+    
+    const audio = audioRef.current;
+    if (audio) {
+      audio.pause();
+      audio.currentTime = 0;
+      // Force reload to ensure metadata is fetched
+      audio.load();
+    }
+  }, [audioUrl]);
+
   // Load audio metadata and set duration
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
 
     const handleLoadedMetadata = () => {
+      if (audio.duration && !isNaN(audio.duration) && isFinite(audio.duration)) {
+        setDuration(audio.duration);
+      }
+    };
+
+    const handleDurationChange = () => {
       if (audio.duration && !isNaN(audio.duration) && isFinite(audio.duration)) {
         setDuration(audio.duration);
       }
@@ -43,6 +64,7 @@ export default function VoiceMessagePlayer({ audioUrl, isOwnMessage }: VoiceMess
     };
 
     audio.addEventListener('loadedmetadata', handleLoadedMetadata);
+    audio.addEventListener('durationchange', handleDurationChange);
     audio.addEventListener('canplay', handleCanPlay);
     audio.addEventListener('ended', handleEnded);
 
@@ -53,6 +75,7 @@ export default function VoiceMessagePlayer({ audioUrl, isOwnMessage }: VoiceMess
 
     return () => {
       audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
+      audio.removeEventListener('durationchange', handleDurationChange);
       audio.removeEventListener('canplay', handleCanPlay);
       audio.removeEventListener('ended', handleEnded);
     };
@@ -151,7 +174,7 @@ export default function VoiceMessagePlayer({ audioUrl, isOwnMessage }: VoiceMess
 
         {/* Progress Slider (current user) or Waveform Visualization (others) - center */}
         {isOwnMessage ? (
-          // Clean progress slider for current user's messages
+          // Clean progress slider for current user's messages with subtle accent color
           <div className="flex-1 flex items-center px-2">
             <input
               type="range"
@@ -159,30 +182,12 @@ export default function VoiceMessagePlayer({ audioUrl, isOwnMessage }: VoiceMess
               max="100"
               value={progress}
               onChange={handleSliderChange}
-              className="w-full h-1 appearance-none bg-white/30 rounded-full outline-none cursor-pointer
-                [&::-webkit-slider-thumb]:appearance-none
-                [&::-webkit-slider-thumb]:w-3
-                [&::-webkit-slider-thumb]:h-3
-                [&::-webkit-slider-thumb]:rounded-full
-                [&::-webkit-slider-thumb]:bg-white
-                [&::-webkit-slider-thumb]:cursor-pointer
-                [&::-webkit-slider-thumb]:transition-all
-                [&::-webkit-slider-thumb]:hover:scale-110
-                [&::-moz-range-thumb]:w-3
-                [&::-moz-range-thumb]:h-3
-                [&::-moz-range-thumb]:rounded-full
-                [&::-moz-range-thumb]:bg-white
-                [&::-moz-range-thumb]:border-0
-                [&::-moz-range-thumb]:cursor-pointer
-                [&::-moz-range-thumb]:transition-all
-                [&::-moz-range-thumb]:hover:scale-110"
-              style={{
-                background: `linear-gradient(to right, white ${progress}%, rgba(255, 255, 255, 0.3) ${progress}%)`
-              }}
+              className="voice-message-range-own w-full"
+              style={{ '--progress': `${progress}%` } as React.CSSProperties}
             />
           </div>
         ) : (
-          // Waveform visualization for other users' messages with blue accent color for progress bar
+          // Waveform visualization for other users' messages with subtle accent color
           <div className="flex-1 flex items-center px-2">
             <input
               type="range"
@@ -190,26 +195,8 @@ export default function VoiceMessagePlayer({ audioUrl, isOwnMessage }: VoiceMess
               max="100"
               value={progress}
               onChange={handleSliderChange}
-              className="w-full h-1 appearance-none bg-muted rounded-full outline-none cursor-pointer
-                [&::-webkit-slider-thumb]:appearance-none
-                [&::-webkit-slider-thumb]:w-3
-                [&::-webkit-slider-thumb]:h-3
-                [&::-webkit-slider-thumb]:rounded-full
-                [&::-webkit-slider-thumb]:bg-primary
-                [&::-webkit-slider-thumb]:cursor-pointer
-                [&::-webkit-slider-thumb]:transition-all
-                [&::-webkit-slider-thumb]:hover:scale-110
-                [&::-moz-range-thumb]:w-3
-                [&::-moz-range-thumb]:h-3
-                [&::-moz-range-thumb]:rounded-full
-                [&::-moz-range-thumb]:bg-primary
-                [&::-moz-range-thumb]:border-0
-                [&::-moz-range-thumb]:cursor-pointer
-                [&::-moz-range-thumb]:transition-all
-                [&::-moz-range-thumb]:hover:scale-110"
-              style={{
-                background: `linear-gradient(to right, hsl(var(--primary)) ${progress}%, hsl(var(--muted)) ${progress}%)`
-              }}
+              className="voice-message-range-other w-full"
+              style={{ '--progress': `${progress}%` } as React.CSSProperties}
             />
           </div>
         )}
@@ -229,4 +216,3 @@ export default function VoiceMessagePlayer({ audioUrl, isOwnMessage }: VoiceMess
     </div>
   );
 }
-

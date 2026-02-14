@@ -1,21 +1,78 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Center collapsed chatroom header content on desktop",
+  "title": "Stabilize chatroom list queries to avoid transient empty overwrites and ensure reliable refresh after creation",
   "requirements": [
     {
-      "id": "REQ-3",
-      "summary": "Center the collapsed chatroom header inner content horizontally on md+ screens while preserving the existing mobile collapsed layout and leaving the expanded header unchanged.",
+      "id": "REQ-1",
+      "summary": "Guard lobby/admin chatroom list state so transient empty/undefined fetch results (especially shortly after creation) do not overwrite previously fetched non-empty data.",
       "acceptanceCriteria": [
-        "When the header is collapsed and the viewport is md or larger, the collapsed header content (topic + LIVE badge if present + counts + expand button) is visually centered horizontally within the header bar (not left-aligned with extra space to the right).",
-        "When the header is collapsed on small screens (below md), the current collapsed header layout and spacing behavior remain unchanged.",
-        "Expanded header layout remains unchanged."
+        "After creating chatrooms repeatedly (e.g., 30+ in a row), the Lobby page does not randomly switch to showing zero rooms unless there are truly no rooms.",
+        "After creating chatrooms repeatedly, the Admin delete chatrooms page does not randomly show an empty table unless there are truly no rooms.",
+        "Clicking a tag/filter is no longer required to make rooms reappear."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/ChatArea.tsx",
+          "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Update the collapsed header layout classes/structure to match expanded-state centering on md+ only (e.g., switch from a simple justify-between row to an md+ centering wrapper that horizontally centers the combined collapsed header content, while keeping the current base/mobile flex layout intact). Ensure the expand button remains accessible and visually part of the centered cluster on desktop, and do not change which elements are rendered."
+          "description": "Add a small client-side stability guard for chatroom list queries: track a recent-chatroom-creation timestamp, and when a refetch returns an empty list during a short post-create window while cached data is non-empty, treat it as a transient error (throw) so React Query keeps the last known non-empty data instead of overwriting it."
+        },
+        {
+          "path": "frontend/src/pages/LobbyPage.tsx",
+          "operation": "modify",
+          "description": "Ensure the Lobby UI continues to render the last known chatroom list during transient refetch issues by relying on query hook behavior (previous data retained) and only showing the \"No chats found\" empty state when the active query’s data is genuinely empty and not a transient error."
+        },
+        {
+          "path": "frontend/src/pages/AdminDeleteChatroomsPage.tsx",
+          "operation": "modify",
+          "description": "Ensure the Admin chatroom table is driven by the stabilized chatroom query behavior (previous data retained) so transient empty refetch results do not replace a previously loaded non-empty list; keep the \"No chatrooms found\" state only for genuine zero-chatroom results."
+        }
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "summary": "Update React Query chatroom queries to keep previous data while refetching and report fetch failures as errors (instead of converting them to empty lists).",
+      "acceptanceCriteria": [
+        "If a chatroom list refetch fails, the UI continues to display the last known non-empty chatroom list (if available) instead of switching to an empty state.",
+        "The chatroom list query reports an error state on failure (so the UI can show an error banner), rather than silently converting failure into `[]`.",
+        "The Lobby page can still show the \"No chats found yet\" empty state when there are genuinely zero chatrooms in the backend."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Refactor useGetChatrooms/useSearchChatrooms/useFilterChatroomsByCategory queryFns to throw on failures (remove catch blocks that return []), and configure React Query to keep previous data during refetch (e.g., placeholderData/keepPreviousData depending on TanStack version) so existing non-empty data is not erased during transient failures."
+        },
+        {
+          "path": "frontend/src/pages/LobbyPage.tsx",
+          "operation": "modify",
+          "description": "Adjust Lobby error/empty rendering logic to align with new query behavior: show an error banner when the active list query is in error state, while still rendering cached/previous data when present; only render the empty-state UI when the active query successfully resolves to an empty array."
+        }
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "summary": "After chatroom creation, reliably refresh all relevant chatroom list views (base, category-filtered, and search) without requiring user interaction.",
+      "acceptanceCriteria": [
+        "After successfully creating a chatroom, the new chatroom appears in the Lobby list within one refresh cycle without needing to click a category badge or change search text.",
+        "After successfully creating a chatroom, the Admin delete chatrooms page shows the chatroom in its table within one refresh cycle without needing to navigate away/back.",
+        "If the user has an active category filter or search term when creating a chatroom, the app refetches the currently active list query (so the list is consistent with the current filter/search state)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Update useCreateChatroom onSuccess to invalidate and/or refetch all chatroom list queries under the shared chatrooms key (base + search + category variants) so any currently active list view refreshes automatically after creation; also update the recent-create timestamp used by the transient-empty guard."
+        },
+        {
+          "path": "frontend/src/components/CreateChatroomDialog.tsx",
+          "operation": "modify",
+          "description": "Add an optional callback prop (e.g., onCreated) invoked after successful create, allowing the parent view to trigger an immediate refresh of the currently active list query (search/category/base) without user interaction."
+        },
+        {
+          "path": "frontend/src/pages/LobbyPage.tsx",
+          "operation": "modify",
+          "description": "Wire CreateChatroomDialog’s new onCreated callback to refresh the currently active list query based on current UI state (search term vs selected category vs base), in addition to the global invalidation done by the mutation hook, ensuring the active view updates within one refresh cycle."
         }
       ]
     }

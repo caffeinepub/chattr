@@ -206,6 +206,7 @@ export interface backendInterface {
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     cleanupInactiveUsers(): Promise<void>;
     createChatroom(topic: string, description: string, mediaUrl: string, mediaType: string, category: string): Promise<bigint>;
+    deleteChatroomWithPassword(chatroomId: bigint, password: string): Promise<void>;
     fetchTwitchThumbnail(channelName: string): Promise<string>;
     fetchTwitterOEmbed(tweetUrl: string): Promise<string>;
     fetchTwitterThumbnail(tweetUrl: string): Promise<string>;
@@ -376,6 +377,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.createChatroom(arg0, arg1, arg2, arg3, arg4);
+            return result;
+        }
+    }
+    async deleteChatroomWithPassword(arg0: bigint, arg1: string): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.deleteChatroomWithPassword(arg0, arg1);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.deleteChatroomWithPassword(arg0, arg1);
             return result;
         }
     }

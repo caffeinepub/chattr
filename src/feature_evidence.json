@@ -2,10 +2,56 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-in-desktop-layouts-md-breakpoint-and-up-update-the-collapsed-state-of-the-chatroom-header-in-frontend-src-components-chatarea-tsx-so-that-the-header-s-inner-content-is-centered-horizontally-when-collapsed-matching-the-centered-alignment-used-in-the-expanded-state-keep-the-existing-mobile-small-screen-collapsed-layout-behavior-intact",
-      "featureTitle": "In desktop layouts (md breakpoint and up), update the collapsed state of the chatroom header in `frontend/src/components/ChatArea.tsx` so that the header’s inner content is centered horizontally when collapsed, matching the centered alignment used in the expanded state. Keep the existing mobile (small screen) collapsed layout behavior intact.",
+      "featureId": "feature-prevent-the-lobby-admin-chatroom-list-from-being-overwritten-with-an-empty-array-when-a-chatroom-fetch-temporarily-returns-empty-undefined-during-or-shortly-after-chatroom-creation",
+      "featureTitle": "Prevent the lobby/admin chatroom list from being overwritten with an empty array when a chatroom fetch temporarily returns empty/undefined during or shortly after chatroom creation.",
       "files": [
-        "frontend/src/components/ChatArea.tsx"
+        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/pages/AdminDeleteChatroomsPage.tsx",
+        "frontend/src/pages/LobbyPage.tsx"
+      ],
+      "components": [
+        "authorization@1.0.1",
+        "blob-storage@2.0.3",
+        "http-outcalls@1.1.1",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-1"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-update-the-react-query-chatroom-queries-so-transient-failures-empty-responses-do-not-erase-previously-fetched-chatroom-data-keep-previous-data-while-refetching-and-treat-fetch-failures-as-errors-rather-than-returning-an-empty-list",
+      "featureTitle": "Update the React Query chatroom queries so transient failures/empty responses do not erase previously fetched chatroom data (keep previous data while refetching, and treat fetch failures as errors rather than returning an empty list).",
+      "files": [
+        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/pages/LobbyPage.tsx"
+      ],
+      "components": [
+        "authorization@1.0.1",
+        "blob-storage@2.0.3",
+        "http-outcalls@1.1.1",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-2"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-ensure-chatroom-creation-triggers-a-reliable-refresh-of-all-relevant-chatroom-list-views-including-base-list-category-filtered-lists-and-search-lists-without-requiring-any-user-interaction",
+      "featureTitle": "Ensure chatroom creation triggers a reliable refresh of all relevant chatroom list views, including base list, category-filtered lists, and search lists, without requiring any user interaction.",
+      "files": [
+        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/pages/LobbyPage.tsx"
       ],
       "components": [
         "authorization@1.0.1",

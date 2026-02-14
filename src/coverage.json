@@ -1,24 +1,55 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-12T22:57:53.863Z",
+  "generatedAt": "2026-02-14T00:18:56.392Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 1,
-    "implemented": 1,
+    "total": 3,
+    "implemented": 3,
     "items": [
       {
-        "id": "REQ-3",
-        "summary": "In desktop layouts (md breakpoint and up), update the collapsed state of the chatroom header in `frontend/src/components/ChatArea.tsx` so that the header’s inner content is centered horizontally when collapsed, matching the centered alignment used in the expanded state. Keep the existing mobile (small screen) collapsed layout behavior intact.",
+        "id": "REQ-1",
+        "summary": "Prevent the lobby/admin chatroom list from being overwritten with an empty array when a chatroom fetch temporarily returns empty/undefined during or shortly after chatroom creation.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/ChatArea.tsx"
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/pages/LobbyPage.tsx",
+          "frontend/src/pages/AdminDeleteChatroomsPage.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/ChatArea.tsx"
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/pages/LobbyPage.tsx",
+          "frontend/src/pages/AdminDeleteChatroomsPage.tsx"
+        ]
+      },
+      {
+        "id": "REQ-2",
+        "summary": "Update the React Query chatroom queries so transient failures/empty responses do not erase previously fetched chatroom data (keep previous data while refetching, and treat fetch failures as errors rather than returning an empty list).",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/pages/LobbyPage.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/pages/LobbyPage.tsx"
+        ]
+      },
+      {
+        "id": "REQ-3",
+        "summary": "Ensure chatroom creation triggers a reliable refresh of all relevant chatroom list views, including base list, category-filtered lists, and search lists, without requiring any user interaction.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/components/CreateChatroomDialog.tsx",
+          "frontend/src/pages/LobbyPage.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/pages/LobbyPage.tsx"
         ]
       }
     ]
@@ -28,7 +59,9 @@
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/components/ChatArea.tsx",
+    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/pages/AdminDeleteChatroomsPage.tsx",
+    "frontend/src/pages/LobbyPage.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

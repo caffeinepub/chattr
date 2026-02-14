@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import type { ChatroomWithLiveStatus } from '../backend';
 import { formatDistanceToNow } from 'date-fns';
-import { MessageCircle, Play, Users } from 'lucide-react';
+import { MessageCircle, Play, Users, Eye } from 'lucide-react';
 import { SiX, SiTwitch } from 'react-icons/si';
 import { Badge } from './ui/badge';
 import { formatCompactNumber } from '../lib/formatters';
@@ -327,7 +327,11 @@ export default function ChatroomCard({ chatroom, onClick }: ChatroomCardProps) {
             <span>{Number(chatroom.messageCount)}</span>
           </div>
           <div className="flex items-center gap-1">
-            <Users className="h-3 w-3" />
+            {showActiveUsers ? (
+              <Users className="h-3 w-3" />
+            ) : (
+              <Eye className="h-3 w-3" />
+            )}
             <span>{Number(displayCount)}</span>
           </div>
           <span>•</span>

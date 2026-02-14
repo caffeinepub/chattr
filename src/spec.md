@@ -1,11 +1,11 @@
 # Specification
 
 ## Summary
-**Goal:** Center the collapsed chatroom header’s inner content on desktop layouts to match the expanded state alignment, without changing mobile behavior.
+**Goal:** Fix an intermittent bug where the Lobby and Admin chatroom lists sometimes become empty after creating chatrooms, without requiring users to click a tag/filter to recover.
 
 **Planned changes:**
-- Update `frontend/src/components/ChatArea.tsx` collapsed header layout at the `md` breakpoint and up to center the inner content horizontally.
-- Preserve the existing collapsed header layout and spacing on small screens (below `md`).
-- Leave the expanded header layout unchanged.
+- Update the Lobby/Admin chatroom list fetching logic to avoid overwriting previously loaded chatrooms with an empty/undefined response during transient refetches shortly after chatroom creation.
+- Adjust React Query chatroom queries to keep previously fetched data while refetching and to surface fetch failures as errors (instead of silently returning an empty list).
+- Ensure successful chatroom creation reliably triggers refresh of all relevant chatroom list queries (base list, category-filtered lists, and search-based lists) matching the user’s current filter/search state.
 
-**User-visible outcome:** On desktop-sized viewports, the collapsed chatroom header content is visually centered within the header bar; mobile and expanded header layouts look the same as before.
+**User-visible outcome:** After creating chatrooms repeatedly, the Lobby and Admin chatroom lists no longer randomly switch to showing zero rooms unless there truly are none; newly created rooms appear without needing to click a tag/filter, and failures can be reflected as an error state rather than an empty list.

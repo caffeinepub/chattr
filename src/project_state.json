@@ -1,16 +1,34 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "New project",
-  "architectural_notes": [],
+  "summary": "Chatroom app with lobby and admin pages; currently addressing a bug where chatroom lists sometimes disappear after creating rooms until a tag filter is clicked.",
+  "architectural_notes": [
+    "Lobby and admin pages share the same underlying chatroom list/source; UI state can be overwritten by an empty/undefined fetch response due to timing/race conditions after room creation."
+  ],
   "known_issues": [
-    "Desktop mode: content inside the collapsible container is not centered when the container is collapsed; should remain centered as in expanded state."
+    "Bug: After creating a chatroom, lobby may show zero rooms and admin page list may also disappear until the user clicks a tag/filter (likely due to empty/undefined fetch result overwriting the list)."
   ],
   "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-in-desktop-layouts-md-breakpoint-and-up-update-the-collapsed-state-of-the-chatroom-header-in-frontend-src-components-chatarea-tsx-so-that-the-header-s-inner-content-is-centered-horizontally-when-collapsed-matching-the-centered-alignment-used-in-the-expanded-state-keep-the-existing-mobile-small-screen-collapsed-layout-behavior-intact",
-      "title": "In desktop layouts (md breakpoint and up), update the collapsed state of the chatroom header in `frontend/src/components/ChatArea.tsx` so that the header’s inner content is centered horizontally when collapsed, matching the centered alignment used in the expanded state. Keep the existing mobile (small screen) collapsed layout behavior intact.",
+      "id": "feature-prevent-the-lobby-admin-chatroom-list-from-being-overwritten-with-an-empty-array-when-a-chatroom-fetch-temporarily-returns-empty-undefined-during-or-shortly-after-chatroom-creation",
+      "title": "Prevent the lobby/admin chatroom list from being overwritten with an empty array when a chatroom fetch temporarily returns empty/undefined during or shortly after chatroom creation.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-react-query-chatroom-queries-so-transient-failures-empty-responses-do-not-erase-previously-fetched-chatroom-data-keep-previous-data-while-refetching-and-treat-fetch-failures-as-errors-rather-than-returning-an-empty-list",
+      "title": "Update the React Query chatroom queries so transient failures/empty responses do not erase previously fetched chatroom data (keep previous data while refetching, and treat fetch failures as errors rather than returning an empty list).",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-chatroom-creation-triggers-a-reliable-refresh-of-all-relevant-chatroom-list-views-including-base-list-category-filtered-lists-and-search-lists-without-requiring-any-user-interaction",
+      "title": "Ensure chatroom creation triggers a reliable refresh of all relevant chatroom list views, including base list, category-filtered lists, and search lists, without requiring any user interaction.",
       "reqIds": [
         "REQ-3"
       ],
@@ -18,7 +36,7 @@
     }
   ],
   "new_feature_requests": [],
-  "projectName": "Center collapsed chatroom header content on desktop",
+  "projectName": "Fix intermittent empty chatroom list after creating chatrooms (lobby + admin)",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

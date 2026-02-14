@@ -40,92 +40,143 @@ function listToArray<T>(list: any): T[] {
   return result;
 }
 
+// Track recent chatroom creation to guard against transient empty results
+let lastChatroomCreationTime = 0;
+const POST_CREATE_GUARD_WINDOW = 3000; // 3 seconds
+
+function isInPostCreateWindow(): boolean {
+  return Date.now() - lastChatroomCreationTime < POST_CREATE_GUARD_WINDOW;
+}
+
+function markChatroomCreated(): void {
+  lastChatroomCreationTime = Date.now();
+}
+
 // Chatroom queries
 export function useGetChatrooms() {
   const { actor, isFetching: actorFetching } = useActor();
+  const queryClient = useQueryClient();
 
   return useQuery<ChatroomWithLiveStatus[]>({
     queryKey: ['chatrooms'],
     queryFn: async () => {
       if (!actor) {
         console.warn('[useGetChatrooms] Actor not available');
-        return [];
+        throw new Error('Actor not available');
       }
       
-      try {
-        console.log('[useGetChatrooms] Fetching chatrooms...');
-        const chatrooms = await actor.getChatrooms();
-        console.log('[useGetChatrooms] Fetched chatrooms:', chatrooms.length);
-        return chatrooms.sort((a, b) => Number(b.createdAt - a.createdAt));
-      } catch (error) {
-        console.error('[useGetChatrooms] Error fetching chatrooms:', error);
-        return [];
+      console.log('[useGetChatrooms] Fetching chatrooms...');
+      const chatrooms = await actor.getChatrooms();
+      console.log('[useGetChatrooms] Fetched chatrooms:', chatrooms.length);
+      
+      // Guard against transient empty results during post-create window
+      if (chatrooms.length === 0 && isInPostCreateWindow()) {
+        const previousData = queryClient.getQueryData<ChatroomWithLiveStatus[]>(['chatrooms']);
+        if (previousData && previousData.length > 0) {
+          console.warn('[useGetChatrooms] Rejecting empty result during post-create window, keeping previous data');
+          throw new Error('Transient empty result rejected');
+        }
       }
+      
+      return chatrooms.sort((a, b) => Number(b.createdAt - a.createdAt));
     },
     enabled: !!actor && !actorFetching,
     refetchInterval: 5000,
-    retry: 3,
+    retry: (failureCount, error) => {
+      // Don't retry transient empty result errors
+      if (error.message === 'Transient empty result rejected') {
+        return false;
+      }
+      return failureCount < 3;
+    },
     retryDelay: 1000,
+    placeholderData: (previousData) => previousData, // Keep previous data during refetch
   });
 }
 
 export function useSearchChatrooms(searchTerm: string) {
   const { actor, isFetching: actorFetching } = useActor();
+  const queryClient = useQueryClient();
 
   return useQuery<ChatroomWithLiveStatus[]>({
     queryKey: ['chatrooms', 'search', searchTerm],
     queryFn: async () => {
       if (!actor) {
         console.warn('[useSearchChatrooms] Actor not available');
-        return [];
+        throw new Error('Actor not available');
       }
       
-      try {
-        if (!searchTerm.trim()) {
-          const chatrooms = await actor.getChatrooms();
-          return chatrooms.sort((a, b) => Number(b.createdAt - a.createdAt));
-        }
-        
-        const chatrooms = await actor.searchChatrooms(searchTerm.trim());
-        return chatrooms.sort((a, b) => Number(b.createdAt - a.createdAt));
-      } catch (error) {
-        console.error('[useSearchChatrooms] Error searching chatrooms:', error);
-        return [];
+      let chatrooms: ChatroomWithLiveStatus[];
+      
+      if (!searchTerm.trim()) {
+        chatrooms = await actor.getChatrooms();
+      } else {
+        chatrooms = await actor.searchChatrooms(searchTerm.trim());
       }
+      
+      // Guard against transient empty results during post-create window
+      if (chatrooms.length === 0 && isInPostCreateWindow()) {
+        const previousData = queryClient.getQueryData<ChatroomWithLiveStatus[]>(['chatrooms', 'search', searchTerm]);
+        if (previousData && previousData.length > 0) {
+          console.warn('[useSearchChatrooms] Rejecting empty result during post-create window, keeping previous data');
+          throw new Error('Transient empty result rejected');
+        }
+      }
+      
+      return chatrooms.sort((a, b) => Number(b.createdAt - a.createdAt));
     },
     enabled: !!actor && !actorFetching,
-    retry: 3,
+    retry: (failureCount, error) => {
+      if (error.message === 'Transient empty result rejected') {
+        return false;
+      }
+      return failureCount < 3;
+    },
     retryDelay: 1000,
+    placeholderData: (previousData) => previousData,
   });
 }
 
 export function useFilterChatroomsByCategory(category: string) {
   const { actor, isFetching: actorFetching } = useActor();
+  const queryClient = useQueryClient();
 
   return useQuery<ChatroomWithLiveStatus[]>({
     queryKey: ['chatrooms', 'category', category],
     queryFn: async () => {
       if (!actor) {
         console.warn('[useFilterChatroomsByCategory] Actor not available');
-        return [];
+        throw new Error('Actor not available');
       }
       
-      try {
-        if (!category.trim()) {
-          const chatrooms = await actor.getChatrooms();
-          return chatrooms.sort((a, b) => Number(b.createdAt - a.createdAt));
-        }
-        
-        const chatrooms = await actor.filterChatroomsByCategory(category.trim());
-        return chatrooms.sort((a, b) => Number(b.createdAt - a.createdAt));
-      } catch (error) {
-        console.error('[useFilterChatroomsByCategory] Error filtering chatrooms:', error);
-        return [];
+      let chatrooms: ChatroomWithLiveStatus[];
+      
+      if (!category.trim()) {
+        chatrooms = await actor.getChatrooms();
+      } else {
+        chatrooms = await actor.filterChatroomsByCategory(category.trim());
       }
+      
+      // Guard against transient empty results during post-create window
+      if (chatrooms.length === 0 && isInPostCreateWindow()) {
+        const previousData = queryClient.getQueryData<ChatroomWithLiveStatus[]>(['chatrooms', 'category', category]);
+        if (previousData && previousData.length > 0) {
+          console.warn('[useFilterChatroomsByCategory] Rejecting empty result during post-create window, keeping previous data');
+          throw new Error('Transient empty result rejected');
+        }
+      }
+      
+      return chatrooms.sort((a, b) => Number(b.createdAt - a.createdAt));
     },
     enabled: !!actor && !actorFetching,
-    retry: 3,
+    retry: (failureCount, error) => {
+      if (error.message === 'Transient empty result rejected') {
+        return false;
+      }
+      return failureCount < 3;
+    },
     retryDelay: 1000,
+    placeholderData: (previousData) => previousData,
   });
 }
 
@@ -140,15 +191,10 @@ export function useGetChatroom(chatroomId: bigint) {
         throw new Error('Backend connection not available');
       }
       
-      try {
-        console.log('[useGetChatroom] Fetching chatroom:', chatroomId.toString(), 'from deep link');
-        const chatroom = await actor.getChatroom(chatroomId);
-        console.log('[useGetChatroom] Fetched chatroom:', chatroom ? 'found' : 'not found', chatroom);
-        return chatroom;
-      } catch (error) {
-        console.error('[useGetChatroom] Error fetching chatroom:', error);
-        throw error;
-      }
+      console.log('[useGetChatroom] Fetching chatroom:', chatroomId.toString(), 'from deep link');
+      const chatroom = await actor.getChatroom(chatroomId);
+      console.log('[useGetChatroom] Fetched chatroom:', chatroom ? 'found' : 'not found', chatroom);
+      return chatroom;
     },
     enabled: !!actor && !actorFetching,
     refetchInterval: 5000,
@@ -177,12 +223,52 @@ export function useCreateChatroom() {
       return actor.createChatroom(params.topic, params.description, params.mediaUrl, params.mediaType, params.category);
     },
     onSuccess: () => {
+      // Mark that we just created a chatroom to activate the guard window
+      markChatroomCreated();
+      
+      // Invalidate all chatroom queries to trigger refetch
       queryClient.invalidateQueries({ queryKey: ['chatrooms'] });
+      
       toast.success('Chat created successfully');
     },
     onError: (error: Error) => {
       console.error('[CreateChatroom] Error:', error);
       toast.error(error.message || 'Failed to create chat');
+    },
+  });
+}
+
+export function useDeleteChatroom() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (chatroomId: bigint) => {
+      if (!actor) throw new Error('Actor not available');
+      
+      const password = 'lunasimbaliamsammy1987!';
+      
+      console.log('[DeleteChatroom] Deleting chatroom:', chatroomId.toString());
+      
+      await actor.deleteChatroomWithPassword(chatroomId, password);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['chatrooms'] });
+      toast.success('Chatroom deleted successfully');
+    },
+    onError: (error: Error) => {
+      console.error('[DeleteChatroom] Error:', error);
+      const errorMessage = error.message || 'Failed to delete chatroom';
+      
+      if (errorMessage.includes('Incorrect password')) {
+        toast.error('Authentication failed');
+      } else if (errorMessage.includes('does not exist')) {
+        toast.error('Chatroom not found');
+      } else if (errorMessage.includes('Unauthorized')) {
+        toast.error('You do not have permission to delete chatrooms');
+      } else {
+        toast.error(errorMessage);
+      }
     },
   });
 }
@@ -469,24 +555,23 @@ export function useUpdateAvatar() {
       
       await actor.saveCallerUserProfile(updatedProfile);
       
-      // Retroactively update all messages with new avatar
+      // Call backend to retroactively update all messages
       await actor.updateAvatarRetroactively(userId, params.avatarUrl);
       
       return params.avatarUrl;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['currentAvatar'] });
       queryClient.invalidateQueries({ queryKey: ['messages'] });
+      queryClient.invalidateQueries({ queryKey: ['currentAvatar'] });
       toast.success('Avatar updated successfully');
     },
     onError: (error: Error) => {
-      console.error('[UpdateAvatar] Error:', error);
       toast.error(error.message || 'Failed to update avatar');
     },
   });
 }
 
-// Reaction management with optimistic updates
+// Reactions
 export function useAddReaction() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
@@ -496,52 +581,44 @@ export function useAddReaction() {
       if (!actor) throw new Error('Actor not available');
       const userId = getUserId();
       await actor.addReaction(params.messageId, params.emoji, userId);
-      return { ...params, userId };
+      return params;
     },
     onMutate: async (params) => {
-      const userId = getUserId();
-      const queryKey = ['messages', params.chatroomId.toString()];
+      await queryClient.cancelQueries({ queryKey: ['messages', params.chatroomId.toString()] });
       
-      // Cancel outgoing refetches
-      await queryClient.cancelQueries({ queryKey });
+      const previousMessages = queryClient.getQueryData<MessageWithReactions[]>(['messages', params.chatroomId.toString()]);
       
-      // Snapshot previous value
-      const previousMessages = queryClient.getQueryData<MessageWithReactions[]>(queryKey);
-      
-      // Optimistically update
       if (previousMessages) {
-        queryClient.setQueryData<MessageWithReactions[]>(queryKey, (old) => {
-          if (!old) return old;
-          
-          return old.map((msg) => {
-            if (msg.id === params.messageId) {
-              const reactions = listToArray<Reaction>(msg.reactions);
-              const existingReaction = reactions.find((r) => r.emoji === params.emoji);
-              
-              let updatedReactions: Reaction[];
-              if (existingReaction) {
-                const users = listToArray<string>(existingReaction.users);
-                if (!users.includes(userId)) {
-                  updatedReactions = reactions.map((r) =>
-                    r.emoji === params.emoji
-                      ? { ...r, count: r.count + 1n, users: [userId, r.users] as any }
-                      : r
-                  );
-                } else {
-                  updatedReactions = reactions;
-                }
-              } else {
-                updatedReactions = [
-                  ...reactions,
-                  { emoji: params.emoji, count: 1n, users: [userId, null] as any },
-                ];
+        const userId = getUserId();
+        const optimisticMessages = previousMessages.map(msg => {
+          if (msg.id === params.messageId) {
+            const reactions = listToArray<Reaction>(msg.reactions);
+            const existingReaction = reactions.find(r => r.emoji === params.emoji);
+            
+            if (existingReaction) {
+              const users = listToArray<string>(existingReaction.users);
+              if (!users.includes(userId)) {
+                const updatedReaction: Reaction = {
+                  ...existingReaction,
+                  count: existingReaction.count + 1n,
+                  users: [userId, existingReaction.users] as any,
+                };
+                const updatedReactions = reactions.map(r => r.emoji === params.emoji ? updatedReaction : r);
+                return { ...msg, reactions: updatedReactions.reduceRight((acc, r) => [r, acc], null as any) };
               }
-              
-              return { ...msg, reactions: updatedReactions as any };
+            } else {
+              const newReaction: Reaction = {
+                emoji: params.emoji,
+                count: 1n,
+                users: [userId, null] as any,
+              };
+              return { ...msg, reactions: [newReaction, msg.reactions] as any };
             }
-            return msg;
-          });
+          }
+          return msg;
         });
+        
+        queryClient.setQueryData(['messages', params.chatroomId.toString()], optimisticMessages);
       }
       
       return { previousMessages };
@@ -566,43 +643,37 @@ export function useRemoveReaction() {
       if (!actor) throw new Error('Actor not available');
       const userId = getUserId();
       await actor.removeReaction(params.messageId, params.emoji, userId);
-      return { ...params, userId };
+      return params;
     },
     onMutate: async (params) => {
-      const userId = getUserId();
-      const queryKey = ['messages', params.chatroomId.toString()];
+      await queryClient.cancelQueries({ queryKey: ['messages', params.chatroomId.toString()] });
       
-      await queryClient.cancelQueries({ queryKey });
-      
-      const previousMessages = queryClient.getQueryData<MessageWithReactions[]>(queryKey);
+      const previousMessages = queryClient.getQueryData<MessageWithReactions[]>(['messages', params.chatroomId.toString()]);
       
       if (previousMessages) {
-        queryClient.setQueryData<MessageWithReactions[]>(queryKey, (old) => {
-          if (!old) return old;
-          
-          return old.map((msg) => {
-            if (msg.id === params.messageId) {
-              const reactions = listToArray<Reaction>(msg.reactions);
-              const updatedReactions = reactions
-                .map((r) => {
-                  if (r.emoji === params.emoji) {
-                    const users = listToArray<string>(r.users);
-                    const filteredUsers = users.filter((u) => u !== userId);
-                    return {
-                      ...r,
-                      count: BigInt(Math.max(0, Number(r.count) - 1)),
-                      users: filteredUsers.reduceRight((acc, user) => [user, acc] as any, null as any),
-                    };
-                  }
-                  return r;
-                })
-                .filter((r) => Number(r.count) > 0);
-              
-              return { ...msg, reactions: updatedReactions as any };
-            }
-            return msg;
-          });
+        const userId = getUserId();
+        const optimisticMessages = previousMessages.map(msg => {
+          if (msg.id === params.messageId) {
+            const reactions = listToArray<Reaction>(msg.reactions);
+            const updatedReactions = reactions.map(r => {
+              if (r.emoji === params.emoji) {
+                const users = listToArray<string>(r.users);
+                const filteredUsers = users.filter(u => u !== userId);
+                return {
+                  ...r,
+                  count: r.count > 0n ? r.count - 1n : 0n,
+                  users: filteredUsers.reduceRight((acc, u) => [u, acc], null as any),
+                };
+              }
+              return r;
+            }).filter(r => r.count > 0n);
+            
+            return { ...msg, reactions: updatedReactions.reduceRight((acc, r) => [r, acc], null as any) };
+          }
+          return msg;
         });
+        
+        queryClient.setQueryData(['messages', params.chatroomId.toString()], optimisticMessages);
       }
       
       return { previousMessages };
@@ -614,36 +685,6 @@ export function useRemoveReaction() {
     },
     onSettled: (data, error, params) => {
       queryClient.invalidateQueries({ queryKey: ['messages', params.chatroomId.toString()] });
-    },
-  });
-}
-
-// Fetch Twitch thumbnail
-export function useFetchTwitchThumbnail() {
-  const { actor } = useActor();
-
-  return useMutation({
-    mutationFn: async (channelName: string) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.fetchTwitchThumbnail(channelName);
-    },
-    onError: (error: Error) => {
-      console.error('[FetchTwitchThumbnail] Error:', error);
-    },
-  });
-}
-
-// Fetch Twitter thumbnail
-export function useFetchTwitterThumbnail() {
-  const { actor } = useActor();
-
-  return useMutation({
-    mutationFn: async (tweetUrl: string) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.fetchTwitterThumbnail(tweetUrl);
-    },
-    onError: (error: Error) => {
-      console.error('[FetchTwitterThumbnail] Error:', error);
     },
   });
 }

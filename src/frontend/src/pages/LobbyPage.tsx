@@ -45,8 +45,8 @@ export default function LobbyPage() {
 
   // Use appropriate query based on filters
   const { data: allChatrooms, isLoading: allLoading, error: allError, isError: isAllError } = useGetChatrooms();
-  const { data: searchResults, isLoading: searchLoading } = useSearchChatrooms(debouncedSearchTerm);
-  const { data: categoryResults, isLoading: categoryLoading } = useFilterChatroomsByCategory(selectedCategory);
+  const { data: searchResults, isLoading: searchLoading, isError: isSearchError } = useSearchChatrooms(debouncedSearchTerm);
+  const { data: categoryResults, isLoading: categoryLoading, isError: isCategoryError } = useFilterChatroomsByCategory(selectedCategory);
 
   // Determine which data to display
   let chatrooms = allChatrooms;
@@ -57,9 +57,11 @@ export default function LobbyPage() {
   if (debouncedSearchTerm.trim()) {
     chatrooms = searchResults;
     isLoading = searchLoading;
+    isError = isSearchError;
   } else if (selectedCategory) {
     chatrooms = categoryResults;
     isLoading = categoryLoading;
+    isError = isCategoryError;
   }
 
   const handleChatroomClick = (chatroomId: bigint) => {
@@ -101,7 +103,7 @@ export default function LobbyPage() {
     );
   }
 
-  if (isError && !actor) {
+  if (isError && !actor && !chatrooms) {
     return (
       <div className="flex h-full items-center justify-center p-4">
         <Alert variant="destructive" className="max-w-md">
@@ -178,12 +180,12 @@ export default function LobbyPage() {
           </div>
         </div>
 
-        {isError && (
+        {isError && chatrooms && chatrooms.length > 0 && (
           <Alert variant="destructive" className="mb-4">
             <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Error Loading Chats</AlertTitle>
+            <AlertTitle>Refresh Error</AlertTitle>
             <AlertDescription>
-              There was a problem loading chats. Showing cached data if available.
+              There was a problem refreshing chats. Showing cached data.
             </AlertDescription>
           </Alert>
         )}

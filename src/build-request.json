@@ -1,36 +1,72 @@
 {
   "kind": "build_request",
-  "title": "Center collapsed chatroom header content on desktop",
+  "title": "Fix intermittent empty chatroom list after creating chatrooms (lobby + admin)",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-3",
-      "text": "In desktop layouts (md breakpoint and up), update the collapsed state of the chatroom header in `frontend/src/components/ChatArea.tsx` so that the header’s inner content is centered horizontally when collapsed, matching the centered alignment used in the expanded state. Keep the existing mobile (small screen) collapsed layout behavior intact.",
+      "id": "REQ-1",
+      "text": "Prevent the lobby/admin chatroom list from being overwritten with an empty array when a chatroom fetch temporarily returns empty/undefined during or shortly after chatroom creation.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1",
-          "msg-2"
+          "msg-1"
         ],
         "quotes": [
-          "in desktop mode, the content in the collapsible container needs to be centered when in a collapsed state just like it is when its now collapsed. does that make sense? --- please confirm you understand. dont code yet",
-          "ok do it then"
+          "There’s some sort of bug happening, when you create a chatroom sometimes it won’t let you see any of the rooms unless you click on a filter (tag) and they disappear from the admin page as well"
         ]
       },
       "acceptanceCriteria": [
-        "When the header is collapsed and the viewport is md or larger, the collapsed header content (topic + LIVE badge if present + counts + expand button) is visually centered horizontally within the header bar (not left-aligned with extra space to the right).",
-        "When the header is collapsed on small screens (below md), the current collapsed header layout and spacing behavior remain unchanged.",
-        "Expanded header layout remains unchanged."
+        "After creating chatrooms repeatedly (e.g., 30+ in a row), the Lobby page does not randomly switch to showing zero rooms unless there are truly no rooms.",
+        "After creating chatrooms repeatedly, the Admin delete chatrooms page does not randomly show an empty table unless there are truly no rooms.",
+        "Clicking a tag/filter is no longer required to make rooms reappear."
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "text": "Update the React Query chatroom queries so transient failures/empty responses do not erase previously fetched chatroom data (keep previous data while refetching, and treat fetch failures as errors rather than returning an empty list).",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "The fix is simple: ignore empty results, and only update the lobby when the fetch brings back real chatrooms."
+        ]
+      },
+      "acceptanceCriteria": [
+        "If a chatroom list refetch fails, the UI continues to display the last known non-empty chatroom list (if available) instead of switching to an empty state.",
+        "The chatroom list query reports an error state on failure (so the UI can show an error banner), rather than silently converting failure into `[]`.",
+        "The Lobby page can still show the \"No chats found yet\" empty state when there are genuinely zero chatrooms in the backend."
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Ensure chatroom creation triggers a reliable refresh of all relevant chatroom list views, including base list, category-filtered lists, and search lists, without requiring any user interaction.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "ok go ahead and patch it"
+        ]
+      },
+      "acceptanceCriteria": [
+        "After successfully creating a chatroom, the new chatroom appears in the Lobby list within one refresh cycle without needing to click a category badge or change search text.",
+        "After successfully creating a chatroom, the Admin delete chatrooms page shows the chatroom in its table within one refresh cycle without needing to navigate away/back.",
+        "If the user has an active category filter or search term when creating a chatroom, the app refetches the currently active list query (so the list is consistent with the current filter/search state)."
       ]
     }
   ],
   "constraints": [
-    "Do not edit files under `frontend/src/components/ui` (compose existing UI components instead).",
-    "Do not modify any paths listed as immutable in SYSTEM_CONTEXT."
+    "Do not edit files under frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or anything in frontend/src/components/ui (compose existing components instead).",
+    "Keep backend architecture as a single Motoko actor in backend/main.mo; only add migration logic if state schema changes (not expected for this patch).",
+    "Use English for any user-facing text."
   ],
   "nonGoals": [
-    "Do not change backend logic or data models.",
-    "Do not change what content appears in the header (only adjust alignment/centering in collapsed desktop layout)."
+    "Changing chatroom creation validation rules or media handling.",
+    "Adding new authentication flows (Internet Identity only).",
+    "Implementing real-time updates via WebSockets or similar."
   ],
   "imageRequirements": {
     "required": [],
