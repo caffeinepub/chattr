@@ -130,6 +130,7 @@ export interface _SERVICE {
     [string, string, string, string, string],
     bigint
   >,
+  'deleteAllChatrooms' : ActorMethod<[], undefined>,
   'deleteChatroomWithPassword' : ActorMethod<[bigint, string], undefined>,
   'fetchTwitchThumbnail' : ActorMethod<[string], string>,
   'fetchTwitterOEmbed' : ActorMethod<[string], string>,
@@ -159,7 +160,6 @@ export interface _SERVICE {
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'pinVideo' : ActorMethod<[bigint, bigint], undefined>,
   'removeReaction' : ActorMethod<[bigint, string, string], undefined>,
-  'resetAllState' : ActorMethod<[], undefined>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
   'searchChatrooms' : ActorMethod<[string], Array<ChatroomWithLiveStatus>>,
   'sendMessage' : ActorMethod<

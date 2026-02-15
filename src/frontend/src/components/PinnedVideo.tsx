@@ -1,16 +1,11 @@
+import type { ProcessedMessageWithReactions } from '../hooks/useQueries';
 import { X } from 'lucide-react';
 import { Button } from './ui/button';
 import { useUnpinVideo } from '../hooks/useQueries';
-import type { MessageWithReactions } from '../hooks/useQueries';
-import { 
-  getYouTubeVideoId, 
-  getTwitchEmbedUrl,
-  isYouTubeUrl, 
-  isTwitchUrl 
-} from '../lib/videoUtils';
+import { getYouTubeVideoId, getTwitchEmbedUrl, isYouTubeUrl, isTwitchUrl } from '../lib/videoUtils';
 
 interface PinnedVideoProps {
-  message: MessageWithReactions;
+  message: ProcessedMessageWithReactions;
   chatroomId: bigint;
 }
 
@@ -58,23 +53,23 @@ export default function PinnedVideo({ message, chatroomId }: PinnedVideoProps) {
 
   return (
     <div className="relative mx-auto w-full max-w-xl p-4">
-      <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-black shadow-lg">
+      <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-black">
         {renderVideo()}
+      </div>
+      <div className="mt-2 flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">
+          Pinned by <span className="font-medium text-foreground">{message.sender}</span>
+        </p>
         <Button
           variant="ghost"
-          size="icon"
+          size="sm"
           onClick={handleUnpin}
           disabled={unpinVideo.isPending}
-          className="absolute right-2 top-2 h-8 w-8 rounded-full bg-black/50 text-white hover:bg-black/70 hover:text-white"
-          aria-label="Unpin video"
+          className="gap-2 text-xs"
         >
-          <X className="h-4 w-4" />
+          <X className="h-3 w-3" />
+          Unpin
         </Button>
-      </div>
-      <div className="mt-2 text-center">
-        <p className="text-xs text-muted-foreground">
-          Pinned by <span className="font-medium">{message.sender}</span>
-        </p>
       </div>
     </div>
   );

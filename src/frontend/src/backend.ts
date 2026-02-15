@@ -206,6 +206,7 @@ export interface backendInterface {
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     cleanupInactiveUsers(): Promise<void>;
     createChatroom(topic: string, description: string, mediaUrl: string, mediaType: string, category: string): Promise<bigint>;
+    deleteAllChatrooms(): Promise<void>;
     deleteChatroomWithPassword(chatroomId: bigint, password: string): Promise<void>;
     fetchTwitchThumbnail(channelName: string): Promise<string>;
     fetchTwitterOEmbed(tweetUrl: string): Promise<string>;
@@ -229,7 +230,6 @@ export interface backendInterface {
     isCallerAdmin(): Promise<boolean>;
     pinVideo(chatroomId: bigint, messageId: bigint): Promise<void>;
     removeReaction(messageId: bigint, emoji: string, userId: string): Promise<void>;
-    resetAllState(): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     searchChatrooms(searchTerm: string): Promise<Array<ChatroomWithLiveStatus>>;
     sendMessage(content: string, sender: string, chatroomId: bigint, mediaUrl: string | null, mediaType: string | null, avatarUrl: string | null, senderId: string, replyToMessageId: bigint | null): Promise<void>;
@@ -378,6 +378,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.createChatroom(arg0, arg1, arg2, arg3, arg4);
+            return result;
+        }
+    }
+    async deleteAllChatrooms(): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.deleteAllChatrooms();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.deleteAllChatrooms();
             return result;
         }
     }
@@ -700,20 +714,6 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.removeReaction(arg0, arg1, arg2);
-            return result;
-        }
-    }
-    async resetAllState(): Promise<void> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.resetAllState();
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.resetAllState();
             return result;
         }
     }

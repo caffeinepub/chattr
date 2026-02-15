@@ -1,29 +1,17 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
-import type { Message, ChatroomWithLiveStatus, UserProfile, MessageWithReactions as BackendMessageWithReactions, Reaction as BackendReaction } from '../backend';
+import type { Message, ChatroomWithLiveStatus, UserProfile, MessageWithReactions, Reaction } from '../backend';
 import { toast } from 'sonner';
 import { compressImage } from '../lib/imageCompression';
 
-// Frontend types with converted arrays
-export interface Reaction {
-  emoji: string;
-  count: bigint;
-  users: string[];
-}
-
-export interface MessageWithReactions {
-  id: bigint;
-  content: string;
-  timestamp: bigint;
-  sender: string;
-  chatroomId: bigint;
-  mediaUrl?: string;
-  mediaType?: string;
-  avatarUrl?: string;
-  senderId: string;
-  replyToMessageId?: bigint;
-  reactions: Reaction[];
-}
+// Processed message type with array-based reactions for easier frontend use
+export type ProcessedMessageWithReactions = Omit<MessageWithReactions, 'reactions'> & {
+  reactions: Array<{
+    emoji: string;
+    count: bigint;
+    users: string[];
+  }>;
+};
 
 // Get username from localStorage or generate a random anonymous ID
 function getUsername(): string {
@@ -285,7 +273,7 @@ export function useDeleteChatroom() {
   });
 }
 
-export function useResetAllData() {
+export function useDeleteAllChatrooms() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
 
@@ -293,48 +281,35 @@ export function useResetAllData() {
     mutationFn: async () => {
       if (!actor) throw new Error('Actor not available');
       
-      console.log('[ResetAllData] Resetting all application data...');
+      console.log('[DeleteAllChatrooms] Deleting all chatrooms');
       
-      await actor.resetAllState();
+      await actor.deleteAllChatrooms();
     },
     onSuccess: () => {
-      // Invalidate all queries to reflect the cleared state
       queryClient.invalidateQueries({ queryKey: ['chatrooms'] });
-      queryClient.invalidateQueries({ queryKey: ['messages'] });
-      queryClient.invalidateQueries({ queryKey: ['chatroom'] });
-      
-      toast.success('All data has been reset successfully');
+      toast.success('All chatrooms deleted successfully');
     },
     onError: (error: Error) => {
-      console.error('[ResetAllData] Error:', error);
-      toast.error(error.message || 'Failed to reset data');
+      console.error('[DeleteAllChatrooms] Error:', error);
+      toast.error(error.message || 'Failed to delete all chatrooms');
     },
   });
 }
 
-// Message queries
+// Message queries - Returns processed messages with array-based reactions
 export function useGetMessages(chatroomId: bigint) {
   const { actor, isFetching: actorFetching } = useActor();
 
-  return useQuery<MessageWithReactions[]>({
+  return useQuery<ProcessedMessageWithReactions[]>({
     queryKey: ['messages', chatroomId.toString()],
-    queryFn: async (): Promise<MessageWithReactions[]> => {
+    queryFn: async () => {
       if (!actor) throw new Error('Actor not available');
       
       const messages = await actor.getMessageWithReactionsAndReplies(chatroomId);
       
       return messages.map(msg => ({
-        id: msg.id,
-        content: msg.content,
-        timestamp: msg.timestamp,
-        sender: msg.sender,
-        chatroomId: msg.chatroomId,
-        mediaUrl: msg.mediaUrl,
-        mediaType: msg.mediaType,
-        avatarUrl: msg.avatarUrl,
-        senderId: msg.senderId,
-        replyToMessageId: msg.replyToMessageId,
-        reactions: listToArray<BackendReaction>(msg.reactions).map(reaction => ({
+        ...msg,
+        reactions: listToArray<Reaction>(msg.reactions).map(reaction => ({
           emoji: reaction.emoji,
           count: reaction.count,
           users: listToArray<string>(reaction.users),
@@ -346,15 +321,52 @@ export function useGetMessages(chatroomId: bigint) {
   });
 }
 
+// Shared image upload function with compression and progress tracking
+export async function uploadImage(
+  file: File,
+  onProgress?: (percentage: number) => void
+): Promise<string> {
+  try {
+    // Compress the image before uploading
+    const compressedBlob = await compressImage(file);
+    
+    // Convert blob to array buffer
+    const arrayBuffer = await compressedBlob.arrayBuffer();
+    const uint8Array = new Uint8Array(arrayBuffer);
+    
+    // Store in localStorage with progress tracking
+    const base64 = btoa(String.fromCharCode(...uint8Array));
+    const dataUrl = `data:${compressedBlob.type};base64,${base64}`;
+    
+    // Simulate progress for localStorage operation
+    if (onProgress) {
+      onProgress(50);
+    }
+    
+    // Store with a unique key
+    const storageKey = `uploaded_image_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    localStorage.setItem(storageKey, dataUrl);
+    
+    if (onProgress) {
+      onProgress(100);
+    }
+    
+    return dataUrl;
+  } catch (error) {
+    console.error('Image upload error:', error);
+    throw new Error('Failed to upload image');
+  }
+}
+
 export function useSendMessage() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (params: { 
-      content: string; 
-      chatroomId: bigint; 
-      mediaUrl?: string; 
+    mutationFn: async (params: {
+      content: string;
+      chatroomId: bigint;
+      mediaUrl?: string;
       mediaType?: string;
       replyToMessageId?: bigint;
     }) => {
@@ -409,7 +421,8 @@ export function usePinVideo() {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['chatroom', variables.chatroomId.toString()] });
-      toast.success('Video pinned');
+      queryClient.invalidateQueries({ queryKey: ['chatrooms'] });
+      toast.success('Video pinned successfully');
     },
     onError: (error: Error) => {
       toast.error(error.message || 'Failed to pin video');
@@ -428,7 +441,8 @@ export function useUnpinVideo() {
     },
     onSuccess: (_, chatroomId) => {
       queryClient.invalidateQueries({ queryKey: ['chatroom', chatroomId.toString()] });
-      toast.success('Video unpinned');
+      queryClient.invalidateQueries({ queryKey: ['chatrooms'] });
+      toast.success('Video unpinned successfully');
     },
     onError: (error: Error) => {
       toast.error(error.message || 'Failed to unpin video');
@@ -436,6 +450,7 @@ export function useUnpinVideo() {
   });
 }
 
+// User profile queries
 export function useGetCallerUserProfile() {
   const { actor, isFetching: actorFetching } = useActor();
 
@@ -467,6 +482,7 @@ export function useSaveCallerUserProfile() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
+      toast.success('Profile saved successfully');
     },
     onError: (error: Error) => {
       toast.error(error.message || 'Failed to save profile');
@@ -474,10 +490,19 @@ export function useSaveCallerUserProfile() {
   });
 }
 
+// Helper hooks for username and avatar
 export function useGetCurrentUsername() {
   return useQuery<string>({
     queryKey: ['currentUsername'],
     queryFn: () => getUsername(),
+    staleTime: Infinity,
+  });
+}
+
+export function useGetCurrentAvatar() {
+  return useQuery<string | null>({
+    queryKey: ['currentAvatar'],
+    queryFn: () => getAvatarUrl(),
     staleTime: Infinity,
   });
 }
@@ -506,14 +531,6 @@ export function useUpdateUsername() {
   });
 }
 
-export function useGetCurrentAvatar() {
-  return useQuery<string | null>({
-    queryKey: ['currentAvatar'],
-    queryFn: () => getAvatarUrl(),
-    staleTime: Infinity,
-  });
-}
-
 export function useUpdateAvatar() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
@@ -530,11 +547,12 @@ export function useUpdateAvatar() {
         localStorage.removeItem('chatAvatarUrl');
       }
       
-      await actor.updateAvatarRetroactively(userId, newAvatarUrl);
+      await actor.updateAvatarRetroactively(userId, newAvatarUrl || null);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['currentAvatar'] });
       queryClient.invalidateQueries({ queryKey: ['messages'] });
+      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
       toast.success('Avatar updated');
     },
     onError: (error: Error) => {
@@ -543,6 +561,7 @@ export function useUpdateAvatar() {
   });
 }
 
+// Reaction mutations
 export function useAddReaction() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
@@ -575,60 +594,4 @@ export function useRemoveReaction() {
       queryClient.invalidateQueries({ queryKey: ['messages', variables.chatroomId.toString()] });
     },
   });
-}
-
-export function useGetReplyPreview(chatroomId: bigint, messageId: bigint | null) {
-  const { actor, isFetching: actorFetching } = useActor();
-
-  return useQuery({
-    queryKey: ['replyPreview', chatroomId.toString(), messageId?.toString()],
-    queryFn: async () => {
-      if (!actor || !messageId) return null;
-      return actor.getReplyPreview(chatroomId, messageId);
-    },
-    enabled: !!actor && !actorFetching && messageId !== null,
-  });
-}
-
-// Shared image upload function with compression and progress tracking
-export async function uploadImage(
-  file: File,
-  onProgress?: (percentage: number) => void
-): Promise<string> {
-  try {
-    // Compress the image before uploading
-    const compressedFile = await compressImage(file);
-    
-    // Convert to base64 for localStorage
-    const reader = new FileReader();
-    const base64Promise = new Promise<string>((resolve, reject) => {
-      reader.onload = () => {
-        const result = reader.result as string;
-        resolve(result);
-      };
-      reader.onerror = reject;
-      reader.readAsDataURL(compressedFile);
-    });
-
-    const base64 = await base64Promise;
-    
-    // Simulate progress for user feedback
-    if (onProgress) {
-      onProgress(50);
-    }
-    
-    // Store in localStorage with a unique key
-    const storageKey = `image_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    localStorage.setItem(storageKey, base64);
-    
-    if (onProgress) {
-      onProgress(100);
-    }
-    
-    // Return the storage key as the "URL"
-    return storageKey;
-  } catch (error) {
-    console.error('Image upload error:', error);
-    throw new Error('Failed to upload image');
-  }
 }

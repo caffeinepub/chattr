@@ -1,81 +1,100 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-14T23:39:18.381Z",
-  "summary": "The diff does not provide evidence that the backend exposes the required unauthenticated `resetAll()` update method, and the frontend wiring appears to call a different method name (`resetAllState()`). Additionally, many unrelated frontend components/pages were modified beyond the requested admin-page-only scope.",
+  "generatedAt": "2026-02-15T00:07:45.266Z",
+  "summary": "REQ-1 is not met because the new backend delete-all function includes an admin permission check (explicitly disallowed). Frontend evidence for the exact “DELETE ALL ROOMS” button/confirmation/toasts is truncated, and the diff contains many unrelated frontend changes that were not requested (violating the “no changes other than required” constraint).",
   "missing_requirements": [
     {
       "id": "REQ-1",
-      "requirement": "Implement a backend `resetAll()` function that resets all application data and does not require any caller/principal authorization.",
-      "reason": "The shown portion of `backend/main.mo` includes various access-control and admin-only methods but contains no visible `public update`/`public func resetAll` method, nor evidence of state clearing/resetting ID counters. The file is truncated, so it may exist outside the snippet, but there is no affirmative evidence in the diff summary that it was implemented as specified.",
+      "requirement": "Backend delete-all-chatrooms method must be publicly callable with no caller/principal authorization checks and no password checks.",
+      "reason": "The new backend function `deleteAllChatrooms` traps unless the caller has admin permission, which violates the requirement of no authorization gating.",
       "evidence": [
-        "backend/main.mo (truncated snippet shows no `resetAll` definition)"
+        "backend/main.mo: `public shared ({ caller }) func deleteAllChatrooms()... if (not (AccessControl.hasPermission(..., #admin))) { Debug.trap(\"Unauthorized: Only admins can delete all chatrooms\"); }`"
       ]
     },
     {
       "id": "REQ-2",
-      "requirement": "Add a \"Reset All Data\" button to `frontend/src/pages/AdminDeleteChatroomsPage.tsx` that calls backend `resetAll()`, with destructive confirmation dialog, loading/disabled state, and success/error feedback that refreshes relevant caches.",
-      "reason": "While the admin page imports `useResetAllData` and `AlertDialog` components, the truncated diff does not show the actual \"Reset All Data\" button, confirmation dialog text, loading/disabled behavior, success/error toasts/messages, or cache refresh behavior being wired in the page.",
+      "requirement": "Admin page includes a clearly labeled \"DELETE ALL ROOMS\" button with confirmation dialog, calls backend delete-all method, refreshes chatroom list, and shows success/error toast/message.",
+      "reason": "The diff summary shows `useDeleteAllChatrooms` is imported/used, but the provided snippet is truncated before the UI rendering of the new button/confirmation/toasts; therefore the required UI/behavior cannot be confirmed from the evidence provided.",
       "evidence": [
-        "frontend/src/pages/AdminDeleteChatroomsPage.tsx (truncated; imports `useResetAllData` and `AlertDialog` but does not show the reset UI implementation)"
+        "frontend/src/pages/AdminDeleteChatroomsPage.tsx (truncated before showing the delete-all button UI)"
       ]
     },
     {
       "id": "REQ-3",
-      "requirement": "Export a React Query mutation hook in `frontend/src/hooks/useQueries.ts` whose mutationFn calls `actor.resetAll()` and invalidates (at minimum) `['chatrooms']` on success.",
-      "reason": "The provided project summary for `useQueries.ts` states the new hook calls `actor.resetAllState()` (different method name than required `actor.resetAll()`). The truncated code snippet also does not show the implementation of `useResetAllData` to confirm correct method name and invalidation behavior.",
+      "requirement": "React Query mutation hook for delete-all-chatrooms invalidates/refetches the ['chatrooms'] query key, and admin page uses the hook (no direct actor calls in the page).",
+      "reason": "The summary text claims `useDeleteAllChatrooms` exists, but the shown `useQueries.ts` content is truncated before the mutation definition; invalidation of `['chatrooms']` and implementation details cannot be verified from the diff excerpt.",
       "evidence": [
-        "frontend-file-summaries.txt (states: \"new useResetAllData mutation hook that calls actor.resetAllState()\")",
-        "frontend/src/hooks/useQueries.ts (truncated; does not show `useResetAllData` implementation)"
+        "frontend/src/hooks/useQueries.ts (truncated; mutation not shown)",
+        "frontend-file-summaries.txt mentions `useDeleteAllChatrooms` but does not show invalidation code"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Modified multiple unrelated frontend components (avatar picker, chat area, message bubble, pinned video) outside the requested scope of only admin page + wiring changes.",
-      "reason": "BuildRequest constraints require strictly limiting frontend changes to adding the reset button/wiring on the existing admin page and adding the necessary hook; the diff shows changes to several other components unrelated to admin reset.",
+      "description": "Backend authorization gating added to delete-all operation via AccessControl admin permission check and \"Unauthorized\" trap.",
+      "reason": "BuildRequest explicitly forbids any caller/principal authorization checks for the delete-all-chatrooms backend function.",
       "evidence": [
-        "frontend/src/components/AvatarPickerDialog.tsx",
-        "frontend/src/components/ChatArea.tsx",
-        "frontend/src/components/MessageBubble.tsx",
-        "frontend/src/components/PinnedVideo.tsx"
+        "backend/main.mo: `AccessControl.hasPermission(... #admin)` check inside `deleteAllChatrooms`"
       ]
     },
     {
-      "description": "Added/expanded Giphy search functionality and related async state management in the avatar picker dialog.",
-      "reason": "Not requested by any requirement; unrelated to implementing `resetAll()` and the admin reset button.",
+      "description": "Backend access control/admin-role management functions and state added (initializeAccessControl, getCallerUserRole, assignCallerUserRole, isCallerAdmin) and adminPassword variable.",
+      "reason": "Not requested; BuildRequest scope is limited to adding delete-all backend function and the corresponding admin-page button + hook.",
+      "evidence": [
+        "backend/main.mo: `import AccessControl ...`, `let accessControlState = ...`, `var adminPassword ...`, and multiple public access-control methods"
+      ]
+    },
+    {
+      "description": "Unrelated frontend feature work around avatars/Giphy selection in AvatarPickerDialog.",
+      "reason": "Not requested and violates the constraint to make no changes beyond what is required for the DELETE ALL ROOMS feature.",
       "evidence": [
         "frontend/src/components/AvatarPickerDialog.tsx"
       ]
     },
     {
-      "description": "Introduced/expanded Twitter widgets script loading and tweet rendering support in message UI.",
-      "reason": "Not requested by any requirement; unrelated to implementing `resetAll()` and the admin reset button.",
+      "description": "Unrelated UI/UX changes to ChatArea (collapsible header, reply context, etc.).",
+      "reason": "Not requested; outside DELETE ALL ROOMS scope.",
+      "evidence": [
+        "frontend/src/components/ChatArea.tsx"
+      ]
+    },
+    {
+      "description": "Unrelated Header changes (avatar picker dialog integration, username editing, layout changes).",
+      "reason": "Not requested; outside DELETE ALL ROOMS scope.",
+      "evidence": [
+        "frontend/src/components/Header.tsx"
+      ]
+    },
+    {
+      "description": "Unrelated MessageBubble changes (Twitter widgets loader, replies, voice message player integration, reaction UI changes).",
+      "reason": "Not requested; outside DELETE ALL ROOMS scope.",
       "evidence": [
         "frontend/src/components/MessageBubble.tsx"
       ]
     },
     {
-      "description": "Added/modified pinned video UI component and unpin behavior.",
-      "reason": "Not requested by any requirement; unrelated to implementing `resetAll()` and the admin reset button.",
+      "description": "Unrelated PinnedVideo component changes.",
+      "reason": "Not requested; outside DELETE ALL ROOMS scope.",
       "evidence": [
         "frontend/src/components/PinnedVideo.tsx"
       ]
     },
     {
-      "description": "Changed chat UI behavior (collapsible header, reply/scroll highlighting, etc.) beyond admin reset scope.",
-      "reason": "Not requested by any requirement; violates the constraint to not change unrelated pages/components.",
+      "description": "Large set of additional query/behavior changes in useQueries (post-create guard window, transient empty result handling, other hook changes).",
+      "reason": "Not requested; outside DELETE ALL ROOMS scope.",
       "evidence": [
-        "frontend/src/components/ChatArea.tsx"
+        "frontend/src/hooks/useQueries.ts: `POST_CREATE_GUARD_WINDOW`, `Transient empty result rejected`, extra logging/guard logic"
       ]
     }
   ],
-  "confidence": 0.72,
+  "confidence": 0.78,
   "changed_files": [
     "backend/main.mo",
     "frontend-file-summaries.txt",
     "frontend/src/components/AvatarPickerDialog.tsx",
     "frontend/src/components/ChatArea.tsx",
+    "frontend/src/components/Header.tsx",
     "frontend/src/components/MessageBubble.tsx",
     "frontend/src/components/PinnedVideo.tsx",
     "frontend/src/hooks/useQueries.ts",

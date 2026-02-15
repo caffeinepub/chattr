@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useGetMessages, useSendMessage, useGetCurrentUsername, type MessageWithReactions } from '../hooks/useQueries';
+import { useGetMessages, useSendMessage, useGetCurrentUsername, type ProcessedMessageWithReactions } from '../hooks/useQueries';
 import type { ChatroomWithLiveStatus } from '../backend';
 import MessageBubble from './MessageBubble';
 import MessageInput from './MessageInput';
@@ -252,23 +252,17 @@ export default function ChatArea({ chatroomId, chatroom }: ChatAreaProps) {
         </div>
       </div>
 
-      {/* Reply Preview Bar */}
+      {/* Reply Preview */}
       {replyingTo && (
         <div className="flex-shrink-0 border-t border-border bg-muted/50 px-4 py-2">
-          <div className="mx-auto flex max-w-3xl items-center justify-between gap-2">
-            <div className="flex min-w-0 flex-1 items-center gap-2">
-              {replyingTo.mediaThumbnail && (
-                <img
-                  src={replyingTo.mediaThumbnail}
-                  alt="Reply preview"
-                  className="h-10 w-10 flex-shrink-0 rounded object-cover"
-                />
-              )}
+          <div className="mx-auto flex max-w-3xl items-center justify-between">
+            <div className="flex items-center gap-2 overflow-hidden">
+              <div className="h-8 w-1 flex-shrink-0 rounded-full bg-primary" />
               <div className="min-w-0 flex-1">
-                <p className="text-xs font-medium text-muted-foreground">
+                <p className="text-xs font-medium text-foreground">
                   Replying to {replyingTo.sender}
                 </p>
-                <p className="truncate text-sm text-foreground">
+                <p className="truncate text-xs text-muted-foreground">
                   {replyingTo.contentSnippet}
                 </p>
               </div>
@@ -285,10 +279,10 @@ export default function ChatArea({ chatroomId, chatroom }: ChatAreaProps) {
         </div>
       )}
 
-      {/* Message Input - Fixed at bottom */}
-      <div className="flex-shrink-0 border-t border-border bg-card">
-        <div className="mx-auto max-w-3xl px-4 py-3">
-          <MessageInput onSendMessage={handleSendMessage} disabled={sendMessage.isPending} />
+      {/* Message Input */}
+      <div className="flex-shrink-0 border-t border-border bg-card px-4 py-3">
+        <div className="mx-auto max-w-3xl">
+          <MessageInput onSendMessage={handleSendMessage} />
         </div>
       </div>
     </div>

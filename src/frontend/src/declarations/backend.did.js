@@ -152,6 +152,7 @@ export const idlService = IDL.Service({
       [IDL.Nat],
       [],
     ),
+  'deleteAllChatrooms' : IDL.Func([], [], []),
   'deleteChatroomWithPassword' : IDL.Func([IDL.Nat, IDL.Text], [], []),
   'fetchTwitchThumbnail' : IDL.Func([IDL.Text], [IDL.Text], []),
   'fetchTwitterOEmbed' : IDL.Func([IDL.Text], [IDL.Text], []),
@@ -199,7 +200,6 @@ export const idlService = IDL.Service({
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
   'pinVideo' : IDL.Func([IDL.Nat, IDL.Nat], [], []),
   'removeReaction' : IDL.Func([IDL.Nat, IDL.Text, IDL.Text], [], []),
-  'resetAllState' : IDL.Func([], [], []),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
   'searchChatrooms' : IDL.Func(
       [IDL.Text],
@@ -374,6 +374,7 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Nat],
         [],
       ),
+    'deleteAllChatrooms' : IDL.Func([], [], []),
     'deleteChatroomWithPassword' : IDL.Func([IDL.Nat, IDL.Text], [], []),
     'fetchTwitchThumbnail' : IDL.Func([IDL.Text], [IDL.Text], []),
     'fetchTwitterOEmbed' : IDL.Func([IDL.Text], [IDL.Text], []),
@@ -421,7 +422,6 @@ export const idlFactory = ({ IDL }) => {
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
     'pinVideo' : IDL.Func([IDL.Nat, IDL.Nat], [], []),
     'removeReaction' : IDL.Func([IDL.Nat, IDL.Text, IDL.Text], [], []),
-    'resetAllState' : IDL.Func([], [], []),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
     'searchChatrooms' : IDL.Func(
         [IDL.Text],

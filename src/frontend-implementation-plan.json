@@ -1,39 +1,38 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Admin Reset All Data UI wired to resetAll() React Query mutation",
+  "title": "Admin DELETE ALL ROOMS button wired to React Query mutation",
   "requirements": [
     {
       "id": "REQ-2",
-      "summary": "Add a destructive \"Reset All Data\" action to the existing admin page with confirmation, loading state, and success/error feedback.",
+      "summary": "Add a DELETE ALL ROOMS button with confirmation to the existing admin page and refresh the chatroom list after completion.",
       "acceptanceCriteria": [
-        "When authenticated on the admin page, the UI shows a \"Reset All Data\" destructive action in addition to the existing chatroom delete controls.",
-        "Clicking \"Reset All Data\" opens a confirmation dialog that clearly states the action is destructive and irreversible.",
-        "Confirming the dialog calls the backend `resetAll()` and shows a loading/disabled state while the request is in progress.",
-        "On success, the UI shows a success toast/message and refreshes relevant React Query caches so the chatroom list updates to empty (without requiring a manual page refresh).",
-        "On error, the UI shows an error toast/message and does not break existing admin functionality."
+        "The admin page UI includes a clearly labeled button: \"DELETE ALL ROOMS\".",
+        "Clicking the button triggers a confirmation dialog before executing the delete-all action.",
+        "On confirm, the frontend calls the backend delete-all-chatrooms method, then invalidates/refetches the chatroom list query so the table updates to show no chatrooms.",
+        "A success toast/message is shown when the operation completes; an error toast/message is shown if the operation fails."
       ],
       "file_operations": [
         {
           "path": "frontend/src/pages/AdminDeleteChatroomsPage.tsx",
           "operation": "modify",
-          "description": "Import and use the new React Query mutation hook (e.g., `useResetAllData`) and add a \"Reset All Data\" destructive control within the existing authenticated admin UI. Use the existing shadcn-ui AlertDialog + Button components to present an irreversible confirmation dialog; disable/replace button content while the reset mutation is pending, and surface success/error via toast/message without impacting existing delete-chatroom behavior. Verify the component's usage instructions before implementing."
+          "description": "Add a new \"DELETE ALL ROOMS\" destructive action button within the existing admin UI (no new routes/pages). Use the existing AlertDialog component for a confirmation flow, call the new React Query mutation hook (from useQueries) on confirm, show loading/disabled state while the mutation is in-flight, and rely on the mutation's success/error handling (toast) plus query invalidation so the chatroom table refreshes to empty."
         }
       ]
     },
     {
       "id": "REQ-3",
-      "summary": "Add a React Query mutation hook in useQueries.ts that calls `actor.resetAll()` and invalidates relevant caches on success.",
+      "summary": "Add a React Query mutation hook for delete-all-chatrooms that calls the backend via the existing actor and invalidates chatroom list queries.",
       "acceptanceCriteria": [
-        "`frontend/src/hooks/useQueries.ts` exports a new hook (e.g., `useResetAllData`) whose mutationFn calls `actor.resetAll()`.",
-        "On successful reset, the hook invalidates chatroom/message-related query keys (at minimum `['chatrooms']`) so the UI reflects the cleared state.",
-        "Only files necessary to wire this feature are changed; no unrelated pages/routes/components are modified."
+        "A new hook exists that calls the backend delete-all-chatrooms method via the existing actor.",
+        "On success, the hook invalidates the ['chatrooms'] query key (and any other directly related chatroom list query keys used by the app, if applicable).",
+        "The admin page uses this hook for the \"DELETE ALL ROOMS\" button action (no direct actor calls inside the page other than via the hook)."
       ],
       "file_operations": [
         {
           "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Add and export a new React Query mutation hook (e.g., `useResetAllData`) that calls `actor.resetAll()` (using `useActor()` for actor availability). On success, invalidate `['chatrooms']` and other chatroom/message-related keys used by the app (e.g., `['messages']`, `['chatroom']`) so the admin page list refreshes to empty; on error, surface a clear toast error. Keep changes strictly scoped to this hook and its cache invalidation behavior."
+          "description": "Add a new React Query mutation hook (e.g., useDeleteAllChatrooms) that calls actor.deleteAllChatrooms() through the existing useActor hook. On success, invalidate the base ['chatrooms'] query and also invalidate related list variants used by the app (e.g., any queries whose keys start with ['chatrooms', ...] such as search/category) so all lobby/admin chatroom lists refetch. Provide success and error toast messages (English) consistent with existing mutation patterns, and export the hook for use by AdminDeleteChatroomsPage."
         }
       ]
     }

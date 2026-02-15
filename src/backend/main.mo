@@ -144,6 +144,19 @@ actor {
   transient let principalMap = OrderedMap.Make<Principal>(Principal.compare);
   var userProfiles = principalMap.empty<UserProfile>();
 
+  public shared ({ caller }) func deleteAllChatrooms() : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Debug.trap("Unauthorized: Only admins can delete all chatrooms");
+    };
+
+    chatrooms := natMap.empty();
+    messages := natMap.empty();
+    activeUsers := natMap.empty();
+    reactions := natMap.empty();
+    nextMessageId := 0;
+    nextChatroomId := 0;
+  };
+
   public shared ({ caller }) func deleteChatroomWithPassword(chatroomId : Nat, password : Text) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
       Debug.trap("Unauthorized: Only admins can delete chatrooms");
@@ -183,7 +196,6 @@ actor {
     };
   };
 
-  // Chatroom management - Open to all users (anonymous allowed, no auth required)
   public func createChatroom(topic : Text, description : Text, mediaUrl : Text, mediaType : Text, category : Text) : async Nat {
     if (Text.size(topic) == 0 or Text.size(description) == 0) {
       Debug.trap("Topic and description cannot be empty");
@@ -464,9 +476,9 @@ actor {
         Array.sort<Message>(
           sortedMessages,
           func(a : Message, b : Message) : { #less; #equal; #greater } {
-            if (a.timestamp < b.timestamp) { #less } else if (a.timestamp == b.timestamp) {
-              #equal;
-            } else { #greater };
+            if (a.timestamp < b.timestamp) { #less } else if (a.timestamp == b.timestamp) { #equal } else {
+              #greater;
+            };
           },
         );
       };
@@ -903,28 +915,5 @@ actor {
     let chars = Text.toArray(text);
     let length = if (chars.size() > maxLength) { maxLength } else { chars.size() };
     Text.fromArray(Array.tabulate(length, func(i : Nat) : Char { chars[i] }));
-  };
-
-  // ADMIN-ONLY FUNCTION to reset all persisted state.
-  // After explicit confirmation from the admin via the website UI, this function drops all persistent data in the backend.
-
-  public shared ({ caller }) func resetAllState() : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Debug.trap("Unauthorized: Only admins can reset all state");
-    };
-
-    // Reset ID counters
-    nextMessageId := 0;
-    nextChatroomId := 0;
-
-    // Reset state to empty
-    chatrooms := natMap.empty();
-    messages := natMap.empty();
-    activeUsers := natMap.empty();
-    reactions := natMap.empty();
-    userProfiles := principalMap.empty();
-
-    // Reset other state as needed
-    adminPassword := "secret123";
   };
 };

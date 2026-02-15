@@ -1,11 +1,11 @@
 # Specification
 
 ## Summary
-**Goal:** Add an admin-only UI control to reset all application data by calling a new unauthenticated backend `resetAll()` method.
+**Goal:** Add an admin “DELETE ALL ROOMS” action that deletes all chatrooms and their associated data via a new backend method.
 
 **Planned changes:**
-- Backend: Implement and expose a public `resetAll()` update method in `backend/main.mo` that clears all persisted application state and resets relevant ID counters, with no caller/principal authorization checks.
-- Frontend: Add a destructive “Reset All Data” button to `frontend/src/pages/AdminDeleteChatroomsPage.tsx` with a clear confirmation dialog, loading/disabled state, and success/error feedback.
-- Frontend: Add a React Query mutation hook in `frontend/src/hooks/useQueries.ts` (e.g., `useResetAllData`) that calls `actor.resetAll()` and invalidates relevant caches (at minimum `['chatrooms']`) so the UI updates without manual refresh.
+- Backend: Export a new publicly callable delete-all-chatrooms method that removes all chatrooms plus associated per-room data (messages, active user tracking, reactions) without any authorization or password checks.
+- Frontend: Add a clearly labeled “DELETE ALL ROOMS” button to `frontend/src/pages/AdminDeleteChatroomsPage.tsx` with a confirmation dialog; on confirm, call the backend delete-all method and refresh the chatroom list.
+- Frontend: Add a React Query mutation hook (alongside existing admin mutations, e.g. in `frontend/src/hooks/useQueries.ts`) for the delete-all operation that invalidates/refetches the `['chatrooms']` query key and is used by the admin page.
 
-**User-visible outcome:** From the existing admin page, an authenticated admin can click “Reset All Data”, confirm the irreversible action, and the app’s data is cleared with clear success/error messaging and the chatroom list updating to empty automatically.
+**User-visible outcome:** Admins can click “DELETE ALL ROOMS” on the existing admin page, confirm the action, and see all chatrooms removed with the list updating to empty, with success/error feedback shown.
