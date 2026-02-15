@@ -21,14 +21,6 @@ export default function ChatroomPage() {
   } = useGetChatroom(chatroomIdBigInt);
   const incrementViewCount = useIncrementViewCount();
   const hasIncrementedView = useRef(false);
-  const previousChatroomExists = useRef(false);
-
-  // Track if chatroom existed before
-  useEffect(() => {
-    if (chatroom) {
-      previousChatroomExists.current = true;
-    }
-  }, [chatroom]);
 
   // Increment view count when chatroom is loaded
   useEffect(() => {
@@ -48,7 +40,6 @@ export default function ChatroomPage() {
     isLoading,
     isFetched,
     hasChatroom: !!chatroom,
-    previouslyExisted: previousChatroomExists.current,
     isError,
     error: error ? String(error) : null,
   });
@@ -67,19 +58,14 @@ export default function ChatroomPage() {
   }
 
   // Show error if chatroom not found after fetching is complete
-  // This handles both initial not-found and expired rooms (backend returns null)
   if (isFetched && (isError || !chatroom)) {
-    const errorMessage = previousChatroomExists.current 
-      ? 'This chat has expired and is no longer available.'
-      : 'The chat you are looking for does not exist or has been removed.';
-
     return (
       <div className="flex h-full items-center justify-center p-4">
         <Alert variant="destructive" className="max-w-md">
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Chat Not Found</AlertTitle>
           <AlertDescription>
-            {errorMessage}
+            {error ? String(error) : 'The chat you are looking for does not exist or has been removed.'}
             <div className="mt-4">
               <Button onClick={() => navigate({ to: '/' })} variant="outline">
                 Back to Lobby

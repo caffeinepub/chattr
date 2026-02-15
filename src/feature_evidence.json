@@ -2,11 +2,52 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-update-the-frontend-to-handle-rooms-disappearing-due-to-expiry-gracefully-no-crashes-show-existing-not-found-removed-state-when-a-user-is-viewing-a-room-that-gets-deleted",
-      "featureTitle": "Update the frontend to handle rooms disappearing due to expiry gracefully (no crashes; show existing not-found/removed state when a user is viewing a room that gets deleted).",
+      "featureId": "feature-update-the-chatroom-message-input-ui-frontend-so-that-the-message-text-input-area-uses-a-9999px-border-radius-pill-shape",
+      "featureTitle": "Update the chatroom message input UI (frontend) so that the message text input area uses a 9999px border radius (pill shape).",
       "files": [
-        "frontend/src/hooks/useQueries.ts",
-        "frontend/src/pages/ChatroomPage.tsx"
+        "frontend/src/components/MessageInput.tsx"
+      ],
+      "components": [
+        "authorization@1.0.1",
+        "blob-storage@2.0.3",
+        "http-outcalls@1.1.1",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-1"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-reorder-the-controls-in-the-chatroom-message-input-row-so-the-microphone-button-and-image-media-button-are-positioned-to-the-left-of-the-text-input-area-textarea-not-to-the-right",
+      "featureTitle": "Reorder the controls in the chatroom message input row so the microphone button and image/media button are positioned to the LEFT of the text input area (Textarea), not to the right.",
+      "files": [
+        "frontend/src/components/MessageInput.tsx"
+      ],
+      "components": [
+        "authorization@1.0.1",
+        "blob-storage@2.0.3",
+        "http-outcalls@1.1.1",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-2"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-set-the-border-radius-to-9999px-for-all-buttons-in-the-chatroom-message-input-area-microphone-image-media-and-send-buttons",
+      "featureTitle": "Set the border radius to 9999px for all buttons in the chatroom message input area: microphone, image/media, and send buttons.",
+      "files": [
+        "frontend/src/components/MessageInput.tsx"
       ],
       "components": [
         "authorization@1.0.1",
@@ -20,6 +61,48 @@
       ],
       "testIds": [
         "REQ-3"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-ensure-the-height-of-the-text-input-area-matches-the-height-of-the-send-message-button-in-the-default-single-line-state",
+      "featureTitle": "Ensure the height of the text input area matches the height of the send message button in the default (single-line) state.",
+      "files": [
+        "frontend/src/components/MessageInput.tsx"
+      ],
+      "components": [
+        "authorization@1.0.1",
+        "blob-storage@2.0.3",
+        "http-outcalls@1.1.1",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-4"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-limit-changes-strictly-to-the-specified-chatroom-message-input-layout-styling-changes-do-not-modify-any-other-styling-behavior-logic-or-ui-elsewhere",
+      "featureTitle": "Limit changes strictly to the specified chatroom message input layout/styling changes; do not modify any other styling, behavior, logic, or UI elsewhere.",
+      "files": [
+        "frontend/src/components/MessageInput.tsx"
+      ],
+      "components": [
+        "authorization@1.0.1",
+        "blob-storage@2.0.3",
+        "http-outcalls@1.1.1",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-5"
       ],
       "confidence": "high"
     }

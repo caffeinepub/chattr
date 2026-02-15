@@ -541,61 +541,53 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
         </div>
       )}
 
-      <div className="flex gap-2">
-        <div className="flex-1">
-          <Textarea
-            ref={textareaRef}
-            value={message}
-            onChange={handleInput}
-            onKeyDown={handleKeyDown}
-            placeholder={isRecording ? "Recording voice message..." : "Type a message..."}
-            disabled={disabled || isUploading || isSending || isRecording}
-            className="min-h-[44px] max-h-[120px] resize-none"
-            rows={1}
-            style={{ fontSize: '16px' }}
-          />
-        </div>
-        
-        <div className="flex gap-1">
-          {!isRecording && (
-            <>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                onClick={() => setShowMediaInput(!showMediaInput)}
-                disabled={disabled || isUploading || isSending}
-                className="shrink-0"
-              >
-                <ImageIcon className="h-5 w-5" />
-              </Button>
-              
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                onClick={startRecording}
-                disabled={disabled || isUploading || isSending || showMediaInput}
-                className="shrink-0"
-              >
-                <Mic className="h-5 w-5" />
-              </Button>
-            </>
+      <div className="flex items-center gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          onClick={() => setShowMediaInput(!showMediaInput)}
+          disabled={disabled || isUploading || isSending || isRecording}
+          className="h-10 w-10 shrink-0 rounded-full"
+        >
+          <ImageIcon className="h-5 w-5" />
+        </Button>
+
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          onClick={isRecording ? stopRecording : startRecording}
+          disabled={disabled || isUploading || isSending || showMediaInput}
+          className="h-10 w-10 shrink-0 rounded-full"
+        >
+          <Mic className="h-5 w-5" />
+        </Button>
+
+        <Textarea
+          ref={textareaRef}
+          value={message}
+          onChange={handleInput}
+          onKeyDown={handleKeyDown}
+          placeholder={isRecording ? "Recording..." : "Type a message..."}
+          disabled={disabled || isUploading || isSending || isRecording}
+          className="min-h-[40px] max-h-[120px] resize-none rounded-full px-4 py-2.5"
+          rows={1}
+          style={{ fontSize: '16px' }}
+        />
+
+        <Button
+          onClick={handleSend}
+          disabled={!canSend}
+          size="icon"
+          className="h-10 w-10 shrink-0 rounded-full"
+        >
+          {isUploading || isSending ? (
+            <div className="h-5 w-5 animate-spin rounded-full border-2 border-background border-t-transparent" />
+          ) : (
+            <Send className="h-5 w-5" />
           )}
-          
-          <Button
-            onClick={handleSend}
-            disabled={!canSend}
-            size="icon"
-            className="shrink-0"
-          >
-            {isUploading || isSending ? (
-              <div className="h-5 w-5 animate-spin rounded-full border-2 border-background border-t-transparent" />
-            ) : (
-              <Send className="h-5 w-5" />
-            )}
-          </Button>
-        </div>
+        </Button>
       </div>
     </div>
   );

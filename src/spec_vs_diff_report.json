@@ -1,103 +1,39 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-15T00:41:15.997Z",
-  "summary": "Diff shows partial backend work toward expiring chatrooms (adds isChatroomExpired and starts a cleanupExpiredChatrooms function) and frontend changes that improve graceful handling when a chatroom fetch returns null. However, due to backend truncation and lack of explicit evidence, several backend acceptance criteria (physical deletion across all related maps, filtering in read APIs, and cleanup triggering during normal activity) cannot be confirmed. The diff also includes substantial unrelated frontend features (avatar/Giphy/upload/compression/header/chat UI tweaks) not requested by the BuildRequest.",
+  "generatedAt": "2026-02-15T02:46:24.361Z",
+  "summary": "Diff shows changes in MessageInput plus updates to two non-UI bookkeeping/summary files. The requested UI updates (pill radius, button order, matched heights) are asserted in the modified summaries but cannot be directly verified from the truncated MessageInput.tsx excerpt. The constraint to limit changes strictly to the message input area appears violated by unrelated modifications to frontend-file-summaries.txt and project_state.json.",
   "missing_requirements": [
     {
-      "id": "REQ-1",
-      "requirement": "Expired rooms are removed from backend state (chatrooms, messages, activeUsers, and any reactions associated with messages in that room).",
-      "reason": "backend/main.mo is truncated in the cleanupExpiredChatrooms implementation, and there is no clear evidence that it deletes entries from all required maps (chatrooms, messages, activeUsers, reactions) for each expired room.",
+      "id": "REQ-5",
+      "requirement": "Limit changes strictly to the specified chatroom message input layout/styling changes; do not modify any other styling, behavior, logic, or UI elsewhere.",
+      "reason": "The diff includes modifications to files that are not part of the chatroom message input UI/layout/styling (project metadata/summary files), which goes beyond the requested scoped UI change.",
       "evidence": [
-        "backend/main.mo"
-      ]
-    },
-    {
-      "id": "REQ-1",
-      "requirement": "Existing rooms that are already older than 5 minutes are deleted automatically without requiring an admin action.",
-      "reason": "Although isChatroomExpired and a cleanup function are introduced, the diff summary does not show any call site (e.g., on calls/heartbeat) that would run cleanup automatically against existing stored rooms at rollout.",
-      "evidence": [
-        "backend/main.mo"
-      ]
-    },
-    {
-      "id": "REQ-1",
-      "requirement": "After cleanup, getChatrooms() and getLobbyChatroomCards() do not return expired rooms.",
-      "reason": "No evidence in the provided diff summary that getChatrooms() or getLobbyChatroomCards() filter out expired rooms or that cleanup is invoked before returning results; backend code section containing those functions is not shown.",
-      "evidence": [
-        "backend/main.mo"
-      ]
-    },
-    {
-      "id": "REQ-1",
-      "requirement": "After cleanup, getChatroom(roomId) returns null for an expired/deleted roomId.",
-      "reason": "No evidence in the provided diff summary that getChatroom() checks expiration or returns null for expired rooms; the relevant method implementation is not shown.",
-      "evidence": [
-        "backend/main.mo"
-      ]
-    },
-    {
-      "id": "REQ-2",
-      "requirement": "Read APIs never return a chatroom older than 5 minutes, even if it still exists in memory prior to the next cleanup pass (filtering in read APIs).",
-      "reason": "The diff summary does not show any read-path filtering (e.g., in getChatrooms/getLobbyChatroomCards/getChatroom) beyond defining isChatroomExpired; method bodies are not present in the truncated backend diff.",
-      "evidence": [
-        "backend/main.mo"
-      ]
-    },
-    {
-      "id": "REQ-2",
-      "requirement": "Expired rooms are eventually physically removed from all related maps as part of a cleanup pass triggered by normal canister activity (e.g., on calls/heartbeat).",
-      "reason": "There is no visible evidence of a periodic trigger (heartbeat/timer) or a pattern of calling cleanupExpiredChatrooms within normal update/query entrypoints. The cleanup function appears started but call sites are not shown.",
-      "evidence": [
-        "backend/main.mo"
+        "frontend-file-summaries.txt",
+        "project_state.json"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Avatar picker enhancements including debounced Giphy search/trending fetch and request de-staling via requestId tracking.",
-      "reason": "Not requested by any requirement related to chatroom expiry; unrelated frontend feature work.",
+      "description": "Updated/added project tracking entries for AR-1..AR-6 in project_state.json (non-requested bookkeeping changes).",
+      "reason": "BuildRequest only requests UI/layout/styling changes in the chatroom message input; updating project state tracking is not requested and violates the 'limit changes strictly' requirement.",
       "evidence": [
-        "frontend/src/components/AvatarPickerDialog.tsx"
+        "project_state.json"
       ]
     },
     {
-      "description": "Transient empty-result guard window after chatroom creation (3s) and special retry/placeholder behavior in useGetChatrooms.",
-      "reason": "Not part of expiry requirements; introduces new client-side data consistency logic beyond handling expired rooms gracefully.",
-      "evidence": [
-        "frontend/src/hooks/useQueries.ts"
-      ]
-    },
-    {
-      "description": "Image compression/upload pipeline changes (compressImage usage and shared uploadImage function) and related progress support (per summary).",
-      "reason": "Not requested; unrelated to expiring chatrooms.",
-      "evidence": [
-        "frontend/src/hooks/useQueries.ts",
-        "frontend-file-summaries.txt"
-      ]
-    },
-    {
-      "description": "Multiple UI/UX/layout changes across header/chat area/message components (branding spacing, collapsible header centering, voice message player, reactions UX, etc.) referenced in frontend-file-summaries.txt.",
-      "reason": "Not requested by the build request; beyond scope of chatroom expiry behavior.",
-      "evidence": [
-        "frontend-file-summaries.txt"
-      ]
-    },
-    {
-      "description": "Lobby page behavior changes (debounced search, category filters, cached-data-on-error handling) referenced in frontend-file-summaries.txt.",
-      "reason": "Not requested; the only lobby-related requirement was that the list updates normally as rooms expire.",
+      "description": "Updated narrative summaries of many frontend files in frontend-file-summaries.txt (non-requested documentation/summary change).",
+      "reason": "BuildRequest does not request updating repository summary/documentation files; this is unrelated to the message input styling/layout changes.",
       "evidence": [
         "frontend-file-summaries.txt"
       ]
     }
   ],
-  "confidence": 0.66,
+  "confidence": 0.62,
   "changed_files": [
-    "backend/main.mo",
     "frontend-file-summaries.txt",
-    "frontend/src/components/AvatarPickerDialog.tsx",
-    "frontend/src/hooks/useQueries.ts",
-    "frontend/src/pages/ChatroomPage.tsx",
+    "frontend/src/components/MessageInput.tsx",
     "project_state.json"
   ]
 }

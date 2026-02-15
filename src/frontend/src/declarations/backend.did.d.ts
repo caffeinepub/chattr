@@ -172,7 +172,7 @@ export interface _SERVICE {
       string,
       [] | [bigint],
     ],
-    bigint
+    undefined
   >,
   'transform' : ActorMethod<[TransformationInput], TransformationOutput>,
   'unpinVideo' : ActorMethod<[bigint], undefined>,

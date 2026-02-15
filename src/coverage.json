@@ -1,57 +1,78 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-15T00:41:16.000Z",
+  "generatedAt": "2026-02-15T02:46:24.363Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 3,
-    "implemented": 1,
+    "total": 5,
+    "implemented": 5,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Implement automatic backend cleanup so that any chatroom with createdAt older than 5 minutes is deleted, including all existing rooms present at rollout.",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
+        "summary": "Update the chatroom message input UI (frontend) so that the message text input area uses a 9999px border radius (pill shape).",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/MessageInput.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/MessageInput.tsx"
+        ]
       },
       {
         "id": "REQ-2",
-        "summary": "Ensure room expiration is enforced even if a scheduled cleanup has not run yet by filtering out expired chatrooms from read APIs (e.g., lobby/chatroom list and single chatroom fetch) and triggering cleanup during normal canister activity.",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
+        "summary": "Reorder the controls in the chatroom message input row so the microphone button and image/media button are positioned to the LEFT of the text input area (Textarea), not to the right.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/MessageInput.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/MessageInput.tsx"
+        ]
       },
       {
         "id": "REQ-3",
-        "summary": "Update the frontend to handle rooms disappearing due to expiry gracefully (no crashes; show existing not-found/removed state when a user is viewing a room that gets deleted).",
+        "summary": "Set the border radius to 9999px for all buttons in the chatroom message input area: microphone, image/media, and send buttons.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/pages/ChatroomPage.tsx"
+          "frontend/src/components/MessageInput.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/pages/ChatroomPage.tsx"
+          "frontend/src/components/MessageInput.tsx"
+        ]
+      },
+      {
+        "id": "REQ-4",
+        "summary": "Ensure the height of the text input area matches the height of the send message button in the default (single-line) state.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/MessageInput.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/MessageInput.tsx"
+        ]
+      },
+      {
+        "id": "REQ-5",
+        "summary": "Limit changes strictly to the specified chatroom message input layout/styling changes; do not modify any other styling, behavior, logic, or UI elsewhere.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/MessageInput.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/MessageInput.tsx"
         ]
       }
     ]
   },
   "changedFiles": [
-    "backend/main.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/backend.d.ts",
-    "frontend/src/backend.ts",
-    "frontend/src/components/AvatarPickerDialog.tsx",
-    "frontend/src/declarations/backend.did.d.ts",
-    "frontend/src/declarations/backend.did.js",
-    "frontend/src/hooks/useQueries.ts",
-    "frontend/src/pages/ChatroomPage.tsx",
+    "frontend/src/components/MessageInput.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

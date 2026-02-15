@@ -8,10 +8,8 @@ import OrderedMap "mo:base/OrderedMap";
 import Iter "mo:base/Iter";
 import Int "mo:base/Int";
 import Array "mo:base/Array";
-
 import Storage "blob-storage/Storage";
 import MixinStorage "blob-storage/Mixin";
-
 import OutCall "http-outcalls/outcall";
 import AccessControl "authorization/access-control";
 
@@ -146,48 +144,6 @@ actor {
   transient let principalMap = OrderedMap.Make<Principal>(Principal.compare);
   var userProfiles = principalMap.empty<UserProfile>();
 
-  func isChatroomExpired(chatroom : Chatroom) : Bool {
-    let currentTime = Time.now();
-    let isExpired = Int.abs(currentTime - chatroom.createdAt) > 5 * 60 * 1_000_000_000;
-    isExpired;
-  };
-
-  func cleanupExpiredChatrooms() {
-    var updatedChatrooms = chatrooms;
-    var updatedMessages = messages;
-    var updatedActiveUsers = activeUsers;
-    var updatedReactions = reactions;
-
-    for ((chatroomId, chatroom) in natMap.entries(chatrooms)) {
-      if (isChatroomExpired(chatroom)) {
-        updatedChatrooms := natMap.delete(updatedChatrooms, chatroomId);
-        updatedMessages := natMap.delete(updatedMessages, chatroomId);
-        updatedActiveUsers := natMap.delete(updatedActiveUsers, chatroomId);
-
-        // Remove reactions associated with messages in the deleted chatroom
-        for ((messageId, messageReactions) in natMap.entries(reactions)) {
-          let messageExistsInChatroom = switch (natMap.get(messages, chatroomId)) {
-            case (null) { false };
-            case (?chatroomMessages) {
-              List.some<Message>(
-                chatroomMessages,
-                func(msg) { msg.id == messageId },
-              );
-            };
-          };
-          if (messageExistsInChatroom) {
-            updatedReactions := natMap.delete(updatedReactions, messageId);
-          };
-        };
-      };
-    };
-
-    chatrooms := updatedChatrooms;
-    messages := updatedMessages;
-    activeUsers := updatedActiveUsers;
-    reactions := updatedReactions;
-  };
-
   public shared ({ caller }) func deleteChatroomWithPassword(chatroomId : Nat, password : Text) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
       Debug.trap("Unauthorized: Only admins can delete chatrooms");
@@ -225,16 +181,10 @@ actor {
         reactions := updatedReactions;
       };
     };
-
-    // Perform cleanup after chatroom deletion
-    cleanupExpiredChatrooms();
   };
 
-  public shared ({ caller }) func createChatroom(topic : Text, description : Text, mediaUrl : Text, mediaType : Text, category : Text) : async Nat {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Debug.trap("Unauthorized: Only users can create chatrooms");
-    };
-
+  // Chatroom management - Open to all users (anonymous allowed, no auth required)
+  public func createChatroom(topic : Text, description : Text, mediaUrl : Text, mediaType : Text, category : Text) : async Nat {
     if (Text.size(topic) == 0 or Text.size(description) == 0) {
       Debug.trap("Topic and description cannot be empty");
     };
@@ -284,10 +234,6 @@ actor {
     messages := natMap.put(messages, nextChatroomId, List.push(firstMessage, List.nil<Message>()));
     nextMessageId += 1;
     nextChatroomId += 1;
-
-    // Perform cleanup after creating a new chatroom
-    cleanupExpiredChatrooms();
-
     chatroom.id;
   };
 
@@ -354,13 +300,8 @@ actor {
     let currentTime = Time.now();
     let activeThreshold = 60 * 1_000_000_000;
 
-    let activeChatrooms = Iter.filter<Chatroom>(
-      natMap.vals(chatrooms),
-      func(chatroom) { not isChatroomExpired(chatroom) },
-    );
-
     let lobbyCards = Iter.map<Chatroom, LobbyChatroomCard>(
-      activeChatrooms,
+      natMap.vals(chatrooms),
       func(chatroom) {
         let activeUsersForRoom = switch (natMap.get(activeUsers, chatroom.id)) {
           case (null) { List.nil<ActiveUser>() };
@@ -400,13 +341,8 @@ actor {
     let currentTime = Time.now();
     let activeThreshold = 60 * 1_000_000_000;
 
-    let activeChatrooms = Iter.filter<Chatroom>(
-      natMap.vals(chatrooms),
-      func(chatroom) { not isChatroomExpired(chatroom) },
-    );
-
     let chatroomsWithLiveStatus = Iter.map<Chatroom, ChatroomWithLiveStatus>(
-      activeChatrooms,
+      natMap.vals(chatrooms),
       func(chatroom) {
         let activeUsersForRoom = switch (natMap.get(activeUsers, chatroom.id)) {
           case (null) { List.nil<ActiveUser>() };
@@ -437,54 +373,40 @@ actor {
     switch (natMap.get(chatrooms, id)) {
       case (null) { null };
       case (?chatroom) {
-        if (isChatroomExpired(chatroom)) {
-          null;
-        } else {
-          let currentTime = Time.now();
-          let activeThreshold = 60 * 1_000_000_000;
+        let currentTime = Time.now();
+        let activeThreshold = 60 * 1_000_000_000;
 
-          let activeUsersForRoom = switch (natMap.get(activeUsers, id)) {
-            case (null) { List.nil<ActiveUser>() };
-            case (?users) { users };
-          };
+        let activeUsersForRoom = switch (natMap.get(activeUsers, id)) {
+          case (null) { List.nil<ActiveUser>() };
+          case (?users) { users };
+        };
 
-          let activeUserCount = List.size(
-            List.filter<ActiveUser>(
-              activeUsersForRoom,
-              func(user) {
-                Int.abs(currentTime - user.lastActive) <= activeThreshold;
-              },
-            )
-          );
+        let activeUserCount = List.size(
+          List.filter<ActiveUser>(
+            activeUsersForRoom,
+            func(user) {
+              Int.abs(currentTime - user.lastActive) <= activeThreshold;
+            },
+          )
+        );
 
-          ?{
-            chatroom with
-            isLive = activeUserCount > 0;
-            activeUserCount;
-          };
+        ?{
+          chatroom with
+          isLive = activeUserCount > 0;
+          activeUserCount;
         };
       };
     };
   };
 
-  public shared ({ caller }) func sendMessage(content : Text, sender : Text, chatroomId : Nat, mediaUrl : ?Text, mediaType : ?Text, avatarUrl : ?Text, senderId : Text, replyToMessageId : ?Nat) : async Nat {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Debug.trap("Unauthorized: Only users can send messages");
-    };
-
+  public func sendMessage(content : Text, sender : Text, chatroomId : Nat, mediaUrl : ?Text, mediaType : ?Text, avatarUrl : ?Text, senderId : Text, replyToMessageId : ?Nat) : async () {
     if (Text.size(content) == 0) {
       Debug.trap("Message content cannot be empty");
     };
 
     switch (natMap.get(chatrooms, chatroomId)) {
-      case (null) {
-        Debug.trap("Chatroom does not exist");
-      };
+      case (null) { Debug.trap("Chatroom does not exist") };
       case (?chatroom) {
-        if (isChatroomExpired(chatroom)) {
-          Debug.trap("Chatroom has expired and is no longer available");
-        };
-
         let message : Message = {
           id = nextMessageId;
           content;
@@ -530,11 +452,6 @@ actor {
         );
 
         activeUsers := natMap.put(activeUsers, chatroomId, updatedActiveUsers);
-
-        // Perform cleanup after sending a message
-        cleanupExpiredChatrooms();
-
-        message.id;
       };
     };
   };
@@ -558,14 +475,8 @@ actor {
 
   public func incrementViewCount(chatroomId : Nat, userId : Text) : async () {
     switch (natMap.get(chatrooms, chatroomId)) {
-      case (null) {
-        Debug.trap("Chatroom does not exist");
-      };
+      case (null) { Debug.trap("Chatroom does not exist") };
       case (?chatroom) {
-        if (isChatroomExpired(chatroom)) {
-          Debug.trap("Chatroom has expired and is no longer available");
-        };
-
         let updatedChatroom = {
           chatroom with
           viewCount = chatroom.viewCount + 1
@@ -594,11 +505,7 @@ actor {
     };
   };
 
-  public shared ({ caller }) func pinVideo(chatroomId : Nat, messageId : Nat) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Debug.trap("Unauthorized: Only admins can pin videos");
-    };
-
+  public func pinVideo(chatroomId : Nat, messageId : Nat) : async () {
     switch (natMap.get(chatrooms, chatroomId)) {
       case (null) { Debug.trap("Chatroom does not exist") };
       case (?chatroom) {
@@ -611,11 +518,7 @@ actor {
     };
   };
 
-  public shared ({ caller }) func unpinVideo(chatroomId : Nat) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Debug.trap("Unauthorized: Only admins can unpin videos");
-    };
-
+  public func unpinVideo(chatroomId : Nat) : async () {
     switch (natMap.get(chatrooms, chatroomId)) {
       case (null) { Debug.trap("Chatroom does not exist") };
       case (?chatroom) {
@@ -636,31 +539,18 @@ actor {
   };
 
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Debug.trap("Unauthorized: Only users can view profiles");
-    };
     principalMap.get(userProfiles, caller);
   };
 
   public shared ({ caller }) func saveCallerUserProfile(profile : UserProfile) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Debug.trap("Unauthorized: Only users can save profiles");
-    };
     userProfiles := principalMap.put(userProfiles, caller, profile);
   };
 
   public query ({ caller }) func getUserProfile(user : Principal) : async ?UserProfile {
-    if (caller != user and not AccessControl.isAdmin(accessControlState, caller)) {
-      Debug.trap("Unauthorized: Can only view your own profile");
-    };
     principalMap.get(userProfiles, user);
   };
 
-  public shared ({ caller }) func updateUsernameRetroactively(senderId : Text, newUsername : Text) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Debug.trap("Unauthorized: Only users can update usernames");
-    };
-
+  public func updateUsernameRetroactively(senderId : Text, newUsername : Text) : async () {
     var updatedMessages = messages;
 
     for ((chatroomId, chatroomMessages) in natMap.entries(messages)) {
@@ -683,11 +573,7 @@ actor {
     messages := updatedMessages;
   };
 
-  public shared ({ caller }) func updateAvatarRetroactively(senderId : Text, newAvatarUrl : ?Text) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Debug.trap("Unauthorized: Only users can update avatars");
-    };
-
+  public func updateAvatarRetroactively(senderId : Text, newAvatarUrl : ?Text) : async () {
     var updatedMessages = messages;
 
     for ((chatroomId, chatroomMessages) in natMap.entries(messages)) {
@@ -710,11 +596,7 @@ actor {
     messages := updatedMessages;
   };
 
-  public shared ({ caller }) func cleanupInactiveUsers() : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Debug.trap("Unauthorized: Only admins can cleanup inactive users");
-    };
-
+  public func cleanupInactiveUsers() : async () {
     let currentTime = Time.now();
     let activeThreshold = 60 * 1_000_000_000;
 
@@ -733,11 +615,7 @@ actor {
     activeUsers := updatedActiveUsers;
   };
 
-  public shared ({ caller }) func addReaction(messageId : Nat, emoji : Text, userId : Text) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Debug.trap("Unauthorized: Only users can add reactions");
-    };
-
+  public func addReaction(messageId : Nat, emoji : Text, userId : Text) : async () {
     let messageReactions = switch (natMap.get(reactions, messageId)) {
       case (null) { List.nil<Reaction>() };
       case (?existingReactions) { existingReactions };
@@ -781,11 +659,7 @@ actor {
     };
   };
 
-  public shared ({ caller }) func removeReaction(messageId : Nat, emoji : Text, userId : Text) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Debug.trap("Unauthorized: Only users can remove reactions");
-    };
-
+  public func removeReaction(messageId : Nat, emoji : Text, userId : Text) : async () {
     let messageReactions = switch (natMap.get(reactions, messageId)) {
       case (null) { List.nil<Reaction>() };
       case (?existingReactions) { existingReactions };
@@ -829,13 +703,8 @@ actor {
     let currentTime = Time.now();
     let activeThreshold = 60 * 1_000_000_000;
 
-    let activeChatrooms = Iter.filter<Chatroom>(
-      natMap.vals(chatrooms),
-      func(chatroom) { not isChatroomExpired(chatroom) },
-    );
-
     let chatroomsWithLiveStatus = Iter.map<Chatroom, ChatroomWithLiveStatus>(
-      activeChatrooms,
+      natMap.vals(chatrooms),
       func(chatroom) {
         let activeUsersForRoom = switch (natMap.get(activeUsers, chatroom.id)) {
           case (null) { List.nil<ActiveUser>() };
@@ -883,13 +752,8 @@ actor {
     let currentTime = Time.now();
     let activeThreshold = 60 * 1_000_000_000;
 
-    let activeChatrooms = Iter.filter<Chatroom>(
-      natMap.vals(chatrooms),
-      func(chatroom) { not isChatroomExpired(chatroom) },
-    );
-
     let chatroomsWithLiveStatus = Iter.map<Chatroom, ChatroomWithLiveStatus>(
-      activeChatrooms,
+      natMap.vals(chatrooms),
       func(chatroom) {
         let activeUsersForRoom = switch (natMap.get(activeUsers, chatroom.id)) {
           case (null) { List.nil<ActiveUser>() };

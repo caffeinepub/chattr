@@ -216,7 +216,7 @@ export const idlService = IDL.Service({
         IDL.Text,
         IDL.Opt(IDL.Nat),
       ],
-      [IDL.Nat],
+      [],
       [],
     ),
   'transform' : IDL.Func(
@@ -437,7 +437,7 @@ export const idlFactory = ({ IDL }) => {
           IDL.Text,
           IDL.Opt(IDL.Nat),
         ],
-        [IDL.Nat],
+        [],
         [],
       ),
     'transform' : IDL.Func(

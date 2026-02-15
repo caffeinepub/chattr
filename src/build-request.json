@@ -1,71 +1,100 @@
 {
   "kind": "build_request",
-  "title": "Automatically delete chatrooms older than 5 minutes (including existing rooms)",
+  "title": "Chatroom message input: pill radius, left-aligned mic/media buttons, matched heights",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Implement automatic backend cleanup so that any chatroom with createdAt older than 5 minutes is deleted, including all existing rooms present at rollout.",
-      "target": "backend",
+      "text": "Update the chatroom message input UI (frontend) so that the message text input area uses a 9999px border radius (pill shape).",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "recent-messages"
         ],
         "quotes": [
-          "lets make it so rooms older than 5 minutes are automatically deleted. including all existing rooms"
+          "in the chatroom page, make the text input area border radius 9999px."
         ]
       },
       "acceptanceCriteria": [
-        "A room is considered expired when Time.now() - chatroom.createdAt > 5 minutes (300 seconds).",
-        "Expired rooms are removed from backend state (chatrooms, messages, activeUsers, and any reactions associated with messages in that room).",
-        "Existing rooms that are already older than 5 minutes are deleted automatically without requiring an admin action.",
-        "After cleanup, getChatrooms() and getLobbyChatroomCards() do not return expired rooms.",
-        "After cleanup, getChatroom(roomId) returns null for an expired/deleted roomId."
+        "On the chatroom page, the message text input (Textarea) visually renders with a fully pill-shaped border radius (9999px / rounded-full)."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Ensure room expiration is enforced even if a scheduled cleanup has not run yet by filtering out expired chatrooms from read APIs (e.g., lobby/chatroom list and single chatroom fetch) and triggering cleanup during normal canister activity.",
-      "target": "backend",
+      "text": "Reorder the controls in the chatroom message input row so the microphone button and image/media button are positioned to the LEFT of the text input area (Textarea), not to the right.",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "recent-messages"
         ],
         "quotes": [
-          "rooms older than 5 minutes are automatically deleted"
+          "also put the microphone button and image/media button to the left of the text area."
         ]
       },
       "acceptanceCriteria": [
-        "Read APIs never return a chatroom older than 5 minutes, even if it still exists in memory prior to the next cleanup pass.",
-        "Creating a room does not delete it before 5 minutes have elapsed.",
-        "Expired rooms are eventually physically removed from all related maps as part of a cleanup pass triggered by normal canister activity (e.g., on calls/heartbeat)."
+        "In the message input row on the chatroom page, the image/media button and microphone button appear immediately before (to the left of) the text input.",
+        "The send button remains present in the row and remains usable (exact placement not otherwise changed beyond what is required to move mic/media left of the input)."
       ]
     },
     {
       "id": "REQ-3",
-      "text": "Update the frontend to handle rooms disappearing due to expiry gracefully (no crashes; show existing not-found/removed state when a user is viewing a room that gets deleted).",
+      "text": "Set the border radius to 9999px for all buttons in the chatroom message input area: microphone, image/media, and send buttons.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "recent-messages"
         ],
         "quotes": [
-          "automatically deleted"
+          "also make the border radius for all the buttons 9999px (mic, image, send button)."
         ]
       },
       "acceptanceCriteria": [
-        "If a user is on a chatroom page and the backend returns null (room expired/removed), the UI shows the existing “Chat Not Found” state with a way back to the Lobby.",
-        "The Lobby list updates normally as rooms expire (rooms disappear on the next refresh interval) without requiring a manual page reload."
+        "Mic, image/media, and send buttons in the chatroom message input area are visually pill/circle with border radius 9999px (rounded-full)."
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "Ensure the height of the text input area matches the height of the send message button in the default (single-line) state.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "recent-messages"
+        ],
+        "quotes": [
+          "make the height of the text area the same height as the send message button."
+        ]
+      },
+      "acceptanceCriteria": [
+        "When the input is a single line (no expansion), the text input control height matches the send button height with no visible mismatch.",
+        "Existing auto-grow behavior for multi-line input remains functional (it may grow beyond the send button height when multiple lines are entered)."
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "text": "Limit changes strictly to the specified chatroom message input layout/styling changes; do not modify any other styling, behavior, logic, or UI elsewhere.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "recent-messages"
+        ],
+        "quotes": [
+          "DONT CHANGE ANYTHING ELSE OTHER THESE CHANGES."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Diff review shows changes confined to the message input area styling/layout needed to: (1) apply 9999px radius to input/buttons, (2) move mic/media buttons left of the input, and (3) match input height to send button in default state.",
+        "No unrelated UI text, colors, spacing (outside the immediate message input row), recording/media behaviors, or backend interactions are altered."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single Motoko actor in backend/main.mo; add backend/migration.mo only if a state/schema upgrade is required.",
-    "Do not modify files under frontend/src/components/ui or any other paths listed as immutable in SYSTEM_CONTEXT."
+    "Frontend immutable paths (frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui) must not be edited.",
+    "Backend must remain unchanged (no Motoko/state/schema changes) for this request."
   ],
   "nonGoals": [
-    "Do not add new authentication or admin workflows for deletion beyond the existing admin delete page.",
-    "Do not introduce external cron services, WebSockets, or third-party infrastructure for scheduling cleanup."
+    "Adding new chat features or changing message sending/recording/media upload behavior.",
+    "Changing overall chatroom page layout outside the message input area.",
+    "Modifying shadcn/ui component source files under frontend/src/components/ui."
   ],
   "imageRequirements": {
     "required": [],

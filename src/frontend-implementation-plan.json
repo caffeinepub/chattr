@@ -1,25 +1,78 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Graceful UI handling for expiring chatrooms",
+  "title": "Chatroom message input pill styling, left-aligned controls, and matched input/button heights",
   "requirements": [
     {
-      "id": "REQ-3",
-      "summary": "Make the UI resilient to chatrooms disappearing due to backend expiry, showing the existing “Chat Not Found” state and keeping the Lobby list fresh as rooms expire.",
+      "id": "REQ-1",
+      "summary": "Make the chatroom message Textarea fully pill-shaped with 9999px border radius (rounded-full).",
       "acceptanceCriteria": [
-        "If a user is on a chatroom page and the backend returns null (room expired/removed), the UI shows the existing “Chat Not Found” state with a way back to the Lobby.",
-        "The Lobby list updates normally as rooms expire (rooms disappear on the next refresh interval) without requiring a manual page reload."
+        "On the chatroom page, the message text input (Textarea) visually renders with a fully pill-shaped border radius (9999px / rounded-full)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/hooks/useQueries.ts",
+          "path": "frontend/src/components/MessageInput.tsx",
           "operation": "modify",
-          "description": "Ensure lobby data stays current as rooms expire by adding periodic refetching to any lobby-related queries that can be active (e.g., search and category-filter queries) so expired rooms disappear without a manual reload, matching the existing refresh behavior of the base chatroom list."
-        },
+          "description": "Update only the message Textarea styling in the message input row to use a pill/9999px radius (e.g., Tailwind rounded-full) while preserving existing auto-grow behavior and all existing logic."
+        }
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "summary": "Move the microphone and image/media buttons to the left of the message Textarea in the chatroom message input row.",
+      "acceptanceCriteria": [
+        "In the message input row on the chatroom page, the image/media button and microphone button appear immediately before (to the left of) the text input.",
+        "The send button remains present in the row and remains usable (exact placement not otherwise changed beyond what is required to move mic/media left of the input)."
+      ],
+      "file_operations": [
         {
-          "path": "frontend/src/pages/ChatroomPage.tsx",
+          "path": "frontend/src/components/MessageInput.tsx",
           "operation": "modify",
-          "description": "Harden the expired-room flow by ensuring the existing “Chat Not Found” state is shown whenever the chatroom query refetch returns null after previously being present (no crashes, and keep the “Back to Lobby” navigation intact)."
+          "description": "Reorder the JSX/layout for the message input row so the image/media and mic buttons render to the left of the Textarea, while keeping the send button in the same row and preserving existing media/recording behaviors."
+        }
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "summary": "Apply 9999px border radius (rounded-full) to mic, image/media, and send buttons in the chatroom message input area.",
+      "acceptanceCriteria": [
+        "Mic, image/media, and send buttons in the chatroom message input area are visually pill/circle with border radius 9999px (rounded-full)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/MessageInput.tsx",
+          "operation": "modify",
+          "description": "Adjust className on the mic, image/media, and send Button instances in the message input row to enforce a 9999px border radius (rounded-full) without modifying any shadcn/ui source under frontend/src/components/ui."
+        }
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "summary": "Match the default single-line Textarea height to the send button height while preserving multi-line auto-grow.",
+      "acceptanceCriteria": [
+        "When the input is a single line (no expansion), the text input control height matches the send button height with no visible mismatch.",
+        "Existing auto-grow behavior for multi-line input remains functional (it may grow beyond the send button height when multiple lines are entered)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/MessageInput.tsx",
+          "operation": "modify",
+          "description": "Set consistent default sizing on the Textarea and send Button in the message input row (e.g., aligned min-height/height and vertical padding) so single-line height matches; keep the existing onChange auto-grow logic intact for multi-line expansion."
+        }
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "summary": "Constrain changes strictly to the chatroom message input row layout/styling required by this request.",
+      "acceptanceCriteria": [
+        "Diff review shows changes confined to the message input area styling/layout needed to: (1) apply 9999px radius to input/buttons, (2) move mic/media buttons left of the input, and (3) match input height to send button in default state.",
+        "No unrelated UI text, colors, spacing (outside the immediate message input row), recording/media behaviors, or backend interactions are altered."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/MessageInput.tsx",
+          "operation": "modify",
+          "description": "Limit edits to the message input row only (Textarea + mic/media/send button ordering and sizing/radius classes); avoid altering any other components, pages, behaviors, or any immutable paths listed in constraints."
         }
       ]
     }

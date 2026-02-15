@@ -1,18 +1,48 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Implement automatic cleanup of rooms: any room older than 5 minutes should be deleted, including existing rooms at rollout.",
-  "architectural_notes": [
-    "Add a background cleanup mechanism (scheduled job/worker) to delete rooms with age > 5 minutes, and ensure it runs against all existing room records."
-  ],
+  "summary": "New project",
+  "architectural_notes": [],
   "known_issues": [],
   "isFixRequest": false,
   "existing_features": [
     {
-      "id": "feature-update-the-frontend-to-handle-rooms-disappearing-due-to-expiry-gracefully-no-crashes-show-existing-not-found-removed-state-when-a-user-is-viewing-a-room-that-gets-deleted",
-      "title": "Update the frontend to handle rooms disappearing due to expiry gracefully (no crashes; show existing not-found/removed state when a user is viewing a room that gets deleted).",
+      "id": "feature-update-the-chatroom-message-input-ui-frontend-so-that-the-message-text-input-area-uses-a-9999px-border-radius-pill-shape",
+      "title": "Update the chatroom message input UI (frontend) so that the message text input area uses a 9999px border radius (pill shape).",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-reorder-the-controls-in-the-chatroom-message-input-row-so-the-microphone-button-and-image-media-button-are-positioned-to-the-left-of-the-text-input-area-textarea-not-to-the-right",
+      "title": "Reorder the controls in the chatroom message input row so the microphone button and image/media button are positioned to the LEFT of the text input area (Textarea), not to the right.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-set-the-border-radius-to-9999px-for-all-buttons-in-the-chatroom-message-input-area-microphone-image-media-and-send-buttons",
+      "title": "Set the border radius to 9999px for all buttons in the chatroom message input area: microphone, image/media, and send buttons.",
       "reqIds": [
         "REQ-3"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-the-height-of-the-text-input-area-matches-the-height-of-the-send-message-button-in-the-default-single-line-state",
+      "title": "Ensure the height of the text input area matches the height of the send message button in the default (single-line) state.",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-limit-changes-strictly-to-the-specified-chatroom-message-input-layout-styling-changes-do-not-modify-any-other-styling-behavior-logic-or-ui-elsewhere",
+      "title": "Limit changes strictly to the specified chatroom message input layout/styling changes; do not modify any other styling, behavior, logic, or UI elsewhere.",
+      "reqIds": [
+        "REQ-5"
       ],
       "version": 1
     }
@@ -20,29 +50,12 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Automatically delete rooms older than 5 minutes (apply to existing rooms too)",
+      "summary": "Update chatroom message input UI: pill-shaped (9999px) text input and buttons, move mic/media buttons to left of input, and match input height to send button (no other changes)",
       "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-2",
-      "summary": "Implement automatic backend cleanup so that any chatroom with createdAt older than 5 minutes is deleted, including all existing rooms present at rollout.",
-      "reqIds": [
-        "REQ-1"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": "AR-3",
-      "summary": "Ensure room expiration is enforced even if a scheduled cleanup has not run yet by filtering out expired chatrooms from read APIs (e.g., lobby/chatroom list and single chatroom fetch) and triggering cleanup during normal canister activity.",
-      "reqIds": [
-        "REQ-2"
-      ],
       "status": "pending"
     }
   ],
-  "gameProjectType": "none",
-  "projectName": "Automatically delete chatrooms older than 5 minutes (including existing rooms)",
+  "projectName": "Chatroom message input: pill radius, left-aligned mic/media buttons, matched heights",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

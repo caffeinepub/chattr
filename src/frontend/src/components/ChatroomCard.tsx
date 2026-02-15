@@ -100,7 +100,7 @@ export default function ChatroomCard({ chatroom, onClick }: ChatroomCardProps) {
             <img
               src={thumbnailUrl}
               alt={chatroom.topic}
-              className="max-h-full max-w-full object-contain transition-transform group-hover:scale-105"
+              className="h-full w-full object-contain transition-transform group-hover:scale-105"
               onError={(e) => {
                 e.currentTarget.src = '/assets/generated/default-chatroom-thumbnail.dim_200x150.png';
               }}
@@ -135,7 +135,7 @@ export default function ChatroomCard({ chatroom, onClick }: ChatroomCardProps) {
             <img
               src={twitchThumbnail}
               alt={chatroom.topic}
-              className="max-h-full max-w-full object-contain transition-transform group-hover:scale-105"
+              className="h-full w-full object-contain transition-transform group-hover:scale-105"
               onError={(e) => {
                 e.currentTarget.style.display = 'none';
                 setTwitchThumbnail(null);
@@ -278,7 +278,7 @@ export default function ChatroomCard({ chatroom, onClick }: ChatroomCardProps) {
         <img
           src={chatroom.mediaUrl}
           alt={chatroom.topic}
-          className="max-h-full max-w-full object-contain transition-transform group-hover:scale-105"
+          className="h-full w-full object-contain transition-transform group-hover:scale-105"
           onError={(e) => {
             e.currentTarget.src = '/assets/generated/default-chatroom-thumbnail.dim_200x150.png';
           }}
@@ -299,7 +299,7 @@ export default function ChatroomCard({ chatroom, onClick }: ChatroomCardProps) {
       <div className="relative aspect-square w-full">
         {renderThumbnail()}
         {chatroom.isLive && (
-          <div className="absolute left-2 top-2 flex items-center gap-1.5 rounded-md bg-primary px-2 py-0.5 shadow-lg">
+          <div className="absolute left-2 bottom-2 flex items-center gap-1.5 rounded-md bg-primary px-2 py-0.5 shadow-lg">
             <div className="h-2 w-2 animate-pulse rounded-full bg-white" />
             <span className="text-xs font-bold uppercase tracking-wide text-white">
               LIVE
