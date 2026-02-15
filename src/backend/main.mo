@@ -12,7 +12,9 @@ import Storage "blob-storage/Storage";
 import MixinStorage "blob-storage/Mixin";
 import OutCall "http-outcalls/outcall";
 import AccessControl "authorization/access-control";
+import Migration "migration";
 
+(with migration = Migration.run)
 actor {
   let storage = Storage.new();
   include MixinStorage(storage);
@@ -290,6 +292,109 @@ actor {
 
     let hasAudioExtension = Text.endsWith(url, #text ".mp3") or Text.endsWith(url, #text ".ogg") or Text.endsWith(url, #text ".wav");
     hasAudioExtension;
+  };
+
+  func extractTweetId(url : Text) : Text {
+    let parts = Text.split(url, #text "/status/");
+    let partsArray = Iter.toArray(parts);
+    if (partsArray.size() == 2) {
+      let tweetIdPart = Text.split(partsArray[1], #char '/');
+      let tweetIdPartArray = Iter.toArray(tweetIdPart);
+      if (tweetIdPartArray.size() > 0 and Text.size(tweetIdPartArray[0]) > 0) {
+        return tweetIdPartArray[0];
+      };
+    };
+    "";
+  };
+
+  func fetchTwitterPhoto(tweetId : Text) : async ?Text {
+    let apiUrl = "https://cdn.syndication.twimg.com/tweet-result?id=" # tweetId # "&token=123";
+    try {
+      let jsonResponse = await OutCall.httpGetRequest(apiUrl, [], transform);
+      let result = extractFirstPhotoUrl(jsonResponse);
+      result;
+    } catch (_) {
+      null;
+    };
+  };
+
+  // Pattern Matching for JSON
+  func extractFirstPhotoUrl(json : Text) : ?Text {
+    let pattern = "\"mediaEntities\":\\[\\{\"mediaUrlHttps\":\"";
+    let patternLength = Text.size(pattern);
+
+    // Find the position of the pattern in the JSON string
+    let startPos = findPattern(json, pattern);
+    if (startPos == -1) {
+      return null;
+    };
+
+    // Calculate the position right after the pattern
+    let urlStartPos = startPos + patternLength;
+    let urlStartPosNat = Int.abs(urlStartPos);
+
+    // Find the end position of the photo URL
+    let endPos = findCharFromPos(json, '\"', urlStartPosNat);
+    if (endPos == -1) {
+      return null;
+    };
+
+    let endPosNat = Int.abs(endPos);
+    if (endPosNat < urlStartPosNat) {
+      return null;
+    };
+
+    // Use chars instead of Text.sub directly
+    let chars = Text.toArray(json);
+    let subArray = Array.tabulate<Char>(
+      endPosNat - urlStartPosNat,
+      func(i : Nat) : Char { chars[urlStartPosNat + i] },
+    );
+    let photoUrl = Text.fromArray(subArray);
+    ?photoUrl;
+  };
+
+  // Helper function to find the position of a pattern in a string
+  func findPattern(text : Text, pattern : Text) : Int {
+    let textArray = Text.toArray(text);
+    let patternArray = Text.toArray(pattern);
+    let textLength = textArray.size();
+    let patternLength = patternArray.size();
+
+    if (patternLength > textLength) {
+      return -1;
+    };
+
+    for (i in Iter.range(0, Int.abs(textLength - patternLength))) {
+      var found = true;
+      for (j in Iter.range(0, Int.abs(patternLength - 1))) {
+        if (textArray[i + j] != patternArray[j]) {
+          found := false;
+        };
+      };
+      if (found) {
+        return i;
+      };
+    };
+    -1;
+  };
+
+  // Helper function to find the position of a character from a given position
+  func findCharFromPos(text : Text, char : Char, startPos : Nat) : Int {
+    let textArray = Text.toArray(text);
+    let textLength = textArray.size();
+
+    if (startPos >= textLength) {
+      return -1;
+    };
+
+    for (i in Iter.range(startPos, textLength - 1)) {
+      if (textArray[i] == char) {
+        return i;
+      };
+    };
+
+    -1;
   };
 
   public query func getLobbyChatroomCards() : async [LobbyChatroomCard] {
@@ -807,8 +912,16 @@ actor {
   };
 
   public func fetchTwitterThumbnail(tweetUrl : Text) : async Text {
-    let apiUrl = "https://api.twitter.com/1.1/statuses/show.json?id=" # tweetUrl;
-    await OutCall.httpGetRequest(apiUrl, [], transform);
+    let tweetId = extractTweetId(tweetUrl);
+
+    if (Text.size(tweetId) == 0) {
+      return "";
+    };
+
+    switch (await fetchTwitterPhoto(tweetId)) {
+      case (?photoUrl) { photoUrl };
+      case (null) { "" };
+    };
   };
 
   public query func getMessageWithReactionsAndReplies(chatroomId : Nat) : async [MessageWithReactions] {
@@ -905,3 +1018,4 @@ actor {
     Text.fromArray(Array.tabulate(length, func(i : Nat) : Char { chars[i] }));
   };
 };
+

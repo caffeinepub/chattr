@@ -1,48 +1,34 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "New project",
-  "architectural_notes": [],
+  "summary": "Implement X/Twitter post thumbnail enhancement: extract attached image(s) from the post and use the first image as the thumbnail background (no other changes).",
+  "architectural_notes": [
+    "Use X/Twitter public embed JSON endpoint (cdn.syndication.twimg.com/tweet-result?id=...) to retrieve media URLs without API keys; extract tweet ID from URL and use first photo as thumbnail background; fallback to existing thumbnail behavior if no photos."
+  ],
   "known_issues": [],
   "isFixRequest": false,
   "existing_features": [
     {
-      "id": "feature-update-the-chatroom-message-input-ui-frontend-so-that-the-message-text-input-area-uses-a-9999px-border-radius-pill-shape",
-      "title": "Update the chatroom message input UI (frontend) so that the message text input area uses a 9999px border radius (pill shape).",
+      "id": "feature-for-chatroom-cards-where-mediatype-is-twitter-and-mediaurl-is-an-x-twitter-status-url-fetch-the-public-tweet-result-json-for-that-post-extract-the-first-attached-photo-url-if-any-and-use-that-photo-as-the-thumbnail-background-image",
+      "title": "For chatroom cards where mediaType is 'twitter' and mediaUrl is an X/Twitter status URL, fetch the public tweet-result JSON for that post, extract the first attached photo URL (if any), and use that photo as the thumbnail background image.",
       "reqIds": [
-        "REQ-1"
+        "REQ-6"
       ],
       "version": 1
     },
     {
-      "id": "feature-reorder-the-controls-in-the-chatroom-message-input-row-so-the-microphone-button-and-image-media-button-are-positioned-to-the-left-of-the-text-input-area-textarea-not-to-the-right",
-      "title": "Reorder the controls in the chatroom message input row so the microphone button and image/media button are positioned to the LEFT of the text input area (Textarea), not to the right.",
+      "id": "feature-implement-the-tweet-result-fetch-using-the-endpoint-format-discussed-https-cdn-syndication-twimg-com-tweet-result-id-tweet-id-token-123-using-the-tweet-status-id-extracted-from-the-url-and-parse-fields-needed-to-locate-attached-photo-media-e-g-photos-media-url-https",
+      "title": "Implement the tweet-result fetch using the endpoint format discussed: https://cdn.syndication.twimg.com/tweet-result?id=TWEET_ID&token=123, using the tweet/status ID extracted from the URL, and parse fields needed to locate attached photo media (e.g., photos[] / media_url_https).",
       "reqIds": [
-        "REQ-2"
+        "REQ-7"
       ],
       "version": 1
     },
     {
-      "id": "feature-set-the-border-radius-to-9999px-for-all-buttons-in-the-chatroom-message-input-area-microphone-image-media-and-send-buttons",
-      "title": "Set the border radius to 9999px for all buttons in the chatroom message input area: microphone, image/media, and send buttons.",
+      "id": "feature-scope-control-do-not-make-any-additional-ui-styling-behavior-changes-beyond-using-the-extracted-x-twitter-photo-as-the-background-for-the-x-post-thumbnail",
+      "title": "Scope control: do not make any additional UI/styling/behavior changes beyond using the extracted X/Twitter photo as the background for the X post thumbnail.",
       "reqIds": [
-        "REQ-3"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-ensure-the-height-of-the-text-input-area-matches-the-height-of-the-send-message-button-in-the-default-single-line-state",
-      "title": "Ensure the height of the text input area matches the height of the send message button in the default (single-line) state.",
-      "reqIds": [
-        "REQ-4"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-limit-changes-strictly-to-the-specified-chatroom-message-input-layout-styling-changes-do-not-modify-any-other-styling-behavior-logic-or-ui-elsewhere",
-      "title": "Limit changes strictly to the specified chatroom message input layout/styling changes; do not modify any other styling, behavior, logic, or UI elsewhere.",
-      "reqIds": [
-        "REQ-5"
+        "REQ-8"
       ],
       "version": 1
     }
@@ -50,12 +36,12 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Update chatroom message input UI: pill-shaped (9999px) text input and buttons, move mic/media buttons to left of input, and match input height to send button (no other changes)",
+      "summary": "Extract image media from X/Twitter post (via public tweet-result JSON) and use first photo as background for X post thumbnail only",
       "reqIds": [],
       "status": "pending"
     }
   ],
-  "projectName": "Chatroom message input: pill radius, left-aligned mic/media buttons, matched heights",
+  "projectName": "Use attached X/Twitter post image as background for X post thumbnails",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

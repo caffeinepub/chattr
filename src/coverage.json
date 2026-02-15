@@ -1,78 +1,63 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-15T02:46:24.363Z",
+  "generatedAt": "2026-02-15T03:08:17.478Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 5,
-    "implemented": 5,
+    "total": 3,
+    "implemented": 3,
     "items": [
       {
-        "id": "REQ-1",
-        "summary": "Update the chatroom message input UI (frontend) so that the message text input area uses a 9999px border radius (pill shape).",
+        "id": "REQ-6",
+        "summary": "For chatroom cards where mediaType is 'twitter' and mediaUrl is an X/Twitter status URL, fetch the public tweet-result JSON for that post, extract the first attached photo URL (if any), and use that photo as the thumbnail background image.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/MessageInput.tsx"
+          "frontend/src/components/ChatroomCard.tsx",
+          "frontend/src/lib/twitterThumbnail.ts"
         ],
         "matchedFiles": [
-          "frontend/src/components/MessageInput.tsx"
+          "frontend/src/components/ChatroomCard.tsx"
         ]
       },
       {
-        "id": "REQ-2",
-        "summary": "Reorder the controls in the chatroom message input row so the microphone button and image/media button are positioned to the LEFT of the text input area (Textarea), not to the right.",
+        "id": "REQ-7",
+        "summary": "Implement the tweet-result fetch using the endpoint format discussed: https://cdn.syndication.twimg.com/tweet-result?id=TWEET_ID&token=123, using the tweet/status ID extracted from the URL, and parse fields needed to locate attached photo media (e.g., photos[] / media_url_https).",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/MessageInput.tsx"
+          "frontend/src/lib/twitterThumbnail.ts",
+          "frontend/src/lib/twitterThumbnailCache.ts",
+          "frontend/src/components/ChatroomCard.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/MessageInput.tsx"
+          "frontend/src/components/ChatroomCard.tsx"
         ]
       },
       {
-        "id": "REQ-3",
-        "summary": "Set the border radius to 9999px for all buttons in the chatroom message input area: microphone, image/media, and send buttons.",
+        "id": "REQ-8",
+        "summary": "Scope control: do not make any additional UI/styling/behavior changes beyond using the extracted X/Twitter photo as the background for the X post thumbnail.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/MessageInput.tsx"
+          "frontend/src/components/ChatroomCard.tsx",
+          "frontend/src/lib/twitterThumbnail.ts",
+          "frontend/src/lib/twitterThumbnailCache.ts"
         ],
         "matchedFiles": [
-          "frontend/src/components/MessageInput.tsx"
-        ]
-      },
-      {
-        "id": "REQ-4",
-        "summary": "Ensure the height of the text input area matches the height of the send message button in the default (single-line) state.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/MessageInput.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/MessageInput.tsx"
-        ]
-      },
-      {
-        "id": "REQ-5",
-        "summary": "Limit changes strictly to the specified chatroom message input layout/styling changes; do not modify any other styling, behavior, logic, or UI elsewhere.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/MessageInput.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/MessageInput.tsx"
+          "frontend/src/components/ChatroomCard.tsx"
         ]
       }
     ]
   },
   "changedFiles": [
+    "backend/main.mo",
+    "backend/migration.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/components/MessageInput.tsx",
+    "frontend/src/components/ChatroomCard.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

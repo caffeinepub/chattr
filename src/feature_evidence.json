@@ -2,10 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-update-the-chatroom-message-input-ui-frontend-so-that-the-message-text-input-area-uses-a-9999px-border-radius-pill-shape",
-      "featureTitle": "Update the chatroom message input UI (frontend) so that the message text input area uses a 9999px border radius (pill shape).",
+      "featureId": "feature-for-chatroom-cards-where-mediatype-is-twitter-and-mediaurl-is-an-x-twitter-status-url-fetch-the-public-tweet-result-json-for-that-post-extract-the-first-attached-photo-url-if-any-and-use-that-photo-as-the-thumbnail-background-image",
+      "featureTitle": "For chatroom cards where mediaType is 'twitter' and mediaUrl is an X/Twitter status URL, fetch the public tweet-result JSON for that post, extract the first attached photo URL (if any), and use that photo as the thumbnail background image.",
       "files": [
-        "frontend/src/components/MessageInput.tsx"
+        "frontend/src/components/ChatroomCard.tsx"
       ],
       "components": [
         "authorization@1.0.1",
@@ -18,15 +18,15 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-1"
+        "REQ-6"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-reorder-the-controls-in-the-chatroom-message-input-row-so-the-microphone-button-and-image-media-button-are-positioned-to-the-left-of-the-text-input-area-textarea-not-to-the-right",
-      "featureTitle": "Reorder the controls in the chatroom message input row so the microphone button and image/media button are positioned to the LEFT of the text input area (Textarea), not to the right.",
+      "featureId": "feature-implement-the-tweet-result-fetch-using-the-endpoint-format-discussed-https-cdn-syndication-twimg-com-tweet-result-id-tweet-id-token-123-using-the-tweet-status-id-extracted-from-the-url-and-parse-fields-needed-to-locate-attached-photo-media-e-g-photos-media-url-https",
+      "featureTitle": "Implement the tweet-result fetch using the endpoint format discussed: https://cdn.syndication.twimg.com/tweet-result?id=TWEET_ID&token=123, using the tweet/status ID extracted from the URL, and parse fields needed to locate attached photo media (e.g., photos[] / media_url_https).",
       "files": [
-        "frontend/src/components/MessageInput.tsx"
+        "frontend/src/components/ChatroomCard.tsx"
       ],
       "components": [
         "authorization@1.0.1",
@@ -39,15 +39,15 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-2"
+        "REQ-7"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-set-the-border-radius-to-9999px-for-all-buttons-in-the-chatroom-message-input-area-microphone-image-media-and-send-buttons",
-      "featureTitle": "Set the border radius to 9999px for all buttons in the chatroom message input area: microphone, image/media, and send buttons.",
+      "featureId": "feature-scope-control-do-not-make-any-additional-ui-styling-behavior-changes-beyond-using-the-extracted-x-twitter-photo-as-the-background-for-the-x-post-thumbnail",
+      "featureTitle": "Scope control: do not make any additional UI/styling/behavior changes beyond using the extracted X/Twitter photo as the background for the X post thumbnail.",
       "files": [
-        "frontend/src/components/MessageInput.tsx"
+        "frontend/src/components/ChatroomCard.tsx"
       ],
       "components": [
         "authorization@1.0.1",
@@ -60,49 +60,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-3"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-ensure-the-height-of-the-text-input-area-matches-the-height-of-the-send-message-button-in-the-default-single-line-state",
-      "featureTitle": "Ensure the height of the text input area matches the height of the send message button in the default (single-line) state.",
-      "files": [
-        "frontend/src/components/MessageInput.tsx"
-      ],
-      "components": [
-        "authorization@1.0.1",
-        "blob-storage@2.0.3",
-        "http-outcalls@1.1.1",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-4"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-limit-changes-strictly-to-the-specified-chatroom-message-input-layout-styling-changes-do-not-modify-any-other-styling-behavior-logic-or-ui-elsewhere",
-      "featureTitle": "Limit changes strictly to the specified chatroom message input layout/styling changes; do not modify any other styling, behavior, logic, or UI elsewhere.",
-      "files": [
-        "frontend/src/components/MessageInput.tsx"
-      ],
-      "components": [
-        "authorization@1.0.1",
-        "blob-storage@2.0.3",
-        "http-outcalls@1.1.1",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-5"
+        "REQ-8"
       ],
       "confidence": "high"
     }

@@ -1,100 +1,71 @@
 {
   "kind": "build_request",
-  "title": "Chatroom message input: pill radius, left-aligned mic/media buttons, matched heights",
+  "title": "Use attached X/Twitter post image as background for X post thumbnails",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-1",
-      "text": "Update the chatroom message input UI (frontend) so that the message text input area uses a 9999px border radius (pill shape).",
+      "id": "REQ-6",
+      "text": "For chatroom cards where mediaType is 'twitter' and mediaUrl is an X/Twitter status URL, fetch the public tweet-result JSON for that post, extract the first attached photo URL (if any), and use that photo as the thumbnail background image.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "recent-messages"
+          "msg-user-1"
         ],
         "quotes": [
-          "in the chatroom page, make the text input area border radius 9999px."
+          "are you able to extract any images a tweet/xpost has and use it as the background for x post thumbnails.",
+          "the image should be used as the background for the x post thumbnail, thats it."
         ]
       },
       "acceptanceCriteria": [
-        "On the chatroom page, the message text input (Textarea) visually renders with a fully pill-shaped border radius (9999px / rounded-full)."
+        "Given a chatroom with mediaType='twitter' and a valid X/Twitter status URL that includes photo media, the chatroom thumbnail renders with the first photo as the background (object-cover).",
+        "If the tweet-result JSON has no photos (or the fetch fails), the thumbnail falls back to the current existing Twitter thumbnail behavior (no regressions).",
+        "This change only affects X/Twitter post thumbnails on chatroom cards and does not modify Twitter embeds in messages or any other media thumbnails."
       ]
     },
     {
-      "id": "REQ-2",
-      "text": "Reorder the controls in the chatroom message input row so the microphone button and image/media button are positioned to the LEFT of the text input area (Textarea), not to the right.",
+      "id": "REQ-7",
+      "text": "Implement the tweet-result fetch using the endpoint format discussed: https://cdn.syndication.twimg.com/tweet-result?id=TWEET_ID&token=123, using the tweet/status ID extracted from the URL, and parse fields needed to locate attached photo media (e.g., photos[] / media_url_https).",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "recent-messages"
+          "msg-user-1"
         ],
         "quotes": [
-          "also put the microphone button and image/media button to the left of the text area."
+          "ok, can you do that. but dont make any additional changes other than that."
         ]
       },
       "acceptanceCriteria": [
-        "In the message input row on the chatroom page, the image/media button and microphone button appear immediately before (to the left of) the text input.",
-        "The send button remains present in the row and remains usable (exact placement not otherwise changed beyond what is required to move mic/media left of the input)."
+        "Network requests for X/Twitter thumbnails use the tweet-result endpoint and are keyed per tweet URL/ID to avoid repeated refetching during normal browsing.",
+        "The code safely handles unexpected response shapes (missing fields, empty arrays) without throwing and without breaking chatroom card rendering."
       ]
     },
     {
-      "id": "REQ-3",
-      "text": "Set the border radius to 9999px for all buttons in the chatroom message input area: microphone, image/media, and send buttons.",
-      "target": "frontend",
+      "id": "REQ-8",
+      "text": "Scope control: do not make any additional UI/styling/behavior changes beyond using the extracted X/Twitter photo as the background for the X post thumbnail.",
+      "target": "both",
       "source": {
         "messageIds": [
-          "recent-messages"
+          "msg-user-1"
         ],
         "quotes": [
-          "also make the border radius for all the buttons 9999px (mic, image, send button)."
+          "but dont make any additional changes other than that."
         ]
       },
       "acceptanceCriteria": [
-        "Mic, image/media, and send buttons in the chatroom message input area are visually pill/circle with border radius 9999px (rounded-full)."
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "text": "Ensure the height of the text input area matches the height of the send message button in the default (single-line) state.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "recent-messages"
-        ],
-        "quotes": [
-          "make the height of the text area the same height as the send message button."
-        ]
-      },
-      "acceptanceCriteria": [
-        "When the input is a single line (no expansion), the text input control height matches the send button height with no visible mismatch.",
-        "Existing auto-grow behavior for multi-line input remains functional (it may grow beyond the send button height when multiple lines are entered)."
-      ]
-    },
-    {
-      "id": "REQ-5",
-      "text": "Limit changes strictly to the specified chatroom message input layout/styling changes; do not modify any other styling, behavior, logic, or UI elsewhere.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "recent-messages"
-        ],
-        "quotes": [
-          "DONT CHANGE ANYTHING ELSE OTHER THESE CHANGES."
-        ]
-      },
-      "acceptanceCriteria": [
-        "Diff review shows changes confined to the message input area styling/layout needed to: (1) apply 9999px radius to input/buttons, (2) move mic/media buttons left of the input, and (3) match input height to send button in default state.",
-        "No unrelated UI text, colors, spacing (outside the immediate message input row), recording/media behaviors, or backend interactions are altered."
+        "Git diff is limited to the minimal set of files required to implement the X/Twitter thumbnail background change; no unrelated refactors, formatting-only changes, or UI tweaks elsewhere."
       ]
     }
   ],
   "constraints": [
-    "Frontend immutable paths (frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui) must not be edited.",
-    "Backend must remain unchanged (no Motoko/state/schema changes) for this request."
+    "Frontend immutable paths must not be edited: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui/*.",
+    "Do not introduce any backend changes unless strictly required for this thumbnail behavior (prefer frontend-only).",
+    "Do not make any additional changes beyond using the tweet image as the X post thumbnail background."
   ],
   "nonGoals": [
-    "Adding new chat features or changing message sending/recording/media upload behavior.",
-    "Changing overall chatroom page layout outside the message input area.",
-    "Modifying shadcn/ui component source files under frontend/src/components/ui."
+    "Adding or changing authentication (including Twitter/X API auth).",
+    "Rendering multiple images, carousels, or video thumbnails from X posts beyond selecting the first photo.",
+    "Changing how tweets are embedded inside chat messages (widgets.js rendering).",
+    "Any redesign of chatroom cards, layout, spacing, typography, or colors."
   ],
   "imageRequirements": {
     "required": [],
