@@ -1,66 +1,61 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-15T03:08:17.475Z",
-  "summary": "The diff implements Twitter/X thumbnail images via a new backend capability (migration + backend actor call) and updates ChatroomCard to request a thumbnail from the backend. The BuildRequest required a frontend-only (or strictly minimal) change that fetches the public tweet-result JSON directly from the client, with request caching keyed by tweet ID/URL, and no additional unrelated changes. The diff also introduces backend changes and additional non-requested modifications, which violates the scope constraints.",
+  "generatedAt": "2026-02-15T04:54:53.961Z",
+  "summary": "REQ-1 appears partially implemented via a normalized chatroom query-key helper and Lobby trim-based filter switching, but the diff excerpt does not provide enough evidence that the post-create empty-result guard behavior is correctly aligned for the search/category hooks. REQ-2 (namespace-wide invalidation of all ['chatrooms'] variants) is not verifiable from the provided truncated code; the diff summary text claims it, but no concrete invalidation calls are shown in the excerpt. Several unrelated features (localStorage identity helpers, debounced search, extra lobby behaviors) appear to be added beyond the request.",
   "missing_requirements": [
     {
-      "id": "REQ-6",
-      "requirement": "For chatroom cards where mediaType is 'twitter' and mediaUrl is an X/Twitter status URL, fetch the public tweet-result JSON for that post, extract the first attached photo URL (if any), and use that photo as the thumbnail background image (object-cover), with fallback to existing behavior if no photos/fetch fails.",
-      "reason": "ChatroomCard fetches the Twitter photo via a backend actor method (actor.fetchTwitterThumbnail) rather than fetching the public tweet-result JSON directly on the frontend as specified. While it may still set a photo background, the required tweet-result frontend fetch is not evidenced.",
+      "id": "REQ-1",
+      "requirement": "The transient empty-result guard (post-create window) reads previousData from the same queryKey that the hook is currently using (i.e., ['chatrooms'] in the empty-filter case) for the relevant chatroom list hooks (search/category when empty).",
+      "reason": "The diff shows the guard inside useGetChatrooms reading previousData from ['chatrooms'], but does not show (due to truncation) whether useSearchChatrooms/useFilterChatroomsByCategory implement the same guard and whether they read previousData using the same normalized queryKey they are using (especially in the empty-filter case).",
       "evidence": [
-        "frontend/src/components/ChatroomCard.tsx (uses `actor.fetchTwitterThumbnail(chatroom.mediaUrl)` in a useEffect)"
+        "frontend/src/hooks/useQueries.ts (truncated)"
       ]
     },
     {
-      "id": "REQ-7",
-      "requirement": "Implement the tweet-result fetch using https://cdn.syndication.twimg.com/tweet-result?id=TWEET_ID&token=123, extracting the tweet ID from the status URL; requests should be keyed/cached per tweet URL/ID to avoid repeated refetching; safely handle unexpected response shapes.",
-      "reason": "There is no evidence in the diff summary of any frontend code constructing the tweet-result endpoint URL, extracting tweet ID for this fetch, or implementing any caching keyed by tweet ID/URL. The only shown Twitter-photo retrieval is a direct backend call per render/URL change.",
+      "id": "REQ-2",
+      "requirement": "Update all chatroom list cache invalidations to refresh every chatroom-related query by invalidating the full ['chatrooms'] query key namespace (not only the exact ['chatrooms'] key).",
+      "reason": "No concrete invalidation code (e.g., queryClient.invalidateQueries({ queryKey: ['chatrooms'], exact: false })) is visible in the provided truncated excerpt, so this requirement cannot be confirmed from evidence shown.",
       "evidence": [
-        "frontend/src/components/ChatroomCard.tsx (no tweet-result endpoint usage shown; uses backend actor call)"
-      ]
-    },
-    {
-      "id": "REQ-8",
-      "requirement": "Scope control: do not make any additional UI/styling/behavior changes beyond using the extracted X/Twitter photo as the background for the X post thumbnail; keep diff minimal; avoid backend changes unless strictly required.",
-      "reason": "The diff includes backend changes (new migration file and modifications to backend/main.mo) and a modified frontend documentation/summary file describing broad UI changes, which goes beyond the requested minimal thumbnail behavior change and violates the preference to avoid backend changes.",
-      "evidence": [
-        "backend/migration.mo (new file added)",
-        "backend/main.mo (modified; includes `import Migration \"migration\";` and `(with migration = Migration.run)`)",
-        "frontend-file-summaries.txt (modified; contains descriptions of multiple unrelated UI/layout changes across many components)"
+        "frontend/src/hooks/useQueries.ts (truncated)"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Backend migration module added (backend/migration.mo) and backend actor modified to include migration wiring.",
-      "reason": "The BuildRequest explicitly preferred frontend-only and disallowed backend changes unless strictly required for thumbnail behavior; the diff introduces backend migration infrastructure unrelated to merely using tweet images as thumbnails on chatroom cards (and no necessity is evidenced in the diff summary).",
+      "description": "Added/expanded localStorage-based identity helpers (getUsername/getUserId/getAvatarUrl) inside useQueries.ts.",
+      "reason": "Not requested by REQ-1/REQ-2 (which are specifically about React Query key normalization and invalidation behavior for chatroom lists).",
       "evidence": [
-        "backend/migration.mo",
-        "backend/main.mo"
+        "frontend/src/hooks/useQueries.ts (truncated)"
       ]
     },
     {
-      "description": "Twitter thumbnail fetching implemented via backend actor method `fetchTwitterThumbnail` called from ChatroomCard.",
-      "reason": "The BuildRequest required fetching the public tweet-result JSON from the frontend using the specified cdn.syndication.twimg.com endpoint format; implementing a backend fetch endpoint/method is not requested and contradicts the constraint to avoid backend changes.",
+      "description": "Lobby behavior changes beyond caching fix: debounced search term state/effect, focus restoration on clearing filters, and additional filter-selection logic changes.",
+      "reason": "REQ-1/REQ-2 focus on query keys and invalidations; debounce/focus/extra lobby interaction behavior is not requested as part of the caching fix.",
       "evidence": [
-        "frontend/src/components/ChatroomCard.tsx (calls `actor.fetchTwitterThumbnail(chatroom.mediaUrl)`)"
+        "frontend/src/pages/LobbyPage.tsx (truncated)"
       ]
     },
     {
-      "description": "Additional non-thumbnail UI/behavior changes implied (e.g., activeUserCount/viewCount icon differentiation and other UI/layout tweaks) beyond the requested Twitter thumbnail background change.",
-      "reason": "REQ-8 forbids additional UI/styling/behavior changes. The modified summary file explicitly describes multiple UI/layout changes not requested as part of this task, indicating scope creep (even if some are documentation-only, the change itself is unrelated).",
+      "description": "Introduced/used a 'force fresh refetch on initial load when cached data is empty' hook (useForceFreshChatroomsOnActorReady) from the Lobby.",
+      "reason": "Not requested by REQ-1/REQ-2; may be a separate mitigation outside the specified normalization/invalidation approach.",
       "evidence": [
-        "frontend-file-summaries.txt (modified; includes statements about Header layout, ChatArea centering, MessageInput pill-shaped UI, etc.)"
+        "frontend/src/pages/LobbyPage.tsx (truncated)"
+      ]
+    },
+    {
+      "description": "Added a listToArray helper in useQueries.ts.",
+      "reason": "Not part of REQ-1/REQ-2 scope (query key normalization and cache invalidation).",
+      "evidence": [
+        "frontend/src/hooks/useQueries.ts (truncated)"
       ]
     }
   ],
-  "confidence": 0.72,
+  "confidence": 0.56,
   "changed_files": [
-    "backend/main.mo",
-    "backend/migration.mo",
     "frontend-file-summaries.txt",
-    "frontend/src/components/ChatroomCard.tsx",
+    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/pages/LobbyPage.tsx",
     "project_state.json"
   ]
 }

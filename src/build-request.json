@@ -1,74 +1,65 @@
 {
   "kind": "build_request",
-  "title": "Use attached X/Twitter post image as background for X post thumbnails",
+  "title": "Normalize chatroom React Query keys for empty search/category filters",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-6",
-      "text": "For chatroom cards where mediaType is 'twitter' and mediaUrl is an X/Twitter status URL, fetch the public tweet-result JSON for that post, extract the first attached photo URL (if any), and use that photo as the thumbnail background image.",
+      "id": "REQ-1",
+      "text": "Normalize chatroom React Query caching so that when the search term is empty/whitespace or the category is empty/whitespace, the corresponding hooks use the base chatroom query key ['chatrooms'] (and not ['chatrooms','search',''] or ['chatrooms','category','']). This ensures the Lobby cannot display a stale empty list due to alternate empty-filter cache keys.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-user-1"
+          "msg-10"
         ],
         "quotes": [
-          "are you able to extract any images a tweet/xpost has and use it as the background for x post thumbnails.",
-          "the image should be used as the background for the x post thumbnail, thats it."
+          "ok do it"
         ]
       },
       "acceptanceCriteria": [
-        "Given a chatroom with mediaType='twitter' and a valid X/Twitter status URL that includes photo media, the chatroom thumbnail renders with the first photo as the background (object-cover).",
-        "If the tweet-result JSON has no photos (or the fetch fails), the thumbnail falls back to the current existing Twitter thumbnail behavior (no regressions).",
-        "This change only affects X/Twitter post thumbnails on chatroom cards and does not modify Twitter embeds in messages or any other media thumbnails."
+        "When useSearchChatrooms is called with an empty or whitespace-only string, it uses queryKey ['chatrooms'] and fetches the same data as the base chatroom list.",
+        "When useFilterChatroomsByCategory is called with an empty or whitespace-only string, it uses queryKey ['chatrooms'] and fetches the same data as the base chatroom list.",
+        "With no active filters (empty search and no selected category), the Lobby displays the same chatroom list regardless of whether the user previously typed and cleared a search or toggled category filters.",
+        "The transient empty-result guard (post-create window) reads previousData from the same queryKey that the hook is currently using (i.e., ['chatrooms'] in the empty-filter case)."
       ]
     },
     {
-      "id": "REQ-7",
-      "text": "Implement the tweet-result fetch using the endpoint format discussed: https://cdn.syndication.twimg.com/tweet-result?id=TWEET_ID&token=123, using the tweet/status ID extracted from the URL, and parse fields needed to locate attached photo media (e.g., photos[] / media_url_https).",
+      "id": "REQ-2",
+      "text": "Update all chatroom list cache invalidations to refresh every chatroom-related query (base, search, and category variants) by invalidating the full ['chatrooms'] query key namespace (i.e., not only the exact ['chatrooms'] key).",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-user-1"
+          "msg-10"
         ],
         "quotes": [
-          "ok, can you do that. but dont make any additional changes other than that."
+          "ok do it"
         ]
       },
       "acceptanceCriteria": [
-        "Network requests for X/Twitter thumbnails use the tweet-result endpoint and are keyed per tweet URL/ID to avoid repeated refetching during normal browsing.",
-        "The code safely handles unexpected response shapes (missing fields, empty arrays) without throwing and without breaking chatroom card rendering."
-      ]
-    },
-    {
-      "id": "REQ-8",
-      "text": "Scope control: do not make any additional UI/styling/behavior changes beyond using the extracted X/Twitter photo as the background for the X post thumbnail.",
-      "target": "both",
-      "source": {
-        "messageIds": [
-          "msg-user-1"
-        ],
-        "quotes": [
-          "but dont make any additional changes other than that."
-        ]
-      },
-      "acceptanceCriteria": [
-        "Git diff is limited to the minimal set of files required to implement the X/Twitter thumbnail background change; no unrelated refactors, formatting-only changes, or UI tweaks elsewhere."
+        "After creating or deleting a chatroom, both the base chatroom list and any active search/category results refetch to reflect the latest backend state.",
+        "After sending a message (which currently invalidates ['chatrooms']), any active chatroom list views (including search/category variants) refresh consistently."
       ]
     }
   ],
   "constraints": [
-    "Frontend immutable paths must not be edited: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui/*.",
-    "Do not introduce any backend changes unless strictly required for this thumbnail behavior (prefer frontend-only).",
-    "Do not make any additional changes beyond using the tweet image as the X post thumbnail background."
+    "Do not edit files under frontend/src/components/ui (compose them only).",
+    "Do not edit immutable hook entry files listed in SYSTEM_CONTEXT (frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx)."
   ],
   "nonGoals": [
-    "Adding or changing authentication (including Twitter/X API auth).",
-    "Rendering multiple images, carousels, or video thumbnails from X posts beyond selecting the first photo.",
-    "Changing how tweets are embedded inside chat messages (widgets.js rendering).",
-    "Any redesign of chatroom cards, layout, spacing, typography, or colors."
+    "No backend (Motoko) changes.",
+    "No UI redesign or new Lobby features beyond fixing the React Query caching behavior."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
+  },
+  "userProfileUpdate": {
+    "goalsToAdd": [],
+    "goalsToRemove": [],
+    "preferencesToAdd": [],
+    "preferencesToRemove": [],
+    "miscToAdd": [],
+    "miscToRemove": [],
+    "fieldsToSet": {},
+    "fieldsToDelete": []
   }
 }

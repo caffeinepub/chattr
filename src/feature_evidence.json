@@ -2,10 +2,11 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-for-chatroom-cards-where-mediatype-is-twitter-and-mediaurl-is-an-x-twitter-status-url-fetch-the-public-tweet-result-json-for-that-post-extract-the-first-attached-photo-url-if-any-and-use-that-photo-as-the-thumbnail-background-image",
-      "featureTitle": "For chatroom cards where mediaType is 'twitter' and mediaUrl is an X/Twitter status URL, fetch the public tweet-result JSON for that post, extract the first attached photo URL (if any), and use that photo as the thumbnail background image.",
+      "featureId": "feature-normalize-chatroom-react-query-caching-so-that-when-the-search-term-is-empty-whitespace-or-the-category-is-empty-whitespace-the-corresponding-hooks-use-the-base-chatroom-query-key-chatrooms-and-not-chatrooms-search-or-chatrooms-category-this-ensures-the-lobby-cannot-display-a-stale-empty-list-due-to-alternate-empty-filter-cache-keys",
+      "featureTitle": "Normalize chatroom React Query caching so that when the search term is empty/whitespace or the category is empty/whitespace, the corresponding hooks use the base chatroom query key ['chatrooms'] (and not ['chatrooms','search',''] or ['chatrooms','category','']). This ensures the Lobby cannot display a stale empty list due to alternate empty-filter cache keys.",
       "files": [
-        "frontend/src/components/ChatroomCard.tsx"
+        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/pages/LobbyPage.tsx"
       ],
       "components": [
         "authorization@1.0.1",
@@ -18,15 +19,15 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-6"
+        "REQ-1"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-implement-the-tweet-result-fetch-using-the-endpoint-format-discussed-https-cdn-syndication-twimg-com-tweet-result-id-tweet-id-token-123-using-the-tweet-status-id-extracted-from-the-url-and-parse-fields-needed-to-locate-attached-photo-media-e-g-photos-media-url-https",
-      "featureTitle": "Implement the tweet-result fetch using the endpoint format discussed: https://cdn.syndication.twimg.com/tweet-result?id=TWEET_ID&token=123, using the tweet/status ID extracted from the URL, and parse fields needed to locate attached photo media (e.g., photos[] / media_url_https).",
+      "featureId": "feature-update-all-chatroom-list-cache-invalidations-to-refresh-every-chatroom-related-query-base-search-and-category-variants-by-invalidating-the-full-chatrooms-query-key-namespace-i-e-not-only-the-exact-chatrooms-key",
+      "featureTitle": "Update all chatroom list cache invalidations to refresh every chatroom-related query (base, search, and category variants) by invalidating the full ['chatrooms'] query key namespace (i.e., not only the exact ['chatrooms'] key).",
       "files": [
-        "frontend/src/components/ChatroomCard.tsx"
+        "frontend/src/hooks/useQueries.ts"
       ],
       "components": [
         "authorization@1.0.1",
@@ -39,28 +40,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-7"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-scope-control-do-not-make-any-additional-ui-styling-behavior-changes-beyond-using-the-extracted-x-twitter-photo-as-the-background-for-the-x-post-thumbnail",
-      "featureTitle": "Scope control: do not make any additional UI/styling/behavior changes beyond using the extracted X/Twitter photo as the background for the X post thumbnail.",
-      "files": [
-        "frontend/src/components/ChatroomCard.tsx"
-      ],
-      "components": [
-        "authorization@1.0.1",
-        "blob-storage@2.0.3",
-        "http-outcalls@1.1.1",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-8"
+        "REQ-2"
       ],
       "confidence": "high"
     }

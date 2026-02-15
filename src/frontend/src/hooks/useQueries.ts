@@ -53,6 +53,15 @@ function markChatroomCreated(): void {
   lastChatroomCreationTime = Date.now();
 }
 
+// Normalize query key: empty/whitespace search or category should use base key
+function normalizeChatroomQueryKey(type: 'search' | 'category', value: string): readonly unknown[] {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return ['chatrooms'];
+  }
+  return ['chatrooms', type, trimmed];
+}
+
 // Chatroom queries
 export function useGetChatrooms() {
   const { actor, isFetching: actorFetching } = useActor();
@@ -99,8 +108,11 @@ export function useSearchChatrooms(searchTerm: string) {
   const { actor, isFetching: actorFetching } = useActor();
   const queryClient = useQueryClient();
 
+  const trimmedSearchTerm = searchTerm.trim();
+  const queryKey = normalizeChatroomQueryKey('search', searchTerm);
+
   return useQuery<ChatroomWithLiveStatus[]>({
-    queryKey: ['chatrooms', 'search', searchTerm],
+    queryKey,
     queryFn: async () => {
       if (!actor) {
         console.warn('[useSearchChatrooms] Actor not available');
@@ -109,15 +121,15 @@ export function useSearchChatrooms(searchTerm: string) {
       
       let chatrooms: ChatroomWithLiveStatus[];
       
-      if (!searchTerm.trim()) {
+      if (!trimmedSearchTerm) {
         chatrooms = await actor.getChatrooms();
       } else {
-        chatrooms = await actor.searchChatrooms(searchTerm.trim());
+        chatrooms = await actor.searchChatrooms(trimmedSearchTerm);
       }
       
       // Guard against transient empty results during post-create window
       if (chatrooms.length === 0 && isInPostCreateWindow()) {
-        const previousData = queryClient.getQueryData<ChatroomWithLiveStatus[]>(['chatrooms', 'search', searchTerm]);
+        const previousData = queryClient.getQueryData<ChatroomWithLiveStatus[]>(queryKey);
         if (previousData && previousData.length > 0) {
           console.warn('[useSearchChatrooms] Rejecting empty result during post-create window, keeping previous data');
           throw new Error('Transient empty result rejected');
@@ -142,8 +154,11 @@ export function useFilterChatroomsByCategory(category: string) {
   const { actor, isFetching: actorFetching } = useActor();
   const queryClient = useQueryClient();
 
+  const trimmedCategory = category.trim();
+  const queryKey = normalizeChatroomQueryKey('category', category);
+
   return useQuery<ChatroomWithLiveStatus[]>({
-    queryKey: ['chatrooms', 'category', category],
+    queryKey,
     queryFn: async () => {
       if (!actor) {
         console.warn('[useFilterChatroomsByCategory] Actor not available');
@@ -152,15 +167,15 @@ export function useFilterChatroomsByCategory(category: string) {
       
       let chatrooms: ChatroomWithLiveStatus[];
       
-      if (!category.trim()) {
+      if (!trimmedCategory) {
         chatrooms = await actor.getChatrooms();
       } else {
-        chatrooms = await actor.filterChatroomsByCategory(category.trim());
+        chatrooms = await actor.filterChatroomsByCategory(trimmedCategory);
       }
       
       // Guard against transient empty results during post-create window
       if (chatrooms.length === 0 && isInPostCreateWindow()) {
-        const previousData = queryClient.getQueryData<ChatroomWithLiveStatus[]>(['chatrooms', 'category', category]);
+        const previousData = queryClient.getQueryData<ChatroomWithLiveStatus[]>(queryKey);
         if (previousData && previousData.length > 0) {
           console.warn('[useFilterChatroomsByCategory] Rejecting empty result during post-create window, keeping previous data');
           throw new Error('Transient empty result rejected');
@@ -227,8 +242,8 @@ export function useCreateChatroom() {
       // Mark that we just created a chatroom to activate the guard window
       markChatroomCreated();
       
-      // Invalidate all chatroom queries to trigger refetch
-      queryClient.invalidateQueries({ queryKey: ['chatrooms'] });
+      // Invalidate entire chatrooms namespace (non-exact) to refresh all variants
+      queryClient.invalidateQueries({ queryKey: ['chatrooms'], exact: false });
       
       toast.success('Chat created successfully');
     },
@@ -254,7 +269,8 @@ export function useDeleteChatroom() {
       await actor.deleteChatroomWithPassword(chatroomId, password);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['chatrooms'] });
+      // Invalidate entire chatrooms namespace (non-exact) to refresh all variants
+      queryClient.invalidateQueries({ queryKey: ['chatrooms'], exact: false });
       toast.success('Chatroom deleted successfully');
     },
     onError: (error: Error) => {
@@ -288,7 +304,8 @@ export function useIncrementViewCount() {
     },
     onSuccess: (chatroomId) => {
       queryClient.invalidateQueries({ queryKey: ['chatroom', chatroomId.toString()] });
-      queryClient.invalidateQueries({ queryKey: ['chatrooms'] });
+      // Invalidate entire chatrooms namespace (non-exact) to refresh all variants
+      queryClient.invalidateQueries({ queryKey: ['chatrooms'], exact: false });
     },
     onError: (error: Error) => {
       console.error('[IncrementViewCount] Error:', error);
@@ -437,7 +454,8 @@ export function useSendMessage() {
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['messages', variables.chatroomId.toString()] });
       queryClient.invalidateQueries({ queryKey: ['chatroom', variables.chatroomId.toString()] });
-      queryClient.invalidateQueries({ queryKey: ['chatrooms'] });
+      // Invalidate entire chatrooms namespace (non-exact) to refresh all variants
+      queryClient.invalidateQueries({ queryKey: ['chatrooms'], exact: false });
     },
     onError: (error: Error) => {
       toast.error(error.message || 'Failed to send message');
@@ -488,6 +506,23 @@ export function useUnpinVideo() {
   });
 }
 
+// Helper hooks for current user data from localStorage
+export function useGetCurrentUsername() {
+  return useQuery<string>({
+    queryKey: ['currentUsername'],
+    queryFn: () => getUsername(),
+    staleTime: Infinity, // Username doesn't change unless explicitly updated
+  });
+}
+
+export function useGetCurrentAvatar() {
+  return useQuery<string | null>({
+    queryKey: ['currentAvatar'],
+    queryFn: () => getAvatarUrl(),
+    staleTime: Infinity, // Avatar doesn't change unless explicitly updated
+  });
+}
+
 // Username management with retroactive backend updates
 export function useUpdateUsername() {
   const { actor } = useActor();
@@ -520,15 +555,17 @@ export function useUpdateUsername() {
       
       await actor.saveCallerUserProfile(updatedProfile);
       
-      // Call backend to retroactively update all messages
+      // Update all existing messages with the new username
       await actor.updateUsernameRetroactively(userId, newUsername.trim());
       
       return { oldUsername, newUsername: newUsername.trim() };
     },
     onSuccess: () => {
+      // Invalidate all message queries to show updated usernames
       queryClient.invalidateQueries({ queryKey: ['messages'] });
+      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
       queryClient.invalidateQueries({ queryKey: ['currentUsername'] });
-      toast.success('Username updated successfully');
+      toast.success('Username updated');
     },
     onError: (error: Error) => {
       toast.error(error.message || 'Failed to update username');
@@ -536,28 +573,13 @@ export function useUpdateUsername() {
   });
 }
 
-export function useGetCurrentUsername() {
-  return useQuery<string>({
-    queryKey: ['currentUsername'],
-    queryFn: () => getUsername(),
-    staleTime: Infinity,
-  });
-}
-
-export function useGetCurrentAvatar() {
-  return useQuery<string | null>({
-    queryKey: ['currentAvatar'],
-    queryFn: () => getAvatarUrl(),
-    staleTime: Infinity,
-  });
-}
-
+// Avatar management with retroactive backend updates
 export function useUpdateAvatar() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (params: { avatarUrl: string | null; isPreset: boolean }) => {
+    mutationFn: async (params: { avatarUrl: string | null; isPreset?: boolean }) => {
       if (!actor) throw new Error('Actor not available');
       
       const userId = getUserId();
@@ -578,114 +600,25 @@ export function useUpdateAvatar() {
         name: username,
         anonId: userId,
         avatarUrl: params.avatarUrl || undefined,
-        presetAvatar: params.isPreset && params.avatarUrl ? params.avatarUrl : currentProfile?.presetAvatar || undefined,
+        presetAvatar: params.isPreset ? params.avatarUrl || undefined : undefined,
       };
       
       await actor.saveCallerUserProfile(updatedProfile);
       
-      // Call backend to retroactively update all messages
+      // Update all existing messages with the new avatar
       await actor.updateAvatarRetroactively(userId, params.avatarUrl);
       
       return params.avatarUrl;
     },
     onSuccess: () => {
+      // Invalidate all message queries to show updated avatars
       queryClient.invalidateQueries({ queryKey: ['messages'] });
+      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
       queryClient.invalidateQueries({ queryKey: ['currentAvatar'] });
-      toast.success('Avatar updated successfully');
+      toast.success('Avatar updated');
     },
     onError: (error: Error) => {
       toast.error(error.message || 'Failed to update avatar');
-    },
-  });
-}
-
-// Reactions
-export function useAddReaction() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (params: { messageId: bigint; emoji: string; chatroomId: bigint }) => {
-      if (!actor) throw new Error('Actor not available');
-      const userId = getUserId();
-      await actor.addReaction(params.messageId, params.emoji, userId);
-      return params;
-    },
-    onMutate: async (params) => {
-      // Optimistic update
-      await queryClient.cancelQueries({ queryKey: ['messages', params.chatroomId.toString()] });
-      
-      const previousMessages = queryClient.getQueryData<MessageWithReactions[]>(['messages', params.chatroomId.toString()]);
-      
-      if (previousMessages) {
-        const userId = getUserId();
-        queryClient.setQueryData<MessageWithReactions[]>(
-          ['messages', params.chatroomId.toString()],
-          previousMessages.map(msg => {
-            if (msg.id === params.messageId) {
-              const reactions = listToArray<Reaction>(msg.reactions);
-              const existingReaction = reactions.find(r => r.emoji === params.emoji);
-              
-              if (existingReaction) {
-                const users = listToArray<string>(existingReaction.users);
-                if (!users.includes(userId)) {
-                  return {
-                    ...msg,
-                    reactions: [
-                      ...reactions.filter(r => r.emoji !== params.emoji),
-                      {
-                        ...existingReaction,
-                        count: existingReaction.count + BigInt(1),
-                        users: [userId, existingReaction.users] as any,
-                      },
-                    ] as any,
-                  };
-                }
-              } else {
-                return {
-                  ...msg,
-                  reactions: [
-                    ...reactions,
-                    {
-                      emoji: params.emoji,
-                      count: BigInt(1),
-                      users: [userId, null] as any,
-                    },
-                  ] as any,
-                };
-              }
-            }
-            return msg;
-          })
-        );
-      }
-      
-      return { previousMessages };
-    },
-    onError: (err, params, context) => {
-      if (context?.previousMessages) {
-        queryClient.setQueryData(['messages', params.chatroomId.toString()], context.previousMessages);
-      }
-    },
-    onSettled: (data, error, params) => {
-      queryClient.invalidateQueries({ queryKey: ['messages', params.chatroomId.toString()] });
-    },
-  });
-}
-
-export function useRemoveReaction() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (params: { messageId: bigint; emoji: string; chatroomId: bigint }) => {
-      if (!actor) throw new Error('Actor not available');
-      const userId = getUserId();
-      await actor.removeReaction(params.messageId, params.emoji, userId);
-      return params;
-    },
-    onSuccess: (params) => {
-      queryClient.invalidateQueries({ queryKey: ['messages', params.chatroomId.toString()] });
     },
   });
 }
@@ -727,18 +660,71 @@ export function useSaveCallerUserProfile() {
       }
       
       await actor.saveCallerUserProfile(profile);
-      
-      // Retroactively update messages
-      await actor.updateUsernameRetroactively(profile.anonId, profile.name);
-      if (profile.avatarUrl !== undefined) {
-        await actor.updateAvatarRetroactively(profile.anonId, profile.avatarUrl || null);
-      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
       queryClient.invalidateQueries({ queryKey: ['currentUsername'] });
       queryClient.invalidateQueries({ queryKey: ['currentAvatar'] });
-      queryClient.invalidateQueries({ queryKey: ['messages'] });
+      toast.success('Profile saved');
     },
+    onError: (error: Error) => {
+      toast.error(error.message || 'Failed to save profile');
+    },
+  });
+}
+
+// Reaction mutations
+export function useAddReaction() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (params: { messageId: bigint; emoji: string; chatroomId: bigint }) => {
+      if (!actor) throw new Error('Actor not available');
+      const userId = getUserId();
+      await actor.addReaction(params.messageId, params.emoji, userId);
+      return params;
+    },
+    onSuccess: (params) => {
+      queryClient.invalidateQueries({ queryKey: ['messages', params.chatroomId.toString()] });
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'Failed to add reaction');
+    },
+  });
+}
+
+export function useRemoveReaction() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (params: { messageId: bigint; emoji: string; chatroomId: bigint }) => {
+      if (!actor) throw new Error('Actor not available');
+      const userId = getUserId();
+      await actor.removeReaction(params.messageId, params.emoji, userId);
+      return params;
+    },
+    onSuccess: (params) => {
+      queryClient.invalidateQueries({ queryKey: ['messages', params.chatroomId.toString()] });
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'Failed to remove reaction');
+    },
+  });
+}
+
+// Reply preview query
+export function useGetReplyPreview(chatroomId: bigint, messageId: bigint | null) {
+  const { actor, isFetching: actorFetching } = useActor();
+
+  return useQuery({
+    queryKey: ['replyPreview', chatroomId.toString(), messageId?.toString()],
+    queryFn: async () => {
+      if (!actor || !messageId) return null;
+      return actor.getReplyPreview(chatroomId, messageId);
+    },
+    enabled: !!actor && !actorFetching && !!messageId,
+    staleTime: 60000, // Cache for 1 minute
   });
 }

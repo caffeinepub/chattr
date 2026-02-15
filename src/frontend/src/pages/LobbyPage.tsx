@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { useGetChatrooms, useSearchChatrooms, useFilterChatroomsByCategory } from '../hooks/useQueries';
 import { useActor } from '../hooks/useActor';
+import { useForceFreshChatroomsOnActorReady } from '../hooks/useForceFreshChatroomsOnActorReady';
 import { Loader2, Plus, AlertCircle, Search, Filter, X } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -34,6 +35,9 @@ export default function LobbyPage() {
   const navigate = useNavigate();
   const searchInputRef = useRef<HTMLInputElement>(null);
 
+  // Force fresh refetch if cached list is empty after actor is ready
+  useForceFreshChatroomsOnActorReady();
+
   // Debounce search term
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -48,7 +52,7 @@ export default function LobbyPage() {
   const { data: searchResults, isLoading: searchLoading, isError: isSearchError } = useSearchChatrooms(debouncedSearchTerm);
   const { data: categoryResults, isLoading: categoryLoading, isError: isCategoryError } = useFilterChatroomsByCategory(selectedCategory);
 
-  // Determine which data to display
+  // Determine which data to display (with trim checks for consistency)
   let chatrooms = allChatrooms;
   let isLoading = allLoading;
   let error = allError;
@@ -58,7 +62,7 @@ export default function LobbyPage() {
     chatrooms = searchResults;
     isLoading = searchLoading;
     isError = isSearchError;
-  } else if (selectedCategory) {
+  } else if (selectedCategory.trim()) {
     chatrooms = categoryResults;
     isLoading = categoryLoading;
     isError = isCategoryError;
@@ -88,7 +92,7 @@ export default function LobbyPage() {
     }, 0);
   };
 
-  const hasActiveFilters = searchTerm.trim() || selectedCategory;
+  const hasActiveFilters = searchTerm.trim() || selectedCategory.trim();
 
   if (actorFetching || isLoading) {
     return (

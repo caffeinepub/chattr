@@ -1,34 +1,28 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Implement X/Twitter post thumbnail enhancement: extract attached image(s) from the post and use the first image as the thumbnail background (no other changes).",
+  "summary": "New project",
   "architectural_notes": [
-    "Use X/Twitter public embed JSON endpoint (cdn.syndication.twimg.com/tweet-result?id=...) to retrieve media URLs without API keys; extract tweet ID from URL and use first photo as thumbnail background; fallback to existing thumbnail behavior if no photos."
+    "Decision: Use a single base React Query key ['chatrooms'] for the lobby list; empty search/category states must reuse the base key instead of separate empty-filter keys."
   ],
-  "known_issues": [],
-  "isFixRequest": false,
+  "known_issues": [
+    "Bug: Lobby can display stale empty chatroom lists due to separate React Query cache keys for empty search/category (e.g., ['chatrooms','search',''], ['chatrooms','category',''])."
+  ],
+  "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-for-chatroom-cards-where-mediatype-is-twitter-and-mediaurl-is-an-x-twitter-status-url-fetch-the-public-tweet-result-json-for-that-post-extract-the-first-attached-photo-url-if-any-and-use-that-photo-as-the-thumbnail-background-image",
-      "title": "For chatroom cards where mediaType is 'twitter' and mediaUrl is an X/Twitter status URL, fetch the public tweet-result JSON for that post, extract the first attached photo URL (if any), and use that photo as the thumbnail background image.",
+      "id": "feature-normalize-chatroom-react-query-caching-so-that-when-the-search-term-is-empty-whitespace-or-the-category-is-empty-whitespace-the-corresponding-hooks-use-the-base-chatroom-query-key-chatrooms-and-not-chatrooms-search-or-chatrooms-category-this-ensures-the-lobby-cannot-display-a-stale-empty-list-due-to-alternate-empty-filter-cache-keys",
+      "title": "Normalize chatroom React Query caching so that when the search term is empty/whitespace or the category is empty/whitespace, the corresponding hooks use the base chatroom query key ['chatrooms'] (and not ['chatrooms','search',''] or ['chatrooms','category','']). This ensures the Lobby cannot display a stale empty list due to alternate empty-filter cache keys.",
       "reqIds": [
-        "REQ-6"
+        "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-implement-the-tweet-result-fetch-using-the-endpoint-format-discussed-https-cdn-syndication-twimg-com-tweet-result-id-tweet-id-token-123-using-the-tweet-status-id-extracted-from-the-url-and-parse-fields-needed-to-locate-attached-photo-media-e-g-photos-media-url-https",
-      "title": "Implement the tweet-result fetch using the endpoint format discussed: https://cdn.syndication.twimg.com/tweet-result?id=TWEET_ID&token=123, using the tweet/status ID extracted from the URL, and parse fields needed to locate attached photo media (e.g., photos[] / media_url_https).",
+      "id": "feature-update-all-chatroom-list-cache-invalidations-to-refresh-every-chatroom-related-query-base-search-and-category-variants-by-invalidating-the-full-chatrooms-query-key-namespace-i-e-not-only-the-exact-chatrooms-key",
+      "title": "Update all chatroom list cache invalidations to refresh every chatroom-related query (base, search, and category variants) by invalidating the full ['chatrooms'] query key namespace (i.e., not only the exact ['chatrooms'] key).",
       "reqIds": [
-        "REQ-7"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-scope-control-do-not-make-any-additional-ui-styling-behavior-changes-beyond-using-the-extracted-x-twitter-photo-as-the-background-for-the-x-post-thumbnail",
-      "title": "Scope control: do not make any additional UI/styling/behavior changes beyond using the extracted X/Twitter photo as the background for the X post thumbnail.",
-      "reqIds": [
-        "REQ-8"
+        "REQ-2"
       ],
       "version": 1
     }
@@ -36,12 +30,12 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Extract image media from X/Twitter post (via public tweet-result JSON) and use first photo as background for X post thumbnail only",
+      "summary": "Normalize chatrooms React Query keys so empty search/category filters fall back to the base ['chatrooms'] cache (prevents stale empty lists)",
       "reqIds": [],
       "status": "pending"
     }
   ],
-  "projectName": "Use attached X/Twitter post image as background for X post thumbnails",
+  "projectName": "Normalize chatroom React Query keys for empty search/category filters",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

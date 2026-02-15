@@ -1,75 +1,42 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Use tweet-result attached photo as X/Twitter chatroom card thumbnail background",
+  "title": "Normalize chatroom React Query keys and invalidate full chatrooms namespace",
   "requirements": [
     {
-      "id": "REQ-6",
-      "summary": "On chatroom cards for X/Twitter status URLs, use the first attached tweet photo (if present) as the thumbnail background image, otherwise preserve existing Twitter thumbnail behavior.",
+      "id": "REQ-1",
+      "summary": "Normalize chatroom list React Query keys so empty/whitespace search/category reuse the base ['chatrooms'] cache key and the transient empty-result guard reads previousData from the active key.",
       "acceptanceCriteria": [
-        "Given a chatroom with mediaType='twitter' and a valid X/Twitter status URL that includes photo media, the chatroom thumbnail renders with the first photo as the background (object-cover).",
-        "If the tweet-result JSON has no photos (or the fetch fails), the thumbnail falls back to the current existing Twitter thumbnail behavior (no regressions).",
-        "This change only affects X/Twitter post thumbnails on chatroom cards and does not modify Twitter embeds in messages or any other media thumbnails."
+        "When useSearchChatrooms is called with an empty or whitespace-only string, it uses queryKey ['chatrooms'] and fetches the same data as the base chatroom list.",
+        "When useFilterChatroomsByCategory is called with an empty or whitespace-only string, it uses queryKey ['chatrooms'] and fetches the same data as the base chatroom list.",
+        "With no active filters (empty search and no selected category), the Lobby displays the same chatroom list regardless of whether the user previously typed and cleared a search or toggled category filters.",
+        "The transient empty-result guard (post-create window) reads previousData from the same queryKey that the hook is currently using (i.e., ['chatrooms'] in the empty-filter case)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/ChatroomCard.tsx",
+          "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Add a dedicated fetch for the tweet’s first attached photo URL for chatroom cards when mediaType is 'twitter' and mediaUrl is a status URL; if a photo is found, render it as the thumbnail background image (object-cover) while preserving existing fallback rendering when no photo is available."
+          "description": "Introduce a small query-key normalization helper for chatroom list queries (base/search/category) that trims inputs and returns the base key ['chatrooms'] when the search term or category is empty/whitespace. Update useSearchChatrooms and useFilterChatroomsByCategory to use the normalized key (and trimmed values for non-empty variants), and update the post-create transient-empty guard to read previousData using the exact same normalized queryKey used by the hook."
         },
         {
-          "path": "frontend/src/lib/twitterThumbnail.ts",
+          "path": "frontend/src/pages/LobbyPage.tsx",
           "operation": "modify",
-          "description": "Implement a small utility to fetch/derive the first attached photo URL for a tweet (returning null when unavailable) and expose it for ChatroomCard usage."
+          "description": "Ensure the Lobby's filter-selection logic treats whitespace-only values as empty (use .trim() checks) so it consistently selects the base list when filters are effectively cleared, aligning view selection behavior with the normalized React Query keys."
         }
       ]
     },
     {
-      "id": "REQ-7",
-      "summary": "Fetch tweet-result JSON via the specified cdn.syndication.twimg.com format, parse photo media safely, and cache per tweet to avoid repeated refetching during browsing.",
+      "id": "REQ-2",
+      "summary": "Refresh all chatroom-related caches by invalidating the full ['chatrooms'] query key namespace after mutations (create/delete/message/etc.).",
       "acceptanceCriteria": [
-        "Network requests for X/Twitter thumbnails use the tweet-result endpoint and are keyed per tweet URL/ID to avoid repeated refetching during normal browsing.",
-        "The code safely handles unexpected response shapes (missing fields, empty arrays) without throwing and without breaking chatroom card rendering."
+        "After creating or deleting a chatroom, both the base chatroom list and any active search/category results refetch to reflect the latest backend state.",
+        "After sending a message (which currently invalidates ['chatrooms']), any active chatroom list views (including search/category variants) refresh consistently."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/lib/twitterThumbnail.ts",
+          "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Implement tweet ID extraction usage (via existing getTwitterPostId) and fetch tweet-result JSON using https://cdn.syndication.twimg.com/tweet-result?id=TWEET_ID&token=123; parse the response defensively to locate the first attached photo URL (e.g., photos[] and/or media_url_https variants) and return a stable result (string or null) without throwing."
-        },
-        {
-          "path": "frontend/src/lib/twitterThumbnailCache.ts",
-          "operation": "modify",
-          "description": "Implement caching/deduplication for tweet-result photo lookups keyed by tweet ID/URL (in-memory in-flight dedupe + localStorage persistence) so ChatroomCard does not refetch repeatedly during normal browsing, and ensure corrupted/expired entries fail safely."
-        },
-        {
-          "path": "frontend/src/components/ChatroomCard.tsx",
-          "operation": "modify",
-          "description": "Wire ChatroomCard’s Twitter thumbnail flow to call the new tweet-result photo fetch utility and use the cache keying behavior (per tweet URL/ID) so repeated renders do not trigger unnecessary refetching."
-        }
-      ]
-    },
-    {
-      "id": "REQ-8",
-      "summary": "Keep scope strictly limited to using the extracted tweet photo as the X/Twitter chatroom card thumbnail background, with no other UI/styling/behavior changes.",
-      "acceptanceCriteria": [
-        "Git diff is limited to the minimal set of files required to implement the X/Twitter thumbnail background change; no unrelated refactors, formatting-only changes, or UI tweaks elsewhere."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/ChatroomCard.tsx",
-          "operation": "modify",
-          "description": "Constrain changes to the Twitter thumbnail branch only (chatroom cards), avoiding unrelated refactors, formatting-only edits, or changes to other media types and message embeds."
-        },
-        {
-          "path": "frontend/src/lib/twitterThumbnail.ts",
-          "operation": "modify",
-          "description": "Keep the new logic narrowly focused on tweet-result photo extraction for chatroom card thumbnails, without altering other Twitter embed/preview logic."
-        },
-        {
-          "path": "frontend/src/lib/twitterThumbnailCache.ts",
-          "operation": "modify",
-          "description": "Add only the minimal caching needed for tweet-result thumbnail photo lookups, without introducing broader cache changes or unrelated behavior modifications."
+          "description": "Update all chatroom-list invalidations (e.g., after createChatroom, deleteChatroom, sendMessage, incrementViewCount) to invalidate the entire ['chatrooms'] namespace (non-exact match) so base/search/category variants refetch together. Keep invalidations for other non-chatrooms keys unchanged."
         }
       ]
     }
