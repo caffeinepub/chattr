@@ -107,7 +107,6 @@ export interface backendInterface {
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     cleanupInactiveUsers(): Promise<void>;
     createChatroom(topic: string, description: string, mediaUrl: string, mediaType: string, category: string): Promise<bigint>;
-    deleteAllChatrooms(): Promise<void>;
     deleteChatroomWithPassword(chatroomId: bigint, password: string): Promise<void>;
     fetchTwitchThumbnail(channelName: string): Promise<string>;
     fetchTwitterOEmbed(tweetUrl: string): Promise<string>;
@@ -133,7 +132,7 @@ export interface backendInterface {
     removeReaction(messageId: bigint, emoji: string, userId: string): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     searchChatrooms(searchTerm: string): Promise<Array<ChatroomWithLiveStatus>>;
-    sendMessage(content: string, sender: string, chatroomId: bigint, mediaUrl: string | null, mediaType: string | null, avatarUrl: string | null, senderId: string, replyToMessageId: bigint | null): Promise<void>;
+    sendMessage(content: string, sender: string, chatroomId: bigint, mediaUrl: string | null, mediaType: string | null, avatarUrl: string | null, senderId: string, replyToMessageId: bigint | null): Promise<bigint>;
     transform(input: TransformationInput): Promise<TransformationOutput>;
     unpinVideo(chatroomId: bigint): Promise<void>;
     updateAvatarRetroactively(senderId: string, newAvatarUrl: string | null): Promise<void>;

@@ -206,7 +206,6 @@ export interface backendInterface {
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     cleanupInactiveUsers(): Promise<void>;
     createChatroom(topic: string, description: string, mediaUrl: string, mediaType: string, category: string): Promise<bigint>;
-    deleteAllChatrooms(): Promise<void>;
     deleteChatroomWithPassword(chatroomId: bigint, password: string): Promise<void>;
     fetchTwitchThumbnail(channelName: string): Promise<string>;
     fetchTwitterOEmbed(tweetUrl: string): Promise<string>;
@@ -232,7 +231,7 @@ export interface backendInterface {
     removeReaction(messageId: bigint, emoji: string, userId: string): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     searchChatrooms(searchTerm: string): Promise<Array<ChatroomWithLiveStatus>>;
-    sendMessage(content: string, sender: string, chatroomId: bigint, mediaUrl: string | null, mediaType: string | null, avatarUrl: string | null, senderId: string, replyToMessageId: bigint | null): Promise<void>;
+    sendMessage(content: string, sender: string, chatroomId: bigint, mediaUrl: string | null, mediaType: string | null, avatarUrl: string | null, senderId: string, replyToMessageId: bigint | null): Promise<bigint>;
     transform(input: TransformationInput): Promise<TransformationOutput>;
     unpinVideo(chatroomId: bigint): Promise<void>;
     updateAvatarRetroactively(senderId: string, newAvatarUrl: string | null): Promise<void>;
@@ -378,20 +377,6 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.createChatroom(arg0, arg1, arg2, arg3, arg4);
-            return result;
-        }
-    }
-    async deleteAllChatrooms(): Promise<void> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.deleteAllChatrooms();
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.deleteAllChatrooms();
             return result;
         }
     }
@@ -745,7 +730,7 @@ export class Backend implements backendInterface {
             return from_candid_vec_n10(this._uploadFile, this._downloadFile, result);
         }
     }
-    async sendMessage(arg0: string, arg1: string, arg2: bigint, arg3: string | null, arg4: string | null, arg5: string | null, arg6: string, arg7: bigint | null): Promise<void> {
+    async sendMessage(arg0: string, arg1: string, arg2: bigint, arg3: string | null, arg4: string | null, arg5: string | null, arg6: string, arg7: bigint | null): Promise<bigint> {
         if (this.processError) {
             try {
                 const result = await this.actor.sendMessage(arg0, arg1, arg2, to_candid_opt_n43(this._uploadFile, this._downloadFile, arg3), to_candid_opt_n43(this._uploadFile, this._downloadFile, arg4), to_candid_opt_n43(this._uploadFile, this._downloadFile, arg5), arg6, to_candid_opt_n44(this._uploadFile, this._downloadFile, arg7));

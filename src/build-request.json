@@ -1,87 +1,74 @@
 {
   "kind": "build_request",
-  "title": "Add DELETE ALL ROOMS admin action (frontend button + backend delete-all function)",
+  "title": "Automatically delete chatrooms older than 5 minutes (including existing rooms)",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Backend: Add a new publicly callable backend function that deletes all chatrooms and all associated data (messages, active user tracking, reactions) in one operation, with no caller/principal checks and no password checks.",
+      "text": "Implement automatic backend cleanup so that any chatroom with createdAt older than 5 minutes is deleted, including all existing rooms present at rollout.",
       "target": "backend",
       "source": {
         "messageIds": [
           "msg-1"
         ],
         "quotes": [
-          "add a “DELETE ALL ROOMS” button to the admin page that calls a backend function to delete all chatrooms. do not require caller or principal for it."
+          "lets make it so rooms older than 5 minutes are automatically deleted. including all existing rooms"
         ]
       },
       "acceptanceCriteria": [
-        "A new backend method exists (exported in the canister interface) that removes all chatrooms and associated per-chatroom data.",
-        "The method does not enforce any authorization (no admin role checks, no principal/caller gating) and does not require a password argument.",
-        "After calling the method, subsequent calls to getChatrooms() return an empty list."
+        "A room is considered expired when Time.now() - chatroom.createdAt > 5 minutes (300 seconds).",
+        "Expired rooms are removed from backend state (chatrooms, messages, activeUsers, and any reactions associated with messages in that room).",
+        "Existing rooms that are already older than 5 minutes are deleted automatically without requiring an admin action.",
+        "After cleanup, getChatrooms() and getLobbyChatroomCards() do not return expired rooms.",
+        "After cleanup, getChatroom(roomId) returns null for an expired/deleted roomId."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Frontend: Add a “DELETE ALL ROOMS” button to the existing admin page (frontend/src/pages/AdminDeleteChatroomsPage.tsx) that calls the new backend delete-all-chatrooms function and refreshes the chatroom list afterward.",
-      "target": "frontend",
+      "text": "Ensure room expiration is enforced even if a scheduled cleanup has not run yet by filtering out expired chatrooms from read APIs (e.g., lobby/chatroom list and single chatroom fetch) and triggering cleanup during normal canister activity.",
+      "target": "backend",
       "source": {
         "messageIds": [
           "msg-1"
         ],
         "quotes": [
-          "the admin page already exists",
-          "add a “DELETE ALL ROOMS” button to the admin page that calls a backend function to delete all chatrooms."
+          "rooms older than 5 minutes are automatically deleted"
         ]
       },
       "acceptanceCriteria": [
-        "The admin page UI includes a clearly labeled button: \"DELETE ALL ROOMS\".",
-        "Clicking the button triggers a confirmation dialog before executing the delete-all action.",
-        "On confirm, the frontend calls the backend delete-all-chatrooms method, then invalidates/refetches the chatroom list query so the table updates to show no chatrooms.",
-        "A success toast/message is shown when the operation completes; an error toast/message is shown if the operation fails."
+        "Read APIs never return a chatroom older than 5 minutes, even if it still exists in memory prior to the next cleanup pass.",
+        "Creating a room does not delete it before 5 minutes have elapsed.",
+        "Expired rooms are eventually physically removed from all related maps as part of a cleanup pass triggered by normal canister activity (e.g., on calls/heartbeat)."
       ]
     },
     {
       "id": "REQ-3",
-      "text": "Frontend: Add a React Query mutation hook for the delete-all-chatrooms operation alongside existing admin mutations (e.g., in frontend/src/hooks/useQueries.ts), and use it from the admin page button.",
+      "text": "Update the frontend to handle rooms disappearing due to expiry gracefully (no crashes; show existing not-found/removed state when a user is viewing a room that gets deleted).",
       "target": "frontend",
       "source": {
         "messageIds": [
           "msg-1"
         ],
         "quotes": [
-          "add a “DELETE ALL ROOMS” button to the admin page that calls a backend function to delete all chatrooms."
+          "automatically deleted"
         ]
       },
       "acceptanceCriteria": [
-        "A new hook exists that calls the backend delete-all-chatrooms method via the existing actor.",
-        "On success, the hook invalidates the ['chatrooms'] query key (and any other directly related chatroom list query keys used by the app, if applicable).",
-        "The admin page uses this hook for the \"DELETE ALL ROOMS\" button action (no direct actor calls inside the page other than via the hook)."
+        "If a user is on a chatroom page and the backend returns null (room expired/removed), the UI shows the existing “Chat Not Found” state with a way back to the Lobby.",
+        "The Lobby list updates normally as rooms expire (rooms disappear on the next refresh interval) without requiring a manual page reload."
       ]
     }
   ],
   "constraints": [
-    "Make no changes other than what is required to implement the \"DELETE ALL ROOMS\" button on the existing admin page and the backend function it calls.",
-    "Do not add any caller/principal authorization checks or password checks to the delete-all-chatrooms backend function.",
-    "Use English for any user-facing text added or modified."
+    "Backend must remain a single Motoko actor in backend/main.mo; add backend/migration.mo only if a state/schema upgrade is required.",
+    "Do not modify files under frontend/src/components/ui or any other paths listed as immutable in SYSTEM_CONTEXT."
   ],
   "nonGoals": [
-    "Do not create a new admin page or change routing/navigation.",
-    "Do not add authentication/authorization, role checks, or Internet Identity requirements for the delete-all operation.",
-    "Do not redesign the admin page beyond inserting the new button and its confirmation flow."
+    "Do not add new authentication or admin workflows for deletion beyond the existing admin delete page.",
+    "Do not introduce external cron services, WebSockets, or third-party infrastructure for scheduling cleanup."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
-  },
-  "userProfileUpdate": {
-    "goalsToAdd": [],
-    "goalsToRemove": [],
-    "preferencesToAdd": [],
-    "preferencesToRemove": [],
-    "miscToAdd": [],
-    "miscToRemove": [],
-    "fieldsToSet": {},
-    "fieldsToDelete": []
   }
 }

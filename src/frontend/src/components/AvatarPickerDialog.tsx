@@ -90,7 +90,7 @@ export default function AvatarPickerDialog({ open, onOpenChange }: AvatarPickerD
     try {
       setIsUploading(true);
       const avatarUrl = await uploadImage(file);
-      await updateAvatar.mutateAsync(avatarUrl);
+      await updateAvatar.mutateAsync({ avatarUrl });
       onOpenChange(false);
     } catch (error) {
       console.error('Error uploading avatar:', error);
@@ -102,7 +102,7 @@ export default function AvatarPickerDialog({ open, onOpenChange }: AvatarPickerD
 
   const handleRemoveAvatar = async () => {
     try {
-      await updateAvatar.mutateAsync(null);
+      await updateAvatar.mutateAsync({ avatarUrl: null });
       onOpenChange(false);
     } catch (error) {
       console.error('Error removing avatar:', error);
@@ -112,7 +112,7 @@ export default function AvatarPickerDialog({ open, onOpenChange }: AvatarPickerD
 
   const handleGiphySelect = async (gif: GiphyGif) => {
     try {
-      await updateAvatar.mutateAsync(gif.originalUrl);
+      await updateAvatar.mutateAsync({ avatarUrl: gif.originalUrl });
       onOpenChange(false);
     } catch (error) {
       console.error('Error setting Giphy avatar:', error);

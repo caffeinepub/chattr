@@ -1,11 +1,11 @@
 # Specification
 
 ## Summary
-**Goal:** Add an admin “DELETE ALL ROOMS” action that deletes all chatrooms and their associated data via a new backend method.
+**Goal:** Automatically expire and delete chatrooms older than 5 minutes (including rooms that already exist at rollout), and ensure the UI handles disappearing rooms cleanly.
 
 **Planned changes:**
-- Backend: Export a new publicly callable delete-all-chatrooms method that removes all chatrooms plus associated per-room data (messages, active user tracking, reactions) without any authorization or password checks.
-- Frontend: Add a clearly labeled “DELETE ALL ROOMS” button to `frontend/src/pages/AdminDeleteChatroomsPage.tsx` with a confirmation dialog; on confirm, call the backend delete-all method and refresh the chatroom list.
-- Frontend: Add a React Query mutation hook (alongside existing admin mutations, e.g. in `frontend/src/hooks/useQueries.ts`) for the delete-all operation that invalidates/refetches the `['chatrooms']` query key and is used by the admin page.
+- Add backend cleanup logic to identify chatrooms where `now - createdAt > 5 minutes` and delete them along with all associated state (messages, active users, reactions).
+- Enforce expiration in backend read APIs by filtering out expired rooms (lobby lists and single-room fetch) even if a cleanup pass hasn’t run yet, and trigger cleanup during normal canister activity.
+- Update frontend behavior so that if a room expires while being viewed, the existing “Chat Not Found” state is shown and the Lobby list naturally reflects expired rooms on the next refresh.
 
-**User-visible outcome:** Admins can click “DELETE ALL ROOMS” on the existing admin page, confirm the action, and see all chatrooms removed with the list updating to empty, with success/error feedback shown.
+**User-visible outcome:** Chatrooms automatically disappear after 5 minutes; expired rooms no longer show up in the Lobby, and users viewing an expired room are redirected to the existing not-found/removed experience without crashes.

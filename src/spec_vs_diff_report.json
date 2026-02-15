@@ -1,104 +1,103 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-15T00:07:45.266Z",
-  "summary": "REQ-1 is not met because the new backend delete-all function includes an admin permission check (explicitly disallowed). Frontend evidence for the exact “DELETE ALL ROOMS” button/confirmation/toasts is truncated, and the diff contains many unrelated frontend changes that were not requested (violating the “no changes other than required” constraint).",
+  "generatedAt": "2026-02-15T00:41:15.997Z",
+  "summary": "Diff shows partial backend work toward expiring chatrooms (adds isChatroomExpired and starts a cleanupExpiredChatrooms function) and frontend changes that improve graceful handling when a chatroom fetch returns null. However, due to backend truncation and lack of explicit evidence, several backend acceptance criteria (physical deletion across all related maps, filtering in read APIs, and cleanup triggering during normal activity) cannot be confirmed. The diff also includes substantial unrelated frontend features (avatar/Giphy/upload/compression/header/chat UI tweaks) not requested by the BuildRequest.",
   "missing_requirements": [
     {
       "id": "REQ-1",
-      "requirement": "Backend delete-all-chatrooms method must be publicly callable with no caller/principal authorization checks and no password checks.",
-      "reason": "The new backend function `deleteAllChatrooms` traps unless the caller has admin permission, which violates the requirement of no authorization gating.",
+      "requirement": "Expired rooms are removed from backend state (chatrooms, messages, activeUsers, and any reactions associated with messages in that room).",
+      "reason": "backend/main.mo is truncated in the cleanupExpiredChatrooms implementation, and there is no clear evidence that it deletes entries from all required maps (chatrooms, messages, activeUsers, reactions) for each expired room.",
       "evidence": [
-        "backend/main.mo: `public shared ({ caller }) func deleteAllChatrooms()... if (not (AccessControl.hasPermission(..., #admin))) { Debug.trap(\"Unauthorized: Only admins can delete all chatrooms\"); }`"
+        "backend/main.mo"
+      ]
+    },
+    {
+      "id": "REQ-1",
+      "requirement": "Existing rooms that are already older than 5 minutes are deleted automatically without requiring an admin action.",
+      "reason": "Although isChatroomExpired and a cleanup function are introduced, the diff summary does not show any call site (e.g., on calls/heartbeat) that would run cleanup automatically against existing stored rooms at rollout.",
+      "evidence": [
+        "backend/main.mo"
+      ]
+    },
+    {
+      "id": "REQ-1",
+      "requirement": "After cleanup, getChatrooms() and getLobbyChatroomCards() do not return expired rooms.",
+      "reason": "No evidence in the provided diff summary that getChatrooms() or getLobbyChatroomCards() filter out expired rooms or that cleanup is invoked before returning results; backend code section containing those functions is not shown.",
+      "evidence": [
+        "backend/main.mo"
+      ]
+    },
+    {
+      "id": "REQ-1",
+      "requirement": "After cleanup, getChatroom(roomId) returns null for an expired/deleted roomId.",
+      "reason": "No evidence in the provided diff summary that getChatroom() checks expiration or returns null for expired rooms; the relevant method implementation is not shown.",
+      "evidence": [
+        "backend/main.mo"
       ]
     },
     {
       "id": "REQ-2",
-      "requirement": "Admin page includes a clearly labeled \"DELETE ALL ROOMS\" button with confirmation dialog, calls backend delete-all method, refreshes chatroom list, and shows success/error toast/message.",
-      "reason": "The diff summary shows `useDeleteAllChatrooms` is imported/used, but the provided snippet is truncated before the UI rendering of the new button/confirmation/toasts; therefore the required UI/behavior cannot be confirmed from the evidence provided.",
+      "requirement": "Read APIs never return a chatroom older than 5 minutes, even if it still exists in memory prior to the next cleanup pass (filtering in read APIs).",
+      "reason": "The diff summary does not show any read-path filtering (e.g., in getChatrooms/getLobbyChatroomCards/getChatroom) beyond defining isChatroomExpired; method bodies are not present in the truncated backend diff.",
       "evidence": [
-        "frontend/src/pages/AdminDeleteChatroomsPage.tsx (truncated before showing the delete-all button UI)"
+        "backend/main.mo"
       ]
     },
     {
-      "id": "REQ-3",
-      "requirement": "React Query mutation hook for delete-all-chatrooms invalidates/refetches the ['chatrooms'] query key, and admin page uses the hook (no direct actor calls in the page).",
-      "reason": "The summary text claims `useDeleteAllChatrooms` exists, but the shown `useQueries.ts` content is truncated before the mutation definition; invalidation of `['chatrooms']` and implementation details cannot be verified from the diff excerpt.",
+      "id": "REQ-2",
+      "requirement": "Expired rooms are eventually physically removed from all related maps as part of a cleanup pass triggered by normal canister activity (e.g., on calls/heartbeat).",
+      "reason": "There is no visible evidence of a periodic trigger (heartbeat/timer) or a pattern of calling cleanupExpiredChatrooms within normal update/query entrypoints. The cleanup function appears started but call sites are not shown.",
       "evidence": [
-        "frontend/src/hooks/useQueries.ts (truncated; mutation not shown)",
-        "frontend-file-summaries.txt mentions `useDeleteAllChatrooms` but does not show invalidation code"
+        "backend/main.mo"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Backend authorization gating added to delete-all operation via AccessControl admin permission check and \"Unauthorized\" trap.",
-      "reason": "BuildRequest explicitly forbids any caller/principal authorization checks for the delete-all-chatrooms backend function.",
-      "evidence": [
-        "backend/main.mo: `AccessControl.hasPermission(... #admin)` check inside `deleteAllChatrooms`"
-      ]
-    },
-    {
-      "description": "Backend access control/admin-role management functions and state added (initializeAccessControl, getCallerUserRole, assignCallerUserRole, isCallerAdmin) and adminPassword variable.",
-      "reason": "Not requested; BuildRequest scope is limited to adding delete-all backend function and the corresponding admin-page button + hook.",
-      "evidence": [
-        "backend/main.mo: `import AccessControl ...`, `let accessControlState = ...`, `var adminPassword ...`, and multiple public access-control methods"
-      ]
-    },
-    {
-      "description": "Unrelated frontend feature work around avatars/Giphy selection in AvatarPickerDialog.",
-      "reason": "Not requested and violates the constraint to make no changes beyond what is required for the DELETE ALL ROOMS feature.",
+      "description": "Avatar picker enhancements including debounced Giphy search/trending fetch and request de-staling via requestId tracking.",
+      "reason": "Not requested by any requirement related to chatroom expiry; unrelated frontend feature work.",
       "evidence": [
         "frontend/src/components/AvatarPickerDialog.tsx"
       ]
     },
     {
-      "description": "Unrelated UI/UX changes to ChatArea (collapsible header, reply context, etc.).",
-      "reason": "Not requested; outside DELETE ALL ROOMS scope.",
+      "description": "Transient empty-result guard window after chatroom creation (3s) and special retry/placeholder behavior in useGetChatrooms.",
+      "reason": "Not part of expiry requirements; introduces new client-side data consistency logic beyond handling expired rooms gracefully.",
       "evidence": [
-        "frontend/src/components/ChatArea.tsx"
+        "frontend/src/hooks/useQueries.ts"
       ]
     },
     {
-      "description": "Unrelated Header changes (avatar picker dialog integration, username editing, layout changes).",
-      "reason": "Not requested; outside DELETE ALL ROOMS scope.",
+      "description": "Image compression/upload pipeline changes (compressImage usage and shared uploadImage function) and related progress support (per summary).",
+      "reason": "Not requested; unrelated to expiring chatrooms.",
       "evidence": [
-        "frontend/src/components/Header.tsx"
+        "frontend/src/hooks/useQueries.ts",
+        "frontend-file-summaries.txt"
       ]
     },
     {
-      "description": "Unrelated MessageBubble changes (Twitter widgets loader, replies, voice message player integration, reaction UI changes).",
-      "reason": "Not requested; outside DELETE ALL ROOMS scope.",
+      "description": "Multiple UI/UX/layout changes across header/chat area/message components (branding spacing, collapsible header centering, voice message player, reactions UX, etc.) referenced in frontend-file-summaries.txt.",
+      "reason": "Not requested by the build request; beyond scope of chatroom expiry behavior.",
       "evidence": [
-        "frontend/src/components/MessageBubble.tsx"
+        "frontend-file-summaries.txt"
       ]
     },
     {
-      "description": "Unrelated PinnedVideo component changes.",
-      "reason": "Not requested; outside DELETE ALL ROOMS scope.",
+      "description": "Lobby page behavior changes (debounced search, category filters, cached-data-on-error handling) referenced in frontend-file-summaries.txt.",
+      "reason": "Not requested; the only lobby-related requirement was that the list updates normally as rooms expire.",
       "evidence": [
-        "frontend/src/components/PinnedVideo.tsx"
-      ]
-    },
-    {
-      "description": "Large set of additional query/behavior changes in useQueries (post-create guard window, transient empty result handling, other hook changes).",
-      "reason": "Not requested; outside DELETE ALL ROOMS scope.",
-      "evidence": [
-        "frontend/src/hooks/useQueries.ts: `POST_CREATE_GUARD_WINDOW`, `Transient empty result rejected`, extra logging/guard logic"
+        "frontend-file-summaries.txt"
       ]
     }
   ],
-  "confidence": 0.78,
+  "confidence": 0.66,
   "changed_files": [
     "backend/main.mo",
     "frontend-file-summaries.txt",
     "frontend/src/components/AvatarPickerDialog.tsx",
-    "frontend/src/components/ChatArea.tsx",
-    "frontend/src/components/Header.tsx",
-    "frontend/src/components/MessageBubble.tsx",
-    "frontend/src/components/PinnedVideo.tsx",
     "frontend/src/hooks/useQueries.ts",
-    "frontend/src/pages/AdminDeleteChatroomsPage.tsx",
+    "frontend/src/pages/ChatroomPage.tsx",
     "project_state.json"
   ]
 }

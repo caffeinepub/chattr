@@ -1,42 +1,40 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-15T00:07:45.268Z",
+  "generatedAt": "2026-02-15T00:41:16.000Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
     "total": 3,
-    "implemented": 2,
+    "implemented": 1,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Backend: Add a new publicly callable backend function that deletes all chatrooms and all associated data (messages, active user tracking, reactions) in one operation, with no caller/principal checks and no password checks.",
+        "summary": "Implement automatic backend cleanup so that any chatroom with createdAt older than 5 minutes is deleted, including all existing rooms present at rollout.",
         "status": "unknown",
         "plannedFiles": [],
         "matchedFiles": []
       },
       {
         "id": "REQ-2",
-        "summary": "Frontend: Add a “DELETE ALL ROOMS” button to the existing admin page (frontend/src/pages/AdminDeleteChatroomsPage.tsx) that calls the new backend delete-all-chatrooms function and refreshes the chatroom list afterward.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/pages/AdminDeleteChatroomsPage.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/pages/AdminDeleteChatroomsPage.tsx"
-        ]
+        "summary": "Ensure room expiration is enforced even if a scheduled cleanup has not run yet by filtering out expired chatrooms from read APIs (e.g., lobby/chatroom list and single chatroom fetch) and triggering cleanup during normal canister activity.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
       },
       {
         "id": "REQ-3",
-        "summary": "Frontend: Add a React Query mutation hook for the delete-all-chatrooms operation alongside existing admin mutations (e.g., in frontend/src/hooks/useQueries.ts), and use it from the admin page button.",
+        "summary": "Update the frontend to handle rooms disappearing due to expiry gracefully (no crashes; show existing not-found/removed state when a user is viewing a room that gets deleted).",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/hooks/useQueries.ts"
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/pages/ChatroomPage.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/hooks/useQueries.ts"
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/pages/ChatroomPage.tsx"
         ]
       }
     ]
@@ -50,14 +48,10 @@
     "frontend/src/backend.d.ts",
     "frontend/src/backend.ts",
     "frontend/src/components/AvatarPickerDialog.tsx",
-    "frontend/src/components/ChatArea.tsx",
-    "frontend/src/components/Header.tsx",
-    "frontend/src/components/MessageBubble.tsx",
-    "frontend/src/components/PinnedVideo.tsx",
     "frontend/src/declarations/backend.did.d.ts",
     "frontend/src/declarations/backend.did.js",
     "frontend/src/hooks/useQueries.ts",
-    "frontend/src/pages/AdminDeleteChatroomsPage.tsx",
+    "frontend/src/pages/ChatroomPage.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

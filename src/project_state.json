@@ -1,26 +1,16 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Chat app with an existing admin page; next planned update is to add a destructive admin action to delete all chat rooms via a backend function.",
+  "summary": "Implement automatic cleanup of rooms: any room older than 5 minutes should be deleted, including existing rooms at rollout.",
   "architectural_notes": [
-    "User requested next update make only the explicitly specified change (no extra modifications)."
+    "Add a background cleanup mechanism (scheduled job/worker) to delete rooms with age > 5 minutes, and ensure it runs against all existing room records."
   ],
-  "known_issues": [
-    "Planned backend delete-all-chatrooms action explicitly has no caller/principal authorization checks (high risk/destructive)."
-  ],
+  "known_issues": [],
   "isFixRequest": false,
   "existing_features": [
     {
-      "id": "feature-frontend-add-a-delete-all-rooms-button-to-the-existing-admin-page-frontend-src-pages-admindeletechatroomspage-tsx-that-calls-the-new-backend-delete-all-chatrooms-function-and-refreshes-the-chatroom-list-afterward",
-      "title": "Frontend: Add a “DELETE ALL ROOMS” button to the existing admin page (frontend/src/pages/AdminDeleteChatroomsPage.tsx) that calls the new backend delete-all-chatrooms function and refreshes the chatroom list afterward.",
-      "reqIds": [
-        "REQ-2"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-frontend-add-a-react-query-mutation-hook-for-the-delete-all-chatrooms-operation-alongside-existing-admin-mutations-e-g-in-frontend-src-hooks-usequeries-ts-and-use-it-from-the-admin-page-button",
-      "title": "Frontend: Add a React Query mutation hook for the delete-all-chatrooms operation alongside existing admin mutations (e.g., in frontend/src/hooks/useQueries.ts), and use it from the admin page button.",
+      "id": "feature-update-the-frontend-to-handle-rooms-disappearing-due-to-expiry-gracefully-no-crashes-show-existing-not-found-removed-state-when-a-user-is-viewing-a-room-that-gets-deleted",
+      "title": "Update the frontend to handle rooms disappearing due to expiry gracefully (no crashes; show existing not-found/removed state when a user is viewing a room that gets deleted).",
       "reqIds": [
         "REQ-3"
       ],
@@ -30,20 +20,29 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Add “DELETE ALL ROOMS” button on existing admin page that calls a backend function to delete all chatrooms (no caller/principal checks)",
+      "summary": "Automatically delete rooms older than 5 minutes (apply to existing rooms too)",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-2",
-      "summary": "Backend: Add a new publicly callable backend function that deletes all chatrooms and all associated data (messages, active user tracking, reactions) in one operation, with no caller/principal checks and no password checks.",
+      "summary": "Implement automatic backend cleanup so that any chatroom with createdAt older than 5 minutes is deleted, including all existing rooms present at rollout.",
       "reqIds": [
         "REQ-1"
       ],
       "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Ensure room expiration is enforced even if a scheduled cleanup has not run yet by filtering out expired chatrooms from read APIs (e.g., lobby/chatroom list and single chatroom fetch) and triggering cleanup during normal canister activity.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "status": "pending"
     }
   ],
-  "projectName": "Add DELETE ALL ROOMS admin action (frontend button + backend delete-all function)",
+  "gameProjectType": "none",
+  "projectName": "Automatically delete chatrooms older than 5 minutes (including existing rooms)",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

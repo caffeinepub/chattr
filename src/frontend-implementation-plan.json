@@ -1,38 +1,25 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Admin DELETE ALL ROOMS button wired to React Query mutation",
+  "title": "Graceful UI handling for expiring chatrooms",
   "requirements": [
     {
-      "id": "REQ-2",
-      "summary": "Add a DELETE ALL ROOMS button with confirmation to the existing admin page and refresh the chatroom list after completion.",
-      "acceptanceCriteria": [
-        "The admin page UI includes a clearly labeled button: \"DELETE ALL ROOMS\".",
-        "Clicking the button triggers a confirmation dialog before executing the delete-all action.",
-        "On confirm, the frontend calls the backend delete-all-chatrooms method, then invalidates/refetches the chatroom list query so the table updates to show no chatrooms.",
-        "A success toast/message is shown when the operation completes; an error toast/message is shown if the operation fails."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/AdminDeleteChatroomsPage.tsx",
-          "operation": "modify",
-          "description": "Add a new \"DELETE ALL ROOMS\" destructive action button within the existing admin UI (no new routes/pages). Use the existing AlertDialog component for a confirmation flow, call the new React Query mutation hook (from useQueries) on confirm, show loading/disabled state while the mutation is in-flight, and rely on the mutation's success/error handling (toast) plus query invalidation so the chatroom table refreshes to empty."
-        }
-      ]
-    },
-    {
       "id": "REQ-3",
-      "summary": "Add a React Query mutation hook for delete-all-chatrooms that calls the backend via the existing actor and invalidates chatroom list queries.",
+      "summary": "Make the UI resilient to chatrooms disappearing due to backend expiry, showing the existing “Chat Not Found” state and keeping the Lobby list fresh as rooms expire.",
       "acceptanceCriteria": [
-        "A new hook exists that calls the backend delete-all-chatrooms method via the existing actor.",
-        "On success, the hook invalidates the ['chatrooms'] query key (and any other directly related chatroom list query keys used by the app, if applicable).",
-        "The admin page uses this hook for the \"DELETE ALL ROOMS\" button action (no direct actor calls inside the page other than via the hook)."
+        "If a user is on a chatroom page and the backend returns null (room expired/removed), the UI shows the existing “Chat Not Found” state with a way back to the Lobby.",
+        "The Lobby list updates normally as rooms expire (rooms disappear on the next refresh interval) without requiring a manual page reload."
       ],
       "file_operations": [
         {
           "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Add a new React Query mutation hook (e.g., useDeleteAllChatrooms) that calls actor.deleteAllChatrooms() through the existing useActor hook. On success, invalidate the base ['chatrooms'] query and also invalidate related list variants used by the app (e.g., any queries whose keys start with ['chatrooms', ...] such as search/category) so all lobby/admin chatroom lists refetch. Provide success and error toast messages (English) consistent with existing mutation patterns, and export the hook for use by AdminDeleteChatroomsPage."
+          "description": "Ensure lobby data stays current as rooms expire by adding periodic refetching to any lobby-related queries that can be active (e.g., search and category-filter queries) so expired rooms disappear without a manual reload, matching the existing refresh behavior of the base chatroom list."
+        },
+        {
+          "path": "frontend/src/pages/ChatroomPage.tsx",
+          "operation": "modify",
+          "description": "Harden the expired-room flow by ensuring the existing “Chat Not Found” state is shown whenever the chatroom query refetch returns null after previously being present (no crashes, and keep the “Back to Lobby” navigation intact)."
         }
       ]
     }

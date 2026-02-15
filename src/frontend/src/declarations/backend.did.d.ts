@@ -130,7 +130,6 @@ export interface _SERVICE {
     [string, string, string, string, string],
     bigint
   >,
-  'deleteAllChatrooms' : ActorMethod<[], undefined>,
   'deleteChatroomWithPassword' : ActorMethod<[bigint, string], undefined>,
   'fetchTwitchThumbnail' : ActorMethod<[string], string>,
   'fetchTwitterOEmbed' : ActorMethod<[string], string>,
@@ -173,7 +172,7 @@ export interface _SERVICE {
       string,
       [] | [bigint],
     ],
-    undefined
+    bigint
   >,
   'transform' : ActorMethod<[TransformationInput], TransformationOutput>,
   'unpinVideo' : ActorMethod<[bigint], undefined>,

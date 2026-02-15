@@ -2,31 +2,11 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-frontend-add-a-delete-all-rooms-button-to-the-existing-admin-page-frontend-src-pages-admindeletechatroomspage-tsx-that-calls-the-new-backend-delete-all-chatrooms-function-and-refreshes-the-chatroom-list-afterward",
-      "featureTitle": "Frontend: Add a “DELETE ALL ROOMS” button to the existing admin page (frontend/src/pages/AdminDeleteChatroomsPage.tsx) that calls the new backend delete-all-chatrooms function and refreshes the chatroom list afterward.",
+      "featureId": "feature-update-the-frontend-to-handle-rooms-disappearing-due-to-expiry-gracefully-no-crashes-show-existing-not-found-removed-state-when-a-user-is-viewing-a-room-that-gets-deleted",
+      "featureTitle": "Update the frontend to handle rooms disappearing due to expiry gracefully (no crashes; show existing not-found/removed state when a user is viewing a room that gets deleted).",
       "files": [
-        "frontend/src/pages/AdminDeleteChatroomsPage.tsx"
-      ],
-      "components": [
-        "authorization@1.0.1",
-        "blob-storage@2.0.3",
-        "http-outcalls@1.1.1",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-2"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-frontend-add-a-react-query-mutation-hook-for-the-delete-all-chatrooms-operation-alongside-existing-admin-mutations-e-g-in-frontend-src-hooks-usequeries-ts-and-use-it-from-the-admin-page-button",
-      "featureTitle": "Frontend: Add a React Query mutation hook for the delete-all-chatrooms operation alongside existing admin mutations (e.g., in frontend/src/hooks/useQueries.ts), and use it from the admin page button.",
-      "files": [
-        "frontend/src/hooks/useQueries.ts"
+        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/pages/ChatroomPage.tsx"
       ],
       "components": [
         "authorization@1.0.1",
