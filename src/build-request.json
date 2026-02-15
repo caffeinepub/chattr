@@ -1,65 +1,76 @@
 {
   "kind": "build_request",
-  "title": "Normalize chatroom React Query keys for empty search/category filters",
-  "priority": "normal",
+  "title": "Fix lobby so unfiltered chatroom list loads automatically on first page load",
+  "priority": "high",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Normalize chatroom React Query caching so that when the search term is empty/whitespace or the category is empty/whitespace, the corresponding hooks use the base chatroom query key ['chatrooms'] (and not ['chatrooms','search',''] or ['chatrooms','category','']). This ensures the Lobby cannot display a stale empty list due to alternate empty-filter cache keys.",
+      "text": "Ensure the Lobby page always triggers the initial unfiltered chatroom fetch (React Query key ['chatrooms']) automatically on first page load once the backend actor becomes available, without requiring the user to click/tap a category filter.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-10"
+          "user-ok-fix-it",
+          "user-go"
         ],
         "quotes": [
-          "ok do it"
+          "Ok fix it",
+          "Go"
         ]
       },
       "acceptanceCriteria": [
-        "When useSearchChatrooms is called with an empty or whitespace-only string, it uses queryKey ['chatrooms'] and fetches the same data as the base chatroom list.",
-        "When useFilterChatroomsByCategory is called with an empty or whitespace-only string, it uses queryKey ['chatrooms'] and fetches the same data as the base chatroom list.",
-        "With no active filters (empty search and no selected category), the Lobby displays the same chatroom list regardless of whether the user previously typed and cleared a search or toggled category filters.",
-        "The transient empty-result guard (post-create window) reads previousData from the same queryKey that the hook is currently using (i.e., ['chatrooms'] in the empty-filter case)."
+        "On a cold load of the live site Lobby, chatrooms render automatically (when they exist) without the user interacting with category badges.",
+        "The unfiltered query for ['chatrooms'] executes after actor initialization, even if prior cached data for chatrooms is empty/stale.",
+        "Clicking category filters still works and does not become the only way to populate the lobby list."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Update all chatroom list cache invalidations to refresh every chatroom-related query (base, search, and category variants) by invalidating the full ['chatrooms'] query key namespace (i.e., not only the exact ['chatrooms'] key).",
+      "text": "Prevent React Query from serving stale/incorrect empty results caused by empty/whitespace search/category variants by ensuring that empty search/category states resolve to the canonical ['chatrooms'] cache key and that any legacy empty-filter cache entries are removed/ignored before rendering the lobby list.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-10"
+          "user-live-site-issue"
         ],
         "quotes": [
-          "ok do it"
+          "On the live site, it only shows the rooms if I click or tap on a category tag to filter them. Why is that?"
         ]
       },
       "acceptanceCriteria": [
-        "After creating or deleting a chatroom, both the base chatroom list and any active search/category results refetch to reflect the latest backend state.",
-        "After sending a message (which currently invalidates ['chatrooms']), any active chatroom list views (including search/category variants) refresh consistently."
+        "No queries remain cached under keys shaped like ['chatrooms','search',''] or ['chatrooms','category',''] (including whitespace-only equivalents) after the actor becomes ready.",
+        "When searchTerm and selectedCategory are empty/whitespace, the Lobby displays data from the canonical ['chatrooms'] query and not from any variant key.",
+        "After clearing filters, the Lobby returns to showing the unfiltered list without requiring a manual refresh."
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Harden Lobby loading/error rendering so the page cannot get stuck showing the loading spinner indefinitely; when fetching fails, the user must see a clear error state with a working Retry action that triggers the correct refetch for the currently active (unfiltered/search/category) query.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "user-live-site-issue"
+        ],
+        "quotes": [
+          "On the live site, it only shows the rooms if I click or tap on a category tag to filter them. Why is that?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "If the initial fetch fails, the Lobby shows an error state (not an infinite spinner) and the Retry button successfully re-attempts the appropriate fetch.",
+        "If cached chatrooms exist and a background refresh fails, the Lobby continues to show the cached list and displays a non-blocking refresh error message.",
+        "Loading UI only appears when a fetch is actually in-flight and there is no data to display yet (i.e., no permanent 'Loading chats...' state)."
       ]
     }
   ],
   "constraints": [
-    "Do not edit files under frontend/src/components/ui (compose them only).",
-    "Do not edit immutable hook entry files listed in SYSTEM_CONTEXT (frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx)."
+    "Do not edit files under frontend/immutablePaths (including frontend/src/hooks/useActor.ts and frontend/src/hooks/useInternetIdentity.ts(x)).",
+    "Keep all changes within the existing React + TypeScript + React Query architecture.",
+    "Do not introduce new backend canisters or external services."
   ],
   "nonGoals": [
-    "No backend (Motoko) changes.",
-    "No UI redesign or new Lobby features beyond fixing the React Query caching behavior."
+    "No backend/Motoko behavior changes to chatroom retrieval are required for this fix.",
+    "No new product features (e.g., new filters, sorting modes, or auth changes) beyond ensuring initial lobby load works reliably."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
-  },
-  "userProfileUpdate": {
-    "goalsToAdd": [],
-    "goalsToRemove": [],
-    "preferencesToAdd": [],
-    "preferencesToRemove": [],
-    "miscToAdd": [],
-    "miscToRemove": [],
-    "fieldsToSet": {},
-    "fieldsToDelete": []
   }
 }

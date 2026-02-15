@@ -48,24 +48,51 @@ export default function LobbyPage() {
   }, [searchTerm]);
 
   // Use appropriate query based on filters
-  const { data: allChatrooms, isLoading: allLoading, error: allError, isError: isAllError } = useGetChatrooms();
-  const { data: searchResults, isLoading: searchLoading, isError: isSearchError } = useSearchChatrooms(debouncedSearchTerm);
-  const { data: categoryResults, isLoading: categoryLoading, isError: isCategoryError } = useFilterChatroomsByCategory(selectedCategory);
+  const { 
+    data: allChatrooms, 
+    isLoading: allLoading, 
+    isFetching: allFetching,
+    error: allError, 
+    isError: isAllError, 
+    refetch: refetchAll 
+  } = useGetChatrooms();
+  
+  const { 
+    data: searchResults, 
+    isLoading: searchLoading, 
+    isFetching: searchFetching,
+    isError: isSearchError, 
+    refetch: refetchSearch 
+  } = useSearchChatrooms(debouncedSearchTerm);
+  
+  const { 
+    data: categoryResults, 
+    isLoading: categoryLoading, 
+    isFetching: categoryFetching,
+    isError: isCategoryError, 
+    refetch: refetchCategory 
+  } = useFilterChatroomsByCategory(selectedCategory);
 
   // Determine which data to display (with trim checks for consistency)
   let chatrooms = allChatrooms;
   let isLoading = allLoading;
+  let isFetching = allFetching;
   let error = allError;
   let isError = isAllError;
+  let refetch = refetchAll;
 
   if (debouncedSearchTerm.trim()) {
     chatrooms = searchResults;
     isLoading = searchLoading;
+    isFetching = searchFetching;
     isError = isSearchError;
+    refetch = refetchSearch;
   } else if (selectedCategory.trim()) {
     chatrooms = categoryResults;
     isLoading = categoryLoading;
+    isFetching = categoryFetching;
     isError = isCategoryError;
+    refetch = refetchCategory;
   }
 
   const handleChatroomClick = (chatroomId: bigint) => {
@@ -94,7 +121,12 @@ export default function LobbyPage() {
 
   const hasActiveFilters = searchTerm.trim() || selectedCategory.trim();
 
-  if (actorFetching || isLoading) {
+  // Show loading only when:
+  // 1. Actor is still connecting, OR
+  // 2. Initial data load (isLoading) AND we have no data yet AND not just background refetching
+  const showLoading = actorFetching || (isLoading && !chatrooms && !isFetching);
+
+  if (showLoading) {
     return (
       <div className="flex h-full items-center justify-center">
         <div className="text-center">
@@ -107,15 +139,24 @@ export default function LobbyPage() {
     );
   }
 
-  if (isError && !actor && !chatrooms) {
+  // Show error only if actor is available but we have an error and no cached data
+  if (isError && actor && !chatrooms) {
     return (
       <div className="flex h-full items-center justify-center p-4">
         <Alert variant="destructive" className="max-w-md">
           <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Connection Error</AlertTitle>
+          <AlertTitle>Failed to Load Chats</AlertTitle>
           <AlertDescription>
-            Failed to connect to the backend. Please refresh the page to try again.
+            There was a problem loading the chat list. Please try again.
             {error && <div className="mt-2 text-xs">{String(error)}</div>}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => refetch()}
+              className="mt-3"
+            >
+              Retry
+            </Button>
           </AlertDescription>
         </Alert>
       </div>
@@ -184,6 +225,7 @@ export default function LobbyPage() {
           </div>
         </div>
 
+        {/* Show error alert if we have cached data but background refresh failed */}
         {isError && chatrooms && chatrooms.length > 0 && (
           <Alert variant="destructive" className="mb-4">
             <AlertCircle className="h-4 w-4" />

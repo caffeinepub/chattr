@@ -91,6 +91,7 @@ export function useGetChatrooms() {
       return chatrooms.sort((a, b) => Number(b.createdAt - a.createdAt));
     },
     enabled: !!actor && !actorFetching,
+    refetchOnMount: 'always', // Always refetch on mount to ensure fresh data
     refetchInterval: 5000,
     retry: (failureCount, error) => {
       // Don't retry transient empty result errors
@@ -111,6 +112,9 @@ export function useSearchChatrooms(searchTerm: string) {
   const trimmedSearchTerm = searchTerm.trim();
   const queryKey = normalizeChatroomQueryKey('search', searchTerm);
 
+  // If search term is empty, don't execute this query - let the base query handle it
+  const shouldExecute = !!trimmedSearchTerm;
+
   return useQuery<ChatroomWithLiveStatus[]>({
     queryKey,
     queryFn: async () => {
@@ -119,13 +123,13 @@ export function useSearchChatrooms(searchTerm: string) {
         throw new Error('Actor not available');
       }
       
-      let chatrooms: ChatroomWithLiveStatus[];
-      
+      // This should never be called with empty search term due to enabled condition
       if (!trimmedSearchTerm) {
-        chatrooms = await actor.getChatrooms();
-      } else {
-        chatrooms = await actor.searchChatrooms(trimmedSearchTerm);
+        console.warn('[useSearchChatrooms] Called with empty search term, returning empty array');
+        return [];
       }
+      
+      const chatrooms = await actor.searchChatrooms(trimmedSearchTerm);
       
       // Guard against transient empty results during post-create window
       if (chatrooms.length === 0 && isInPostCreateWindow()) {
@@ -138,7 +142,7 @@ export function useSearchChatrooms(searchTerm: string) {
       
       return chatrooms.sort((a, b) => Number(b.createdAt - a.createdAt));
     },
-    enabled: !!actor && !actorFetching,
+    enabled: !!actor && !actorFetching && shouldExecute,
     retry: (failureCount, error) => {
       if (error.message === 'Transient empty result rejected') {
         return false;
@@ -157,6 +161,9 @@ export function useFilterChatroomsByCategory(category: string) {
   const trimmedCategory = category.trim();
   const queryKey = normalizeChatroomQueryKey('category', category);
 
+  // If category is empty, don't execute this query - let the base query handle it
+  const shouldExecute = !!trimmedCategory;
+
   return useQuery<ChatroomWithLiveStatus[]>({
     queryKey,
     queryFn: async () => {
@@ -165,13 +172,13 @@ export function useFilterChatroomsByCategory(category: string) {
         throw new Error('Actor not available');
       }
       
-      let chatrooms: ChatroomWithLiveStatus[];
-      
+      // This should never be called with empty category due to enabled condition
       if (!trimmedCategory) {
-        chatrooms = await actor.getChatrooms();
-      } else {
-        chatrooms = await actor.filterChatroomsByCategory(trimmedCategory);
+        console.warn('[useFilterChatroomsByCategory] Called with empty category, returning empty array');
+        return [];
       }
+      
+      const chatrooms = await actor.filterChatroomsByCategory(trimmedCategory);
       
       // Guard against transient empty results during post-create window
       if (chatrooms.length === 0 && isInPostCreateWindow()) {
@@ -184,7 +191,7 @@ export function useFilterChatroomsByCategory(category: string) {
       
       return chatrooms.sort((a, b) => Number(b.createdAt - a.createdAt));
     },
-    enabled: !!actor && !actorFetching,
+    enabled: !!actor && !actorFetching && shouldExecute,
     retry: (failureCount, error) => {
       if (error.message === 'Transient empty result rejected') {
         return false;
@@ -506,174 +513,7 @@ export function useUnpinVideo() {
   });
 }
 
-// Helper hooks for current user data from localStorage
-export function useGetCurrentUsername() {
-  return useQuery<string>({
-    queryKey: ['currentUsername'],
-    queryFn: () => getUsername(),
-    staleTime: Infinity, // Username doesn't change unless explicitly updated
-  });
-}
-
-export function useGetCurrentAvatar() {
-  return useQuery<string | null>({
-    queryKey: ['currentAvatar'],
-    queryFn: () => getAvatarUrl(),
-    staleTime: Infinity, // Avatar doesn't change unless explicitly updated
-  });
-}
-
-// Username management with retroactive backend updates
-export function useUpdateUsername() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (newUsername: string) => {
-      if (!newUsername.trim()) {
-        throw new Error('Username cannot be empty');
-      }
-      if (!actor) throw new Error('Actor not available');
-      
-      const userId = getUserId();
-      const oldUsername = getUsername();
-      
-      // Update username in localStorage
-      localStorage.setItem('chatUsername', newUsername.trim());
-      
-      // Get current profile from backend or create new one
-      const currentProfile = await actor.getCallerUserProfile();
-      const avatarUrl = getAvatarUrl();
-      
-      // Save updated profile to backend
-      const updatedProfile: UserProfile = {
-        name: newUsername.trim(),
-        anonId: userId,
-        avatarUrl: avatarUrl || undefined,
-        presetAvatar: currentProfile?.presetAvatar || undefined,
-      };
-      
-      await actor.saveCallerUserProfile(updatedProfile);
-      
-      // Update all existing messages with the new username
-      await actor.updateUsernameRetroactively(userId, newUsername.trim());
-      
-      return { oldUsername, newUsername: newUsername.trim() };
-    },
-    onSuccess: () => {
-      // Invalidate all message queries to show updated usernames
-      queryClient.invalidateQueries({ queryKey: ['messages'] });
-      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
-      queryClient.invalidateQueries({ queryKey: ['currentUsername'] });
-      toast.success('Username updated');
-    },
-    onError: (error: Error) => {
-      toast.error(error.message || 'Failed to update username');
-    },
-  });
-}
-
-// Avatar management with retroactive backend updates
-export function useUpdateAvatar() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (params: { avatarUrl: string | null; isPreset?: boolean }) => {
-      if (!actor) throw new Error('Actor not available');
-      
-      const userId = getUserId();
-      const username = getUsername();
-      
-      // Update avatar in localStorage
-      if (params.avatarUrl) {
-        localStorage.setItem('chatAvatarUrl', params.avatarUrl);
-      } else {
-        localStorage.removeItem('chatAvatarUrl');
-      }
-      
-      // Get current profile from backend or create new one
-      const currentProfile = await actor.getCallerUserProfile();
-      
-      // Save updated profile to backend
-      const updatedProfile: UserProfile = {
-        name: username,
-        anonId: userId,
-        avatarUrl: params.avatarUrl || undefined,
-        presetAvatar: params.isPreset ? params.avatarUrl || undefined : undefined,
-      };
-      
-      await actor.saveCallerUserProfile(updatedProfile);
-      
-      // Update all existing messages with the new avatar
-      await actor.updateAvatarRetroactively(userId, params.avatarUrl);
-      
-      return params.avatarUrl;
-    },
-    onSuccess: () => {
-      // Invalidate all message queries to show updated avatars
-      queryClient.invalidateQueries({ queryKey: ['messages'] });
-      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
-      queryClient.invalidateQueries({ queryKey: ['currentAvatar'] });
-      toast.success('Avatar updated');
-    },
-    onError: (error: Error) => {
-      toast.error(error.message || 'Failed to update avatar');
-    },
-  });
-}
-
-// User profile queries
-export function useGetCallerUserProfile() {
-  const { actor, isFetching: actorFetching } = useActor();
-
-  const query = useQuery<UserProfile | null>({
-    queryKey: ['currentUserProfile'],
-    queryFn: async () => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.getCallerUserProfile();
-    },
-    enabled: !!actor && !actorFetching,
-    retry: false,
-  });
-
-  // Return custom state that properly reflects actor dependency
-  return {
-    ...query,
-    isLoading: actorFetching || query.isLoading,
-    isFetched: !!actor && query.isFetched,
-  };
-}
-
-export function useSaveCallerUserProfile() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (profile: UserProfile) => {
-      if (!actor) throw new Error('Actor not available');
-      
-      // Update localStorage
-      localStorage.setItem('chatUsername', profile.name);
-      if (profile.avatarUrl) {
-        localStorage.setItem('chatAvatarUrl', profile.avatarUrl);
-      }
-      
-      await actor.saveCallerUserProfile(profile);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
-      queryClient.invalidateQueries({ queryKey: ['currentUsername'] });
-      queryClient.invalidateQueries({ queryKey: ['currentAvatar'] });
-      toast.success('Profile saved');
-    },
-    onError: (error: Error) => {
-      toast.error(error.message || 'Failed to save profile');
-    },
-  });
-}
-
-// Reaction mutations
+// Reactions
 export function useAddReaction() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
@@ -714,17 +554,75 @@ export function useRemoveReaction() {
   });
 }
 
-// Reply preview query
-export function useGetReplyPreview(chatroomId: bigint, messageId: bigint | null) {
-  const { actor, isFetching: actorFetching } = useActor();
+// Username and avatar management
+export function useGetCurrentUsername() {
+  return useQuery<string>({
+    queryKey: ['currentUsername'],
+    queryFn: () => getUsername(),
+    staleTime: Infinity,
+  });
+}
 
-  return useQuery({
-    queryKey: ['replyPreview', chatroomId.toString(), messageId?.toString()],
-    queryFn: async () => {
-      if (!actor || !messageId) return null;
-      return actor.getReplyPreview(chatroomId, messageId);
+export function useGetCurrentAvatar() {
+  return useQuery<string | null>({
+    queryKey: ['currentAvatar'],
+    queryFn: () => getAvatarUrl(),
+    staleTime: Infinity,
+  });
+}
+
+export function useUpdateUsername() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (newUsername: string) => {
+      if (!actor) throw new Error('Actor not available');
+      const userId = getUserId();
+      
+      localStorage.setItem('chatUsername', newUsername);
+      
+      await actor.updateUsernameRetroactively(userId, newUsername);
+      
+      return newUsername;
     },
-    enabled: !!actor && !actorFetching && !!messageId,
-    staleTime: 60000, // Cache for 1 minute
+    onSuccess: (newUsername) => {
+      queryClient.setQueryData(['currentUsername'], newUsername);
+      queryClient.invalidateQueries({ queryKey: ['messages'], exact: false });
+      toast.success('Username updated');
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'Failed to update username');
+    },
+  });
+}
+
+export function useUpdateAvatar() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (newAvatarUrl: string | null) => {
+      if (!actor) throw new Error('Actor not available');
+      const userId = getUserId();
+      
+      if (newAvatarUrl) {
+        localStorage.setItem('chatAvatarUrl', newAvatarUrl);
+      } else {
+        localStorage.removeItem('chatAvatarUrl');
+      }
+      
+      await actor.updateAvatarRetroactively(userId, newAvatarUrl);
+      
+      return newAvatarUrl;
+    },
+    onSuccess: (newAvatarUrl) => {
+      queryClient.setQueryData(['currentAvatar'], newAvatarUrl);
+      queryClient.invalidateQueries({ queryKey: ['messages'], exact: false });
+      toast.success('Avatar updated');
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'Failed to update avatar');
+    },
   });
 }

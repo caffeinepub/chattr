@@ -1,13 +1,14 @@
 import { useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
-import type { ChatroomWithLiveStatus } from '../backend';
 
 /**
  * Force a one-time guaranteed fresh refetch of the chatroom list when the actor becomes ready.
  * 
- * This bypasses any stale cached data (including empty arrays) by performing a single
- * forced fetch after actor initialization, ensuring old chatrooms always load correctly.
+ * This ensures the lobby always loads on first page load by:
+ * 1. Removing legacy/incorrect empty-filter cache entries
+ * 2. Invalidating the canonical ['chatrooms'] query to force a fresh fetch
+ * 3. Resetting on actor instance changes
  */
 export function useForceFreshChatroomsOnActorReady() {
   const { actor, isFetching: actorFetching } = useActor();
@@ -32,25 +33,46 @@ export function useForceFreshChatroomsOnActorReady() {
       return;
     }
 
-    console.log('[useForceFreshChatroomsOnActorReady] Actor ready, performing one-time guaranteed fresh fetch...');
+    console.log('[useForceFreshChatroomsOnActorReady] Actor ready, cleaning legacy cache entries and forcing fresh fetch...');
     
-    // Perform a single guaranteed fresh fetch by fetching directly and updating the cache
-    // This bypasses any stale cached data (including empty arrays)
-    actor.getChatrooms()
-      .then((chatrooms) => {
-        console.log('[useForceFreshChatroomsOnActorReady] Fresh fetch complete, received', chatrooms.length, 'chatrooms');
-        
-        // Sort by creation date (newest first)
-        const sortedChatrooms = chatrooms.sort((a, b) => Number(b.createdAt - a.createdAt));
-        
-        // Update the cache with fresh data
-        queryClient.setQueryData<ChatroomWithLiveStatus[]>(['chatrooms'], sortedChatrooms);
-        
-        hasTriggeredRefetch.current = true;
-      })
-      .catch((error) => {
-        console.error('[useForceFreshChatroomsOnActorReady] Fresh fetch failed:', error);
-        // Don't mark as triggered so we can retry on next render
-      });
+    // Step 1: Remove legacy/incorrect empty-filter cache entries
+    // These are keys like ['chatrooms','search',''] or ['chatrooms','category',''] with empty/whitespace values
+    const queryCache = queryClient.getQueryCache();
+    const allQueries = queryCache.getAll();
+    
+    let removedCount = 0;
+    allQueries.forEach((query) => {
+      const key = query.queryKey;
+      
+      // Check if this is a chatroom query with empty/whitespace filter
+      if (
+        Array.isArray(key) &&
+        key.length === 3 &&
+        key[0] === 'chatrooms' &&
+        (key[1] === 'search' || key[1] === 'category') &&
+        typeof key[2] === 'string' &&
+        key[2].trim() === ''
+      ) {
+        console.log('[useForceFreshChatroomsOnActorReady] Removing legacy empty-filter cache entry:', key);
+        queryClient.removeQueries({ queryKey: key, exact: true });
+        removedCount++;
+      }
+    });
+    
+    if (removedCount > 0) {
+      console.log('[useForceFreshChatroomsOnActorReady] Removed', removedCount, 'legacy cache entries');
+    }
+    
+    // Step 2: Invalidate the canonical ['chatrooms'] query to force a fresh fetch
+    // This ensures the query will refetch even if there's stale cached data
+    console.log('[useForceFreshChatroomsOnActorReady] Invalidating canonical chatrooms query to force fresh fetch');
+    queryClient.invalidateQueries({ 
+      queryKey: ['chatrooms'], 
+      exact: true,
+      refetchType: 'active' // Only refetch if the query is currently being observed
+    });
+    
+    hasTriggeredRefetch.current = true;
+    console.log('[useForceFreshChatroomsOnActorReady] Invalidation complete, query will refetch');
   }, [actor, actorFetching, queryClient]);
 }

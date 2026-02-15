@@ -3,26 +3,34 @@
   "projectStateVersion": 3,
   "summary": "New project",
   "architectural_notes": [
-    "Decision: Use a single base React Query key ['chatrooms'] for the lobby list; empty search/category states must reuse the base key instead of separate empty-filter keys."
+    "Current issue likely caused by initial getChatrooms query being disabled/skipped on first load due to actor-ready timing; category-filter query runs and populates rooms only after user interaction."
   ],
   "known_issues": [
-    "Bug: Lobby can display stale empty chatroom lists due to separate React Query cache keys for empty search/category (e.g., ['chatrooms','search',''], ['chatrooms','category',''])."
+    "Live site: chatrooms list does not load on initial page load; rooms only appear after clicking/tapping a category tag to trigger category filter query."
   ],
   "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-normalize-chatroom-react-query-caching-so-that-when-the-search-term-is-empty-whitespace-or-the-category-is-empty-whitespace-the-corresponding-hooks-use-the-base-chatroom-query-key-chatrooms-and-not-chatrooms-search-or-chatrooms-category-this-ensures-the-lobby-cannot-display-a-stale-empty-list-due-to-alternate-empty-filter-cache-keys",
-      "title": "Normalize chatroom React Query caching so that when the search term is empty/whitespace or the category is empty/whitespace, the corresponding hooks use the base chatroom query key ['chatrooms'] (and not ['chatrooms','search',''] or ['chatrooms','category','']). This ensures the Lobby cannot display a stale empty list due to alternate empty-filter cache keys.",
+      "id": "feature-ensure-the-lobby-page-always-triggers-the-initial-unfiltered-chatroom-fetch-react-query-key-chatrooms-automatically-on-first-page-load-once-the-backend-actor-becomes-available-without-requiring-the-user-to-click-tap-a-category-filter",
+      "title": "Ensure the Lobby page always triggers the initial unfiltered chatroom fetch (React Query key ['chatrooms']) automatically on first page load once the backend actor becomes available, without requiring the user to click/tap a category filter.",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-update-all-chatroom-list-cache-invalidations-to-refresh-every-chatroom-related-query-base-search-and-category-variants-by-invalidating-the-full-chatrooms-query-key-namespace-i-e-not-only-the-exact-chatrooms-key",
-      "title": "Update all chatroom list cache invalidations to refresh every chatroom-related query (base, search, and category variants) by invalidating the full ['chatrooms'] query key namespace (i.e., not only the exact ['chatrooms'] key).",
+      "id": "feature-prevent-react-query-from-serving-stale-incorrect-empty-results-caused-by-empty-whitespace-search-category-variants-by-ensuring-that-empty-search-category-states-resolve-to-the-canonical-chatrooms-cache-key-and-that-any-legacy-empty-filter-cache-entries-are-removed-ignored-before-rendering-the-lobby-list",
+      "title": "Prevent React Query from serving stale/incorrect empty results caused by empty/whitespace search/category variants by ensuring that empty search/category states resolve to the canonical ['chatrooms'] cache key and that any legacy empty-filter cache entries are removed/ignored before rendering the lobby list.",
       "reqIds": [
         "REQ-2"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-harden-lobby-loading-error-rendering-so-the-page-cannot-get-stuck-showing-the-loading-spinner-indefinitely-when-fetching-fails-the-user-must-see-a-clear-error-state-with-a-working-retry-action-that-triggers-the-correct-refetch-for-the-currently-active-unfiltered-search-category-query",
+      "title": "Harden Lobby loading/error rendering so the page cannot get stuck showing the loading spinner indefinitely; when fetching fails, the user must see a clear error state with a working Retry action that triggers the correct refetch for the currently active (unfiltered/search/category) query.",
+      "reqIds": [
+        "REQ-3"
       ],
       "version": 1
     }
@@ -30,12 +38,12 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Normalize chatrooms React Query keys so empty search/category filters fall back to the base ['chatrooms'] cache (prevents stale empty lists)",
+      "summary": "Fix lobby so initial unfiltered chatroom list loads automatically on first page load (no need to click category filter)",
       "reqIds": [],
-      "status": "pending"
+      "status": "in_progress"
     }
   ],
-  "projectName": "Normalize chatroom React Query keys for empty search/category filters",
+  "projectName": "Fix lobby so unfiltered chatroom list loads automatically on first page load",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

@@ -1,42 +1,78 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Normalize chatroom React Query keys and invalidate full chatrooms namespace",
+  "title": "Lobby initial chatroom load reliability (React Query canonicalization + robust loading/error states)",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Normalize chatroom list React Query keys so empty/whitespace search/category reuse the base ['chatrooms'] cache key and the transient empty-result guard reads previousData from the active key.",
+      "summary": "Guarantee the Lobby triggers an initial unfiltered chatroom fetch (canonical key ['chatrooms']) after actor readiness on first page load.",
       "acceptanceCriteria": [
-        "When useSearchChatrooms is called with an empty or whitespace-only string, it uses queryKey ['chatrooms'] and fetches the same data as the base chatroom list.",
-        "When useFilterChatroomsByCategory is called with an empty or whitespace-only string, it uses queryKey ['chatrooms'] and fetches the same data as the base chatroom list.",
-        "With no active filters (empty search and no selected category), the Lobby displays the same chatroom list regardless of whether the user previously typed and cleared a search or toggled category filters.",
-        "The transient empty-result guard (post-create window) reads previousData from the same queryKey that the hook is currently using (i.e., ['chatrooms'] in the empty-filter case)."
+        "On a cold load of the live site Lobby, chatrooms render automatically (when they exist) without the user interacting with category badges.",
+        "The unfiltered query for ['chatrooms'] executes after actor initialization, even if prior cached data for chatrooms is empty/stale.",
+        "Clicking category filters still works and does not become the only way to populate the lobby list."
       ],
       "file_operations": [
         {
+          "path": "frontend/src/hooks/useForceFreshChatroomsOnActorReady.ts",
+          "operation": "modify",
+          "description": "Adjust the actor-ready effect to explicitly trigger a canonical ['chatrooms'] refetch/invalidation once the actor is available (in addition to updating cache), ensuring the React Query query function actually runs on first load even when an empty array was previously cached."
+        },
+        {
           "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Introduce a small query-key normalization helper for chatroom list queries (base/search/category) that trims inputs and returns the base key ['chatrooms'] when the search term or category is empty/whitespace. Update useSearchChatrooms and useFilterChatroomsByCategory to use the normalized key (and trimmed values for non-empty variants), and update the post-create transient-empty guard to read previousData using the exact same normalized queryKey used by the hook."
+          "description": "Update the base chatrooms query configuration to more reliably refetch after mount/actor readiness (e.g., ensure the canonical ['chatrooms'] query refetches on mount when enabled and does not get 'stuck' showing an empty cached result without attempting a network refresh)."
         },
         {
           "path": "frontend/src/pages/LobbyPage.tsx",
           "operation": "modify",
-          "description": "Ensure the Lobby's filter-selection logic treats whitespace-only values as empty (use .trim() checks) so it consistently selects the base list when filters are effectively cleared, aligning view selection behavior with the normalized React Query keys."
+          "description": "Ensure Lobby always mounts and observes the canonical unfiltered chatroom query as the default data source, and that actor readiness transitions reliably lead to the unfiltered list populating without requiring any category interaction."
         }
       ]
     },
     {
       "id": "REQ-2",
-      "summary": "Refresh all chatroom-related caches by invalidating the full ['chatrooms'] query key namespace after mutations (create/delete/message/etc.).",
+      "summary": "Canonicalize empty/whitespace search/category states to the base ['chatrooms'] key and remove/ignore any legacy empty-filter cache entries before rendering the Lobby list.",
       "acceptanceCriteria": [
-        "After creating or deleting a chatroom, both the base chatroom list and any active search/category results refetch to reflect the latest backend state.",
-        "After sending a message (which currently invalidates ['chatrooms']), any active chatroom list views (including search/category variants) refresh consistently."
+        "No queries remain cached under keys shaped like ['chatrooms','search',''] or ['chatrooms','category',''] (including whitespace-only equivalents) after the actor becomes ready.",
+        "When searchTerm and selectedCategory are empty/whitespace, the Lobby displays data from the canonical ['chatrooms'] query and not from any variant key.",
+        "After clearing filters, the Lobby returns to showing the unfiltered list without requiring a manual refresh."
       ],
       "file_operations": [
         {
+          "path": "frontend/src/hooks/useForceFreshChatroomsOnActorReady.ts",
+          "operation": "modify",
+          "description": "Expand and harden legacy cache cleanup to remove any empty/whitespace chatroom variant keys (including older shapes), and ensure cleanup runs before the actor-ready forced refresh/refetch so stale empty variants cannot win the render."
+        },
+        {
           "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Update all chatroom-list invalidations (e.g., after createChatroom, deleteChatroom, sendMessage, incrementViewCount) to invalidate the entire ['chatrooms'] namespace (non-exact match) so base/search/category variants refetch together. Keep invalidations for other non-chatrooms keys unchanged."
+          "description": "Ensure query-key normalization is consistently applied so empty/whitespace search/category never produces variant cache keys (and cannot return empty arrays for the Lobby); keep variant queries disabled when trimmed input is empty so canonical ['chatrooms'] is the sole source of truth."
+        },
+        {
+          "path": "frontend/src/pages/LobbyPage.tsx",
+          "operation": "modify",
+          "description": "Pass only trimmed/canonical filter inputs into the search/category hooks (and normalize category selection/clearing) so that empty/whitespace UI state always resolves to the base ['chatrooms'] query and clearing filters reliably restores the unfiltered list."
+        }
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "summary": "Prevent indefinite Lobby loading states and provide clear error UI with a working Retry that refetches the active query; keep cached data visible if background refresh fails.",
+      "acceptanceCriteria": [
+        "If the initial fetch fails, the Lobby shows an error state (not an infinite spinner) and the Retry button successfully re-attempts the appropriate fetch.",
+        "If cached chatrooms exist and a background refresh fails, the Lobby continues to show the cached list and displays a non-blocking refresh error message.",
+        "Loading UI only appears when a fetch is actually in-flight and there is no data to display yet (i.e., no permanent 'Loading chats...' state)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/LobbyPage.tsx",
+          "operation": "modify",
+          "description": "Refactor Lobby loading/error rendering to distinguish: (1) actor connecting, (2) initial data load with no data, (3) background refresh with cached data, and (4) hard error with no data; add a Retry action that calls the correct refetch for the currently active query (unfiltered/search/category) and ensure the UI cannot remain in a permanent spinner state."
+        },
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Align chatroom query retry/placeholder behavior with the Lobby rendering model so initial failures surface as errors (not perpetual loading), while background failures can keep prior data and allow manual retry without wiping the list."
         }
       ]
     }

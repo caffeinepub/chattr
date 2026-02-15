@@ -1,36 +1,55 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-15T04:54:53.963Z",
+  "generatedAt": "2026-02-15T06:36:19.714Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 2,
-    "implemented": 2,
+    "total": 3,
+    "implemented": 3,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Normalize chatroom React Query caching so that when the search term is empty/whitespace or the category is empty/whitespace, the corresponding hooks use the base chatroom query key ['chatrooms'] (and not ['chatrooms','search',''] or ['chatrooms','category','']). This ensures the Lobby cannot display a stale empty list due to alternate empty-filter cache keys.",
+        "summary": "Ensure the Lobby page always triggers the initial unfiltered chatroom fetch (React Query key ['chatrooms']) automatically on first page load once the backend actor becomes available, without requiring the user to click/tap a category filter.",
         "status": "implemented",
         "plannedFiles": [
+          "frontend/src/hooks/useForceFreshChatroomsOnActorReady.ts",
           "frontend/src/hooks/useQueries.ts",
           "frontend/src/pages/LobbyPage.tsx"
         ],
         "matchedFiles": [
+          "frontend/src/hooks/useForceFreshChatroomsOnActorReady.ts",
           "frontend/src/hooks/useQueries.ts",
           "frontend/src/pages/LobbyPage.tsx"
         ]
       },
       {
         "id": "REQ-2",
-        "summary": "Update all chatroom list cache invalidations to refresh every chatroom-related query (base, search, and category variants) by invalidating the full ['chatrooms'] query key namespace (i.e., not only the exact ['chatrooms'] key).",
+        "summary": "Prevent React Query from serving stale/incorrect empty results caused by empty/whitespace search/category variants by ensuring that empty search/category states resolve to the canonical ['chatrooms'] cache key and that any legacy empty-filter cache entries are removed/ignored before rendering the lobby list.",
         "status": "implemented",
         "plannedFiles": [
+          "frontend/src/hooks/useForceFreshChatroomsOnActorReady.ts",
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/pages/LobbyPage.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/hooks/useForceFreshChatroomsOnActorReady.ts",
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/pages/LobbyPage.tsx"
+        ]
+      },
+      {
+        "id": "REQ-3",
+        "summary": "Harden Lobby loading/error rendering so the page cannot get stuck showing the loading spinner indefinitely; when fetching fails, the user must see a clear error state with a working Retry action that triggers the correct refetch for the currently active (unfiltered/search/category) query.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/pages/LobbyPage.tsx",
           "frontend/src/hooks/useQueries.ts"
         ],
         "matchedFiles": [
+          "frontend/src/pages/LobbyPage.tsx",
           "frontend/src/hooks/useQueries.ts"
         ]
       }
@@ -41,6 +60,7 @@
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
+    "frontend/src/hooks/useForceFreshChatroomsOnActorReady.ts",
     "frontend/src/hooks/useQueries.ts",
     "frontend/src/pages/LobbyPage.tsx",
     "project_state.json",

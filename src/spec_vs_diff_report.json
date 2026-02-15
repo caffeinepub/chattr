@@ -1,59 +1,31 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-15T04:54:53.961Z",
-  "summary": "REQ-1 appears partially implemented via a normalized chatroom query-key helper and Lobby trim-based filter switching, but the diff excerpt does not provide enough evidence that the post-create empty-result guard behavior is correctly aligned for the search/category hooks. REQ-2 (namespace-wide invalidation of all ['chatrooms'] variants) is not verifiable from the provided truncated code; the diff summary text claims it, but no concrete invalidation calls are shown in the excerpt. Several unrelated features (localStorage identity helpers, debounced search, extra lobby behaviors) appear to be added beyond the request.",
+  "generatedAt": "2026-02-15T06:36:19.711Z",
+  "summary": "Most requested lobby-loading fixes appear implemented: canonical chatrooms query is enabled only after actor readiness, forced to refetch on mount, and a new hook cleans up legacy empty-filter cache entries and invalidates the canonical ['chatrooms'] key. However, the diff snippet is truncated around LobbyPage loading/error UI, so parts of REQ-3 (clear error state, non-blocking background refresh error, and correct Retry behavior) cannot be fully verified from the provided evidence. Additionally, the modified frontend-file-summaries.txt describes multiple unrelated UI/features not requested, which is potentially scope creep at least in documentation.",
   "missing_requirements": [
     {
-      "id": "REQ-1",
-      "requirement": "The transient empty-result guard (post-create window) reads previousData from the same queryKey that the hook is currently using (i.e., ['chatrooms'] in the empty-filter case) for the relevant chatroom list hooks (search/category when empty).",
-      "reason": "The diff shows the guard inside useGetChatrooms reading previousData from ['chatrooms'], but does not show (due to truncation) whether useSearchChatrooms/useFilterChatroomsByCategory implement the same guard and whether they read previousData using the same normalized queryKey they are using (especially in the empty-filter case).",
+      "id": "REQ-3",
+      "requirement": "Harden Lobby loading/error rendering so the page cannot get stuck showing the loading spinner indefinitely; when fetching fails, the user must see a clear error state with a working Retry action that triggers the correct refetch for the currently active (unfiltered/search/category) query.",
+      "reason": "LobbyPage.tsx is truncated before showing the full loading/error rendering and Retry handling implementation, so the acceptance criteria (no infinite spinner, clear error UI, non-blocking refresh error, and Retry refetching the active query) cannot be confirmed from the diff evidence provided.",
       "evidence": [
-        "frontend/src/hooks/useQueries.ts (truncated)"
-      ]
-    },
-    {
-      "id": "REQ-2",
-      "requirement": "Update all chatroom list cache invalidations to refresh every chatroom-related query by invalidating the full ['chatrooms'] query key namespace (not only the exact ['chatrooms'] key).",
-      "reason": "No concrete invalidation code (e.g., queryClient.invalidateQueries({ queryKey: ['chatrooms'], exact: false })) is visible in the provided truncated excerpt, so this requirement cannot be confirmed from evidence shown.",
-      "evidence": [
-        "frontend/src/hooks/useQueries.ts (truncated)"
+        "frontend/src/pages/LobbyPage.tsx (truncated)"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Added/expanded localStorage-based identity helpers (getUsername/getUserId/getAvatarUrl) inside useQueries.ts.",
-      "reason": "Not requested by REQ-1/REQ-2 (which are specifically about React Query key normalization and invalidation behavior for chatroom lists).",
+      "description": "Documentation/summary claims a wide set of unrelated UI and chat features (header layout changes, chat UI changes, voice message player/recording, Telegram-style replies, thumbnail handling, etc.) not requested in the BuildRequest.",
+      "reason": "BuildRequest non-goals explicitly disallow new product features beyond ensuring initial lobby load works reliably; the modified frontend-file-summaries.txt describes numerous enhancements unrelated to lobby initial loading.",
       "evidence": [
-        "frontend/src/hooks/useQueries.ts (truncated)"
-      ]
-    },
-    {
-      "description": "Lobby behavior changes beyond caching fix: debounced search term state/effect, focus restoration on clearing filters, and additional filter-selection logic changes.",
-      "reason": "REQ-1/REQ-2 focus on query keys and invalidations; debounce/focus/extra lobby interaction behavior is not requested as part of the caching fix.",
-      "evidence": [
-        "frontend/src/pages/LobbyPage.tsx (truncated)"
-      ]
-    },
-    {
-      "description": "Introduced/used a 'force fresh refetch on initial load when cached data is empty' hook (useForceFreshChatroomsOnActorReady) from the Lobby.",
-      "reason": "Not requested by REQ-1/REQ-2; may be a separate mitigation outside the specified normalization/invalidation approach.",
-      "evidence": [
-        "frontend/src/pages/LobbyPage.tsx (truncated)"
-      ]
-    },
-    {
-      "description": "Added a listToArray helper in useQueries.ts.",
-      "reason": "Not part of REQ-1/REQ-2 scope (query key normalization and cache invalidation).",
-      "evidence": [
-        "frontend/src/hooks/useQueries.ts (truncated)"
+        "frontend-file-summaries.txt"
       ]
     }
   ],
-  "confidence": 0.56,
+  "confidence": 0.62,
   "changed_files": [
     "frontend-file-summaries.txt",
+    "frontend/src/hooks/useForceFreshChatroomsOnActorReady.ts",
     "frontend/src/hooks/useQueries.ts",
     "frontend/src/pages/LobbyPage.tsx",
     "project_state.json"
