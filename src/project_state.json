@@ -1,49 +1,43 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Chatroom app with admin page; implement a frontend fix so the unfiltered lobby and /admin/delete-chatrooms correctly show rooms without requiring a category click (React Query stale cache/refetch issue).",
+  "summary": "New project",
   "architectural_notes": [
-    "Frontend uses React Query; unfiltered rooms list and admin delete-chatrooms page depend on the same base query key and can show stale cached empty results unless refetched/invalidated."
+    "Lobby room list uses React Query; refetch behavior depends on whether the base ['chatrooms'] query is considered 'active' vs 'inactive'.",
+    "Potential fix approach: refetchQueries for lobby should target type:'all' (or otherwise ensure the base unfiltered lobby query is mounted/active) so initial rooms load without requiring a category filter interaction."
   ],
   "known_issues": [
-    "Rooms are not visible in the default lobby or /admin/delete-chatrooms page unless a category filter is clicked (likely due to React Query stale cache/empty result persistence)."
+    "Live site: lobby rooms (including newly created rooms) do not appear on initial load unless the user clicks a category filter; previous attempted fix did not resolve."
   ],
   "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-ensure-the-unfiltered-chatroom-list-react-query-key-chatrooms-reliably-refetches-fresh-data-on-page-entry-and-is-not-stuck-showing-a-previously-cached-empty-array-in-the-lobby-page",
-      "title": "Ensure the unfiltered chatroom list (React Query key ['chatrooms']) reliably refetches fresh data on page entry and is not stuck showing a previously-cached empty array in the Lobby page.",
+      "id": "feature-update-all-react-query-refetchqueries-calls-that-target-the-base-chatrooms-query-chatrooms-to-refetch-even-when-the-query-is-not-currently-observed-by-changing-type-active-to-type-all-or-equivalent-behavior-that-refetches-inactive-queries-so-the-unfiltered-lobby-list-loads-on-initial-page-entry-without-requiring-any-category-filter-interaction",
+      "title": "Update all React Query `refetchQueries` calls that target the base chatrooms query `['chatrooms']` to refetch even when the query is not currently observed by changing `type: 'active'` to `type: 'all'` (or equivalent behavior that refetches inactive queries), so the unfiltered lobby list loads on initial page entry without requiring any category filter interaction.",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-ensure-the-admin-delete-chatrooms-page-displays-the-full-chatroom-list-immediately-after-authentication-and-does-not-remain-empty-due-to-stale-cached-results-for-the-base-chatrooms-query",
-      "title": "Ensure the /admin/delete-chatrooms page displays the full chatroom list immediately after authentication and does not remain empty due to stale cached results for the base ['chatrooms'] query.",
+      "id": "feature-apply-the-same-chatrooms-refetch-fix-to-the-admin-delete-chatrooms-flow-so-the-chatroom-list-is-populated-immediately-after-authentication-and-on-mount-even-if-the-base-chatrooms-query-is-currently-inactive-update-any-refetchqueries-querykey-chatrooms-exact-true-type-active-usage-accordingly",
+      "title": "Apply the same `['chatrooms']` refetch fix to the admin delete-chatrooms flow so the chatroom list is populated immediately after authentication and on mount even if the base chatrooms query is currently inactive (update any `refetchQueries({ queryKey: ['chatrooms'], exact: true, type: 'active' })` usage accordingly).",
       "reqIds": [
         "REQ-2"
       ],
       "version": 1
     },
     {
-      "id": "feature-update-react-query-invalidation-refetch-behavior-so-that-creating-a-new-chatroom-guarantees-the-base-chatrooms-query-updates-promptly-in-the-lobby-and-admin-pages-in-addition-to-any-filtered-query-variants",
-      "title": "Update React Query invalidation/refetch behavior so that creating a new chatroom guarantees the base ['chatrooms'] query updates promptly in the lobby and admin pages (in addition to any filtered query variants).",
+      "id": "feature-update-the-one-time-actor-ready-refetch-logic-to-ensure-it-refetches-the-canonical-chatrooms-query-even-when-it-is-inactive-unobserved-so-the-initial-lobby-admin-experience-is-not-dependent-on-user-interaction-to-activate-the-query",
+      "title": "Update the one-time actor-ready refetch logic to ensure it refetches the canonical `['chatrooms']` query even when it is inactive/unobserved, so the initial lobby/admin experience is not dependent on user interaction to activate the query.",
       "reqIds": [
         "REQ-3"
       ],
       "version": 1
     }
   ],
-  "new_feature_requests": [
-    {
-      "id": "AR-1",
-      "summary": "Fix rooms list not appearing in default (unfiltered) lobby and delete-chatrooms admin page until a category filter is clicked by adjusting React Query caching/refetch/invalidation behavior.",
-      "reqIds": [],
-      "status": "pending"
-    }
-  ],
-  "projectName": "Fix chatroom list not showing in unfiltered lobby/admin until category click (React Query stale cache)",
+  "new_feature_requests": [],
+  "projectName": "Fix lobby/admin chatrooms list not appearing until category filter click (React Query inactive base query)",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

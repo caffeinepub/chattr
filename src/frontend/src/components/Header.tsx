@@ -10,8 +10,8 @@ import AvatarPickerDialog from './AvatarPickerDialog';
 export default function Header() {
   const router = useRouter();
   const routerState = useRouterState();
-  const { data: currentUsername } = useGetCurrentUsername();
-  const { data: currentAvatar } = useGetCurrentAvatar();
+  const currentUsername = useGetCurrentUsername();
+  const currentAvatar = useGetCurrentAvatar();
   const updateUsername = useUpdateUsername();
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState('');

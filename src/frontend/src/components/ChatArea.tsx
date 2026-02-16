@@ -23,7 +23,7 @@ interface ReplyContext {
 
 export default function ChatArea({ chatroomId, chatroom }: ChatAreaProps) {
   const { data: messages, isLoading } = useGetMessages(chatroomId);
-  const { data: currentUsername } = useGetCurrentUsername();
+  const currentUsername = useGetCurrentUsername();
   const sendMessage = useSendMessage();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -254,25 +254,25 @@ export default function ChatArea({ chatroomId, chatroom }: ChatAreaProps) {
 
       {/* Reply Preview - Fixed above input */}
       {replyingTo && (
-        <div className="flex-shrink-0 border-t border-border bg-muted/50 px-4 py-2">
-          <div className="mx-auto flex max-w-3xl items-start justify-between gap-2">
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-medium text-muted-foreground">
+        <div className="flex-shrink-0 border-t border-border bg-card/50 px-4 py-2">
+          <div className="mx-auto flex max-w-3xl items-center justify-between gap-3">
+            <div className="flex min-w-0 flex-1 items-center gap-3">
+              {replyingTo.mediaThumbnail && (
+                <img
+                  src={replyingTo.mediaThumbnail}
+                  alt="Reply preview"
+                  className="h-10 w-10 flex-shrink-0 rounded object-cover"
+                />
+              )}
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-medium text-muted-foreground">
                   Replying to {replyingTo.sender}
-                </span>
+                </p>
+                <p className="truncate text-sm text-foreground">
+                  {replyingTo.contentSnippet}
+                </p>
               </div>
-              <p className="text-sm text-foreground truncate">
-                {replyingTo.contentSnippet}
-              </p>
             </div>
-            {replyingTo.mediaThumbnail && (
-              <img
-                src={replyingTo.mediaThumbnail}
-                alt="Reply preview"
-                className="h-10 w-10 rounded object-cover"
-              />
-            )}
             <Button
               variant="ghost"
               size="icon"
@@ -286,9 +286,9 @@ export default function ChatArea({ chatroomId, chatroom }: ChatAreaProps) {
       )}
 
       {/* Message Input - Fixed at bottom */}
-      <div className="flex-shrink-0 border-t border-border bg-card px-4 py-3">
-        <div className="mx-auto max-w-3xl">
-          <MessageInput onSendMessage={handleSendMessage} />
+      <div className="flex-shrink-0 border-t border-border bg-card">
+        <div className="mx-auto max-w-3xl px-4 py-3">
+          <MessageInput onSendMessage={handleSendMessage} disabled={sendMessage.isPending} />
         </div>
       </div>
     </div>

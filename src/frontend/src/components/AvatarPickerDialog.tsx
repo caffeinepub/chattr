@@ -16,7 +16,7 @@ interface AvatarPickerDialogProps {
 }
 
 export default function AvatarPickerDialog({ open, onOpenChange }: AvatarPickerDialogProps) {
-  const { data: currentAvatar } = useGetCurrentAvatar();
+  const currentAvatar = useGetCurrentAvatar();
   const updateAvatar = useUpdateAvatar();
   const [isUploading, setIsUploading] = useState(false);
   const [giphySearchTerm, setGiphySearchTerm] = useState('');

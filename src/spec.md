@@ -1,11 +1,11 @@
 # Specification
 
 ## Summary
-**Goal:** Fix React Query stale-cache behavior so the unfiltered chatroom list (base `['chatrooms']` query) reliably loads and refreshes in the Lobby and Admin delete-chatrooms pages without requiring a category click.
+**Goal:** Ensure the Lobby and admin delete-chatrooms pages show the full, unfiltered chatrooms list immediately on load by refetching the canonical `['chatrooms']` query even when it is inactive/unobserved.
 
 **Planned changes:**
-- Update Lobby page data-fetching behavior for the base `['chatrooms']` query to ensure it refetches on page entry and recovers automatically from a previously-cached empty array.
-- Update `/admin/delete-chatrooms` to refetch and display the full chatroom list immediately after authentication, avoiding persistent empty UI caused by stale cached base results.
-- Adjust create-chatroom invalidation/refetch logic so the base `['chatrooms']` query (and related filtered/search variants) updates promptly and stays consistent across Lobby and Admin lists.
+- Update frontend React Query `refetchQueries` calls targeting `['chatrooms']` to refetch inactive queries as well (change `type: 'active'` to `type: 'all'` or equivalent).
+- Apply the same refetch behavior in the admin `/admin/delete-chatrooms` flow so the list populates immediately after authentication and on mount.
+- Update the one-time actor-ready refetch logic to guarantee a refresh of the canonical `['chatrooms']` query even when it is not currently observed, without breaking filtered/search/category queries.
 
-**User-visible outcome:** Visiting the lobby or the admin delete-chatrooms page shows existing chatrooms immediately (no category click needed), and newly created chatrooms appear in unfiltered and filtered lists without manual reloads.
+**User-visible outcome:** Navigating to the Lobby or admin delete-chatrooms page shows the full rooms list immediately, and the list updates promptly after creating or deleting rooms without requiring any category filter clicks.

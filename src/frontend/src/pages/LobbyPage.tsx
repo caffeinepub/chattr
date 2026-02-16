@@ -128,12 +128,12 @@ export default function LobbyPage() {
     setDebouncedSearchTerm('');
     setSelectedCategory('');
     
-    // Force refetch of base query when clearing filters to ensure fresh data
+    // Force refetch of base query when clearing filters, even if inactive
     console.log('[LobbyPage] Clearing filters, forcing base query refetch...');
     await queryClient.refetchQueries({ 
       queryKey: ['chatrooms'], 
       exact: true,
-      type: 'active'
+      type: 'all' // Changed from 'active' to 'all' to refetch even when inactive
     });
     
     // Restore focus to search input
