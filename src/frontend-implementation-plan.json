@@ -1,57 +1,68 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "React Query refetch of inactive base ['chatrooms'] query for Lobby/Admin initial load",
+  "title": "Admin Delete Chatrooms: Add Reset Data tab and wired reset action",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Refetch the canonical base chatrooms query ['chatrooms'] even when inactive so Lobby unfiltered list updates without needing filter interaction.",
+      "summary": "Add an in-page tab/section switcher in AdminDeleteChatroomsPage to navigate between chatroom deletion UI and a new Reset Data UI, without modifying any other frontend pages.",
       "acceptanceCriteria": [
-        "On the live site, navigating to the Lobby page shows the unfiltered rooms list on initial load without clicking any category filter.",
-        "Clearing filters in the Lobby page triggers a refetch of ['chatrooms'] even if that query was not currently active/observed.",
-        "After creating a new chatroom, the Lobby page’s unfiltered list updates promptly without requiring filter clicks or other user interaction.",
-        "After deleting a chatroom (admin flow), the unfiltered list updates promptly without requiring filter clicks or other user interaction."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/hooks/useQueries.ts",
-          "operation": "modify",
-          "description": "Update queryClient.refetchQueries calls that target queryKey ['chatrooms'] with exact: true to refetch inactive/unobserved queries (change type: 'active' to type: 'all', or equivalent) in create/delete chatroom mutation success handlers."
-        },
-        {
-          "path": "frontend/src/pages/LobbyPage.tsx",
-          "operation": "modify",
-          "description": "Update the Clear Filters flow to refetch the canonical ['chatrooms'] query even when it is inactive/unobserved (adjust queryClient.refetchQueries to use type: 'all' or equivalent)."
-        }
-      ]
-    },
-    {
-      "id": "REQ-2",
-      "summary": "Apply the same inactive-query refetch behavior to the admin delete-chatrooms flow so the list populates immediately after auth and on mount.",
-      "acceptanceCriteria": [
-        "After entering the correct admin password on /admin/delete-chatrooms, the page displays the full chatroom list immediately (no category click required).",
-        "If the admin page detects an empty cached ['chatrooms'] result on mount, it forces a refetch that succeeds even when the query is inactive/unobserved."
+        "The only frontend page modified is frontend/src/pages/AdminDeleteChatroomsPage.tsx.",
+        "The admin page provides a clearly labeled tab/section that switches between the existing chatroom deletion UI and a new reset UI.",
+        "All user-facing text added is in English."
       ],
       "file_operations": [
         {
           "path": "frontend/src/pages/AdminDeleteChatroomsPage.tsx",
           "operation": "modify",
-          "description": "Change admin authentication success refetchQueries({ queryKey: ['chatrooms'], exact: true, type: 'active' }) to refetch inactive/unobserved queries (use type: 'all' or equivalent), and update the mount-time empty-cache refetch to the same behavior."
+          "description": "Add local UI state for an in-page section switcher (e.g., 'Chatrooms' and 'Reset Data') and conditionally render either the existing chatroom management content or the new reset content, while keeping all changes confined to this file and preserving existing behavior. Verify the shadcn-ui component usage instructions before implementing."
         }
       ]
     },
     {
-      "id": "REQ-3",
-      "summary": "Ensure actor-ready one-time refetch logic guarantees a refresh of the canonical ['chatrooms'] query even when inactive, without regressing filtered queries.",
+      "id": "REQ-2",
+      "summary": "Implement a Reset Data button with explicit confirmation, loading/disabled state, success feedback, and chatroom cache refresh after reset completes.",
       "acceptanceCriteria": [
-        "When the actor becomes ready, the app triggers a guaranteed refresh of ['chatrooms'] even if the query is not currently observed.",
-        "No regression: filtered chatroom queries (search/category) continue to work as before."
+        "Clicking \"Reset Data\" requires an explicit confirmation step before the reset call is executed.",
+        "During the reset call, the UI shows a loading state and disables the reset button to prevent duplicate submissions.",
+        "On success, the UI shows a clear success message and refreshes relevant cached queries (at minimum the canonical ['chatrooms'] query) so the UI reflects the wiped state."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/hooks/useForceFreshChatroomsOnActorReady.ts",
+          "path": "frontend/src/pages/AdminDeleteChatroomsPage.tsx",
           "operation": "modify",
-          "description": "Update the actor-ready one-time queryClient.refetchQueries({ queryKey: ['chatrooms'], exact: true, type: 'active' }) call to refetch even when the query is inactive/unobserved (use type: 'all' or equivalent), keeping the legacy empty-filter cache cleanup behavior intact."
+          "description": "In the new Reset Data section, add a clearly labeled 'Reset Data' button that opens an explicit confirmation dialog (use the existing AlertDialog pattern already imported on the page) and, upon confirm, triggers the reset call with a visible loading indicator and disabled button state. On success, display a clear success message in-page (e.g., Alert) and invalidate/refetch React Query caches, at minimum refetching the exact ['chatrooms'] query (type: 'all') so the admin list reflects the wiped state. Verify the shadcn-ui component usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "summary": "Ensure the reset UI does not introduce any new frontend authorization flows beyond the existing admin password gate, and keep the reset action located only in this admin page.",
+      "acceptanceCriteria": [
+        "The reset backend method does not read or validate caller identity/role and does not call AccessControl checks.",
+        "No new frontend auth/login flows are introduced; the only UI location for the reset action is within the existing admin delete-chatrooms page."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/AdminDeleteChatroomsPage.tsx",
+          "operation": "modify",
+          "description": "Keep the reset UI and action fully nested under the existing admin password-authenticated rendering path (no new login/auth components, no additional routing, no role checks), ensuring the only entry point is within this page's existing admin gate and that all new user-facing text is English. Verify the shadcn-ui component usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "summary": "Wire the admin reset button to the backend reset capability using existing React Query and actor patterns, with frontend changes strictly limited to AdminDeleteChatroomsPage.tsx.",
+      "acceptanceCriteria": [
+        "The frontend triggers the backend reset method successfully from the admin page.",
+        "Frontend changes are confined to frontend/src/pages/AdminDeleteChatroomsPage.tsx (no other frontend files changed).",
+        "Backend changes are confined to adding the reset capability without refactoring unrelated functionality."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/AdminDeleteChatroomsPage.tsx",
+          "operation": "modify",
+          "description": "Use existing actor tooling by importing and using useActor (and a colocated React Query mutation) to call actor.resetData() from the confirmation action; ensure the mutation handles errors, sets loading/disabled UI state, and refreshes cached queries (at minimum invalidate/refetch ['chatrooms']). Keep all wiring and any additional UI feedback strictly within this file. Verify the component's usage instructions before implementing."
         }
       ]
     }

@@ -2,11 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-update-all-react-query-refetchqueries-calls-that-target-the-base-chatrooms-query-chatrooms-to-refetch-even-when-the-query-is-not-currently-observed-by-changing-type-active-to-type-all-or-equivalent-behavior-that-refetches-inactive-queries-so-the-unfiltered-lobby-list-loads-on-initial-page-entry-without-requiring-any-category-filter-interaction",
-      "featureTitle": "Update all React Query `refetchQueries` calls that target the base chatrooms query `['chatrooms']` to refetch even when the query is not currently observed by changing `type: 'active'` to `type: 'all'` (or equivalent behavior that refetches inactive queries), so the unfiltered lobby list loads on initial page entry without requiring any category filter interaction.",
+      "featureId": "feature-add-a-new-ui-tab-section-within-the-existing-admindeletechatroomspage-chatroom-management-view-that-navigates-to-a-reset-data-action-without-changing-any-other-frontend-pages",
+      "featureTitle": "Add a new UI tab/section within the existing AdminDeleteChatroomsPage chatroom management view that navigates to a \"Reset Data\" action, without changing any other frontend pages.",
       "files": [
-        "frontend/src/hooks/useQueries.ts",
-        "frontend/src/pages/LobbyPage.tsx"
+        "frontend/src/pages/AdminDeleteChatroomsPage.tsx"
       ],
       "components": [
         "authorization@1.0.1",
@@ -24,8 +23,8 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-apply-the-same-chatrooms-refetch-fix-to-the-admin-delete-chatrooms-flow-so-the-chatroom-list-is-populated-immediately-after-authentication-and-on-mount-even-if-the-base-chatrooms-query-is-currently-inactive-update-any-refetchqueries-querykey-chatrooms-exact-true-type-active-usage-accordingly",
-      "featureTitle": "Apply the same `['chatrooms']` refetch fix to the admin delete-chatrooms flow so the chatroom list is populated immediately after authentication and on mount even if the base chatrooms query is currently inactive (update any `refetchQueries({ queryKey: ['chatrooms'], exact: true, type: 'active' })` usage accordingly).",
+      "featureId": "feature-in-the-new-reset-data-tab-section-implement-a-reset-data-button-that-prompts-for-explicit-confirmation-e-g-an-alertdialog-and-then-triggers-a-site-wide-data-reset-call",
+      "featureTitle": "In the new \"Reset Data\" tab/section, implement a \"Reset Data\" button that prompts for explicit confirmation (e.g., an AlertDialog) and then triggers a site-wide data reset call.",
       "files": [
         "frontend/src/pages/AdminDeleteChatroomsPage.tsx"
       ],
@@ -45,10 +44,10 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-update-the-one-time-actor-ready-refetch-logic-to-ensure-it-refetches-the-canonical-chatrooms-query-even-when-it-is-inactive-unobserved-so-the-initial-lobby-admin-experience-is-not-dependent-on-user-interaction-to-activate-the-query",
-      "featureTitle": "Update the one-time actor-ready refetch logic to ensure it refetches the canonical `['chatrooms']` query even when it is inactive/unobserved, so the initial lobby/admin experience is not dependent on user interaction to activate the query.",
+      "featureId": "feature-ensure-the-new-backend-reset-method-contains-no-caller-principal-checks-and-no-authorization-checks-and-the-frontend-does-not-add-any-additional-authorization-gating-beyond-the-existing-admin-page-password-ui",
+      "featureTitle": "Ensure the new backend reset method contains no caller principal checks and no authorization checks, and the frontend does not add any additional authorization gating beyond the existing admin page password UI.",
       "files": [
-        "frontend/src/hooks/useForceFreshChatroomsOnActorReady.ts"
+        "frontend/src/pages/AdminDeleteChatroomsPage.tsx"
       ],
       "components": [
         "authorization@1.0.1",
@@ -61,7 +60,28 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-3"
+        "REQ-4"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-wire-the-admin-reset-button-to-the-backend-reset-method-using-the-existing-actor-query-tooling-patterns-already-used-by-the-app-react-query-hooks-and-actor-usage-while-keeping-changes-strictly-scoped-to-the-admin-delete-chatrooms-page-on-the-frontend",
+      "featureTitle": "Wire the admin reset button to the backend reset method using the existing actor/query tooling patterns already used by the app (React Query hooks and actor usage), while keeping changes strictly scoped to the admin delete-chatrooms page on the frontend.",
+      "files": [
+        "frontend/src/pages/AdminDeleteChatroomsPage.tsx"
+      ],
+      "components": [
+        "authorization@1.0.1",
+        "blob-storage@2.0.3",
+        "http-outcalls@1.1.1",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-5"
       ],
       "confidence": "high"
     }

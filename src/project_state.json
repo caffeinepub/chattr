@@ -1,43 +1,66 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "New project",
+  "summary": "Admin tooling work: add a new site-wide data reset function exposed via a new tab/button in the admin delete-chatrooms page, with strict constraints on what files/pages may be modified and a major security concern around authorization.",
   "architectural_notes": [
-    "Lobby room list uses React Query; refetch behavior depends on whether the base ['chatrooms'] query is considered 'active' vs 'inactive'.",
-    "Potential fix approach: refetchQueries for lobby should target type:'all' (or otherwise ensure the base unfiltered lobby query is mounted/active) so initial rooms load without requiring a category filter interaction."
+    "Frontend scope constraint: only modify Admin delete-chatrooms page to add a new Reset Data tab/button; do not edit other frontend pages or functions (including main.mo).",
+    "Security note: user requested zero authorization/caller principal checks for a destructive site-wide reset endpoint (high risk; should be treated as blocked until an authorization approach is approved)."
   ],
   "known_issues": [
-    "Live site: lobby rooms (including newly created rooms) do not appear on initial load unless the user clicks a category filter; previous attempted fix did not resolve."
+    "Requested unauthenticated site-wide data reset would be a critical security vulnerability; requirements conflict with safe implementation."
   ],
   "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-update-all-react-query-refetchqueries-calls-that-target-the-base-chatrooms-query-chatrooms-to-refetch-even-when-the-query-is-not-currently-observed-by-changing-type-active-to-type-all-or-equivalent-behavior-that-refetches-inactive-queries-so-the-unfiltered-lobby-list-loads-on-initial-page-entry-without-requiring-any-category-filter-interaction",
-      "title": "Update all React Query `refetchQueries` calls that target the base chatrooms query `['chatrooms']` to refetch even when the query is not currently observed by changing `type: 'active'` to `type: 'all'` (or equivalent behavior that refetches inactive queries), so the unfiltered lobby list loads on initial page entry without requiring any category filter interaction.",
+      "id": "feature-add-a-new-ui-tab-section-within-the-existing-admindeletechatroomspage-chatroom-management-view-that-navigates-to-a-reset-data-action-without-changing-any-other-frontend-pages",
+      "title": "Add a new UI tab/section within the existing AdminDeleteChatroomsPage chatroom management view that navigates to a \"Reset Data\" action, without changing any other frontend pages.",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-apply-the-same-chatrooms-refetch-fix-to-the-admin-delete-chatrooms-flow-so-the-chatroom-list-is-populated-immediately-after-authentication-and-on-mount-even-if-the-base-chatrooms-query-is-currently-inactive-update-any-refetchqueries-querykey-chatrooms-exact-true-type-active-usage-accordingly",
-      "title": "Apply the same `['chatrooms']` refetch fix to the admin delete-chatrooms flow so the chatroom list is populated immediately after authentication and on mount even if the base chatrooms query is currently inactive (update any `refetchQueries({ queryKey: ['chatrooms'], exact: true, type: 'active' })` usage accordingly).",
+      "id": "feature-in-the-new-reset-data-tab-section-implement-a-reset-data-button-that-prompts-for-explicit-confirmation-e-g-an-alertdialog-and-then-triggers-a-site-wide-data-reset-call",
+      "title": "In the new \"Reset Data\" tab/section, implement a \"Reset Data\" button that prompts for explicit confirmation (e.g., an AlertDialog) and then triggers a site-wide data reset call.",
       "reqIds": [
         "REQ-2"
       ],
       "version": 1
     },
     {
-      "id": "feature-update-the-one-time-actor-ready-refetch-logic-to-ensure-it-refetches-the-canonical-chatrooms-query-even-when-it-is-inactive-unobserved-so-the-initial-lobby-admin-experience-is-not-dependent-on-user-interaction-to-activate-the-query",
-      "title": "Update the one-time actor-ready refetch logic to ensure it refetches the canonical `['chatrooms']` query even when it is inactive/unobserved, so the initial lobby/admin experience is not dependent on user interaction to activate the query.",
+      "id": "feature-ensure-the-new-backend-reset-method-contains-no-caller-principal-checks-and-no-authorization-checks-and-the-frontend-does-not-add-any-additional-authorization-gating-beyond-the-existing-admin-page-password-ui",
+      "title": "Ensure the new backend reset method contains no caller principal checks and no authorization checks, and the frontend does not add any additional authorization gating beyond the existing admin page password UI.",
       "reqIds": [
-        "REQ-3"
+        "REQ-4"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-wire-the-admin-reset-button-to-the-backend-reset-method-using-the-existing-actor-query-tooling-patterns-already-used-by-the-app-react-query-hooks-and-actor-usage-while-keeping-changes-strictly-scoped-to-the-admin-delete-chatrooms-page-on-the-frontend",
+      "title": "Wire the admin reset button to the backend reset method using the existing actor/query tooling patterns already used by the app (React Query hooks and actor usage), while keeping changes strictly scoped to the admin delete-chatrooms page on the frontend.",
+      "reqIds": [
+        "REQ-5"
       ],
       "version": 1
     }
   ],
-  "new_feature_requests": [],
-  "projectName": "Fix lobby/admin chatrooms list not appearing until category filter click (React Query inactive base query)",
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Create a new site-wide data reset function (wipes all site/user data) triggered from Admin > Delete Chatrooms page via a new 'Reset Data' tab and button",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-4",
+      "summary": "Add a new backend method that wipes all persisted application data (entire site reset), including chatrooms, messages, reactions, active user tracking, user profile data, and resets any ID counters so the canister is effectively returned to a fresh state.",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "status": "pending"
+    }
+  ],
+  "projectName": "Add site-wide data reset button in Admin Delete Chatrooms page",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

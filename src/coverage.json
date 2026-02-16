@@ -1,31 +1,29 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-16T03:40:56.643Z",
+  "generatedAt": "2026-02-16T05:53:12.917Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 3,
-    "implemented": 3,
+    "total": 5,
+    "implemented": 4,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Update all React Query `refetchQueries` calls that target the base chatrooms query `['chatrooms']` to refetch even when the query is not currently observed by changing `type: 'active'` to `type: 'all'` (or equivalent behavior that refetches inactive queries), so the unfiltered lobby list loads on initial page entry without requiring any category filter interaction.",
+        "summary": "Add a new UI tab/section within the existing AdminDeleteChatroomsPage chatroom management view that navigates to a \"Reset Data\" action, without changing any other frontend pages.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/pages/LobbyPage.tsx"
+          "frontend/src/pages/AdminDeleteChatroomsPage.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/pages/LobbyPage.tsx"
+          "frontend/src/pages/AdminDeleteChatroomsPage.tsx"
         ]
       },
       {
         "id": "REQ-2",
-        "summary": "Apply the same `['chatrooms']` refetch fix to the admin delete-chatrooms flow so the chatroom list is populated immediately after authentication and on mount even if the base chatrooms query is currently inactive (update any `refetchQueries({ queryKey: ['chatrooms'], exact: true, type: 'active' })` usage accordingly).",
+        "summary": "In the new \"Reset Data\" tab/section, implement a \"Reset Data\" button that prompts for explicit confirmation (e.g., an AlertDialog) and then triggers a site-wide data reset call.",
         "status": "implemented",
         "plannedFiles": [
           "frontend/src/pages/AdminDeleteChatroomsPage.tsx"
@@ -36,29 +34,46 @@
       },
       {
         "id": "REQ-3",
-        "summary": "Update the one-time actor-ready refetch logic to ensure it refetches the canonical `['chatrooms']` query even when it is inactive/unobserved, so the initial lobby/admin experience is not dependent on user interaction to activate the query.",
+        "summary": "Add a new backend method that wipes all persisted application data (entire site reset), including chatrooms, messages, reactions, active user tracking, user profile data, and resets any ID counters so the canister is effectively returned to a fresh state.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-4",
+        "summary": "Ensure the new backend reset method contains no caller principal checks and no authorization checks, and the frontend does not add any additional authorization gating beyond the existing admin page password UI.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/hooks/useForceFreshChatroomsOnActorReady.ts"
+          "frontend/src/pages/AdminDeleteChatroomsPage.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/hooks/useForceFreshChatroomsOnActorReady.ts"
+          "frontend/src/pages/AdminDeleteChatroomsPage.tsx"
+        ]
+      },
+      {
+        "id": "REQ-5",
+        "summary": "Wire the admin reset button to the backend reset method using the existing actor/query tooling patterns already used by the app (React Query hooks and actor usage), while keeping changes strictly scoped to the admin delete-chatrooms page on the frontend.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/pages/AdminDeleteChatroomsPage.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/pages/AdminDeleteChatroomsPage.tsx"
         ]
       }
     ]
   },
   "changedFiles": [
+    "backend/main.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/components/AvatarPickerDialog.tsx",
-    "frontend/src/components/ChatArea.tsx",
-    "frontend/src/components/Header.tsx",
-    "frontend/src/hooks/useForceFreshChatroomsOnActorReady.ts",
-    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/backend.d.ts",
+    "frontend/src/backend.ts",
+    "frontend/src/declarations/backend.did.d.ts",
+    "frontend/src/declarations/backend.did.js",
     "frontend/src/pages/AdminDeleteChatroomsPage.tsx",
-    "frontend/src/pages/LobbyPage.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

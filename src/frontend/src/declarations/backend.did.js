@@ -199,6 +199,7 @@ export const idlService = IDL.Service({
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
   'pinVideo' : IDL.Func([IDL.Nat, IDL.Nat], [], []),
   'removeReaction' : IDL.Func([IDL.Nat, IDL.Text, IDL.Text], [], []),
+  'resetData' : IDL.Func([], [], []),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
   'searchChatrooms' : IDL.Func(
       [IDL.Text],
@@ -420,6 +421,7 @@ export const idlFactory = ({ IDL }) => {
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
     'pinVideo' : IDL.Func([IDL.Nat, IDL.Nat], [], []),
     'removeReaction' : IDL.Func([IDL.Nat, IDL.Text, IDL.Text], [], []),
+    'resetData' : IDL.Func([], [], []),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
     'searchChatrooms' : IDL.Func(
         [IDL.Text],
