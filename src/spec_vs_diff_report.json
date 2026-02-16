@@ -1,44 +1,47 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-16T05:40:46.880Z",
-  "summary": "Diff implements a new backend `resetPublishedSite` method with an admin permission check and begins clearing in-canister state, plus frontend wiring for a reset mutation and admin page integration. However, due to truncation in `backend/main.mo`, it is not fully verifiable that all required data structures (notably `userProfiles`) and ID counters are reset to 0 as required. Additionally, the diff appears to introduce a broader role-based access control system and migration logic that were not explicitly requested.",
+  "generatedAt": "2026-02-16T05:53:12.914Z",
+  "summary": "Backend reset method appears to add admin authorization checks (contrary to requirements) and the diff includes modifications to extra non-requested files (frontend-file-summaries.txt, project_state.json). Due to truncation, it is not verifiable whether the reset fully clears all state/counters or whether the frontend tab/button wiring and cache refresh are fully implemented.",
   "missing_requirements": [
     {
-      "id": "REQ-1",
-      "requirement": "Reset must clear chatrooms, messages, activeUsers, reactions, and userProfiles, and reset nextChatroomId and nextMessageId back to 0 so the site returns to an empty/initial state.",
-      "reason": "The reset method shows clearing `chatrooms`, `messages`, `activeUsers`, and starts clearing `reactions`, but the file is truncated before showing `userProfiles` being emptied and `nextChatroomId`/`nextMessageId` being reset to 0; therefore the full AC cannot be confirmed from the provided diff summary.",
+      "id": "REQ-4",
+      "requirement": "Ensure the new backend reset method contains no caller principal checks and no authorization checks.",
+      "reason": "The new resetData method explicitly reads `caller` and performs an AccessControl permission check, trapping if not admin, which violates the requirement of no caller/authorization checks.",
       "evidence": [
-        "backend/main.mo (truncated): shows `resetPublishedSite` and assignments to `chatrooms := natMap.empty();`, `messages := natMap.empty();`, `activeUsers := natMap.empty();`, `reactions := natMap.e...` but truncates before showing `userProfiles` and counter resets"
+        "backend/main.mo"
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "requirement": "Reset must wipe all persisted application data (chatrooms, messages, reactions, active user tracking, user profiles) and reset ID counters (nextChatroomId/nextMessageId or equivalent).",
+      "reason": "In the visible (truncated) portion of resetData, only `nextMessageId := 0;` is shown; there is no visible evidence of resetting `nextChatroomId` or clearing chatrooms/messages/reactions/activeUsers/userProfiles maps/collections.",
+      "evidence": [
+        "backend/main.mo"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Introduction of a role-based access control system with initialization and role assignment/query endpoints (`initializeAccessControl`, `assignCallerUserRole`, `getCallerUserRole`, `isCallerAdmin`) beyond the single requested reset admin-only function.",
-      "reason": "BuildRequest only asks for an admin-only reset method using existing access patterns; adding a full access-control API is not explicitly requested.",
+      "description": "Admin-only authorization enforcement for the reset endpoint via AccessControl.hasPermission and Debug.trap.",
+      "reason": "BuildRequest explicitly forbids adding any caller principal checks or authorization checks to the new reset functionality.",
       "evidence": [
-        "backend/main.mo: `initializeAccessControl`, `getCallerUserRole`, `assignCallerUserRole`, `isCallerAdmin`, `AccessControl.initState()`"
+        "backend/main.mo"
       ]
     },
     {
-      "description": "Added canister migration module removing/migrating an `adminPassword` field.",
-      "reason": "BuildRequest does not request any migration work or changes to persisted schema/admin password storage; it only requests adding a reset action.",
+      "description": "Modifications to files outside the requested frontend scope (only AdminDeleteChatroomsPage.tsx).",
+      "reason": "REQ-1/REQ-5 acceptance criteria require frontend changes to be confined to frontend/src/pages/AdminDeleteChatroomsPage.tsx, but the diff shows other modified files.",
       "evidence": [
-        "backend/migration.mo: defines `OldActor` with `adminPassword : Text;` and migrates to empty `NewActor`",
-        "backend/main.mo: `(with migration = Migration.run)` and `import Migration \"migration\";`"
+        "frontend-file-summaries.txt",
+        "project_state.json"
       ]
     }
   ],
-  "confidence": 0.62,
+  "confidence": 0.74,
   "changed_files": [
     "backend/main.mo",
-    "backend/migration.mo",
     "frontend-file-summaries.txt",
-    "frontend/src/components/AvatarPickerDialog.tsx",
-    "frontend/src/components/ChatArea.tsx",
-    "frontend/src/components/Header.tsx",
-    "frontend/src/hooks/useQueries.ts",
     "frontend/src/pages/AdminDeleteChatroomsPage.tsx",
     "project_state.json"
   ]

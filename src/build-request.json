@@ -1,71 +1,111 @@
 {
   "kind": "build_request",
-  "title": "Add admin function to reset all live/published site data",
-  "priority": "normal",
+  "title": "Add site-wide data reset button in Admin Delete Chatrooms page",
+  "priority": "high",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Add a backend admin-only reset function that clears all published/live site data (chatrooms, messages, active users, reactions, and user profiles) and resets ID counters so the site returns to an empty/initial state.",
-      "target": "backend",
+      "text": "Add a new UI tab/section within the existing AdminDeleteChatroomsPage chatroom management view that navigates to a \"Reset Data\" action, without changing any other frontend pages.",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-7"
+          "msg-1"
         ],
         "quotes": [
-          "Is it possible to make a function in the admin page that resets the entire live/published site that works similarly to the draft version?"
+          "The front end part of it should be in the admin, delete chatrooms page. Make a tab in that page that leads you to the reset data button.",
+          "Also do not edit any other front end pages or functions in main.mo"
         ]
       },
       "acceptanceCriteria": [
-        "A new Motoko update method exists in backend/main.mo that, when invoked successfully, empties: chatrooms, messages, activeUsers, reactions, and userProfiles, and resets nextChatroomId and nextMessageId back to 0.",
-        "The reset method is protected so that non-admin callers cannot invoke it (must fail with a clear trap/error).",
-        "On success, subsequent calls to getChatrooms() return an empty array and previously existing chatroom IDs are no longer resolvable via getChatroom()."
+        "The only frontend page modified is frontend/src/pages/AdminDeleteChatroomsPage.tsx.",
+        "The admin page provides a clearly labeled tab/section that switches between the existing chatroom deletion UI and a new reset UI.",
+        "All user-facing text added is in English."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Extend the existing admin UI to include a \"Reset Published Site\" action that triggers the backend reset function, using the same admin authentication gating already used on the admin page, and requiring an explicit confirmation dialog before executing.",
+      "text": "In the new \"Reset Data\" tab/section, implement a \"Reset Data\" button that prompts for explicit confirmation (e.g., an AlertDialog) and then triggers a site-wide data reset call.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-7"
+          "msg-1"
         ],
         "quotes": [
-          "Is it possible to make a function in the admin page that resets the entire live/published site that works similarly to the draft version?"
+          "Once you hit that button, it resets all the data, user data on the site. It resets the entire site."
         ]
       },
       "acceptanceCriteria": [
-        "The admin page at /admin/delete-chatrooms displays an additional destructive action (e.g., button) labeled \"Reset Published Site\" only after the admin password gate is passed.",
-        "Clicking the reset action opens a confirmation dialog that clearly states that all chatrooms and messages will be permanently deleted and the action cannot be undone.",
-        "Confirming calls the backend reset method and shows success/failure feedback in English (toast and/or inline alert)."
+        "Clicking \"Reset Data\" requires an explicit confirmation step before the reset call is executed.",
+        "During the reset call, the UI shows a loading state and disables the reset button to prevent duplicate submissions.",
+        "On success, the UI shows a clear success message and refreshes relevant cached queries (at minimum the canonical ['chatrooms'] query) so the UI reflects the wiped state."
       ]
     },
     {
       "id": "REQ-3",
-      "text": "After a successful reset, ensure the UI and client cache are fully refreshed so the lobby/admin lists reflect the empty state without requiring a manual browser refresh.",
-      "target": "frontend",
+      "text": "Add a new backend method that wipes all persisted application data (entire site reset), including chatrooms, messages, reactions, active user tracking, user profile data, and resets any ID counters so the canister is effectively returned to a fresh state.",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-7"
+          "msg-1"
         ],
         "quotes": [
-          "resets the entire live/published site"
+          "You're going to have to make a new data reset function.",
+          "It resets all the data, user data on the site. It resets the entire site."
         ]
       },
       "acceptanceCriteria": [
-        "On reset success, all chatroom-related React Query caches are invalidated (including the entire ['chatrooms'] namespace) and the base ['chatrooms'] query is refetched even if inactive (type: 'all'), matching the existing refetch strategy used by create/delete flows.",
-        "After reset, the admin table shows \"No chatrooms found\" and the lobby page shows no rooms when navigated to or already open."
+        "A new callable backend function exists that, when invoked, clears all in-canister state maps/collections holding chatrooms, messages, reactions, active users, and user profiles, and resets nextChatroomId/nextMessageId (or equivalent counters) to initial values.",
+        "After calling the reset function, getChatrooms (or equivalent listing) returns an empty list and previously created content is not retrievable.",
+        "The change is implemented within the single-actor backend architecture (backend/main.mo)."
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "Ensure the new backend reset method contains no caller principal checks and no authorization checks, and the frontend does not add any additional authorization gating beyond the existing admin page password UI.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "Do not add any caller principal checks, ... At all, whatsoever, ever. Do not ever add any caller principal checks or authorization checks."
+        ]
+      },
+      "acceptanceCriteria": [
+        "The reset backend method does not read or validate caller identity/role and does not call AccessControl checks.",
+        "No new frontend auth/login flows are introduced; the only UI location for the reset action is within the existing admin delete-chatrooms page."
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "text": "Wire the admin reset button to the backend reset method using the existing actor/query tooling patterns already used by the app (React Query hooks and actor usage), while keeping changes strictly scoped to the admin delete-chatrooms page on the frontend.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "Also do not edit any other front end pages or functions in main.mo"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The frontend triggers the backend reset method successfully from the admin page.",
+        "Frontend changes are confined to frontend/src/pages/AdminDeleteChatroomsPage.tsx (no other frontend files changed).",
+        "Backend changes are confined to adding the reset capability without refactoring unrelated functionality."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single-actor Motoko canister with logic implemented in backend/main.mo.",
-    "Do not edit any files under frontend immutablePaths (compose existing UI components instead).",
-    "All user-facing text introduced/changed must be in English."
+    "Frontend: Do not edit any frontend pages other than frontend/src/pages/AdminDeleteChatroomsPage.tsx.",
+    "Backend: Single-actor architecture; all backend logic must remain in backend/main.mo (no additional backend services).",
+    "Do not add any caller principal checks or authorization checks to the new reset functionality.",
+    "Use English for any user-facing text.",
+    "Note: The user request includes 'do not edit ... functions in main.mo' while also requesting a new reset function; implementation will necessarily require adding a new function to backend/main.mo under the platform’s single-actor constraint."
   ],
   "nonGoals": [
-    "Do not add new third-party authentication providers; use existing authentication/access patterns.",
-    "Do not implement partial resets (e.g., deleting only messages) unless explicitly requested.",
-    "Do not add new backend services or external databases."
+    "Do not add Internet Identity or any new authentication/authorization system.",
+    "Do not modify lobby/chatroom UI pages, routing, or non-admin user flows.",
+    "Do not implement partial reset (e.g., only chatrooms); the requested scope is a full site wipe."
   ],
   "imageRequirements": {
     "required": [],

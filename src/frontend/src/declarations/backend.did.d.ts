@@ -159,7 +159,10 @@ export interface _SERVICE {
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'pinVideo' : ActorMethod<[bigint, bigint], undefined>,
   'removeReaction' : ActorMethod<[bigint, string, string], undefined>,
-  'resetPublishedSite' : ActorMethod<[], undefined>,
+  /**
+   * / Resets all application data, including chatrooms, messages, reactions, active user tracking, user profiles, and ID counters.
+   */
+  'resetData' : ActorMethod<[], undefined>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
   'searchChatrooms' : ActorMethod<[string], Array<ChatroomWithLiveStatus>>,
   'sendMessage' : ActorMethod<
