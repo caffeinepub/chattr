@@ -16,7 +16,7 @@ interface AvatarPickerDialogProps {
 }
 
 export default function AvatarPickerDialog({ open, onOpenChange }: AvatarPickerDialogProps) {
-  const { data: currentAvatar } = useGetCurrentAvatar();
+  const currentAvatar = useGetCurrentAvatar();
   const updateAvatar = useUpdateAvatar();
   const [isUploading, setIsUploading] = useState(false);
   const [giphySearchTerm, setGiphySearchTerm] = useState('');
@@ -91,11 +91,10 @@ export default function AvatarPickerDialog({ open, onOpenChange }: AvatarPickerD
       setIsUploading(true);
       const avatarUrl = await uploadImage(file);
       await updateAvatar.mutateAsync(avatarUrl);
-      toast.success('Avatar uploaded successfully');
       onOpenChange(false);
     } catch (error) {
       console.error('Error uploading avatar:', error);
-      // Error toast is already shown by the mutation
+      toast.error('Failed to upload avatar');
     } finally {
       setIsUploading(false);
     }
@@ -104,22 +103,20 @@ export default function AvatarPickerDialog({ open, onOpenChange }: AvatarPickerD
   const handleRemoveAvatar = async () => {
     try {
       await updateAvatar.mutateAsync(null);
-      toast.success('Avatar removed');
       onOpenChange(false);
     } catch (error) {
       console.error('Error removing avatar:', error);
-      // Error toast is already shown by the mutation
+      toast.error('Failed to remove avatar');
     }
   };
 
   const handleGiphySelect = async (gif: GiphyGif) => {
     try {
       await updateAvatar.mutateAsync(gif.originalUrl);
-      toast.success('Avatar set from Giphy');
       onOpenChange(false);
     } catch (error) {
       console.error('Error setting Giphy avatar:', error);
-      // Error toast is already shown by the mutation
+      toast.error('Failed to set avatar');
     }
   };
 
@@ -129,7 +126,7 @@ export default function AvatarPickerDialog({ open, onOpenChange }: AvatarPickerD
         <DialogHeader>
           <DialogTitle>Choose Avatar</DialogTitle>
           <DialogDescription>
-            Upload a custom image or select a GIF to personalize your profile
+            Upload a custom image to personalize your profile
           </DialogDescription>
         </DialogHeader>
 
@@ -149,7 +146,6 @@ export default function AvatarPickerDialog({ open, onOpenChange }: AvatarPickerD
                 size="icon"
                 onClick={handleRemoveAvatar}
                 disabled={updateAvatar.isPending}
-                aria-label="Remove avatar"
               >
                 <Trash2 className="h-4 w-4" />
               </Button>
@@ -187,7 +183,6 @@ export default function AvatarPickerDialog({ open, onOpenChange }: AvatarPickerD
                 value={giphySearchTerm}
                 onChange={(e) => setGiphySearchTerm(e.target.value)}
                 className="pl-9"
-                disabled={updateAvatar.isPending}
               />
             </div>
 
@@ -212,7 +207,6 @@ export default function AvatarPickerDialog({ open, onOpenChange }: AvatarPickerD
                       onClick={() => handleGiphySelect(gif)}
                       disabled={updateAvatar.isPending}
                       className="relative aspect-square overflow-hidden rounded-md transition-opacity hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
-                      aria-label={`Select ${gif.title}`}
                     >
                       <img
                         src={gif.previewUrl}

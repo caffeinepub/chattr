@@ -1,27 +1,57 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Keep avatar upload/update flow working anonymously after backend authorization removal",
+  "title": "React Query refetch of inactive base ['chatrooms'] query for Lobby/Admin initial load",
   "requirements": [
     {
-      "id": "REQ-2",
-      "summary": "Maintain end-to-end avatar upload/Giphy/removal flow with anonymous usage and English errors after backend authorization changes.",
+      "id": "REQ-1",
+      "summary": "Refetch the canonical base chatrooms query ['chatrooms'] even when inactive so Lobby unfiltered list updates without needing filter interaction.",
       "acceptanceCriteria": [
-        "Uploading a custom avatar via the file picker successfully results in the avatar being updated without any authorization-related failure.",
-        "Setting an avatar via selecting a Giphy GIF successfully updates the avatar without any authorization-related failure.",
-        "Removing the avatar (setting it to null) succeeds without any authorization-related failure.",
-        "No new authentication UI or login requirement is added (the app remains usable anonymously)."
+        "On the live site, navigating to the Lobby page shows the unfiltered rooms list on initial load without clicking any category filter.",
+        "Clearing filters in the Lobby page triggers a refetch of ['chatrooms'] even if that query was not currently active/observed.",
+        "After creating a new chatroom, the Lobby page’s unfiltered list updates promptly without requiring filter clicks or other user interaction.",
+        "After deleting a chatroom (admin flow), the unfiltered list updates promptly without requiring filter clicks or other user interaction."
       ],
       "file_operations": [
         {
           "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Harden the avatar-related hooks to remain fully anonymous-compatible: ensure the avatar update mutation can always run with the anonymous actor from useActor(), updates localStorage consistently (chatAvatarUrl), and triggers any needed cache invalidations so UI reflects changes immediately. Also normalize backend failures into stable English user-facing messages (avoid surfacing raw authorization/role wording). Where applicable, align the avatar upload URL handling with the selected blob-storage component’s expectations for blob-backed URLs (without changing the existing uploadImage mechanism), and Verify the component's usage instructions before implementing."
+          "description": "Update queryClient.refetchQueries calls that target queryKey ['chatrooms'] with exact: true to refetch inactive/unobserved queries (change type: 'active' to type: 'all', or equivalent) in create/delete chatroom mutation success handlers."
         },
         {
-          "path": "frontend/src/components/AvatarPickerDialog.tsx",
+          "path": "frontend/src/pages/LobbyPage.tsx",
           "operation": "modify",
-          "description": "Ensure the dialog’s upload/Giphy/removal actions surface clear English error messages while remaining anonymous (no login prompts). Add any small UX safeguards needed to prevent stale UI after mutation (e.g., disabling actions during pending states and relying on the updated query invalidations). This dialog is the main consumer of uploadImage(...) and useUpdateAvatar(). Verify the component's usage instructions before implementing."
+          "description": "Update the Clear Filters flow to refetch the canonical ['chatrooms'] query even when it is inactive/unobserved (adjust queryClient.refetchQueries to use type: 'all' or equivalent)."
+        }
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "summary": "Apply the same inactive-query refetch behavior to the admin delete-chatrooms flow so the list populates immediately after auth and on mount.",
+      "acceptanceCriteria": [
+        "After entering the correct admin password on /admin/delete-chatrooms, the page displays the full chatroom list immediately (no category click required).",
+        "If the admin page detects an empty cached ['chatrooms'] result on mount, it forces a refetch that succeeds even when the query is inactive/unobserved."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/AdminDeleteChatroomsPage.tsx",
+          "operation": "modify",
+          "description": "Change admin authentication success refetchQueries({ queryKey: ['chatrooms'], exact: true, type: 'active' }) to refetch inactive/unobserved queries (use type: 'all' or equivalent), and update the mount-time empty-cache refetch to the same behavior."
+        }
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "summary": "Ensure actor-ready one-time refetch logic guarantees a refresh of the canonical ['chatrooms'] query even when inactive, without regressing filtered queries.",
+      "acceptanceCriteria": [
+        "When the actor becomes ready, the app triggers a guaranteed refresh of ['chatrooms'] even if the query is not currently observed.",
+        "No regression: filtered chatroom queries (search/category) continue to work as before."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useForceFreshChatroomsOnActorReady.ts",
+          "operation": "modify",
+          "description": "Update the actor-ready one-time queryClient.refetchQueries({ queryKey: ['chatrooms'], exact: true, type: 'active' }) call to refetch even when the query is inactive/unobserved (use type: 'all' or equivalent), keeping the legacy empty-filter cache cleanup behavior intact."
         }
       ]
     }

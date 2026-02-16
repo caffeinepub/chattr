@@ -528,16 +528,16 @@ actor {
     };
   };
 
-  public query func getCallerUserProfile() : async ?UserProfile {
-    null;
+  public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
+    principalMap.get(userProfiles, caller);
   };
 
-  public func saveCallerUserProfile(profile : UserProfile) : async () {
-    ();
+  public shared ({ caller }) func saveCallerUserProfile(profile : UserProfile) : async () {
+    userProfiles := principalMap.put(userProfiles, caller, profile);
   };
 
-  public query func getUserProfile(user : Principal) : async ?UserProfile {
-    null;
+  public query ({ caller }) func getUserProfile(user : Principal) : async ?UserProfile {
+    principalMap.get(userProfiles, user);
   };
 
   public func updateUsernameRetroactively(senderId : Text, newUsername : Text) : async () {

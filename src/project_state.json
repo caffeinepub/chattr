@@ -2,36 +2,42 @@
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
   "summary": "New project",
-  "architectural_notes": [],
-  "known_issues": [],
-  "isFixRequest": false,
+  "architectural_notes": [
+    "Lobby room list uses React Query; refetch behavior depends on whether the base ['chatrooms'] query is considered 'active' vs 'inactive'.",
+    "Potential fix approach: refetchQueries for lobby should target type:'all' (or otherwise ensure the base unfiltered lobby query is mounted/active) so initial rooms load without requiring a category filter interaction."
+  ],
+  "known_issues": [
+    "Live site: lobby rooms (including newly created rooms) do not appear on initial load unless the user clicks a category filter; previous attempted fix did not resolve."
+  ],
+  "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-ensure-the-frontend-avatar-flow-frontend-src-components-avatarpickerdialog-tsx-using-uploadimage-and-useupdateavatar-continues-to-work-end-to-end-after-backend-changes-with-no-new-login-auth-requirements-introduced-and-with-user-facing-error-messages-remaining-in-english",
-      "title": "Ensure the frontend avatar flow (`frontend/src/components/AvatarPickerDialog.tsx` using `uploadImage(...)` and `useUpdateAvatar()`) continues to work end-to-end after backend changes, with no new login/auth requirements introduced and with user-facing error messages remaining in English.",
+      "id": "feature-update-all-react-query-refetchqueries-calls-that-target-the-base-chatrooms-query-chatrooms-to-refetch-even-when-the-query-is-not-currently-observed-by-changing-type-active-to-type-all-or-equivalent-behavior-that-refetches-inactive-queries-so-the-unfiltered-lobby-list-loads-on-initial-page-entry-without-requiring-any-category-filter-interaction",
+      "title": "Update all React Query `refetchQueries` calls that target the base chatrooms query `['chatrooms']` to refetch even when the query is not currently observed by changing `type: 'active'` to `type: 'all'` (or equivalent behavior that refetches inactive queries), so the unfiltered lobby list loads on initial page entry without requiring any category filter interaction.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-apply-the-same-chatrooms-refetch-fix-to-the-admin-delete-chatrooms-flow-so-the-chatroom-list-is-populated-immediately-after-authentication-and-on-mount-even-if-the-base-chatrooms-query-is-currently-inactive-update-any-refetchqueries-querykey-chatrooms-exact-true-type-active-usage-accordingly",
+      "title": "Apply the same `['chatrooms']` refetch fix to the admin delete-chatrooms flow so the chatroom list is populated immediately after authentication and on mount even if the base chatrooms query is currently inactive (update any `refetchQueries({ queryKey: ['chatrooms'], exact: true, type: 'active' })` usage accordingly).",
       "reqIds": [
         "REQ-2"
       ],
       "version": 1
-    }
-  ],
-  "new_feature_requests": [
-    {
-      "id": "AR-1",
-      "summary": "Remove all caller/principal and other authorization checks from profile avatar upload flow",
-      "reqIds": [],
-      "status": "pending"
     },
     {
-      "id": "AR-2",
-      "summary": "In `backend/main.mo`, remove all caller principal checks and any authorization/role checks that restrict the profile avatar upload/update flow, so avatar uploads and avatar URL updates cannot fail due to `caller`-based authorization logic.",
+      "id": "feature-update-the-one-time-actor-ready-refetch-logic-to-ensure-it-refetches-the-canonical-chatrooms-query-even-when-it-is-inactive-unobserved-so-the-initial-lobby-admin-experience-is-not-dependent-on-user-interaction-to-activate-the-query",
+      "title": "Update the one-time actor-ready refetch logic to ensure it refetches the canonical `['chatrooms']` query even when it is inactive/unobserved, so the initial lobby/admin experience is not dependent on user interaction to activate the query.",
       "reqIds": [
-        "REQ-1"
+        "REQ-3"
       ],
-      "status": "pending"
+      "version": 1
     }
   ],
-  "projectName": "Remove caller principal and authorization checks from profile avatar upload flow",
+  "new_feature_requests": [],
+  "projectName": "Fix lobby/admin chatrooms list not appearing until category filter click (React Query inactive base query)",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

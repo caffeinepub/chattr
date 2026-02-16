@@ -7,7 +7,7 @@ import { useActor } from './useActor';
  * 
  * This ensures the lobby always loads on first page load by:
  * 1. Removing legacy/incorrect empty-filter cache entries
- * 2. Explicitly refetching (not just invalidating) the canonical ['chatrooms'] query
+ * 2. Explicitly refetching (not just invalidating) the canonical ['chatrooms'] query even when inactive
  * 3. Resetting on actor instance changes
  */
 export function useForceFreshChatroomsOnActorReady() {
@@ -64,12 +64,12 @@ export function useForceFreshChatroomsOnActorReady() {
     }
     
     // Step 2: Explicitly refetch (not just invalidate) the canonical ['chatrooms'] query
-    // This guarantees a fresh fetch even if there's stale cached data
+    // Changed from type: 'active' to type: 'all' to refetch even when the query is inactive/unobserved
     console.log('[useForceFreshChatroomsOnActorReady] Explicitly refetching canonical chatrooms query...');
     queryClient.refetchQueries({ 
       queryKey: ['chatrooms'], 
       exact: true,
-      type: 'active' // Only refetch if the query is currently being observed
+      type: 'all' // Changed from 'active' to 'all' to refetch even when inactive
     }).then(() => {
       console.log('[useForceFreshChatroomsOnActorReady] Refetch complete');
     }).catch((error) => {
