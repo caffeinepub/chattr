@@ -92,6 +92,8 @@ export function useGetChatrooms() {
     },
     enabled: !!actor && !actorFetching,
     refetchOnMount: 'always', // Always refetch on mount to ensure fresh data
+    refetchOnWindowFocus: true, // Refetch when window regains focus
+    refetchOnReconnect: true, // Refetch when network reconnects
     refetchInterval: 5000,
     retry: (failureCount, error) => {
       // Don't retry transient empty result errors
@@ -245,12 +247,21 @@ export function useCreateChatroom() {
       
       return actor.createChatroom(params.topic, params.description, params.mediaUrl, params.mediaType, params.category);
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       // Mark that we just created a chatroom to activate the guard window
       markChatroomCreated();
       
+      console.log('[CreateChatroom] Success, invalidating and refetching chatrooms...');
+      
       // Invalidate entire chatrooms namespace (non-exact) to refresh all variants
-      queryClient.invalidateQueries({ queryKey: ['chatrooms'], exact: false });
+      await queryClient.invalidateQueries({ queryKey: ['chatrooms'], exact: false });
+      
+      // Explicitly refetch the base chatrooms query to ensure it updates immediately
+      await queryClient.refetchQueries({ 
+        queryKey: ['chatrooms'], 
+        exact: true,
+        type: 'active' 
+      });
       
       toast.success('Chat created successfully');
     },
@@ -275,9 +286,19 @@ export function useDeleteChatroom() {
       
       await actor.deleteChatroomWithPassword(chatroomId, password);
     },
-    onSuccess: () => {
+    onSuccess: async () => {
+      console.log('[DeleteChatroom] Success, invalidating and refetching chatrooms...');
+      
       // Invalidate entire chatrooms namespace (non-exact) to refresh all variants
-      queryClient.invalidateQueries({ queryKey: ['chatrooms'], exact: false });
+      await queryClient.invalidateQueries({ queryKey: ['chatrooms'], exact: false });
+      
+      // Explicitly refetch the base chatrooms query to ensure it updates immediately
+      await queryClient.refetchQueries({ 
+        queryKey: ['chatrooms'], 
+        exact: true,
+        type: 'active' 
+      });
+      
       toast.success('Chatroom deleted successfully');
     },
     onError: (error: Error) => {
@@ -513,7 +534,132 @@ export function useUnpinVideo() {
   });
 }
 
-// Reactions
+// User profile queries
+export function useGetCallerUserProfile() {
+  const { actor, isFetching: actorFetching } = useActor();
+
+  const query = useQuery<UserProfile | null>({
+    queryKey: ['currentUserProfile'],
+    queryFn: async () => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.getCallerUserProfile();
+    },
+    enabled: !!actor && !actorFetching,
+    retry: false,
+  });
+
+  // Return custom state that properly reflects actor dependency
+  return {
+    ...query,
+    isLoading: actorFetching || query.isLoading,
+    isFetched: !!actor && query.isFetched,
+  };
+}
+
+export function useSaveCallerUserProfile() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (profile: UserProfile) => {
+      if (!actor) throw new Error('Actor not available');
+      await actor.saveCallerUserProfile(profile);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
+      toast.success('Profile saved');
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'Failed to save profile');
+    },
+  });
+}
+
+// Username management - localStorage-based hooks for anonymous users
+export function useGetCurrentUsername() {
+  return useQuery<string>({
+    queryKey: ['currentUsername'],
+    queryFn: () => {
+      return getUsername();
+    },
+    staleTime: Infinity, // Username doesn't change unless explicitly updated
+  });
+}
+
+export function useUpdateUsername() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (newUsername: string) => {
+      if (!actor) throw new Error('Actor not available');
+      const userId = getUserId();
+      
+      // Update backend
+      await actor.updateUsernameRetroactively(userId, newUsername);
+      
+      // Update localStorage
+      localStorage.setItem('chatUsername', newUsername);
+      
+      return newUsername;
+    },
+    onSuccess: () => {
+      // Invalidate username query and all message queries to show updated username
+      queryClient.invalidateQueries({ queryKey: ['currentUsername'] });
+      queryClient.invalidateQueries({ queryKey: ['messages'] });
+      toast.success('Username updated');
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'Failed to update username');
+    },
+  });
+}
+
+// Avatar management - localStorage-based hooks for anonymous users
+export function useGetCurrentAvatar() {
+  return useQuery<string | null>({
+    queryKey: ['currentAvatar'],
+    queryFn: () => {
+      return getAvatarUrl();
+    },
+    staleTime: Infinity, // Avatar doesn't change unless explicitly updated
+  });
+}
+
+export function useUpdateAvatar() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (newAvatarUrl: string | null) => {
+      if (!actor) throw new Error('Actor not available');
+      const userId = getUserId();
+      
+      // Update backend
+      await actor.updateAvatarRetroactively(userId, newAvatarUrl);
+      
+      // Update localStorage
+      if (newAvatarUrl) {
+        localStorage.setItem('chatAvatarUrl', newAvatarUrl);
+      } else {
+        localStorage.removeItem('chatAvatarUrl');
+      }
+      
+      return newAvatarUrl;
+    },
+    onSuccess: () => {
+      // Invalidate avatar query and all message queries to show updated avatar
+      queryClient.invalidateQueries({ queryKey: ['currentAvatar'] });
+      queryClient.invalidateQueries({ queryKey: ['messages'] });
+      toast.success('Avatar updated');
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'Failed to update avatar');
+    },
+  });
+}
+
+// Reaction mutations
 export function useAddReaction() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
@@ -529,7 +675,8 @@ export function useAddReaction() {
       queryClient.invalidateQueries({ queryKey: ['messages', params.chatroomId.toString()] });
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Failed to add reaction');
+      console.error('[AddReaction] Error:', error);
+      toast.error('Failed to add reaction');
     },
   });
 }
@@ -549,80 +696,23 @@ export function useRemoveReaction() {
       queryClient.invalidateQueries({ queryKey: ['messages', params.chatroomId.toString()] });
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Failed to remove reaction');
+      console.error('[RemoveReaction] Error:', error);
+      toast.error('Failed to remove reaction');
     },
   });
 }
 
-// Username and avatar management
-export function useGetCurrentUsername() {
-  return useQuery<string>({
-    queryKey: ['currentUsername'],
-    queryFn: () => getUsername(),
-    staleTime: Infinity,
-  });
-}
+// Reply preview query
+export function useGetReplyPreview(chatroomId: bigint, messageId: bigint | null) {
+  const { actor, isFetching: actorFetching } = useActor();
 
-export function useGetCurrentAvatar() {
-  return useQuery<string | null>({
-    queryKey: ['currentAvatar'],
-    queryFn: () => getAvatarUrl(),
-    staleTime: Infinity,
-  });
-}
-
-export function useUpdateUsername() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (newUsername: string) => {
-      if (!actor) throw new Error('Actor not available');
-      const userId = getUserId();
-      
-      localStorage.setItem('chatUsername', newUsername);
-      
-      await actor.updateUsernameRetroactively(userId, newUsername);
-      
-      return newUsername;
+  return useQuery({
+    queryKey: ['replyPreview', chatroomId.toString(), messageId?.toString()],
+    queryFn: async () => {
+      if (!actor || !messageId) return null;
+      return actor.getReplyPreview(chatroomId, messageId);
     },
-    onSuccess: (newUsername) => {
-      queryClient.setQueryData(['currentUsername'], newUsername);
-      queryClient.invalidateQueries({ queryKey: ['messages'], exact: false });
-      toast.success('Username updated');
-    },
-    onError: (error: Error) => {
-      toast.error(error.message || 'Failed to update username');
-    },
-  });
-}
-
-export function useUpdateAvatar() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (newAvatarUrl: string | null) => {
-      if (!actor) throw new Error('Actor not available');
-      const userId = getUserId();
-      
-      if (newAvatarUrl) {
-        localStorage.setItem('chatAvatarUrl', newAvatarUrl);
-      } else {
-        localStorage.removeItem('chatAvatarUrl');
-      }
-      
-      await actor.updateAvatarRetroactively(userId, newAvatarUrl);
-      
-      return newAvatarUrl;
-    },
-    onSuccess: (newAvatarUrl) => {
-      queryClient.setQueryData(['currentAvatar'], newAvatarUrl);
-      queryClient.invalidateQueries({ queryKey: ['messages'], exact: false });
-      toast.success('Avatar updated');
-    },
-    onError: (error: Error) => {
-      toast.error(error.message || 'Failed to update avatar');
-    },
+    enabled: !!actor && !actorFetching && !!messageId,
+    staleTime: 60000, // Reply previews don't change often
   });
 }

@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useGetChatrooms, useDeleteChatroom } from '../hooks/useQueries';
 import { useForceFreshChatroomsOnActorReady } from '../hooks/useForceFreshChatroomsOnActorReady';
 import { Button } from '../components/ui/button';
@@ -10,6 +11,7 @@ import { Alert, AlertDescription } from '../components/ui/alert';
 import { Loader2, Trash2, Lock, AlertCircle, Filter } from 'lucide-react';
 import { Badge } from '../components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
+import type { ChatroomWithLiveStatus } from '../backend';
 
 const ADMIN_PASSWORD = 'lunasimbaliamsammy1987!';
 const SESSION_KEY = 'admin_authenticated';
@@ -19,6 +21,7 @@ export default function AdminDeleteChatroomsPage() {
   const [passwordInput, setPasswordInput] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const queryClient = useQueryClient();
 
   // Check session storage on mount
   useEffect(() => {
@@ -29,7 +32,7 @@ export default function AdminDeleteChatroomsPage() {
     setIsCheckingAuth(false);
   }, []);
 
-  const handlePasswordSubmit = (e: React.FormEvent) => {
+  const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (passwordInput === ADMIN_PASSWORD) {
@@ -37,6 +40,14 @@ export default function AdminDeleteChatroomsPage() {
       setIsAuthenticated(true);
       setPasswordError('');
       setPasswordInput('');
+      
+      // After successful authentication, force refetch of base chatrooms query
+      console.log('[AdminDeleteChatroomsPage] Authentication successful, forcing chatrooms refetch...');
+      await queryClient.refetchQueries({ 
+        queryKey: ['chatrooms'], 
+        exact: true,
+        type: 'active'
+      });
     } else {
       setPasswordError('Incorrect password. Please try again.');
     }
@@ -100,11 +111,25 @@ export default function AdminDeleteChatroomsPage() {
 function AdminChatroomList() {
   const { data: chatrooms, isLoading, isError } = useGetChatrooms();
   const deleteChatroom = useDeleteChatroom();
+  const queryClient = useQueryClient();
   const [deletingId, setDeletingId] = useState<bigint | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
   // Force fresh refetch if cached list is empty after actor is ready
   useForceFreshChatroomsOnActorReady();
+
+  // On mount, if base query has empty cached data, force a refetch
+  useEffect(() => {
+    const cachedData = queryClient.getQueryData<ChatroomWithLiveStatus[]>(['chatrooms']);
+    if (cachedData && cachedData.length === 0) {
+      console.log('[AdminChatroomList] Detected empty cached base query on mount, forcing refetch...');
+      queryClient.refetchQueries({ 
+        queryKey: ['chatrooms'], 
+        exact: true,
+        type: 'active'
+      });
+    }
+  }, [queryClient]);
 
   // Derive unique categories from chatrooms with normalization
   const categoryOptions = useMemo(() => {

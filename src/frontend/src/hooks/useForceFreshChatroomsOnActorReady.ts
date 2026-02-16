@@ -7,7 +7,7 @@ import { useActor } from './useActor';
  * 
  * This ensures the lobby always loads on first page load by:
  * 1. Removing legacy/incorrect empty-filter cache entries
- * 2. Invalidating the canonical ['chatrooms'] query to force a fresh fetch
+ * 2. Explicitly refetching (not just invalidating) the canonical ['chatrooms'] query
  * 3. Resetting on actor instance changes
  */
 export function useForceFreshChatroomsOnActorReady() {
@@ -63,16 +63,19 @@ export function useForceFreshChatroomsOnActorReady() {
       console.log('[useForceFreshChatroomsOnActorReady] Removed', removedCount, 'legacy cache entries');
     }
     
-    // Step 2: Invalidate the canonical ['chatrooms'] query to force a fresh fetch
-    // This ensures the query will refetch even if there's stale cached data
-    console.log('[useForceFreshChatroomsOnActorReady] Invalidating canonical chatrooms query to force fresh fetch');
-    queryClient.invalidateQueries({ 
+    // Step 2: Explicitly refetch (not just invalidate) the canonical ['chatrooms'] query
+    // This guarantees a fresh fetch even if there's stale cached data
+    console.log('[useForceFreshChatroomsOnActorReady] Explicitly refetching canonical chatrooms query...');
+    queryClient.refetchQueries({ 
       queryKey: ['chatrooms'], 
       exact: true,
-      refetchType: 'active' // Only refetch if the query is currently being observed
+      type: 'active' // Only refetch if the query is currently being observed
+    }).then(() => {
+      console.log('[useForceFreshChatroomsOnActorReady] Refetch complete');
+    }).catch((error) => {
+      console.error('[useForceFreshChatroomsOnActorReady] Refetch failed:', error);
     });
     
     hasTriggeredRefetch.current = true;
-    console.log('[useForceFreshChatroomsOnActorReady] Invalidation complete, query will refetch');
   }, [actor, actorFetching, queryClient]);
 }

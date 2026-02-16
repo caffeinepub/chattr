@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from '@tanstack/react-router';
+import { useQueryClient } from '@tanstack/react-query';
 import { useGetChatrooms, useSearchChatrooms, useFilterChatroomsByCategory } from '../hooks/useQueries';
 import { useActor } from '../hooks/useActor';
 import { useForceFreshChatroomsOnActorReady } from '../hooks/useForceFreshChatroomsOnActorReady';
@@ -10,6 +11,7 @@ import { Alert, AlertDescription, AlertTitle } from '../components/ui/alert';
 import { Badge } from '../components/ui/badge';
 import ChatroomCard from '../components/ChatroomCard';
 import CreateChatroomDialog from '../components/CreateChatroomDialog';
+import type { ChatroomWithLiveStatus } from '../backend';
 
 const CATEGORIES = [
   'General',
@@ -28,6 +30,7 @@ const CATEGORIES = [
 
 export default function LobbyPage() {
   const { actor, isFetching: actorFetching } = useActor();
+  const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
@@ -73,6 +76,17 @@ export default function LobbyPage() {
     refetch: refetchCategory 
   } = useFilterChatroomsByCategory(selectedCategory);
 
+  // On mount, if base query has empty cached data, force a refetch
+  useEffect(() => {
+    if (actor && !actorFetching && !debouncedSearchTerm.trim() && !selectedCategory.trim()) {
+      const cachedData = queryClient.getQueryData<ChatroomWithLiveStatus[]>(['chatrooms']);
+      if (cachedData && cachedData.length === 0) {
+        console.log('[LobbyPage] Detected empty cached base query on mount, forcing refetch...');
+        refetchAll();
+      }
+    }
+  }, [actor, actorFetching, debouncedSearchTerm, selectedCategory, queryClient, refetchAll]);
+
   // Determine which data to display (with trim checks for consistency)
   let chatrooms = allChatrooms;
   let isLoading = allLoading;
@@ -109,10 +123,19 @@ export default function LobbyPage() {
     }
   };
 
-  const handleClearFilters = () => {
+  const handleClearFilters = async () => {
     setSearchTerm('');
     setDebouncedSearchTerm('');
     setSelectedCategory('');
+    
+    // Force refetch of base query when clearing filters to ensure fresh data
+    console.log('[LobbyPage] Clearing filters, forcing base query refetch...');
+    await queryClient.refetchQueries({ 
+      queryKey: ['chatrooms'], 
+      exact: true,
+      type: 'active'
+    });
+    
     // Restore focus to search input
     setTimeout(() => {
       searchInputRef.current?.focus();

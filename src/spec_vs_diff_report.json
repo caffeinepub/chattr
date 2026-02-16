@@ -1,32 +1,34 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-15T06:36:19.711Z",
-  "summary": "Most requested lobby-loading fixes appear implemented: canonical chatrooms query is enabled only after actor readiness, forced to refetch on mount, and a new hook cleans up legacy empty-filter cache entries and invalidates the canonical ['chatrooms'] key. However, the diff snippet is truncated around LobbyPage loading/error UI, so parts of REQ-3 (clear error state, non-blocking background refresh error, and correct Retry behavior) cannot be fully verified from the provided evidence. Additionally, the modified frontend-file-summaries.txt describes multiple unrelated UI/features not requested, which is potentially scope creep at least in documentation.",
+  "generatedAt": "2026-02-15T22:38:40.258Z",
+  "summary": "Diff adds a one-time forced refetch of the canonical React Query key ['chatrooms'] when the actor becomes ready, plus additional safeguards (refetch-on-mount and explicit refetch when detecting empty cached base data) to prevent the lobby/admin from being stuck on a cached empty array. Admin page also explicitly refetches ['chatrooms'] after successful password authentication. Evidence for create/delete invalidation behavior (REQ-3) is not visible in the provided truncated diff snippets.",
   "missing_requirements": [
     {
       "id": "REQ-3",
-      "requirement": "Harden Lobby loading/error rendering so the page cannot get stuck showing the loading spinner indefinitely; when fetching fails, the user must see a clear error state with a working Retry action that triggers the correct refetch for the currently active (unfiltered/search/category) query.",
-      "reason": "LobbyPage.tsx is truncated before showing the full loading/error rendering and Retry handling implementation, so the acceptance criteria (no infinite spinner, clear error UI, non-blocking refresh error, and Retry refetching the active query) cannot be confirmed from the diff evidence provided.",
+      "requirement": "Update React Query invalidation/refetch behavior so that creating a new chatroom guarantees the base ['chatrooms'] query updates promptly in the lobby and admin pages (in addition to any filtered query variants).",
+      "reason": "The diff summary claims create/delete mutation success handlers refetch/invalidate chatroom queries, but the actual mutation code is truncated and not shown, so there is insufficient evidence that create/delete actions refetch/invalidate the base ['chatrooms'] query and all variants as required.",
       "evidence": [
-        "frontend/src/pages/LobbyPage.tsx (truncated)"
+        "frontend/src/hooks/useQueries.ts (truncated)",
+        "frontend-file-summaries.txt"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Documentation/summary claims a wide set of unrelated UI and chat features (header layout changes, chat UI changes, voice message player/recording, Telegram-style replies, thumbnail handling, etc.) not requested in the BuildRequest.",
-      "reason": "BuildRequest non-goals explicitly disallow new product features beyond ensuring initial lobby load works reliably; the modified frontend-file-summaries.txt describes numerous enhancements unrelated to lobby initial loading.",
+      "description": "Added periodic polling (refetchInterval: 5000) for the base ['chatrooms'] query.",
+      "reason": "BuildRequest focuses on fixing stale cached empty results and ensuring refetch on page entry/auth/create; it does not request adding ongoing polling/refetch intervals.",
       "evidence": [
-        "frontend-file-summaries.txt"
+        "frontend/src/hooks/useQueries.ts"
       ]
     }
   ],
-  "confidence": 0.62,
+  "confidence": 0.64,
   "changed_files": [
     "frontend-file-summaries.txt",
     "frontend/src/hooks/useForceFreshChatroomsOnActorReady.ts",
     "frontend/src/hooks/useQueries.ts",
+    "frontend/src/pages/AdminDeleteChatroomsPage.tsx",
     "frontend/src/pages/LobbyPage.tsx",
     "project_state.json"
   ]

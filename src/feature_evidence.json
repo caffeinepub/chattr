@@ -2,8 +2,8 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-ensure-the-lobby-page-always-triggers-the-initial-unfiltered-chatroom-fetch-react-query-key-chatrooms-automatically-on-first-page-load-once-the-backend-actor-becomes-available-without-requiring-the-user-to-click-tap-a-category-filter",
-      "featureTitle": "Ensure the Lobby page always triggers the initial unfiltered chatroom fetch (React Query key ['chatrooms']) automatically on first page load once the backend actor becomes available, without requiring the user to click/tap a category filter.",
+      "featureId": "feature-ensure-the-unfiltered-chatroom-list-react-query-key-chatrooms-reliably-refetches-fresh-data-on-page-entry-and-is-not-stuck-showing-a-previously-cached-empty-array-in-the-lobby-page",
+      "featureTitle": "Ensure the unfiltered chatroom list (React Query key ['chatrooms']) reliably refetches fresh data on page entry and is not stuck showing a previously-cached empty array in the Lobby page.",
       "files": [
         "frontend/src/hooks/useForceFreshChatroomsOnActorReady.ts",
         "frontend/src/hooks/useQueries.ts",
@@ -25,12 +25,11 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-prevent-react-query-from-serving-stale-incorrect-empty-results-caused-by-empty-whitespace-search-category-variants-by-ensuring-that-empty-search-category-states-resolve-to-the-canonical-chatrooms-cache-key-and-that-any-legacy-empty-filter-cache-entries-are-removed-ignored-before-rendering-the-lobby-list",
-      "featureTitle": "Prevent React Query from serving stale/incorrect empty results caused by empty/whitespace search/category variants by ensuring that empty search/category states resolve to the canonical ['chatrooms'] cache key and that any legacy empty-filter cache entries are removed/ignored before rendering the lobby list.",
+      "featureId": "feature-ensure-the-admin-delete-chatrooms-page-displays-the-full-chatroom-list-immediately-after-authentication-and-does-not-remain-empty-due-to-stale-cached-results-for-the-base-chatrooms-query",
+      "featureTitle": "Ensure the /admin/delete-chatrooms page displays the full chatroom list immediately after authentication and does not remain empty due to stale cached results for the base ['chatrooms'] query.",
       "files": [
         "frontend/src/hooks/useForceFreshChatroomsOnActorReady.ts",
-        "frontend/src/hooks/useQueries.ts",
-        "frontend/src/pages/LobbyPage.tsx"
+        "frontend/src/pages/AdminDeleteChatroomsPage.tsx"
       ],
       "components": [
         "authorization@1.0.1",
@@ -48,10 +47,11 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-harden-lobby-loading-error-rendering-so-the-page-cannot-get-stuck-showing-the-loading-spinner-indefinitely-when-fetching-fails-the-user-must-see-a-clear-error-state-with-a-working-retry-action-that-triggers-the-correct-refetch-for-the-currently-active-unfiltered-search-category-query",
-      "featureTitle": "Harden Lobby loading/error rendering so the page cannot get stuck showing the loading spinner indefinitely; when fetching fails, the user must see a clear error state with a working Retry action that triggers the correct refetch for the currently active (unfiltered/search/category) query.",
+      "featureId": "feature-update-react-query-invalidation-refetch-behavior-so-that-creating-a-new-chatroom-guarantees-the-base-chatrooms-query-updates-promptly-in-the-lobby-and-admin-pages-in-addition-to-any-filtered-query-variants",
+      "featureTitle": "Update React Query invalidation/refetch behavior so that creating a new chatroom guarantees the base ['chatrooms'] query updates promptly in the lobby and admin pages (in addition to any filtered query variants).",
       "files": [
         "frontend/src/hooks/useQueries.ts",
+        "frontend/src/pages/AdminDeleteChatroomsPage.tsx",
         "frontend/src/pages/LobbyPage.tsx"
       ],
       "components": [

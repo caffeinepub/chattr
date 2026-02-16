@@ -1,7 +1,7 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-15T06:36:19.714Z",
+  "generatedAt": "2026-02-15T22:38:40.260Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
@@ -12,45 +12,45 @@
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Ensure the Lobby page always triggers the initial unfiltered chatroom fetch (React Query key ['chatrooms']) automatically on first page load once the backend actor becomes available, without requiring the user to click/tap a category filter.",
+        "summary": "Ensure the unfiltered chatroom list (React Query key ['chatrooms']) reliably refetches fresh data on page entry and is not stuck showing a previously-cached empty array in the Lobby page.",
         "status": "implemented",
         "plannedFiles": [
+          "frontend/src/pages/LobbyPage.tsx",
           "frontend/src/hooks/useForceFreshChatroomsOnActorReady.ts",
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/pages/LobbyPage.tsx"
+          "frontend/src/hooks/useQueries.ts"
         ],
         "matchedFiles": [
+          "frontend/src/pages/LobbyPage.tsx",
           "frontend/src/hooks/useForceFreshChatroomsOnActorReady.ts",
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/pages/LobbyPage.tsx"
+          "frontend/src/hooks/useQueries.ts"
         ]
       },
       {
         "id": "REQ-2",
-        "summary": "Prevent React Query from serving stale/incorrect empty results caused by empty/whitespace search/category variants by ensuring that empty search/category states resolve to the canonical ['chatrooms'] cache key and that any legacy empty-filter cache entries are removed/ignored before rendering the lobby list.",
+        "summary": "Ensure the /admin/delete-chatrooms page displays the full chatroom list immediately after authentication and does not remain empty due to stale cached results for the base ['chatrooms'] query.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/hooks/useForceFreshChatroomsOnActorReady.ts",
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/pages/LobbyPage.tsx"
+          "frontend/src/pages/AdminDeleteChatroomsPage.tsx",
+          "frontend/src/hooks/useForceFreshChatroomsOnActorReady.ts"
         ],
         "matchedFiles": [
-          "frontend/src/hooks/useForceFreshChatroomsOnActorReady.ts",
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/pages/LobbyPage.tsx"
+          "frontend/src/pages/AdminDeleteChatroomsPage.tsx",
+          "frontend/src/hooks/useForceFreshChatroomsOnActorReady.ts"
         ]
       },
       {
         "id": "REQ-3",
-        "summary": "Harden Lobby loading/error rendering so the page cannot get stuck showing the loading spinner indefinitely; when fetching fails, the user must see a clear error state with a working Retry action that triggers the correct refetch for the currently active (unfiltered/search/category) query.",
+        "summary": "Update React Query invalidation/refetch behavior so that creating a new chatroom guarantees the base ['chatrooms'] query updates promptly in the lobby and admin pages (in addition to any filtered query variants).",
         "status": "implemented",
         "plannedFiles": [
+          "frontend/src/hooks/useQueries.ts",
           "frontend/src/pages/LobbyPage.tsx",
-          "frontend/src/hooks/useQueries.ts"
+          "frontend/src/pages/AdminDeleteChatroomsPage.tsx"
         ],
         "matchedFiles": [
+          "frontend/src/hooks/useQueries.ts",
           "frontend/src/pages/LobbyPage.tsx",
-          "frontend/src/hooks/useQueries.ts"
+          "frontend/src/pages/AdminDeleteChatroomsPage.tsx"
         ]
       }
     ]
@@ -62,6 +62,7 @@
     "frontend-implementation-plan.json",
     "frontend/src/hooks/useForceFreshChatroomsOnActorReady.ts",
     "frontend/src/hooks/useQueries.ts",
+    "frontend/src/pages/AdminDeleteChatroomsPage.tsx",
     "frontend/src/pages/LobbyPage.tsx",
     "project_state.json",
     "scratch/component-selection.json",

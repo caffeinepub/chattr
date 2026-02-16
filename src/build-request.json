@@ -1,76 +1,85 @@
 {
   "kind": "build_request",
-  "title": "Fix lobby so unfiltered chatroom list loads automatically on first page load",
-  "priority": "high",
+  "title": "Fix chatroom list not showing in unfiltered lobby/admin until category click (React Query stale cache)",
+  "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Ensure the Lobby page always triggers the initial unfiltered chatroom fetch (React Query key ['chatrooms']) automatically on first page load once the backend actor becomes available, without requiring the user to click/tap a category filter.",
+      "text": "Ensure the unfiltered chatroom list (React Query key ['chatrooms']) reliably refetches fresh data on page entry and is not stuck showing a previously-cached empty array in the Lobby page.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "user-ok-fix-it",
-          "user-go"
+          "msg-1"
         ],
         "quotes": [
-          "Ok fix it",
-          "Go"
+          "Okay, go ahead and do it."
         ]
       },
       "acceptanceCriteria": [
-        "On a cold load of the live site Lobby, chatrooms render automatically (when they exist) without the user interacting with category badges.",
-        "The unfiltered query for ['chatrooms'] executes after actor initialization, even if prior cached data for chatrooms is empty/stale.",
-        "Clicking category filters still works and does not become the only way to populate the lobby list."
+        "When visiting the lobby with existing chatrooms, the list renders without requiring the user to click any category filter.",
+        "If a stale cached empty array exists for ['chatrooms'], the lobby triggers a refetch and replaces the empty list with the fetched results automatically (no manual reload).",
+        "Clearing category/search filters returns to an up-to-date unfiltered list without requiring an additional user action."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Prevent React Query from serving stale/incorrect empty results caused by empty/whitespace search/category variants by ensuring that empty search/category states resolve to the canonical ['chatrooms'] cache key and that any legacy empty-filter cache entries are removed/ignored before rendering the lobby list.",
+      "text": "Ensure the /admin/delete-chatrooms page displays the full chatroom list immediately after authentication and does not remain empty due to stale cached results for the base ['chatrooms'] query.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "user-live-site-issue"
+          "msg-1"
         ],
         "quotes": [
-          "On the live site, it only shows the rooms if I click or tap on a category tag to filter them. Why is that?"
+          "Okay, go ahead and do it."
         ]
       },
       "acceptanceCriteria": [
-        "No queries remain cached under keys shaped like ['chatrooms','search',''] or ['chatrooms','category',''] (including whitespace-only equivalents) after the actor becomes ready.",
-        "When searchTerm and selectedCategory are empty/whitespace, the Lobby displays data from the canonical ['chatrooms'] query and not from any variant key.",
-        "After clearing filters, the Lobby returns to showing the unfiltered list without requiring a manual refresh."
+        "After successful admin authentication, existing chatrooms are visible in the admin table without needing to select a category first.",
+        "If the base chatrooms query previously resolved to an empty array due to a transient issue, the admin page automatically refetches and updates to show existing chatrooms.",
+        "The admin page still shows the existing empty-state message only when the backend fetch completes successfully and returns zero chatrooms."
       ]
     },
     {
       "id": "REQ-3",
-      "text": "Harden Lobby loading/error rendering so the page cannot get stuck showing the loading spinner indefinitely; when fetching fails, the user must see a clear error state with a working Retry action that triggers the correct refetch for the currently active (unfiltered/search/category) query.",
+      "text": "Update React Query invalidation/refetch behavior so that creating a new chatroom guarantees the base ['chatrooms'] query updates promptly in the lobby and admin pages (in addition to any filtered query variants).",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "user-live-site-issue"
+          "msg-1"
         ],
         "quotes": [
-          "On the live site, it only shows the rooms if I click or tap on a category tag to filter them. Why is that?"
+          "Okay, go ahead and do it."
         ]
       },
       "acceptanceCriteria": [
-        "If the initial fetch fails, the Lobby shows an error state (not an infinite spinner) and the Retry button successfully re-attempts the appropriate fetch.",
-        "If cached chatrooms exist and a background refresh fails, the Lobby continues to show the cached list and displays a non-blocking refresh error message.",
-        "Loading UI only appears when a fetch is actually in-flight and there is no data to display yet (i.e., no permanent 'Loading chats...' state)."
+        "After creating a chatroom, the new chatroom appears in the unfiltered lobby list without requiring a category click or manual reload.",
+        "After creating a chatroom, the new chatroom appears in /admin/delete-chatrooms without requiring a category selection change.",
+        "All chatroom list variants (base, category-filtered, search) remain consistent after create/delete actions."
       ]
     }
   ],
   "constraints": [
-    "Do not edit files under frontend/immutablePaths (including frontend/src/hooks/useActor.ts and frontend/src/hooks/useInternetIdentity.ts(x)).",
-    "Keep all changes within the existing React + TypeScript + React Query architecture.",
-    "Do not introduce new backend canisters or external services."
+    "Frontend immutable paths must not be edited: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui/*.",
+    "Do not add any new caller/principal-based access checks (use the existing admin password flow as-is).",
+    "Keep scope limited to fixing the chatroom list visibility/refetch issue; do not change unrelated features."
   ],
   "nonGoals": [
-    "No backend/Motoko behavior changes to chatroom retrieval are required for this fix.",
-    "No new product features (e.g., new filters, sorting modes, or auth changes) beyond ensuring initial lobby load works reliably."
+    "Do not change backend Motoko data model or persistence logic.",
+    "Do not redesign the UI or change routing/navigation.",
+    "Do not add new admin features beyond making the existing list reliably load."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
+  },
+  "userProfileUpdate": {
+    "goalsToAdd": [],
+    "goalsToRemove": [],
+    "preferencesToAdd": [],
+    "preferencesToRemove": [],
+    "miscToAdd": [],
+    "miscToRemove": [],
+    "fieldsToSet": {},
+    "fieldsToDelete": []
   }
 }
