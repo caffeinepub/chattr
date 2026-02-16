@@ -2,32 +2,11 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-update-all-react-query-refetchqueries-calls-that-target-the-base-chatrooms-query-chatrooms-to-refetch-even-when-the-query-is-not-currently-observed-by-changing-type-active-to-type-all-or-equivalent-behavior-that-refetches-inactive-queries-so-the-unfiltered-lobby-list-loads-on-initial-page-entry-without-requiring-any-category-filter-interaction",
-      "featureTitle": "Update all React Query `refetchQueries` calls that target the base chatrooms query `['chatrooms']` to refetch even when the query is not currently observed by changing `type: 'active'` to `type: 'all'` (or equivalent behavior that refetches inactive queries), so the unfiltered lobby list loads on initial page entry without requiring any category filter interaction.",
+      "featureId": "feature-ensure-the-frontend-avatar-flow-frontend-src-components-avatarpickerdialog-tsx-using-uploadimage-and-useupdateavatar-continues-to-work-end-to-end-after-backend-changes-with-no-new-login-auth-requirements-introduced-and-with-user-facing-error-messages-remaining-in-english",
+      "featureTitle": "Ensure the frontend avatar flow (`frontend/src/components/AvatarPickerDialog.tsx` using `uploadImage(...)` and `useUpdateAvatar()`) continues to work end-to-end after backend changes, with no new login/auth requirements introduced and with user-facing error messages remaining in English.",
       "files": [
-        "frontend/src/hooks/useQueries.ts",
-        "frontend/src/pages/LobbyPage.tsx"
-      ],
-      "components": [
-        "authorization@1.0.1",
-        "blob-storage@2.0.3",
-        "http-outcalls@1.1.1",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-1"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-apply-the-same-chatrooms-refetch-fix-to-the-admin-delete-chatrooms-flow-so-the-chatroom-list-is-populated-immediately-after-authentication-and-on-mount-even-if-the-base-chatrooms-query-is-currently-inactive-update-any-refetchqueries-querykey-chatrooms-exact-true-type-active-usage-accordingly",
-      "featureTitle": "Apply the same `['chatrooms']` refetch fix to the admin delete-chatrooms flow so the chatroom list is populated immediately after authentication and on mount even if the base chatrooms query is currently inactive (update any `refetchQueries({ queryKey: ['chatrooms'], exact: true, type: 'active' })` usage accordingly).",
-      "files": [
-        "frontend/src/pages/AdminDeleteChatroomsPage.tsx"
+        "frontend/src/components/AvatarPickerDialog.tsx",
+        "frontend/src/hooks/useQueries.ts"
       ],
       "components": [
         "authorization@1.0.1",
@@ -41,27 +20,6 @@
       ],
       "testIds": [
         "REQ-2"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-update-the-one-time-actor-ready-refetch-logic-to-ensure-it-refetches-the-canonical-chatrooms-query-even-when-it-is-inactive-unobserved-so-the-initial-lobby-admin-experience-is-not-dependent-on-user-interaction-to-activate-the-query",
-      "featureTitle": "Update the one-time actor-ready refetch logic to ensure it refetches the canonical `['chatrooms']` query even when it is inactive/unobserved, so the initial lobby/admin experience is not dependent on user interaction to activate the query.",
-      "files": [
-        "frontend/src/hooks/useForceFreshChatroomsOnActorReady.ts"
-      ],
-      "components": [
-        "authorization@1.0.1",
-        "blob-storage@2.0.3",
-        "http-outcalls@1.1.1",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-3"
       ],
       "confidence": "high"
     }

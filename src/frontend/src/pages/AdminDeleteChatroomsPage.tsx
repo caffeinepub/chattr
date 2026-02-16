@@ -41,12 +41,12 @@ export default function AdminDeleteChatroomsPage() {
       setPasswordError('');
       setPasswordInput('');
       
-      // After successful authentication, force refetch of base chatrooms query even if inactive
+      // After successful authentication, force refetch of base chatrooms query
       console.log('[AdminDeleteChatroomsPage] Authentication successful, forcing chatrooms refetch...');
       await queryClient.refetchQueries({ 
         queryKey: ['chatrooms'], 
         exact: true,
-        type: 'all' // Changed from 'active' to 'all' to refetch even when inactive
+        type: 'active'
       });
     } else {
       setPasswordError('Incorrect password. Please try again.');
@@ -118,7 +118,7 @@ function AdminChatroomList() {
   // Force fresh refetch if cached list is empty after actor is ready
   useForceFreshChatroomsOnActorReady();
 
-  // On mount, if base query has empty cached data, force a refetch even if inactive
+  // On mount, if base query has empty cached data, force a refetch
   useEffect(() => {
     const cachedData = queryClient.getQueryData<ChatroomWithLiveStatus[]>(['chatrooms']);
     if (cachedData && cachedData.length === 0) {
@@ -126,7 +126,7 @@ function AdminChatroomList() {
       queryClient.refetchQueries({ 
         queryKey: ['chatrooms'], 
         exact: true,
-        type: 'all' // Changed from 'active' to 'all' to refetch even when inactive
+        type: 'active'
       });
     }
   }, [queryClient]);
@@ -176,8 +176,6 @@ function AdminChatroomList() {
     return date.toLocaleString();
   };
 
-  const hasChatrooms = chatrooms && chatrooms.length > 0;
-
   return (
     <div className="container mx-auto max-w-7xl p-4 md:p-6">
       <Card>
@@ -188,7 +186,7 @@ function AdminChatroomList() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {isError && !hasChatrooms && (
+          {isError && (!chatrooms || chatrooms.length === 0) && (
             <Alert variant="destructive" className="mb-4">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
@@ -196,22 +194,30 @@ function AdminChatroomList() {
               </AlertDescription>
             </Alert>
           )}
-
-          {isLoading && !hasChatrooms ? (
-            <div className="flex items-center justify-center py-12">
+          
+          {isLoading ? (
+            <div className="flex items-center justify-center py-8">
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             </div>
-          ) : hasChatrooms ? (
+          ) : !chatrooms || chatrooms.length === 0 ? (
+            <div className="py-8 text-center text-muted-foreground">
+              No chatrooms found
+            </div>
+          ) : (
             <>
-              {/* Category Filter */}
-              <div className="mb-4 flex items-center gap-3">
-                <Filter className="h-4 w-4 text-muted-foreground" />
-                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                  <SelectTrigger className="w-[200px]">
+              {/* Category Filter Dropdown */}
+              <div className="mb-6 flex items-center gap-3">
+                <Filter className="h-5 w-5 text-muted-foreground" />
+                <Select
+                  value={selectedCategory}
+                  onValueChange={setSelectedCategory}
+                  disabled={isLoading}
+                >
+                  <SelectTrigger className="w-[240px]">
                     <SelectValue placeholder="Filter by category" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Categories</SelectItem>
+                    <SelectItem value="all">All categories</SelectItem>
                     {categoryOptions.map((option) => (
                       <SelectItem key={option.key} value={option.key}>
                         {option.label}
@@ -221,86 +227,98 @@ function AdminChatroomList() {
                 </Select>
                 {selectedCategory !== 'all' && (
                   <span className="text-sm text-muted-foreground">
-                    Showing {filteredChatrooms.length} of {chatrooms.length} chatrooms
+                    {filteredChatrooms.length} {filteredChatrooms.length === 1 ? 'chatroom' : 'chatrooms'}
                   </span>
                 )}
               </div>
 
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>ID</TableHead>
-                      <TableHead>Topic</TableHead>
-                      <TableHead>Category</TableHead>
-                      <TableHead>Created</TableHead>
-                      <TableHead>Messages</TableHead>
-                      <TableHead>Views</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredChatrooms.map((chatroom) => (
-                      <TableRow key={chatroom.id.toString()}>
-                        <TableCell className="font-mono text-xs">
-                          {chatroom.id.toString()}
-                        </TableCell>
-                        <TableCell className="max-w-[300px] truncate font-medium">
-                          {chatroom.topic}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline">{chatroom.category}</Badge>
-                        </TableCell>
-                        <TableCell className="text-sm text-muted-foreground">
-                          {formatDate(chatroom.createdAt)}
-                        </TableCell>
-                        <TableCell>{chatroom.messageCount.toString()}</TableCell>
-                        <TableCell>{chatroom.viewCount.toString()}</TableCell>
-                        <TableCell className="text-right">
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button
-                                variant="destructive"
-                                size="sm"
-                                disabled={deletingId === chatroom.id}
-                              >
-                                {deletingId === chatroom.id ? (
-                                  <Loader2 className="h-4 w-4 animate-spin" />
-                                ) : (
-                                  <Trash2 className="h-4 w-4" />
-                                )}
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Delete Chatroom?</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  This will permanently delete "{chatroom.topic}" and all its
-                                  messages. This action cannot be undone.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction
-                                  onClick={() => handleDelete(chatroom.id)}
-                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                >
-                                  Delete
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        </TableCell>
+              {/* Table or Empty State */}
+              {filteredChatrooms.length === 0 ? (
+                <div className="py-8 text-center">
+                  <p className="text-muted-foreground">
+                    No chatrooms found for this category
+                  </p>
+                  <Button
+                    variant="link"
+                    onClick={() => setSelectedCategory('all')}
+                    className="mt-2"
+                  >
+                    View all chatrooms
+                  </Button>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>ID</TableHead>
+                        <TableHead>Topic</TableHead>
+                        <TableHead>Category</TableHead>
+                        <TableHead>Created</TableHead>
+                        <TableHead>Messages</TableHead>
+                        <TableHead>Views</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredChatrooms.map((chatroom) => (
+                        <TableRow key={chatroom.id.toString()}>
+                          <TableCell className="font-mono text-sm">
+                            {chatroom.id.toString()}
+                          </TableCell>
+                          <TableCell className="max-w-xs truncate font-medium">
+                            {chatroom.topic}
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline">{chatroom.category}</Badge>
+                          </TableCell>
+                          <TableCell className="text-sm text-muted-foreground">
+                            {formatDate(chatroom.createdAt)}
+                          </TableCell>
+                          <TableCell>{chatroom.messageCount.toString()}</TableCell>
+                          <TableCell>{chatroom.viewCount.toString()}</TableCell>
+                          <TableCell className="text-right">
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  variant="destructive"
+                                  size="sm"
+                                  disabled={deletingId === chatroom.id}
+                                >
+                                  {deletingId === chatroom.id ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                  ) : (
+                                    <Trash2 className="h-4 w-4" />
+                                  )}
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Delete Chatroom</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Are you sure you want to delete "{chatroom.topic}"? This action cannot be undone.
+                                    All messages and data associated with this chatroom will be permanently deleted.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => handleDelete(chatroom.id)}
+                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                  >
+                                    Delete
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
             </>
-          ) : (
-            <div className="py-12 text-center">
-              <p className="text-muted-foreground">No chatrooms found</p>
-            </div>
           )}
         </CardContent>
       </Card>
