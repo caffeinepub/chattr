@@ -2,10 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-add-a-new-ui-tab-section-within-the-existing-admindeletechatroomspage-chatroom-management-view-that-navigates-to-a-reset-data-action-without-changing-any-other-frontend-pages",
-      "featureTitle": "Add a new UI tab/section within the existing AdminDeleteChatroomsPage chatroom management view that navigates to a \"Reset Data\" action, without changing any other frontend pages.",
+      "featureId": "feature-implement-a-deterministic-cache-busting-change-in-frontend-index-html-so-production-clients-cdns-fetch-the-newest-frontend-bundle-instead-of-a-stale-cached-copy-ensuring-the-lobby-s-corrected-first-load-behavior-rooms-visible-with-no-category-selected-is-what-users-receive",
+      "featureTitle": "Implement a deterministic cache-busting change in `frontend/index.html` so production clients/CDNs fetch the newest frontend bundle instead of a stale cached copy, ensuring the lobby’s corrected first-load behavior (rooms visible with no category selected) is what users receive.",
       "files": [
-        "frontend/src/pages/AdminDeleteChatroomsPage.tsx"
+        "frontend/index.html"
       ],
       "components": [
         "authorization@1.0.1",
@@ -19,69 +19,6 @@
       ],
       "testIds": [
         "REQ-1"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-in-the-new-reset-data-tab-section-implement-a-reset-data-button-that-prompts-for-explicit-confirmation-e-g-an-alertdialog-and-then-triggers-a-site-wide-data-reset-call",
-      "featureTitle": "In the new \"Reset Data\" tab/section, implement a \"Reset Data\" button that prompts for explicit confirmation (e.g., an AlertDialog) and then triggers a site-wide data reset call.",
-      "files": [
-        "frontend/src/pages/AdminDeleteChatroomsPage.tsx"
-      ],
-      "components": [
-        "authorization@1.0.1",
-        "blob-storage@2.0.3",
-        "http-outcalls@1.1.1",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-2"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-ensure-the-new-backend-reset-method-contains-no-caller-principal-checks-and-no-authorization-checks-and-the-frontend-does-not-add-any-additional-authorization-gating-beyond-the-existing-admin-page-password-ui",
-      "featureTitle": "Ensure the new backend reset method contains no caller principal checks and no authorization checks, and the frontend does not add any additional authorization gating beyond the existing admin page password UI.",
-      "files": [
-        "frontend/src/pages/AdminDeleteChatroomsPage.tsx"
-      ],
-      "components": [
-        "authorization@1.0.1",
-        "blob-storage@2.0.3",
-        "http-outcalls@1.1.1",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-4"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-wire-the-admin-reset-button-to-the-backend-reset-method-using-the-existing-actor-query-tooling-patterns-already-used-by-the-app-react-query-hooks-and-actor-usage-while-keeping-changes-strictly-scoped-to-the-admin-delete-chatrooms-page-on-the-frontend",
-      "featureTitle": "Wire the admin reset button to the backend reset method using the existing actor/query tooling patterns already used by the app (React Query hooks and actor usage), while keeping changes strictly scoped to the admin delete-chatrooms page on the frontend.",
-      "files": [
-        "frontend/src/pages/AdminDeleteChatroomsPage.tsx"
-      ],
-      "components": [
-        "authorization@1.0.1",
-        "blob-storage@2.0.3",
-        "http-outcalls@1.1.1",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-5"
       ],
       "confidence": "high"
     }

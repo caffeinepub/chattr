@@ -464,12 +464,16 @@ export default function CreateChatroomDialog({ open, onOpenChange }: CreateChatr
                 <p className="text-xs text-muted-foreground">
                   Paste a Twitter/X post URL
                 </p>
-                {tweetLoading && (
-                  <div className="flex items-center justify-center py-4">
-                    <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-                  </div>
+                {(tweetLoading || (mediaUrl.trim() && getTwitterPostId(mediaUrl))) && (
+                  <>
+                    {tweetLoading && (
+                      <div className="flex items-center justify-center py-4">
+                        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                      </div>
+                    )}
+                    <div ref={tweetPreviewRef} />
+                  </>
                 )}
-                <div ref={tweetPreviewRef} className="min-h-[100px]" />
               </TabsContent>
             </Tabs>
 

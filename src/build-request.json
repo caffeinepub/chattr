@@ -1,124 +1,44 @@
 {
   "kind": "build_request",
-  "title": "Add site-wide data reset button in Admin Delete Chatrooms page",
-  "priority": "high",
+  "title": "Force production cache-bust so the latest lobby bundle is served",
+  "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Add a new UI tab/section within the existing AdminDeleteChatroomsPage chatroom management view that navigates to a \"Reset Data\" action, without changing any other frontend pages.",
+      "text": "Implement a deterministic cache-busting change in `frontend/index.html` so production clients/CDNs fetch the newest frontend bundle instead of a stale cached copy, ensuring the lobby’s corrected first-load behavior (rooms visible with no category selected) is what users receive.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-1",
+          "msg-2",
+          "msg-3"
         ],
         "quotes": [
-          "The front end part of it should be in the admin, delete chatrooms page. Make a tab in that page that leads you to the reset data button.",
-          "Also do not edit any other front end pages or functions in main.mo"
+          "It’s still not working after that change. Why? Don’t code yet",
+          "Do you want me to force a CDN‑cache‑busting change so production definitely picks up the corrected filtering logic?",
+          "Yes"
         ]
       },
       "acceptanceCriteria": [
-        "The only frontend page modified is frontend/src/pages/AdminDeleteChatroomsPage.tsx.",
-        "The admin page provides a clearly labeled tab/section that switches between the existing chatroom deletion UI and a new reset UI.",
-        "All user-facing text added is in English."
-      ]
-    },
-    {
-      "id": "REQ-2",
-      "text": "In the new \"Reset Data\" tab/section, implement a \"Reset Data\" button that prompts for explicit confirmation (e.g., an AlertDialog) and then triggers a site-wide data reset call.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "Once you hit that button, it resets all the data, user data on the site. It resets the entire site."
-        ]
-      },
-      "acceptanceCriteria": [
-        "Clicking \"Reset Data\" requires an explicit confirmation step before the reset call is executed.",
-        "During the reset call, the UI shows a loading state and disables the reset button to prevent duplicate submissions.",
-        "On success, the UI shows a clear success message and refreshes relevant cached queries (at minimum the canonical ['chatrooms'] query) so the UI reflects the wiped state."
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "text": "Add a new backend method that wipes all persisted application data (entire site reset), including chatrooms, messages, reactions, active user tracking, user profile data, and resets any ID counters so the canister is effectively returned to a fresh state.",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "You're going to have to make a new data reset function.",
-          "It resets all the data, user data on the site. It resets the entire site."
-        ]
-      },
-      "acceptanceCriteria": [
-        "A new callable backend function exists that, when invoked, clears all in-canister state maps/collections holding chatrooms, messages, reactions, active users, and user profiles, and resets nextChatroomId/nextMessageId (or equivalent counters) to initial values.",
-        "After calling the reset function, getChatrooms (or equivalent listing) returns an empty list and previously created content is not retrievable.",
-        "The change is implemented within the single-actor backend architecture (backend/main.mo)."
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "text": "Ensure the new backend reset method contains no caller principal checks and no authorization checks, and the frontend does not add any additional authorization gating beyond the existing admin page password UI.",
-      "target": "both",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "Do not add any caller principal checks, ... At all, whatsoever, ever. Do not ever add any caller principal checks or authorization checks."
-        ]
-      },
-      "acceptanceCriteria": [
-        "The reset backend method does not read or validate caller identity/role and does not call AccessControl checks.",
-        "No new frontend auth/login flows are introduced; the only UI location for the reset action is within the existing admin delete-chatrooms page."
-      ]
-    },
-    {
-      "id": "REQ-5",
-      "text": "Wire the admin reset button to the backend reset method using the existing actor/query tooling patterns already used by the app (React Query hooks and actor usage), while keeping changes strictly scoped to the admin delete-chatrooms page on the frontend.",
-      "target": "both",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "Also do not edit any other front end pages or functions in main.mo"
-        ]
-      },
-      "acceptanceCriteria": [
-        "The frontend triggers the backend reset method successfully from the admin page.",
-        "Frontend changes are confined to frontend/src/pages/AdminDeleteChatroomsPage.tsx (no other frontend files changed).",
-        "Backend changes are confined to adding the reset capability without refactoring unrelated functionality."
+        "`frontend/index.html` changes the module script URL in a way that forces a fresh fetch (e.g., adds a version query string to `/src/main.tsx`), without breaking the app load.",
+        "`frontend/index.html` includes no-cache meta directives to discourage browser caching (e.g., Cache-Control/Pragma/Expires equivalents) while remaining valid HTML.",
+        "After deployment, a hard refresh shows the lobby renders chatrooms on first load with no category selected (i.e., it does not start in category-filter mode).",
+        "The cache-busting version value is easy to increment for future forced refreshes (single, obvious place to change in `frontend/index.html`)."
       ]
     }
   ],
   "constraints": [
-    "Frontend: Do not edit any frontend pages other than frontend/src/pages/AdminDeleteChatroomsPage.tsx.",
-    "Backend: Single-actor architecture; all backend logic must remain in backend/main.mo (no additional backend services).",
-    "Do not add any caller principal checks or authorization checks to the new reset functionality.",
-    "Use English for any user-facing text.",
-    "Note: The user request includes 'do not edit ... functions in main.mo' while also requesting a new reset function; implementation will necessarily require adding a new function to backend/main.mo under the platform’s single-actor constraint."
+    "Do not edit files in `frontend/src/hooks/useInternetIdentity.ts`, `frontend/src/hooks/useInternetIdentity.tsx`, `frontend/src/hooks/useActor.ts`, `frontend/src/main.tsx`, `frontend/src/components/ui`, or any other frontend immutable paths.",
+    "Keep the architecture as a single Motoko actor; no new backend canisters/services.",
+    "Use English for any user-facing text."
   ],
   "nonGoals": [
-    "Do not add Internet Identity or any new authentication/authorization system.",
-    "Do not modify lobby/chatroom UI pages, routing, or non-admin user flows.",
-    "Do not implement partial reset (e.g., only chatrooms); the requested scope is a full site wipe."
+    "Do not redesign the lobby category/search filtering logic (this request is only to force cache-busting so production serves the already-correct logic).",
+    "Do not add new authentication mechanisms or third-party auth providers.",
+    "Do not introduce new backend persistence/schema changes."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
-  },
-  "userProfileUpdate": {
-    "goalsToAdd": [],
-    "goalsToRemove": [],
-    "preferencesToAdd": [],
-    "preferencesToRemove": [],
-    "miscToAdd": [],
-    "miscToRemove": [],
-    "fieldsToSet": {},
-    "fieldsToDelete": []
   }
 }

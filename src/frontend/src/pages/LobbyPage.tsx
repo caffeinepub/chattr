@@ -32,7 +32,7 @@ export default function LobbyPage() {
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const navigate = useNavigate();
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -73,9 +73,9 @@ export default function LobbyPage() {
     isFetching: categoryFetching,
     isError: isCategoryError, 
     refetch: refetchCategory 
-  } = useFilterChatroomsByCategory(selectedCategory);
+  } = useFilterChatroomsByCategory(selectedCategory || '');
 
-  // Determine which data to display (with trim checks for consistency)
+  // Determine which data to display
   let chatrooms = allChatrooms;
   let isLoading = allLoading;
   let isFetching = allFetching;
@@ -89,7 +89,7 @@ export default function LobbyPage() {
     isFetching = searchFetching;
     isError = isSearchError;
     refetch = refetchSearch;
-  } else if (selectedCategory.trim()) {
+  } else if (selectedCategory !== null) {
     chatrooms = categoryResults;
     isLoading = categoryLoading;
     isFetching = categoryFetching;
@@ -103,7 +103,7 @@ export default function LobbyPage() {
 
   const handleCategoryClick = (category: string) => {
     if (selectedCategory === category.toLowerCase()) {
-      setSelectedCategory('');
+      setSelectedCategory(null);
     } else {
       setSelectedCategory(category.toLowerCase());
       setSearchTerm('');
@@ -114,7 +114,7 @@ export default function LobbyPage() {
   const handleClearFilters = async () => {
     setSearchTerm('');
     setDebouncedSearchTerm('');
-    setSelectedCategory('');
+    setSelectedCategory(null);
     
     // Force refetch of base query when clearing filters, even if inactive
     await queryClient.refetchQueries({ 
@@ -129,12 +129,12 @@ export default function LobbyPage() {
     }, 0);
   };
 
-  const hasActiveFilters = searchTerm.trim() || selectedCategory.trim();
+  const hasActiveFilters = searchTerm.trim() || selectedCategory !== null;
 
-  // Show loading only when:
+  // Show loading when:
   // 1. Actor is still connecting, OR
-  // 2. Initial data load (isLoading) AND we have no data yet AND not just background refetching
-  const showLoading = actorFetching || (isLoading && !chatrooms && !isFetching);
+  // 2. We're loading data and don't have it yet (chatrooms is undefined)
+  const showLoading = actorFetching || (isLoading && chatrooms === undefined);
 
   if (showLoading) {
     return (
@@ -199,7 +199,7 @@ export default function LobbyPage() {
                 value={searchTerm}
                 onChange={(e) => {
                   setSearchTerm(e.target.value);
-                  setSelectedCategory('');
+                  setSelectedCategory(null);
                 }}
                 placeholder="Search chats by topic, description, or category..."
                 className="pl-9"

@@ -1,12 +1,10 @@
 # Specification
 
 ## Summary
-**Goal:** Add a site-wide “Reset Data” action to the existing Admin Delete Chatrooms page to wipe all application data.
+**Goal:** Force production clients/CDNs to fetch the latest lobby frontend bundle so users reliably receive the corrected first-load behavior (rooms visible with no category selected).
 
 **Planned changes:**
-- Update `frontend/src/pages/AdminDeleteChatroomsPage.tsx` to add a new tab/section that switches between the existing chatroom deletion UI and a new “Reset Data” UI.
-- In the new “Reset Data” tab/section, add a “Reset Data” button with an explicit confirmation dialog, a loading/disabled state during execution, and a success message on completion.
-- Wire the “Reset Data” button to a new backend method that performs a full canister data wipe and refreshes relevant cached queries (at minimum `['chatrooms']`) after success.
-- Add a new backend method in `backend/main.mo` that clears all persisted state (chatrooms, messages, reactions, active user tracking, user profiles) and resets ID counters to initial values, with no caller principal checks or authorization checks.
+- Update `frontend/index.html` to use a deterministic cache-busting version on the module script URL (e.g., a query string on `/src/main.tsx`) with a single, obvious value to increment later.
+- Add no-cache meta directives in `frontend/index.html` (Cache-Control/Pragma/Expires equivalents) to discourage browser caching while keeping valid HTML.
 
-**User-visible outcome:** Admins can open the Admin Delete Chatrooms page, switch to a “Reset Data” tab, confirm the action, and reset the entire site’s data; the UI then reflects the wiped state.
+**User-visible outcome:** After deployment and a hard refresh, the lobby shows rooms on first load without requiring a category selection, because the newest frontend bundle is served instead of a stale cached copy.

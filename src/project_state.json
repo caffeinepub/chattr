@@ -1,45 +1,20 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Admin tooling work: add a new site-wide data reset function exposed via a new tab/button in the admin delete-chatrooms page, with strict constraints on what files/pages may be modified and a major security concern around authorization.",
+  "summary": "Project involves a lobby that should show rooms on first load; production still appears to apply filtering too early or is serving a stale cached bundle, causing the fix not to take effect.",
   "architectural_notes": [
-    "Frontend scope constraint: only modify Admin delete-chatrooms page to add a new Reset Data tab/button; do not edit other frontend pages or functions (including main.mo).",
-    "Security note: user requested zero authorization/caller principal checks for a destructive site-wide reset endpoint (high risk; should be treated as blocked until an authorization approach is approved)."
+    "Implement reliable cache-busting/versioning for production assets (e.g., hashed filenames and/or CDN invalidation) to prevent stale bundles after deployments."
   ],
   "known_issues": [
-    "Requested unauthenticated site-wide data reset would be a critical security vulnerability; requirements conflict with safe implementation."
+    "Production deployment may still be serving a stale cached bundle, so lobby filtering fixes are not reflected live (rooms still not shown on first load)."
   ],
   "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-add-a-new-ui-tab-section-within-the-existing-admindeletechatroomspage-chatroom-management-view-that-navigates-to-a-reset-data-action-without-changing-any-other-frontend-pages",
-      "title": "Add a new UI tab/section within the existing AdminDeleteChatroomsPage chatroom management view that navigates to a \"Reset Data\" action, without changing any other frontend pages.",
+      "id": "feature-implement-a-deterministic-cache-busting-change-in-frontend-index-html-so-production-clients-cdns-fetch-the-newest-frontend-bundle-instead-of-a-stale-cached-copy-ensuring-the-lobby-s-corrected-first-load-behavior-rooms-visible-with-no-category-selected-is-what-users-receive",
+      "title": "Implement a deterministic cache-busting change in `frontend/index.html` so production clients/CDNs fetch the newest frontend bundle instead of a stale cached copy, ensuring the lobby’s corrected first-load behavior (rooms visible with no category selected) is what users receive.",
       "reqIds": [
         "REQ-1"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-in-the-new-reset-data-tab-section-implement-a-reset-data-button-that-prompts-for-explicit-confirmation-e-g-an-alertdialog-and-then-triggers-a-site-wide-data-reset-call",
-      "title": "In the new \"Reset Data\" tab/section, implement a \"Reset Data\" button that prompts for explicit confirmation (e.g., an AlertDialog) and then triggers a site-wide data reset call.",
-      "reqIds": [
-        "REQ-2"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-ensure-the-new-backend-reset-method-contains-no-caller-principal-checks-and-no-authorization-checks-and-the-frontend-does-not-add-any-additional-authorization-gating-beyond-the-existing-admin-page-password-ui",
-      "title": "Ensure the new backend reset method contains no caller principal checks and no authorization checks, and the frontend does not add any additional authorization gating beyond the existing admin page password UI.",
-      "reqIds": [
-        "REQ-4"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-wire-the-admin-reset-button-to-the-backend-reset-method-using-the-existing-actor-query-tooling-patterns-already-used-by-the-app-react-query-hooks-and-actor-usage-while-keeping-changes-strictly-scoped-to-the-admin-delete-chatrooms-page-on-the-frontend",
-      "title": "Wire the admin reset button to the backend reset method using the existing actor/query tooling patterns already used by the app (React Query hooks and actor usage), while keeping changes strictly scoped to the admin delete-chatrooms page on the frontend.",
-      "reqIds": [
-        "REQ-5"
       ],
       "version": 1
     }
@@ -47,20 +22,12 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Create a new site-wide data reset function (wipes all site/user data) triggered from Admin > Delete Chatrooms page via a new 'Reset Data' tab and button",
+      "summary": "Force CDN cache-busting so production definitely serves the latest bundle with the corrected lobby filtering logic",
       "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-4",
-      "summary": "Add a new backend method that wipes all persisted application data (entire site reset), including chatrooms, messages, reactions, active user tracking, user profile data, and resets any ID counters so the canister is effectively returned to a fresh state.",
-      "reqIds": [
-        "REQ-3"
-      ],
-      "status": "pending"
+      "status": "in_progress"
     }
   ],
-  "projectName": "Add site-wide data reset button in Admin Delete Chatrooms page",
+  "projectName": "Force production cache-bust so the latest lobby bundle is served",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }
