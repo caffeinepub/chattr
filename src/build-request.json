@@ -1,44 +1,54 @@
 {
   "kind": "build_request",
-  "title": "Force production cache-bust so the latest lobby bundle is served",
-  "priority": "normal",
+  "title": "Fix lobby initial load: prevent empty category filter from overwriting chatroom list",
+  "priority": "high",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Implement a deterministic cache-busting change in `frontend/index.html` so production clients/CDNs fetch the newest frontend bundle instead of a stale cached copy, ensuring the lobby’s corrected first-load behavior (rooms visible with no category selected) is what users receive.",
+      "text": "Fix the lobby initial-load bug where chatrooms do not display until a category is selected by ensuring the category-filter React Query never shares the base chatroom query key when no category is selected (so it cannot overwrite the base ['chatrooms'] cache).",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1",
-          "msg-2",
-          "msg-3"
+          "msg-1"
         ],
         "quotes": [
-          "It’s still not working after that change. Why? Don’t code yet",
-          "Do you want me to force a CDN‑cache‑busting change so production definitely picks up the corrected filtering logic?",
-          "Yes"
+          "Rooms are still not showing up in the live site unless you select a category.",
+          "Ok fix it without touching anything else"
         ]
       },
       "acceptanceCriteria": [
-        "`frontend/index.html` changes the module script URL in a way that forces a fresh fetch (e.g., adds a version query string to `/src/main.tsx`), without breaking the app load.",
-        "`frontend/index.html` includes no-cache meta directives to discourage browser caching (e.g., Cache-Control/Pragma/Expires equivalents) while remaining valid HTML.",
-        "After deployment, a hard refresh shows the lobby renders chatrooms on first load with no category selected (i.e., it does not start in category-filter mode).",
-        "The cache-busting version value is easy to increment for future forced refreshes (single, obvious place to change in `frontend/index.html`)."
+        "On first load of the Lobby page (with no selected category and empty search), the UI shows the same rooms returned by the base getChatrooms query without requiring any user interaction.",
+        "No request is made to the backend category filter endpoint with an empty string category (e.g., filterChatroomsByCategory('')).",
+        "The base chatroom list query cache (queryKey ['chatrooms']) is not replaced by an empty array from any disabled/empty category query.",
+        "Selecting a category still filters the list as before; clearing the category still restores the base list as before.",
+        "Search behavior remains unchanged."
       ]
     }
   ],
   "constraints": [
-    "Do not edit files in `frontend/src/hooks/useInternetIdentity.ts`, `frontend/src/hooks/useInternetIdentity.tsx`, `frontend/src/hooks/useActor.ts`, `frontend/src/main.tsx`, `frontend/src/components/ui`, or any other frontend immutable paths.",
-    "Keep the architecture as a single Motoko actor; no new backend canisters/services.",
-    "Use English for any user-facing text."
+    "Do not change any backend Motoko code.",
+    "Do not change any user-facing text.",
+    "Make the smallest possible frontend change to resolve the initial-load lobby issue (i.e., avoid unrelated refactors).",
+    "Do not edit files under frontend/src/components/ui or any frontend immutablePaths listed in SYSTEM_CONTEXT."
   ],
   "nonGoals": [
-    "Do not redesign the lobby category/search filtering logic (this request is only to force cache-busting so production serves the already-correct logic).",
-    "Do not add new authentication mechanisms or third-party auth providers.",
-    "Do not introduce new backend persistence/schema changes."
+    "Adding new categories or changing category names.",
+    "Changing polling/refetch intervals or adding new background refresh behaviors.",
+    "Redesigning the Lobby page layout or styling.",
+    "Adding new filtering modes (e.g., querying all categories at once)."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
+  },
+  "userProfileUpdate": {
+    "goalsToAdd": [],
+    "goalsToRemove": [],
+    "preferencesToAdd": [],
+    "preferencesToRemove": [],
+    "miscToAdd": [],
+    "miscToRemove": [],
+    "fieldsToSet": {},
+    "fieldsToDelete": []
   }
 }

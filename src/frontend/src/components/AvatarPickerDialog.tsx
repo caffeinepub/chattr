@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from './ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 import { Upload, Trash2, Search } from 'lucide-react';
-import { useGetCurrentAvatar, useUpdateAvatar, uploadImage } from '../hooks/useQueries';
+import { useCurrentAvatar, useUpdateAvatar, uploadImage } from '../hooks/useQueries';
 import { toast } from 'sonner';
 import { Input } from './ui/input';
 import { useDebouncedValue } from '../hooks/useDebouncedValue';
@@ -16,7 +16,7 @@ interface AvatarPickerDialogProps {
 }
 
 export default function AvatarPickerDialog({ open, onOpenChange }: AvatarPickerDialogProps) {
-  const currentAvatar = useGetCurrentAvatar();
+  const currentAvatar = useCurrentAvatar();
   const updateAvatar = useUpdateAvatar();
   const [isUploading, setIsUploading] = useState(false);
   const [giphySearchTerm, setGiphySearchTerm] = useState('');
@@ -43,58 +43,45 @@ export default function AvatarPickerDialog({ open, onOpenChange }: AvatarPickerD
     const fetchPromise = debouncedSearchTerm.trim()
       ? searchGiphy(debouncedSearchTerm)
       : fetchTrendingGiphy();
-    
+
     fetchPromise
       .then((result) => {
         // Only update state if this is still the latest request
         if (currentRequestId === requestIdRef.current) {
           setGiphyResults(result.gifs);
           setGiphyError(result.error || null);
+          setIsSearchingGiphy(false);
         }
       })
       .catch((error) => {
         // Only update state if this is still the latest request
         if (currentRequestId === requestIdRef.current) {
           console.error('Giphy fetch error:', error);
-          setGiphyError('Failed to load GIFs. Please try again.');
+          setGiphyError('Failed to load GIFs');
           setGiphyResults([]);
-        }
-      })
-      .finally(() => {
-        // Only update loading state if this is still the latest request
-        if (currentRequestId === requestIdRef.current) {
           setIsSearchingGiphy(false);
         }
       });
-
-    // Cleanup function to prevent state updates after unmount or new search
-    return () => {
-      // The next search will increment requestIdRef, making this request stale
-    };
   }, [debouncedSearchTerm, open]);
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    // Validate file type
     if (!file.type.startsWith('image/')) {
       toast.error('Please select an image file');
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('Image must be smaller than 5MB');
-      return;
-    }
-
+    setIsUploading(true);
     try {
-      setIsUploading(true);
-      const avatarUrl = await uploadImage(file);
-      await updateAvatar.mutateAsync(avatarUrl);
+      const imageUrl = await uploadImage(file);
+      await updateAvatar.mutateAsync(imageUrl);
       onOpenChange(false);
     } catch (error) {
-      console.error('Error uploading avatar:', error);
-      toast.error('Failed to upload avatar');
+      console.error('Upload error:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to upload avatar');
     } finally {
       setIsUploading(false);
     }
@@ -105,119 +92,134 @@ export default function AvatarPickerDialog({ open, onOpenChange }: AvatarPickerD
       await updateAvatar.mutateAsync(null);
       onOpenChange(false);
     } catch (error) {
-      console.error('Error removing avatar:', error);
+      console.error('Remove avatar error:', error);
       toast.error('Failed to remove avatar');
     }
   };
 
-  const handleGiphySelect = async (gif: GiphyGif) => {
+  const handleSelectGif = async (gifUrl: string) => {
     try {
-      await updateAvatar.mutateAsync(gif.originalUrl);
+      await updateAvatar.mutateAsync(gifUrl);
       onOpenChange(false);
     } catch (error) {
-      console.error('Error setting Giphy avatar:', error);
+      console.error('Select GIF error:', error);
       toast.error('Failed to set avatar');
     }
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col">
         <DialogHeader>
-          <DialogTitle>Choose Avatar</DialogTitle>
+          <DialogTitle>Change Avatar</DialogTitle>
           <DialogDescription>
-            Upload a custom image to personalize your profile
+            Upload an image or search for a GIF from Giphy
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6">
-          {/* Current Avatar */}
-          {currentAvatar && (
-            <div className="flex items-center justify-between rounded-lg border border-border p-4">
-              <div className="flex items-center gap-3">
-                <Avatar className="h-12 w-12">
-                  <AvatarImage src={currentAvatar} alt="Current avatar" />
-                  <AvatarFallback>?</AvatarFallback>
-                </Avatar>
-                <span className="text-sm text-muted-foreground">Current avatar</span>
-              </div>
+        <div className="flex flex-col gap-4 flex-1 min-h-0">
+          {/* Current Avatar Preview */}
+          <div className="flex items-center gap-4 p-4 border border-border rounded-lg bg-muted/30">
+            <Avatar className="h-16 w-16">
+              {currentAvatar ? (
+                <AvatarImage src={currentAvatar} alt="Current avatar" />
+              ) : null}
+              <AvatarFallback className="bg-primary text-primary-foreground">
+                ?
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1">
+              <p className="text-sm font-medium">Current Avatar</p>
+              <p className="text-xs text-muted-foreground">
+                {currentAvatar ? 'Custom avatar set' : 'No avatar set'}
+              </p>
+            </div>
+            {currentAvatar && (
               <Button
-                variant="ghost"
-                size="icon"
+                variant="outline"
+                size="sm"
                 onClick={handleRemoveAvatar}
                 disabled={updateAvatar.isPending}
               >
-                <Trash2 className="h-4 w-4" />
+                <Trash2 className="h-4 w-4 mr-2" />
+                Remove
               </Button>
-            </div>
-          )}
-
-          {/* Upload Custom Avatar */}
-          <div>
-            <label
-              htmlFor="avatar-upload"
-              className="flex cursor-pointer items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border p-6 transition-colors hover:border-primary hover:bg-primary/5"
-            >
-              <Upload className="h-5 w-5 text-muted-foreground" />
-              <span className="text-sm font-medium text-foreground">
-                {isUploading ? 'Uploading...' : 'Upload Custom Avatar'}
-              </span>
-            </label>
-            <input
-              id="avatar-upload"
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={handleFileUpload}
-              disabled={isUploading || updateAvatar.isPending}
-            />
+            )}
           </div>
 
-          {/* Giphy Search */}
-          <div className="space-y-3">
+          {/* Upload Section */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Upload Image</label>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                className="flex-1"
+                disabled={isUploading || updateAvatar.isPending}
+                onClick={() => document.getElementById('avatar-upload')?.click()}
+              >
+                <Upload className="h-4 w-4 mr-2" />
+                {isUploading ? 'Uploading...' : 'Choose File'}
+              </Button>
+              <input
+                id="avatar-upload"
+                type="file"
+                accept="image/*"
+                onChange={handleFileUpload}
+                className="hidden"
+              />
+            </div>
+          </div>
+
+          {/* Giphy Search Section */}
+          <div className="space-y-2 flex-1 min-h-0 flex flex-col">
+            <label className="text-sm font-medium">Search Giphy</label>
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                type="text"
-                placeholder="Search Giphy for GIFs..."
+                placeholder="Search for GIFs..."
                 value={giphySearchTerm}
                 onChange={(e) => setGiphySearchTerm(e.target.value)}
                 className="pl-9"
               />
             </div>
 
-            {isSearchingGiphy && (
-              <div className="text-center text-sm text-muted-foreground">
-                {giphySearchTerm.trim() ? 'Searching...' : 'Loading trending GIFs...'}
+            {/* Giphy Results */}
+            <ScrollArea className="flex-1 min-h-0 border border-border rounded-lg">
+              <div className="p-2">
+                {isSearchingGiphy ? (
+                  <div className="flex items-center justify-center py-8">
+                    <p className="text-sm text-muted-foreground">Loading GIFs...</p>
+                  </div>
+                ) : giphyError ? (
+                  <div className="flex items-center justify-center py-8">
+                    <p className="text-sm text-destructive">{giphyError}</p>
+                  </div>
+                ) : giphyResults.length > 0 ? (
+                  <div className="grid grid-cols-3 gap-2">
+                    {giphyResults.map((gif) => (
+                      <button
+                        key={gif.id}
+                        onClick={() => handleSelectGif(gif.originalUrl)}
+                        disabled={updateAvatar.isPending}
+                        className="relative aspect-square overflow-hidden rounded-lg border border-border hover:border-primary transition-colors disabled:opacity-50"
+                      >
+                        <img
+                          src={gif.previewUrl}
+                          alt={gif.title}
+                          className="w-full h-full object-cover"
+                        />
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center py-8">
+                    <p className="text-sm text-muted-foreground">
+                      {giphySearchTerm.trim() ? 'No GIFs found' : 'Trending GIFs'}
+                    </p>
+                  </div>
+                )}
               </div>
-            )}
-
-            {giphyError && (
-              <div className="text-center text-sm text-muted-foreground">
-                {giphyError}
-              </div>
-            )}
-
-            {giphyResults.length > 0 && (
-              <ScrollArea className="h-64 rounded-lg border border-border">
-                <div className="grid grid-cols-3 gap-2 p-2">
-                  {giphyResults.map((gif) => (
-                    <button
-                      key={gif.id}
-                      onClick={() => handleGiphySelect(gif)}
-                      disabled={updateAvatar.isPending}
-                      className="relative aspect-square overflow-hidden rounded-md transition-opacity hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                      <img
-                        src={gif.previewUrl}
-                        alt={gif.title}
-                        className="h-full w-full object-cover"
-                      />
-                    </button>
-                  ))}
-                </div>
-              </ScrollArea>
-            )}
+            </ScrollArea>
           </div>
         </div>
       </DialogContent>

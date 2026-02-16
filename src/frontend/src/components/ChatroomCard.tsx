@@ -152,7 +152,7 @@ export default function ChatroomCard({ chatroom, onClick }: ChatroomCardProps) {
               )}
             </div>
             <div className="absolute inset-0 flex items-center justify-center bg-black/10 transition-opacity group-hover:bg-black/20">
-              <div className="rounded-full bg-purple-600 p-3 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="rounded-full bg-purple-600 p-3 shadow-lg transition-opacity">
                 <Play className="h-6 w-6 fill-white text-white" />
               </div>
             </div>
@@ -178,7 +178,7 @@ export default function ChatroomCard({ chatroom, onClick }: ChatroomCardProps) {
               </div>
             </div>
             <div className="absolute inset-0 flex items-center justify-center bg-black/10 transition-opacity group-hover:bg-black/20">
-              <div className="rounded-full bg-purple-600 p-3 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="rounded-full bg-purple-600 p-3 shadow-lg transition-opacity">
                 <Play className="h-6 w-6 fill-white text-white" />
               </div>
             </div>

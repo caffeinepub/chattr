@@ -1,7 +1,7 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-16T13:48:06.299Z",
+  "generatedAt": "2026-02-16T15:09:09.338Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
@@ -12,24 +12,26 @@
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Implement a deterministic cache-busting change in `frontend/index.html` so production clients/CDNs fetch the newest frontend bundle instead of a stale cached copy, ensuring the lobby’s corrected first-load behavior (rooms visible with no category selected) is what users receive.",
+        "summary": "Fix the lobby initial-load bug where chatrooms do not display until a category is selected by ensuring the category-filter React Query never shares the base chatroom query key when no category is selected (so it cannot overwrite the base ['chatrooms'] cache).",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/index.html"
+          "frontend/src/hooks/useQueries.ts"
         ],
         "matchedFiles": [
-          "frontend/index.html"
+          "frontend/src/hooks/useQueries.ts"
         ]
       }
     ]
   },
   "changedFiles": [
     "build-request.json",
-    "caffeine.lock.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/index.html",
+    "frontend/src/components/AvatarPickerDialog.tsx",
+    "frontend/src/components/ChatArea.tsx",
+    "frontend/src/components/Header.tsx",
+    "frontend/src/hooks/useQueries.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

@@ -2,10 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-implement-a-deterministic-cache-busting-change-in-frontend-index-html-so-production-clients-cdns-fetch-the-newest-frontend-bundle-instead-of-a-stale-cached-copy-ensuring-the-lobby-s-corrected-first-load-behavior-rooms-visible-with-no-category-selected-is-what-users-receive",
-      "featureTitle": "Implement a deterministic cache-busting change in `frontend/index.html` so production clients/CDNs fetch the newest frontend bundle instead of a stale cached copy, ensuring the lobby’s corrected first-load behavior (rooms visible with no category selected) is what users receive.",
+      "featureId": "feature-fix-the-lobby-initial-load-bug-where-chatrooms-do-not-display-until-a-category-is-selected-by-ensuring-the-category-filter-react-query-never-shares-the-base-chatroom-query-key-when-no-category-is-selected-so-it-cannot-overwrite-the-base-chatrooms-cache",
+      "featureTitle": "Fix the lobby initial-load bug where chatrooms do not display until a category is selected by ensuring the category-filter React Query never shares the base chatroom query key when no category is selected (so it cannot overwrite the base ['chatrooms'] cache).",
       "files": [
-        "frontend/index.html"
+        "frontend/src/hooks/useQueries.ts"
       ],
       "components": [
         "authorization@1.0.1",

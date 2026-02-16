@@ -1,22 +1,23 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Deterministic production cache-busting for latest lobby bundle",
+  "title": "Fix Lobby initial load by isolating empty category-filter React Query cache key",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Force production clients/CDNs to fetch the newest frontend bundle by adding deterministic cache-busting and no-cache meta directives in frontend/index.html.",
+      "summary": "Ensure the category-filter query never uses the base ['chatrooms'] React Query key when no category is selected, preventing empty-category results from overwriting the lobby list cache.",
       "acceptanceCriteria": [
-        "`frontend/index.html` changes the module script URL in a way that forces a fresh fetch (e.g., adds a version query string to `/src/main.tsx`), without breaking the app load.",
-        "`frontend/index.html` includes no-cache meta directives to discourage browser caching (e.g., Cache-Control/Pragma/Expires equivalents) while remaining valid HTML.",
-        "After deployment, a hard refresh shows the lobby renders chatrooms on first load with no category selected (i.e., it does not start in category-filter mode).",
-        "The cache-busting version value is easy to increment for future forced refreshes (single, obvious place to change in `frontend/index.html`)."
+        "On first load of the Lobby page (with no selected category and empty search), the UI shows the same rooms returned by the base getChatrooms query without requiring any user interaction.",
+        "No request is made to the backend category filter endpoint with an empty string category (e.g., filterChatroomsByCategory('')).",
+        "The base chatroom list query cache (queryKey ['chatrooms']) is not replaced by an empty array from any disabled/empty category query.",
+        "Selecting a category still filters the list as before; clearing the category still restores the base list as before.",
+        "Search behavior remains unchanged."
       ],
       "file_operations": [
         {
-          "path": "frontend/index.html",
+          "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Add browser cache-discouraging meta directives (Cache-Control/Pragma/Expires equivalents) and update the existing module script tag to include a deterministic cache-bust query string on the `/src/main.tsx` URL (e.g., `?v=...`). Ensure the version is defined in a single, obvious place on that script tag (and optionally accompanied by a nearby comment explaining how to bump it) so future forced refreshes are straightforward, and confirm the HTML remains valid and the app still loads."
+          "description": "Update useFilterChatroomsByCategory so that when category is empty/whitespace it uses a distinct, non-base queryKey (e.g., ['chatrooms','category','__none__']) while keeping the query disabled (enabled: false) to avoid any backend call with an empty category; ensure only the category-filter query key behavior changes and search/base chatroom queries remain unchanged."
         }
       ]
     }

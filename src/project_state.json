@@ -1,18 +1,18 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Project involves a lobby that should show rooms on first load; production still appears to apply filtering too early or is serving a stale cached bundle, causing the fix not to take effect.",
+  "summary": "New project",
   "architectural_notes": [
-    "Implement reliable cache-busting/versioning for production assets (e.g., hashed filenames and/or CDN invalidation) to prevent stale bundles after deployments."
+    "Ensure category-filter query is disabled/skipped unless a real category is selected; avoid calling category API with empty string that overwrites base room list in React Query."
   ],
   "known_issues": [
-    "Production deployment may still be serving a stale cached bundle, so lobby filtering fixes are not reflected live (rooms still not shown on first load)."
+    "Rooms do not appear on initial load unless a category is selected; empty-string category filter request returns zero rooms and overwrites base list in React Query."
   ],
   "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-implement-a-deterministic-cache-busting-change-in-frontend-index-html-so-production-clients-cdns-fetch-the-newest-frontend-bundle-instead-of-a-stale-cached-copy-ensuring-the-lobby-s-corrected-first-load-behavior-rooms-visible-with-no-category-selected-is-what-users-receive",
-      "title": "Implement a deterministic cache-busting change in `frontend/index.html` so production clients/CDNs fetch the newest frontend bundle instead of a stale cached copy, ensuring the lobby’s corrected first-load behavior (rooms visible with no category selected) is what users receive.",
+      "id": "feature-fix-the-lobby-initial-load-bug-where-chatrooms-do-not-display-until-a-category-is-selected-by-ensuring-the-category-filter-react-query-never-shares-the-base-chatroom-query-key-when-no-category-is-selected-so-it-cannot-overwrite-the-base-chatrooms-cache",
+      "title": "Fix the lobby initial-load bug where chatrooms do not display until a category is selected by ensuring the category-filter React Query never shares the base chatroom query key when no category is selected (so it cannot overwrite the base ['chatrooms'] cache).",
       "reqIds": [
         "REQ-1"
       ],
@@ -22,12 +22,12 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Force CDN cache-busting so production definitely serves the latest bundle with the corrected lobby filtering logic",
+      "summary": "Fix lobby: show rooms on initial load by preventing category-filter query from running when no category is selected (avoid empty-string category call overwriting base list)",
       "reqIds": [],
-      "status": "in_progress"
+      "status": "pending"
     }
   ],
-  "projectName": "Force production cache-bust so the latest lobby bundle is served",
+  "projectName": "Fix lobby initial load: prevent empty category filter from overwriting chatroom list",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

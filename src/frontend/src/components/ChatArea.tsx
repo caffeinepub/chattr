@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useGetMessages, useSendMessage, useGetCurrentUsername } from '../hooks/useQueries';
+import { useGetMessages, useSendMessage, useCurrentUsername } from '../hooks/useQueries';
 import type { ChatroomWithLiveStatus, MessageWithReactions } from '../backend';
 import MessageBubble from './MessageBubble';
 import MessageInput from './MessageInput';
@@ -23,7 +23,7 @@ interface ReplyContext {
 
 export default function ChatArea({ chatroomId, chatroom }: ChatAreaProps) {
   const { data: messages, isLoading } = useGetMessages(chatroomId);
-  const currentUsername = useGetCurrentUsername();
+  const currentUsername = useCurrentUsername();
   const sendMessage = useSendMessage();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);

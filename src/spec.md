@@ -1,10 +1,10 @@
 # Specification
 
 ## Summary
-**Goal:** Force production clients/CDNs to fetch the latest lobby frontend bundle so users reliably receive the corrected first-load behavior (rooms visible with no category selected).
+**Goal:** Fix the Lobby initial-load issue so chatrooms display immediately without requiring a category selection.
 
 **Planned changes:**
-- Update `frontend/index.html` to use a deterministic cache-busting version on the module script URL (e.g., a query string on `/src/main.tsx`) with a single, obvious value to increment later.
-- Add no-cache meta directives in `frontend/index.html` (Cache-Control/Pragma/Expires equivalents) to discourage browser caching while keeping valid HTML.
+- Update the Lobby’s category-filter React Query to use a distinct query key (and/or conditional enabling) so it never shares the base `['chatrooms']` cache key when no category is selected.
+- Prevent any category-filter backend request from being made when the selected category is empty, ensuring the base chatroom list cache is not overwritten.
 
-**User-visible outcome:** After deployment and a hard refresh, the lobby shows rooms on first load without requiring a category selection, because the newest frontend bundle is served instead of a stale cached copy.
+**User-visible outcome:** On first load of the Lobby (no category selected, empty search), rooms appear immediately; selecting/clearing a category continues to filter/restore the list as before, and search works the same as before.
