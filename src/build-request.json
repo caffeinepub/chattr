@@ -1,41 +1,55 @@
 {
   "kind": "build_request",
-  "title": "Fix lobby initial load: prevent empty category filter from overwriting chatroom list",
+  "title": "Fix lobby initial rooms list by purging persisted ['chatrooms'] React Query cache",
+  "projectName": "Caffeine Chats",
   "priority": "high",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Fix the lobby initial-load bug where chatrooms do not display until a category is selected by ensuring the category-filter React Query never shares the base chatroom query key when no category is selected (so it cannot overwrite the base ['chatrooms'] cache).",
+      "text": "Ensure the lobby shows rooms on initial load in production even when React Query hydrates a persisted cached empty array for the canonical query key ['chatrooms'] by purging/ignoring that hydrated empty result and forcing a fresh refetch before rendering an empty-state.",
       "target": "frontend",
       "source": {
         "messageIds": [
           "msg-1"
         ],
         "quotes": [
-          "Rooms are still not showing up in the live site unless you select a category.",
-          "Ok fix it without touching anything else"
+          "The live site is still not displaying rooms unless searched or a category is selected.",
+          "What does the code look like"
         ]
       },
       "acceptanceCriteria": [
-        "On first load of the Lobby page (with no selected category and empty search), the UI shows the same rooms returned by the base getChatrooms query without requiring any user interaction.",
-        "No request is made to the backend category filter endpoint with an empty string category (e.g., filterChatroomsByCategory('')).",
-        "The base chatroom list query cache (queryKey ['chatrooms']) is not replaced by an empty array from any disabled/empty category query.",
-        "Selecting a category still filters the list as before; clearing the category still restores the base list as before.",
-        "Search behavior remains unchanged."
+        "On a fresh page load in production (with an existing persisted React Query cache entry where ['chatrooms'] data is []), the lobby renders the rooms list without requiring the user to search or select a category.",
+        "The lobby does not render the \"No chats found yet\" empty-state solely due to a hydrated persisted empty array for ['chatrooms']; it shows a loading state until a network refetch completes or a real empty result is confirmed.",
+        "The fix targets only the canonical rooms list query key ['chatrooms'] (and any known legacy empty-filter variants) and does not break search or category filtering behavior.",
+        "A fresh refetch of ['chatrooms'] is triggered on initial load/actor-ready even if the query is inactive at the moment of refetch."
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "text": "Provide the exact code change (diff-style or full file content) that will be applied to implement the persisted-cache purge/ignore behavior, so the user can review what it looks like before deployment.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "What does the code look like"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The response includes the concrete code snippet(s) that will be added/modified (not just a description).",
+        "Any user-facing strings shown in the snippet(s) are in English."
       ]
     }
   ],
   "constraints": [
-    "Do not change any backend Motoko code.",
-    "Do not change any user-facing text.",
-    "Make the smallest possible frontend change to resolve the initial-load lobby issue (i.e., avoid unrelated refactors).",
-    "Do not edit files under frontend/src/components/ui or any frontend immutablePaths listed in SYSTEM_CONTEXT."
+    "Do not edit files in frontend immutablePaths, including frontend/src/main.tsx; implement the startup/purge behavior via non-immutable files (e.g., App.tsx, LobbyPage.tsx, or new modules/hooks/components).",
+    "Backend must remain single-actor; no backend changes are required for this cache-purge fix."
   ],
   "nonGoals": [
-    "Adding new categories or changing category names.",
-    "Changing polling/refetch intervals or adding new background refresh behaviors.",
-    "Redesigning the Lobby page layout or styling.",
-    "Adding new filtering modes (e.g., querying all categories at once)."
+    "Implementing new authentication methods beyond Internet Identity.",
+    "Adding new product features unrelated to fixing the initial lobby rooms list display.",
+    "Introducing external databases or third-party persistence services."
   ],
   "imageRequirements": {
     "required": [],

@@ -13,7 +13,7 @@
     "initial-app": "1.0.0",
     "github-export-icp-cli": "1.0.0"
   },
-  "aiCoreVersion": "0.19.6-beta.1",
+  "aiCoreVersion": "0.19.9",
   "motokoVersion": "0.16.3-caffeine-4",
   "failedMigrationVersion": "0.11.4",
   "tags": []

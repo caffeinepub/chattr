@@ -15,6 +15,18 @@ interface AvatarPickerDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
+// Helper to derive initials from username
+function getUserInitials(): string {
+  const username = localStorage.getItem('chatUsername');
+  if (!username) return 'A';
+  
+  const words = username.trim().split(/\s+/);
+  if (words.length === 1) {
+    return words[0].substring(0, 2).toUpperCase();
+  }
+  return words.slice(0, 2).map(w => w[0]).join('').toUpperCase();
+}
+
 export default function AvatarPickerDialog({ open, onOpenChange }: AvatarPickerDialogProps) {
   const currentAvatar = useCurrentAvatar();
   const updateAvatar = useUpdateAvatar();
@@ -107,6 +119,8 @@ export default function AvatarPickerDialog({ open, onOpenChange }: AvatarPickerD
     }
   };
 
+  const userInitials = getUserInitials();
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col">
@@ -117,15 +131,15 @@ export default function AvatarPickerDialog({ open, onOpenChange }: AvatarPickerD
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex flex-col gap-4 flex-1 min-h-0">
+        <div className="flex flex-col gap-4 flex-1 min-h-0 overflow-hidden">
           {/* Current Avatar Preview */}
-          <div className="flex items-center gap-4 p-4 border border-border rounded-lg bg-muted/30">
+          <div className="flex items-center gap-4 p-4 border border-border rounded-lg bg-muted/30 flex-shrink-0">
             <Avatar className="h-16 w-16">
               {currentAvatar ? (
                 <AvatarImage src={currentAvatar} alt="Current avatar" />
               ) : null}
               <AvatarFallback className="bg-primary text-primary-foreground">
-                ?
+                {userInitials}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1">
@@ -148,7 +162,7 @@ export default function AvatarPickerDialog({ open, onOpenChange }: AvatarPickerD
           </div>
 
           {/* Upload Section */}
-          <div className="space-y-2">
+          <div className="space-y-2 flex-shrink-0">
             <label className="text-sm font-medium">Upload Image</label>
             <div className="flex gap-2">
               <Button
@@ -173,7 +187,7 @@ export default function AvatarPickerDialog({ open, onOpenChange }: AvatarPickerD
           {/* Giphy Search Section */}
           <div className="space-y-2 flex-1 min-h-0 flex flex-col">
             <label className="text-sm font-medium">Search Giphy</label>
-            <div className="relative">
+            <div className="relative flex-shrink-0">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search for GIFs..."
@@ -183,43 +197,45 @@ export default function AvatarPickerDialog({ open, onOpenChange }: AvatarPickerD
               />
             </div>
 
-            {/* Giphy Results */}
-            <ScrollArea className="flex-1 min-h-0 border border-border rounded-lg">
-              <div className="p-2">
-                {isSearchingGiphy ? (
-                  <div className="flex items-center justify-center py-8">
-                    <p className="text-sm text-muted-foreground">Loading GIFs...</p>
-                  </div>
-                ) : giphyError ? (
-                  <div className="flex items-center justify-center py-8">
-                    <p className="text-sm text-destructive">{giphyError}</p>
-                  </div>
-                ) : giphyResults.length > 0 ? (
-                  <div className="grid grid-cols-3 gap-2">
-                    {giphyResults.map((gif) => (
-                      <button
-                        key={gif.id}
-                        onClick={() => handleSelectGif(gif.originalUrl)}
-                        disabled={updateAvatar.isPending}
-                        className="relative aspect-square overflow-hidden rounded-lg border border-border hover:border-primary transition-colors disabled:opacity-50"
-                      >
-                        <img
-                          src={gif.previewUrl}
-                          alt={gif.title}
-                          className="w-full h-full object-cover"
-                        />
-                      </button>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-center py-8">
-                    <p className="text-sm text-muted-foreground">
-                      {giphySearchTerm.trim() ? 'No GIFs found' : 'Trending GIFs'}
-                    </p>
-                  </div>
-                )}
-              </div>
-            </ScrollArea>
+            {/* Giphy Results - Scrollable */}
+            <div className="flex-1 min-h-0 border border-border rounded-lg overflow-hidden">
+              <ScrollArea className="h-full">
+                <div className="p-2">
+                  {isSearchingGiphy ? (
+                    <div className="flex items-center justify-center py-8">
+                      <p className="text-sm text-muted-foreground">Loading GIFs...</p>
+                    </div>
+                  ) : giphyError ? (
+                    <div className="flex items-center justify-center py-8">
+                      <p className="text-sm text-destructive">{giphyError}</p>
+                    </div>
+                  ) : giphyResults.length > 0 ? (
+                    <div className="grid grid-cols-3 gap-2">
+                      {giphyResults.map((gif) => (
+                        <button
+                          key={gif.id}
+                          onClick={() => handleSelectGif(gif.originalUrl)}
+                          disabled={updateAvatar.isPending}
+                          className="relative aspect-square overflow-hidden rounded-lg border border-border hover:border-primary transition-colors disabled:opacity-50"
+                        >
+                          <img
+                            src={gif.previewUrl}
+                            alt={gif.title}
+                            className="w-full h-full object-cover"
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center py-8">
+                      <p className="text-sm text-muted-foreground">
+                        {debouncedSearchTerm.trim() ? 'No GIFs found' : 'Search for GIFs or browse trending'}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </ScrollArea>
+            </div>
           </div>
         </div>
       </DialogContent>

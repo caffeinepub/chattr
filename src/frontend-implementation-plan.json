@@ -1,23 +1,47 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Fix Lobby initial load by isolating empty category-filter React Query cache key",
+  "title": "Caffeine Chats — Purge/ignore persisted empty React Query cache for ['chatrooms'] on lobby initial load",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Ensure the category-filter query never uses the base ['chatrooms'] React Query key when no category is selected, preventing empty-category results from overwriting the lobby list cache.",
+      "summary": "Prevent persisted hydrated empty-array cache for canonical ['chatrooms'] from rendering the lobby empty-state; purge/ignore it and force a fresh refetch (even if inactive) before showing empty-state.",
       "acceptanceCriteria": [
-        "On first load of the Lobby page (with no selected category and empty search), the UI shows the same rooms returned by the base getChatrooms query without requiring any user interaction.",
-        "No request is made to the backend category filter endpoint with an empty string category (e.g., filterChatroomsByCategory('')).",
-        "The base chatroom list query cache (queryKey ['chatrooms']) is not replaced by an empty array from any disabled/empty category query.",
-        "Selecting a category still filters the list as before; clearing the category still restores the base list as before.",
-        "Search behavior remains unchanged."
+        "On a fresh page load in production (with an existing persisted React Query cache entry where ['chatrooms'] data is []), the lobby renders the rooms list without requiring the user to search or select a category.",
+        "The lobby does not render the \"No chats found yet\" empty-state solely due to a hydrated persisted empty array for ['chatrooms']; it shows a loading state until a network refetch completes or a real empty result is confirmed.",
+        "The fix targets only the canonical rooms list query key ['chatrooms'] (and any known legacy empty-filter variants) and does not break search or category filtering behavior.",
+        "A fresh refetch of ['chatrooms'] is triggered on initial load/actor-ready even if the query is inactive at the moment of refetch."
       ],
       "file_operations": [
         {
+          "path": "frontend/src/hooks/useForceFreshChatroomsOnActorReady.ts",
+          "operation": "modify",
+          "description": "Adjust the actor-ready recovery hook to (1) detect a hydrated persisted empty array specifically for the canonical query key ['chatrooms'] (plus known legacy empty-filter variants), (2) ignore it by clearing/undefining the cached data rather than letting it be treated as a confirmed empty result, and (3) force a fresh network refetch using React Query refetch/invalidate options that include inactive queries. Track and expose a short-lived 'recovery in progress' signal so the lobby can render a loading state until the refetch settles."
+        },
+        {
+          "path": "frontend/src/pages/LobbyPage.tsx",
+          "operation": "modify",
+          "description": "Wire the updated useForceFreshChatroomsOnActorReady() return state into lobby rendering so that when recovery is in progress (or when canonical ['chatrooms'] is known to be a hydrated empty that is being refetched), the lobby shows a loading state instead of the \"No chats found yet\" empty-state. Ensure search and category-filter views are unaffected and continue to use their existing query keys/behavior."
+        },
+        {
           "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Update useFilterChatroomsByCategory so that when category is empty/whitespace it uses a distinct, non-base queryKey (e.g., ['chatrooms','category','__none__']) while keeping the query disabled (enabled: false) to avoid any backend call with an empty category; ensure only the category-filter query key behavior changes and search/base chatroom queries remain unchanged."
+          "description": "Align canonical chatrooms query behavior with the recovery flow by ensuring that an undefined/cleared cache state properly results in a loading state (not an immediate empty-state) and that the base ['chatrooms'] query remains the single canonical key for unfiltered lists. Keep search/category normalization intact and do not change user-facing filtering behavior."
+        }
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "summary": "Provide the exact concrete code change that will be applied for the persisted-cache purge/ignore behavior so it can be reviewed before deployment.",
+      "acceptanceCriteria": [
+        "The response includes the concrete code snippet(s) that will be added/modified (not just a description).",
+        "Any user-facing strings shown in the snippet(s) are in English."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/docs/react-query-chatrooms-persisted-empty-purge.diff",
+          "operation": "create",
+          "description": "Add a diff-style patch file containing the exact concrete code changes to be applied for REQ-1 (including modifications to frontend/src/hooks/useForceFreshChatroomsOnActorReady.ts, frontend/src/pages/LobbyPage.tsx, and any related adjustments). Ensure any user-facing strings included in the diff are in English."
         }
       ]
     }

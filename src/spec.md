@@ -1,10 +1,12 @@
 # Specification
 
 ## Summary
-**Goal:** Fix the Lobby initial-load issue so chatrooms display immediately without requiring a category selection.
+**Goal:** Fix the lobby’s initial rooms list so it displays rooms on first load even when a persisted React Query cache hydrates an empty array for the canonical `['chatrooms']` query.
 
 **Planned changes:**
-- Update the Lobby’s category-filter React Query to use a distinct query key (and/or conditional enabling) so it never shares the base `['chatrooms']` cache key when no category is selected.
-- Prevent any category-filter backend request from being made when the selected category is empty, ensuring the base chatroom list cache is not overwritten.
+- Add frontend logic to detect and purge/ignore a hydrated persisted empty `[]` result for the canonical `['chatrooms']` query key (and any known legacy empty-filter variants) and force a fresh network refetch before showing an empty-state.
+- Ensure the lobby shows a loading state while the refetch is in-flight, and only shows “No chats found yet” after a real empty result is confirmed from the network.
+- Trigger a refetch for `['chatrooms']` on initial load/actor-ready even if the query is currently inactive.
+- Provide the exact code change snippet(s) (diff-style or full file content) implementing the persisted-cache purge/ignore behavior for review.
 
-**User-visible outcome:** On first load of the Lobby (no category selected, empty search), rooms appear immediately; selecting/clearing a category continues to filter/restore the list as before, and search works the same as before.
+**User-visible outcome:** On a fresh page load in production, the lobby shows available rooms immediately without requiring a search or category selection, and it no longer incorrectly shows an empty-state due solely to a persisted cached empty list.

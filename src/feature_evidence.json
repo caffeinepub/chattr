@@ -2,10 +2,11 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-fix-the-lobby-initial-load-bug-where-chatrooms-do-not-display-until-a-category-is-selected-by-ensuring-the-category-filter-react-query-never-shares-the-base-chatroom-query-key-when-no-category-is-selected-so-it-cannot-overwrite-the-base-chatrooms-cache",
-      "featureTitle": "Fix the lobby initial-load bug where chatrooms do not display until a category is selected by ensuring the category-filter React Query never shares the base chatroom query key when no category is selected (so it cannot overwrite the base ['chatrooms'] cache).",
+      "featureId": "feature-ensure-the-lobby-shows-rooms-on-initial-load-in-production-even-when-react-query-hydrates-a-persisted-cached-empty-array-for-the-canonical-query-key-chatrooms-by-purging-ignoring-that-hydrated-empty-result-and-forcing-a-fresh-refetch-before-rendering-an-empty-state",
+      "featureTitle": "Ensure the lobby shows rooms on initial load in production even when React Query hydrates a persisted cached empty array for the canonical query key ['chatrooms'] by purging/ignoring that hydrated empty result and forcing a fresh refetch before rendering an empty-state.",
       "files": [
-        "frontend/src/hooks/useQueries.ts"
+        "frontend/src/hooks/useForceFreshChatroomsOnActorReady.ts",
+        "frontend/src/pages/LobbyPage.tsx"
       ],
       "components": [
         "authorization@1.0.1",

@@ -1,59 +1,49 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-16T15:09:09.335Z",
-  "summary": "REQ-1 is partially addressed by introducing a distinct React Query key for empty category filters (avoiding collision with the base ['chatrooms'] cache). However, the diff summary does not provide direct evidence that the category-filter query is disabled/skipped when no category is selected (to prevent any backend call with an empty category). Several unrelated frontend changes were also made outside the scope of the request, including avatar/Giphy picker work, header/layout changes, chat area UI behavior changes, and React Query refetch behavior changes.",
+  "generatedAt": "2026-02-16T17:32:40.540Z",
+  "summary": "The diff introduces a new startup recovery hook to purge a persisted empty array for the canonical React Query key ['chatrooms'] and wires the LobbyPage to use a recovery/loading signal. However, some acceptance-criteria behaviors cannot be fully verified due to truncation, and LobbyPage adds additional “empty array guard” behavior that was not explicitly requested.",
   "missing_requirements": [
     {
       "id": "REQ-1",
-      "requirement": "No request is made to the backend category filter endpoint with an empty string category (e.g., filterChatroomsByCategory('')).",
-      "reason": "While the query-key collision is addressed via a distinct empty-category key, the diff summary does not show the category-filter query being conditionally disabled/skipped when no category is selected; without that, the frontend could still call the category filter endpoint with an empty/whitespace value.",
+      "requirement": "A fresh refetch of ['chatrooms'] is triggered on initial load/actor-ready even if the query is inactive at the moment of refetch.",
+      "reason": "The new hook describes an explicit refetch step, but the diff is truncated before showing the actual refetchQueries/fetchQuery call and its options (e.g., type: 'all' / refetchInactive / exact). Therefore it cannot be confirmed from the provided evidence that an inactive ['chatrooms'] query is guaranteed to be refetched.",
       "evidence": [
-        "frontend/src/hooks/useQueries.ts (shows normalizeCategoryQueryKey returning ['chatrooms','category','__none__'] for empty, but no shown enabled/guard logic for the category-filter query)",
-        "frontend-file-summaries.txt (mentions LobbyPage uses null sentinel and only activates filtering when selected, but no actual code shown)"
+        "frontend/src/hooks/useForceFreshChatroomsOnActorReady.ts (truncated at the start of 'Step 3: Explicitly refetch the canonical ['chatrooms'] query')"
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "requirement": "Provide the exact code change (diff-style or full file content) that will be applied so the user can review it before deployment.",
+      "reason": "The provided artifact is a truncated diff summary, not the full exact code change for all modified files. This requirement is not satisfied by the diff content as presented (some modified files are truncated, and others are summarized rather than shown).",
+      "evidence": [
+        "frontend/src/hooks/useForceFreshChatroomsOnActorReady.ts (truncated)",
+        "frontend/src/pages/LobbyPage.tsx (truncated)",
+        "frontend-file-summaries.txt (summaries only)"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Avatar picker dialog enhancements including Giphy search/trending fetching and request-id race protection.",
-      "reason": "Not requested by BuildRequest; unrelated to lobby initial-load/category filter bug fix and violates smallest-possible-frontend-change constraint.",
+      "description": "LobbyPage “empty array guard” that tracks the last known non-empty chatroom list per view (all/search/category) and reuses it when incoming data is empty.",
+      "reason": "REQ-1 focuses on purging/ignoring a hydrated persisted empty array for the canonical ['chatrooms'] key and forcing a fresh refetch before showing an empty state. Persisting and reusing a previous non-empty list per view is an additional behavior not requested and may mask legitimate empty results.",
       "evidence": [
-        "frontend/src/components/AvatarPickerDialog.tsx"
+        "frontend/src/pages/LobbyPage.tsx (shows lastNonEmptyRef tracking for all/search/category and references an empty-array guard)"
       ]
     },
     {
-      "description": "Header UI changes (clickable avatar opens avatar picker, layout width constraint removed, hook usage changes).",
-      "reason": "Not requested; unrelated to the lobby initial-load/category query issue.",
+      "description": "Removal of cached queries for legacy/incorrect empty-filter variants (['chatrooms','search',''] and ['chatrooms','category','']).",
+      "reason": "REQ-1 mentions targeting the canonical key and “any known legacy empty-filter variants,” but it does not explicitly specify these exact variants or that they should be removed from the cache. This is additional behavior beyond the explicit canonical ['chatrooms'] purge.",
       "evidence": [
-        "frontend/src/components/Header.tsx",
-        "frontend-file-summaries.txt (Header description)"
-      ]
-    },
-    {
-      "description": "Chat area behavior/UI changes (collapsible header, scroll/highlight reply navigation behavior updates).",
-      "reason": "Not requested; unrelated to lobby initial-load/category filtering bug.",
-      "evidence": [
-        "frontend/src/components/ChatArea.tsx",
-        "frontend-file-summaries.txt (ChatArea description)"
-      ]
-    },
-    {
-      "description": "React Query behavior changes beyond the category key fix (aggressive refetch options/refetch interval, transient empty-result guard, mutation refetchQueries behavior).",
-      "reason": "Non-goals explicitly prohibit changing polling/refetch intervals or adding new background refresh behaviors; these changes go beyond the requested minimal fix.",
-      "evidence": [
-        "frontend/src/hooks/useQueries.ts (refetchOnMount/refetchOnWindowFocus/refetchOnReconnect/refetchInterval shown; transient empty guard shown)",
-        "frontend-file-summaries.txt (useQueries summary mentioning aggressive refetch options, transient empty result guard, explicit refetchQueries calls)"
+        "frontend/src/hooks/useForceFreshChatroomsOnActorReady.ts (iterates queryCache.getAll() and removes keys where key[0]==='chatrooms' and key[1] in {'search','category'} and key[2].trim()==='')"
       ]
     }
   ],
   "confidence": 0.62,
   "changed_files": [
     "frontend-file-summaries.txt",
-    "frontend/src/components/AvatarPickerDialog.tsx",
-    "frontend/src/components/ChatArea.tsx",
-    "frontend/src/components/Header.tsx",
-    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/hooks/useForceFreshChatroomsOnActorReady.ts",
+    "frontend/src/pages/LobbyPage.tsx",
     "project_state.json"
   ]
 }

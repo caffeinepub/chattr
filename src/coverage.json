@@ -1,25 +1,37 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-16T15:09:09.338Z",
+  "generatedAt": "2026-02-16T17:32:40.543Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 1,
+    "total": 2,
     "implemented": 1,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Fix the lobby initial-load bug where chatrooms do not display until a category is selected by ensuring the category-filter React Query never shares the base chatroom query key when no category is selected (so it cannot overwrite the base ['chatrooms'] cache).",
+        "summary": "Ensure the lobby shows rooms on initial load in production even when React Query hydrates a persisted cached empty array for the canonical query key ['chatrooms'] by purging/ignoring that hydrated empty result and forcing a fresh refetch before rendering an empty-state.",
         "status": "implemented",
         "plannedFiles": [
+          "frontend/src/hooks/useForceFreshChatroomsOnActorReady.ts",
+          "frontend/src/pages/LobbyPage.tsx",
           "frontend/src/hooks/useQueries.ts"
         ],
         "matchedFiles": [
-          "frontend/src/hooks/useQueries.ts"
+          "frontend/src/hooks/useForceFreshChatroomsOnActorReady.ts",
+          "frontend/src/pages/LobbyPage.tsx"
         ]
+      },
+      {
+        "id": "REQ-2",
+        "summary": "Provide the exact code change (diff-style or full file content) that will be applied to implement the persisted-cache purge/ignore behavior, so the user can review what it looks like before deployment.",
+        "status": "missing",
+        "plannedFiles": [
+          "frontend/docs/react-query-chatrooms-persisted-empty-purge.diff"
+        ],
+        "matchedFiles": []
       }
     ]
   },
@@ -28,10 +40,8 @@
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/components/AvatarPickerDialog.tsx",
-    "frontend/src/components/ChatArea.tsx",
-    "frontend/src/components/Header.tsx",
-    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/hooks/useForceFreshChatroomsOnActorReady.ts",
+    "frontend/src/pages/LobbyPage.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",
