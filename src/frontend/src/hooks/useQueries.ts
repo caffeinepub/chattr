@@ -318,6 +318,50 @@ export function useDeleteChatroom() {
   });
 }
 
+export function useResetPublishedSite() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async () => {
+      if (!actor) throw new Error('Actor not available');
+      
+      console.log('[ResetPublishedSite] Resetting entire published site...');
+      
+      await actor.resetPublishedSite();
+    },
+    onSuccess: async () => {
+      console.log('[ResetPublishedSite] Success, clearing all caches and refetching...');
+      
+      // Invalidate entire chatrooms namespace (non-exact) to refresh all variants
+      await queryClient.invalidateQueries({ queryKey: ['chatrooms'], exact: false });
+      
+      // Clear all chatroom-related caches
+      queryClient.removeQueries({ queryKey: ['chatroom'], exact: false });
+      queryClient.removeQueries({ queryKey: ['messages'], exact: false });
+      
+      // Explicitly refetch the base chatrooms query even if inactive/unobserved
+      await queryClient.refetchQueries({ 
+        queryKey: ['chatrooms'], 
+        exact: true,
+        type: 'all'
+      });
+      
+      toast.success('Published site reset successfully');
+    },
+    onError: (error: Error) => {
+      console.error('[ResetPublishedSite] Error:', error);
+      const errorMessage = error.message || 'Failed to reset published site';
+      
+      if (errorMessage.includes('Unauthorized')) {
+        toast.error('You do not have permission to reset the site');
+      } else {
+        toast.error(errorMessage);
+      }
+    },
+  });
+}
+
 // Increment view count when chatroom is accessed
 export function useIncrementViewCount() {
   const { actor } = useActor();
@@ -504,6 +548,7 @@ export function usePinVideo() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['chatroom', data.chatroomId.toString()] });
+      queryClient.invalidateQueries({ queryKey: ['messages', data.chatroomId.toString()] });
       // Invalidate entire chatrooms namespace (non-exact) to refresh all variants
       queryClient.invalidateQueries({ queryKey: ['chatrooms'], exact: false });
       toast.success('Video pinned');
@@ -526,6 +571,7 @@ export function useUnpinVideo() {
     },
     onSuccess: (chatroomId) => {
       queryClient.invalidateQueries({ queryKey: ['chatroom', chatroomId.toString()] });
+      queryClient.invalidateQueries({ queryKey: ['messages', chatroomId.toString()] });
       // Invalidate entire chatrooms namespace (non-exact) to refresh all variants
       queryClient.invalidateQueries({ queryKey: ['chatrooms'], exact: false });
       toast.success('Video unpinned');
@@ -536,7 +582,113 @@ export function useUnpinVideo() {
   });
 }
 
-// Reactions
+// User profile hooks
+export function useGetCallerUserProfile() {
+  const { actor, isFetching: actorFetching } = useActor();
+
+  const query = useQuery<UserProfile | null>({
+    queryKey: ['currentUserProfile'],
+    queryFn: async () => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.getCallerUserProfile();
+    },
+    enabled: !!actor && !actorFetching,
+    retry: false,
+  });
+
+  // Return custom state that properly reflects actor dependency
+  return {
+    ...query,
+    isLoading: actorFetching || query.isLoading,
+    isFetched: !!actor && query.isFetched,
+  };
+}
+
+export function useSaveCallerUserProfile() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (profile: UserProfile) => {
+      if (!actor) throw new Error('Actor not available');
+      await actor.saveCallerUserProfile(profile);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
+      toast.success('Profile saved');
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'Failed to save profile');
+    },
+  });
+}
+
+// Username and avatar hooks (localStorage-based)
+export function useCurrentUsername() {
+  return getUsername();
+}
+
+export function useCurrentAvatar() {
+  return getAvatarUrl();
+}
+
+export function useUpdateUsername() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (newUsername: string) => {
+      if (!actor) throw new Error('Actor not available');
+      const userId = getUserId();
+      
+      // Update localStorage
+      localStorage.setItem('chatUsername', newUsername);
+      
+      // Update all messages retroactively
+      await actor.updateUsernameRetroactively(userId, newUsername);
+    },
+    onSuccess: () => {
+      // Invalidate all message queries to refetch with new username
+      queryClient.invalidateQueries({ queryKey: ['messages'], exact: false });
+      toast.success('Username updated');
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'Failed to update username');
+    },
+  });
+}
+
+export function useUpdateAvatar() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (newAvatarUrl: string | null) => {
+      if (!actor) throw new Error('Actor not available');
+      const userId = getUserId();
+      
+      // Update localStorage
+      if (newAvatarUrl) {
+        localStorage.setItem('chatAvatarUrl', newAvatarUrl);
+      } else {
+        localStorage.removeItem('chatAvatarUrl');
+      }
+      
+      // Update all messages retroactively
+      await actor.updateAvatarRetroactively(userId, newAvatarUrl);
+    },
+    onSuccess: () => {
+      // Invalidate all message queries to refetch with new avatar
+      queryClient.invalidateQueries({ queryKey: ['messages'], exact: false });
+      toast.success('Avatar updated');
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'Failed to update avatar');
+    },
+  });
+}
+
+// Reaction hooks
 export function useAddReaction() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
@@ -577,75 +729,7 @@ export function useRemoveReaction() {
   });
 }
 
-// Username management
-export function useGetCurrentUsername() {
-  return getUsername();
-}
-
-export function useUpdateUsername() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (newUsername: string) => {
-      if (!actor) throw new Error('Actor not available');
-      
-      const userId = getUserId();
-      
-      localStorage.setItem('chatUsername', newUsername);
-      
-      await actor.updateUsernameRetroactively(userId, newUsername);
-      
-      return newUsername;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['messages'] });
-      toast.success('Username updated');
-    },
-    onError: (error: Error) => {
-      console.error('[UpdateUsername] Error:', error);
-      toast.error('Failed to update username');
-    },
-  });
-}
-
-// Avatar management
-export function useGetCurrentAvatar() {
-  return getAvatarUrl();
-}
-
-export function useUpdateAvatar() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (newAvatarUrl: string | null) => {
-      if (!actor) throw new Error('Actor not available');
-      
-      const userId = getUserId();
-      
-      if (newAvatarUrl) {
-        localStorage.setItem('chatAvatarUrl', newAvatarUrl);
-      } else {
-        localStorage.removeItem('chatAvatarUrl');
-      }
-      
-      await actor.updateAvatarRetroactively(userId, newAvatarUrl);
-      
-      return newAvatarUrl;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['messages'] });
-      toast.success('Avatar updated');
-    },
-    onError: (error: Error) => {
-      console.error('[UpdateAvatar] Error:', error);
-      toast.error('Failed to update avatar');
-    },
-  });
-}
-
-// Reply preview
+// Reply preview hook
 export function useGetReplyPreview(chatroomId: bigint, messageId: bigint | null) {
   const { actor, isFetching: actorFetching } = useActor();
 
@@ -655,7 +739,7 @@ export function useGetReplyPreview(chatroomId: bigint, messageId: bigint | null)
       if (!actor || !messageId) return null;
       return actor.getReplyPreview(chatroomId, messageId);
     },
-    enabled: !!actor && !actorFetching && !!messageId,
-    staleTime: 60000,
+    enabled: !!actor && !actorFetching && messageId !== null,
+    staleTime: 60000, // Reply previews don't change often
   });
 }

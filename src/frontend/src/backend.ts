@@ -229,10 +229,7 @@ export interface backendInterface {
     isCallerAdmin(): Promise<boolean>;
     pinVideo(chatroomId: bigint, messageId: bigint): Promise<void>;
     removeReaction(messageId: bigint, emoji: string, userId: string): Promise<void>;
-    /**
-     * / Resets all application data, including chatrooms, messages, reactions, active user tracking, user profiles, and ID counters.
-     */
-    resetData(): Promise<void>;
+    resetPublishedSite(): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     searchChatrooms(searchTerm: string): Promise<Array<ChatroomWithLiveStatus>>;
     sendMessage(content: string, sender: string, chatroomId: bigint, mediaUrl: string | null, mediaType: string | null, avatarUrl: string | null, senderId: string, replyToMessageId: bigint | null): Promise<void>;
@@ -706,17 +703,17 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async resetData(): Promise<void> {
+    async resetPublishedSite(): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor.resetData();
+                const result = await this.actor.resetPublishedSite();
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.resetData();
+            const result = await this.actor.resetPublishedSite();
             return result;
         }
     }

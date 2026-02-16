@@ -1,68 +1,46 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Admin Delete Chatrooms: Add Reset Data tab and wired reset action",
+  "title": "Admin UI: Reset Published Site action with confirmation and full client refresh",
   "requirements": [
     {
-      "id": "REQ-1",
-      "summary": "Add an in-page tab/section switcher in AdminDeleteChatroomsPage to navigate between chatroom deletion UI and a new Reset Data UI, without modifying any other frontend pages.",
-      "acceptanceCriteria": [
-        "The only frontend page modified is frontend/src/pages/AdminDeleteChatroomsPage.tsx.",
-        "The admin page provides a clearly labeled tab/section that switches between the existing chatroom deletion UI and a new reset UI.",
-        "All user-facing text added is in English."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/AdminDeleteChatroomsPage.tsx",
-          "operation": "modify",
-          "description": "Add local UI state for an in-page section switcher (e.g., 'Chatrooms' and 'Reset Data') and conditionally render either the existing chatroom management content or the new reset content, while keeping all changes confined to this file and preserving existing behavior. Verify the shadcn-ui component usage instructions before implementing."
-        }
-      ]
-    },
-    {
       "id": "REQ-2",
-      "summary": "Implement a Reset Data button with explicit confirmation, loading/disabled state, success feedback, and chatroom cache refresh after reset completes.",
+      "summary": "Add a destructive 'Reset Published Site' admin action on /admin/delete-chatrooms with confirmation and success/failure feedback, gated by existing admin password flow.",
       "acceptanceCriteria": [
-        "Clicking \"Reset Data\" requires an explicit confirmation step before the reset call is executed.",
-        "During the reset call, the UI shows a loading state and disables the reset button to prevent duplicate submissions.",
-        "On success, the UI shows a clear success message and refreshes relevant cached queries (at minimum the canonical ['chatrooms'] query) so the UI reflects the wiped state."
+        "The admin page at /admin/delete-chatrooms displays an additional destructive action (e.g., button) labeled \"Reset Published Site\" only after the admin password gate is passed.",
+        "Clicking the reset action opens a confirmation dialog that clearly states that all chatrooms and messages will be permanently deleted and the action cannot be undone.",
+        "Confirming calls the backend reset method and shows success/failure feedback in English (toast and/or inline alert)."
       ],
       "file_operations": [
         {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Add a dedicated React Query mutation hook (e.g., useResetPublishedSite) that calls the backend capability resetPublishedSite() and surfaces English success/failure feedback using the existing toast system. Verify the component's usage instructions before implementing."
+        },
+        {
           "path": "frontend/src/pages/AdminDeleteChatroomsPage.tsx",
           "operation": "modify",
-          "description": "In the new Reset Data section, add a clearly labeled 'Reset Data' button that opens an explicit confirmation dialog (use the existing AlertDialog pattern already imported on the page) and, upon confirm, triggers the reset call with a visible loading indicator and disabled button state. On success, display a clear success message in-page (e.g., Alert) and invalidate/refetch React Query caches, at minimum refetching the exact ['chatrooms'] query (type: 'all') so the admin list reflects the wiped state. Verify the shadcn-ui component usage instructions before implementing."
+          "description": "Extend the authenticated admin UI to render a new destructive button labeled \"Reset Published Site\" and wire it to a confirmation dialog (using existing shadcn-ui dialog/button/alert patterns already imported in this page). On confirm, invoke the reset mutation and show English success/failure feedback; ensure this action is only visible after the existing sessionStorage password gate is passed. Verify the component's usage instructions before implementing."
         }
       ]
     },
     {
-      "id": "REQ-4",
-      "summary": "Ensure the reset UI does not introduce any new frontend authorization flows beyond the existing admin password gate, and keep the reset action located only in this admin page.",
+      "id": "REQ-3",
+      "summary": "After reset success, invalidate and refetch chatroom-related caches so admin and lobby reflect the empty state without manual refresh.",
       "acceptanceCriteria": [
-        "The reset backend method does not read or validate caller identity/role and does not call AccessControl checks.",
-        "No new frontend auth/login flows are introduced; the only UI location for the reset action is within the existing admin delete-chatrooms page."
+        "On reset success, all chatroom-related React Query caches are invalidated (including the entire ['chatrooms'] namespace) and the base ['chatrooms'] query is refetched even if inactive (type: 'all'), matching the existing refetch strategy used by create/delete flows.",
+        "After reset, the admin table shows \"No chatrooms found\" and the lobby page shows no rooms when navigated to or already open."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/AdminDeleteChatroomsPage.tsx",
+          "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Keep the reset UI and action fully nested under the existing admin password-authenticated rendering path (no new login/auth components, no additional routing, no role checks), ensuring the only entry point is within this page's existing admin gate and that all new user-facing text is English. Verify the shadcn-ui component usage instructions before implementing."
-        }
-      ]
-    },
-    {
-      "id": "REQ-5",
-      "summary": "Wire the admin reset button to the backend reset capability using existing React Query and actor patterns, with frontend changes strictly limited to AdminDeleteChatroomsPage.tsx.",
-      "acceptanceCriteria": [
-        "The frontend triggers the backend reset method successfully from the admin page.",
-        "Frontend changes are confined to frontend/src/pages/AdminDeleteChatroomsPage.tsx (no other frontend files changed).",
-        "Backend changes are confined to adding the reset capability without refactoring unrelated functionality."
-      ],
-      "file_operations": [
+          "description": "In the reset mutation success handler, invalidate the entire ['chatrooms'] namespace (exact: false) and force a refetch of the base ['chatrooms'] query with type: 'all'. Also clear any related per-room caches (e.g., chatroom details and messages queries) so navigating back to lobby/admin immediately reflects an empty state. Verify the component's usage instructions before implementing."
+        },
         {
           "path": "frontend/src/pages/AdminDeleteChatroomsPage.tsx",
           "operation": "modify",
-          "description": "Use existing actor tooling by importing and using useActor (and a colocated React Query mutation) to call actor.resetData() from the confirmation action; ensure the mutation handles errors, sets loading/disabled UI state, and refreshes cached queries (at minimum invalidate/refetch ['chatrooms']). Keep all wiring and any additional UI feedback strictly within this file. Verify the component's usage instructions before implementing."
+          "description": "After a successful reset, ensure the admin list UI updates immediately to the empty state (e.g., clear category filter to 'all' if applicable and rely on the invalidated/refetched ['chatrooms'] query so the table renders \"No chatrooms found\" without a manual refresh). Verify the component's usage instructions before implementing."
         }
       ]
     }
