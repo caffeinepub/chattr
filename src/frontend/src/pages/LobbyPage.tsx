@@ -50,7 +50,7 @@ export default function LobbyPage() {
   });
 
   // Force fresh refetch when actor becomes ready (consolidated recovery)
-  const { isRecovering } = useForceFreshChatroomsOnActorReady();
+  useForceFreshChatroomsOnActorReady();
 
   // Debounce search term
   useEffect(() => {
@@ -157,9 +157,8 @@ export default function LobbyPage() {
 
   // Show loading when:
   // 1. Actor is still connecting, OR
-  // 2. We're loading data and don't have it yet (chatrooms is undefined), OR
-  // 3. Recovery is in progress (purging persisted empty cache)
-  const showLoading = actorFetching || (isLoading && chatrooms === undefined) || isRecovering;
+  // 2. We're loading data and don't have it yet (chatrooms is undefined)
+  const showLoading = actorFetching || (isLoading && chatrooms === undefined);
 
   if (showLoading) {
     return (
@@ -167,7 +166,7 @@ export default function LobbyPage() {
         <div className="text-center">
           <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
           <p className="mt-2 text-sm text-muted-foreground">
-            {actorFetching ? 'Connecting...' : isRecovering ? 'Loading chats...' : 'Loading chats...'}
+            {actorFetching ? 'Connecting...' : 'Loading chats...'}
           </p>
         </div>
       </div>

@@ -1,18 +1,18 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Investigating and planning a fix for a production bug where the lobby/rooms list does not display on initial load due to a persisted TanStack/React Query cache entry (['chatrooms']=[]) being hydrated before fetch.",
+  "summary": "Project now focused on fixing a production issue where chat rooms are not displayed in the lobby unless a search or category is selected, likely due to persisted React Query cache returning an empty array for the ['chatrooms'] query key.",
   "architectural_notes": [
-    "Production uses persisted TanStack/React Query cache (localStorage/IndexedDB) that hydrates before component mount; stale persisted data for ['chatrooms'] can override initial lobby state."
+    "Production uses persisted React Query cache that can survive deployments; lobby must handle/clear stale cached [] for query key ['chatrooms'] on initial mount."
   ],
   "known_issues": [
-    "Live site does not display rooms on initial load unless searched or a category is selected; suspected cause is hydrated persisted React Query cache containing ['chatrooms'] = [] in production."
+    "Production lobby shows no rooms until search/category selection, likely due to stale persisted React Query cache containing [] for ['chatrooms']."
   ],
   "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-ensure-the-lobby-shows-rooms-on-initial-load-in-production-even-when-react-query-hydrates-a-persisted-cached-empty-array-for-the-canonical-query-key-chatrooms-by-purging-ignoring-that-hydrated-empty-result-and-forcing-a-fresh-refetch-before-rendering-an-empty-state",
-      "title": "Ensure the lobby shows rooms on initial load in production even when React Query hydrates a persisted cached empty array for the canonical query key ['chatrooms'] by purging/ignoring that hydrated empty result and forcing a fresh refetch before rendering an empty-state.",
+      "id": "feature-ensure-the-lobby-does-not-boot-with-a-persisted-cached-empty-array-for-the-canonical-react-query-key-chatrooms-in-production-by-purging-ignoring-that-cached-value-on-initial-app-load-actor-ready-and-forcing-a-fresh-network-refetch-so-rooms-display-immediately-without-requiring-search-category-interaction",
+      "title": "Ensure the lobby does not boot with a persisted cached empty array for the canonical React Query key ['chatrooms'] in production by purging/ignoring that cached value on initial app load (actor-ready) and forcing a fresh network refetch so rooms display immediately without requiring search/category interaction.",
       "reqIds": [
         "REQ-1"
       ],
@@ -22,17 +22,9 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Purge or ignore persisted React Query cache for the ['chatrooms'] query on app startup (main.tsx) so rooms display on initial load in production.",
+      "summary": "Purge/ignore persisted React Query cache for the lobby ['chatrooms'] query on initial load in production so rooms display without requiring search/category selection.",
       "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-3",
-      "summary": "Provide the exact code change (diff-style or full file content) that will be applied to implement the persisted-cache purge/ignore behavior, so the user can review what it looks like before deployment.",
-      "reqIds": [
-        "REQ-2"
-      ],
-      "status": "pending"
+      "status": "in_progress"
     }
   ],
   "projectName": "Caffeine Chats",

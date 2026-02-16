@@ -2,11 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-ensure-the-lobby-shows-rooms-on-initial-load-in-production-even-when-react-query-hydrates-a-persisted-cached-empty-array-for-the-canonical-query-key-chatrooms-by-purging-ignoring-that-hydrated-empty-result-and-forcing-a-fresh-refetch-before-rendering-an-empty-state",
-      "featureTitle": "Ensure the lobby shows rooms on initial load in production even when React Query hydrates a persisted cached empty array for the canonical query key ['chatrooms'] by purging/ignoring that hydrated empty result and forcing a fresh refetch before rendering an empty-state.",
+      "featureId": "feature-ensure-the-lobby-does-not-boot-with-a-persisted-cached-empty-array-for-the-canonical-react-query-key-chatrooms-in-production-by-purging-ignoring-that-cached-value-on-initial-app-load-actor-ready-and-forcing-a-fresh-network-refetch-so-rooms-display-immediately-without-requiring-search-category-interaction",
+      "featureTitle": "Ensure the lobby does not boot with a persisted cached empty array for the canonical React Query key ['chatrooms'] in production by purging/ignoring that cached value on initial app load (actor-ready) and forcing a fresh network refetch so rooms display immediately without requiring search/category interaction.",
       "files": [
-        "frontend/src/hooks/useForceFreshChatroomsOnActorReady.ts",
-        "frontend/src/pages/LobbyPage.tsx"
+        "frontend/src/hooks/useForceFreshChatroomsOnActorReady.ts"
       ],
       "components": [
         "authorization@1.0.1",

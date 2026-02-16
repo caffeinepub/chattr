@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
 import type { ChatroomWithLiveStatus } from '../backend';
@@ -11,15 +11,13 @@ import type { ChatroomWithLiveStatus } from '../backend';
  * 1. Removing legacy/incorrect empty-filter cache entries
  * 2. Detecting and purging persisted empty-array cache for ['chatrooms']
  * 3. Explicitly refetching the canonical ['chatrooms'] query even when inactive
- * 4. Exposing a recovery-in-progress signal so the lobby can show loading state
- * 5. Resetting on actor instance changes
+ * 4. Resetting on actor instance changes
  */
 export function useForceFreshChatroomsOnActorReady() {
   const { actor, isFetching: actorFetching } = useActor();
   const queryClient = useQueryClient();
   const hasTriggeredRefetch = useRef(false);
   const actorInstanceRef = useRef(actor);
-  const [isRecovering, setIsRecovering] = useState(false);
 
   useEffect(() => {
     // Reset flag if actor instance changes (e.g., reconnection)
@@ -29,7 +27,6 @@ export function useForceFreshChatroomsOnActorReady() {
       }
       hasTriggeredRefetch.current = false;
       actorInstanceRef.current = actor;
-      setIsRecovering(false);
     }
 
     // Only run once per actor-ready lifecycle
@@ -45,8 +42,6 @@ export function useForceFreshChatroomsOnActorReady() {
     if (import.meta.env.DEV) {
       console.log('[useForceFreshChatroomsOnActorReady] Actor ready, starting cache purge and recovery sequence...');
     }
-    
-    setIsRecovering(true);
     
     // Step 1: Remove legacy/incorrect empty-filter cache entries
     const queryCache = queryClient.getQueryCache();
@@ -86,11 +81,11 @@ export function useForceFreshChatroomsOnActorReady() {
         console.log('[useForceFreshChatroomsOnActorReady] Detected persisted empty array in cache, purging...');
       }
       
-      // Set cache to undefined (not empty array) to signal "no data yet"
-      queryClient.setQueryData(['chatrooms'], undefined);
+      // Remove the query completely to force React Query to treat it as uncached
+      queryClient.removeQueries({ queryKey: ['chatrooms'], exact: true });
       
       if (import.meta.env.DEV) {
-        console.log('[useForceFreshChatroomsOnActorReady] Cache cleared (set to undefined)');
+        console.log('[useForceFreshChatroomsOnActorReady] Cache purged successfully');
       }
     } else if (import.meta.env.DEV) {
       console.log('[useForceFreshChatroomsOnActorReady] Current cached data:', currentCachedData?.length ?? 'undefined', 'items');
@@ -110,16 +105,12 @@ export function useForceFreshChatroomsOnActorReady() {
         const finalData = queryClient.getQueryData<ChatroomWithLiveStatus[]>(['chatrooms']);
         console.log('[useForceFreshChatroomsOnActorReady] Refetch complete, final count:', finalData?.length ?? 0);
       }
-      setIsRecovering(false);
     }).catch((error) => {
       if (import.meta.env.DEV) {
         console.error('[useForceFreshChatroomsOnActorReady] Refetch failed:', error);
       }
-      setIsRecovering(false);
     });
     
     hasTriggeredRefetch.current = true;
   }, [actor, actorFetching, queryClient]);
-
-  return { isRecovering };
 }

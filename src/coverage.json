@@ -1,37 +1,25 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-16T17:32:40.543Z",
+  "generatedAt": "2026-02-16T16:31:24.231Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 2,
+    "total": 1,
     "implemented": 1,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Ensure the lobby shows rooms on initial load in production even when React Query hydrates a persisted cached empty array for the canonical query key ['chatrooms'] by purging/ignoring that hydrated empty result and forcing a fresh refetch before rendering an empty-state.",
+        "summary": "Ensure the lobby does not boot with a persisted cached empty array for the canonical React Query key ['chatrooms'] in production by purging/ignoring that cached value on initial app load (actor-ready) and forcing a fresh network refetch so rooms display immediately without requiring search/category interaction.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/hooks/useForceFreshChatroomsOnActorReady.ts",
-          "frontend/src/pages/LobbyPage.tsx",
-          "frontend/src/hooks/useQueries.ts"
+          "frontend/src/hooks/useForceFreshChatroomsOnActorReady.ts"
         ],
         "matchedFiles": [
-          "frontend/src/hooks/useForceFreshChatroomsOnActorReady.ts",
-          "frontend/src/pages/LobbyPage.tsx"
+          "frontend/src/hooks/useForceFreshChatroomsOnActorReady.ts"
         ]
-      },
-      {
-        "id": "REQ-2",
-        "summary": "Provide the exact code change (diff-style or full file content) that will be applied to implement the persisted-cache purge/ignore behavior, so the user can review what it looks like before deployment.",
-        "status": "missing",
-        "plannedFiles": [
-          "frontend/docs/react-query-chatrooms-persisted-empty-purge.diff"
-        ],
-        "matchedFiles": []
       }
     ]
   },
@@ -41,7 +29,6 @@
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
     "frontend/src/hooks/useForceFreshChatroomsOnActorReady.ts",
-    "frontend/src/pages/LobbyPage.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",
