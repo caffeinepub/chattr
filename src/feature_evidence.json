@@ -2,10 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-ensure-the-lobby-does-not-boot-with-a-persisted-cached-empty-array-for-the-canonical-react-query-key-chatrooms-in-production-by-purging-ignoring-that-cached-value-on-initial-app-load-actor-ready-and-forcing-a-fresh-network-refetch-so-rooms-display-immediately-without-requiring-search-category-interaction",
-      "featureTitle": "Ensure the lobby does not boot with a persisted cached empty array for the canonical React Query key ['chatrooms'] in production by purging/ignoring that cached value on initial app load (actor-ready) and forcing a fresh network refetch so rooms display immediately without requiring search/category interaction.",
+      "featureId": "feature-remove-the-lobby-level-empty-array-guard-that-replaces-an-empty-chatroom-list-with-a-previously-cached-non-empty-list-so-the-lobbypage-always-renders-the-actual-react-query-results-for-the-current-view-all-search-category",
+      "featureTitle": "Remove the lobby-level “empty array guard” that replaces an empty chatroom list with a previously cached non-empty list so the LobbyPage always renders the actual React Query results for the current view (all/search/category).",
       "files": [
-        "frontend/src/hooks/useForceFreshChatroomsOnActorReady.ts"
+        "frontend/src/pages/LobbyPage.tsx"
       ],
       "components": [
         "authorization@1.0.1",
@@ -19,6 +19,48 @@
       ],
       "testIds": [
         "REQ-1"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-remove-the-chatroom-query-level-guard-behavior-that-throws-rejects-empty-chatroom-results-e-g-transient-empty-result-rejected-so-that-empty-arrays-are-treated-as-valid-backend-responses-and-do-not-force-stale-placeholder-data-to-persist",
+      "featureTitle": "Remove the chatroom-query-level guard behavior that throws/rejects empty chatroom results (e.g., “Transient empty result rejected”) so that empty arrays are treated as valid backend responses and do not force stale/placeholder data to persist.",
+      "files": [
+        "frontend/src/hooks/useQueries.ts"
+      ],
+      "components": [
+        "authorization@1.0.1",
+        "blob-storage@2.0.3",
+        "http-outcalls@1.1.1",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-2"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-keep-the-existing-recovery-loading-experience-for-production-persisted-cache-issues-the-actor-ready-recovery-hook-and-the-lobby-loading-gate-using-isrecovering-but-ensure-that-after-recovery-completes-the-lobby-renders-based-on-the-post-refetch-query-results-without-stale-data-substitution",
+      "featureTitle": "Keep the existing recovery/loading experience for production persisted-cache issues (the actor-ready recovery hook and the lobby loading gate using isRecovering), but ensure that after recovery completes, the lobby renders based on the post-refetch query results without stale-data substitution.",
+      "files": [
+        "frontend/src/pages/LobbyPage.tsx"
+      ],
+      "components": [
+        "authorization@1.0.1",
+        "blob-storage@2.0.3",
+        "http-outcalls@1.1.1",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-3"
       ],
       "confidence": "high"
     }

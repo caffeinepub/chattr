@@ -1,24 +1,47 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-16T16:31:24.231Z",
+  "generatedAt": "2026-02-17T03:24:31.850Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 1,
-    "implemented": 1,
+    "total": 3,
+    "implemented": 3,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Ensure the lobby does not boot with a persisted cached empty array for the canonical React Query key ['chatrooms'] in production by purging/ignoring that cached value on initial app load (actor-ready) and forcing a fresh network refetch so rooms display immediately without requiring search/category interaction.",
+        "summary": "Remove the lobby-level “empty array guard” that replaces an empty chatroom list with a previously cached non-empty list so the LobbyPage always renders the actual React Query results for the current view (all/search/category).",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/hooks/useForceFreshChatroomsOnActorReady.ts"
+          "frontend/src/pages/LobbyPage.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/hooks/useForceFreshChatroomsOnActorReady.ts"
+          "frontend/src/pages/LobbyPage.tsx"
+        ]
+      },
+      {
+        "id": "REQ-2",
+        "summary": "Remove the chatroom-query-level guard behavior that throws/rejects empty chatroom results (e.g., “Transient empty result rejected”) so that empty arrays are treated as valid backend responses and do not force stale/placeholder data to persist.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/hooks/useQueries.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/hooks/useQueries.ts"
+        ]
+      },
+      {
+        "id": "REQ-3",
+        "summary": "Keep the existing recovery/loading experience for production persisted-cache issues (the actor-ready recovery hook and the lobby loading gate using isRecovering), but ensure that after recovery completes, the lobby renders based on the post-refetch query results without stale-data substitution.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/hooks/useForceFreshChatroomsOnActorReady.ts",
+          "frontend/src/pages/LobbyPage.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/pages/LobbyPage.tsx"
         ]
       }
     ]
@@ -28,7 +51,8 @@
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/hooks/useForceFreshChatroomsOnActorReady.ts",
+    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/pages/LobbyPage.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

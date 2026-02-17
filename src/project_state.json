@@ -1,32 +1,41 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Project now focused on fixing a production issue where chat rooms are not displayed in the lobby unless a search or category is selected, likely due to persisted React Query cache returning an empty array for the ['chatrooms'] query key.",
+  "summary": "Chatroom lobby app: initial room list doesn’t display on live site until a filter is clicked due to stale-data fallback/guards overriding backend responses.",
   "architectural_notes": [
-    "Production uses persisted React Query cache that can survive deployments; lobby must handle/clear stale cached [] for query key ['chatrooms'] on initial mount."
+    "Lobby chatroom list fetching currently has guards that replace empty backend responses with cached/stale data (in both useGetChatrooms and LobbyPage), preventing the lobby from seeing the true initial list until a filter changes the query key."
   ],
   "known_issues": [
-    "Production lobby shows no rooms until search/category selection, likely due to stale persisted React Query cache containing [] for ['chatrooms']."
+    "Rooms don’t display on initial lobby load unless a filter is clicked; initial backend results are being overwritten by stale cached data via guard/fallback logic (useGetChatrooms + LobbyPage)."
   ],
   "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-ensure-the-lobby-does-not-boot-with-a-persisted-cached-empty-array-for-the-canonical-react-query-key-chatrooms-in-production-by-purging-ignoring-that-cached-value-on-initial-app-load-actor-ready-and-forcing-a-fresh-network-refetch-so-rooms-display-immediately-without-requiring-search-category-interaction",
-      "title": "Ensure the lobby does not boot with a persisted cached empty array for the canonical React Query key ['chatrooms'] in production by purging/ignoring that cached value on initial app load (actor-ready) and forcing a fresh network refetch so rooms display immediately without requiring search/category interaction.",
+      "id": "feature-remove-the-lobby-level-empty-array-guard-that-replaces-an-empty-chatroom-list-with-a-previously-cached-non-empty-list-so-the-lobbypage-always-renders-the-actual-react-query-results-for-the-current-view-all-search-category",
+      "title": "Remove the lobby-level “empty array guard” that replaces an empty chatroom list with a previously cached non-empty list so the LobbyPage always renders the actual React Query results for the current view (all/search/category).",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
-    }
-  ],
-  "new_feature_requests": [
+    },
     {
-      "id": "AR-1",
-      "summary": "Purge/ignore persisted React Query cache for the lobby ['chatrooms'] query on initial load in production so rooms display without requiring search/category selection.",
-      "reqIds": [],
-      "status": "in_progress"
+      "id": "feature-remove-the-chatroom-query-level-guard-behavior-that-throws-rejects-empty-chatroom-results-e-g-transient-empty-result-rejected-so-that-empty-arrays-are-treated-as-valid-backend-responses-and-do-not-force-stale-placeholder-data-to-persist",
+      "title": "Remove the chatroom-query-level guard behavior that throws/rejects empty chatroom results (e.g., “Transient empty result rejected”) so that empty arrays are treated as valid backend responses and do not force stale/placeholder data to persist.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-keep-the-existing-recovery-loading-experience-for-production-persisted-cache-issues-the-actor-ready-recovery-hook-and-the-lobby-loading-gate-using-isrecovering-but-ensure-that-after-recovery-completes-the-lobby-renders-based-on-the-post-refetch-query-results-without-stale-data-substitution",
+      "title": "Keep the existing recovery/loading experience for production persisted-cache issues (the actor-ready recovery hook and the lobby loading gate using isRecovering), but ensure that after recovery completes, the lobby renders based on the post-refetch query results without stale-data substitution.",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "version": 1
     }
   ],
+  "new_feature_requests": [],
   "projectName": "Caffeine Chats",
   "clarification_mode": "instant",
   "clarification_rounds": 0

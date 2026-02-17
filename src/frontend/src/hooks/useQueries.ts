@@ -41,18 +41,6 @@ function listToArray<T>(list: any): T[] {
   return result;
 }
 
-// Track recent chatroom creation to guard against transient empty results
-let lastChatroomCreationTime = 0;
-const POST_CREATE_GUARD_WINDOW = 3000; // 3 seconds
-
-function isInPostCreateWindow(): boolean {
-  return Date.now() - lastChatroomCreationTime < POST_CREATE_GUARD_WINDOW;
-}
-
-function markChatroomCreated(): void {
-  lastChatroomCreationTime = Date.now();
-}
-
 // Normalize query key: empty/whitespace search should use base key
 function normalizeSearchQueryKey(searchTerm: string): readonly unknown[] {
   const trimmed = searchTerm.trim();
@@ -74,7 +62,6 @@ function normalizeCategoryQueryKey(category: string): readonly unknown[] {
 // Chatroom queries
 export function useGetChatrooms() {
   const { actor, isFetching: actorFetching } = useActor();
-  const queryClient = useQueryClient();
 
   return useQuery<ChatroomWithLiveStatus[]>({
     queryKey: ['chatrooms'],
@@ -88,15 +75,6 @@ export function useGetChatrooms() {
       const chatrooms = await actor.getChatrooms();
       console.log('[useGetChatrooms] Fetched chatrooms:', chatrooms.length);
       
-      // Guard against transient empty results during post-create window
-      if (chatrooms.length === 0 && isInPostCreateWindow()) {
-        const previousData = queryClient.getQueryData<ChatroomWithLiveStatus[]>(['chatrooms']);
-        if (previousData && previousData.length > 0) {
-          console.warn('[useGetChatrooms] Rejecting empty result during post-create window, keeping previous data');
-          throw new Error('Transient empty result rejected');
-        }
-      }
-      
       return chatrooms.sort((a, b) => Number(b.createdAt - a.createdAt));
     },
     enabled: !!actor && !actorFetching,
@@ -104,13 +82,7 @@ export function useGetChatrooms() {
     refetchOnWindowFocus: true, // Refetch when window regains focus
     refetchOnReconnect: true, // Refetch when network reconnects
     refetchInterval: 5000,
-    retry: (failureCount, error) => {
-      // Don't retry transient empty result errors
-      if (error.message === 'Transient empty result rejected') {
-        return false;
-      }
-      return failureCount < 3;
-    },
+    retry: 3,
     retryDelay: 1000,
     placeholderData: (previousData) => previousData, // Keep previous data during refetch
   });
@@ -118,7 +90,6 @@ export function useGetChatrooms() {
 
 export function useSearchChatrooms(searchTerm: string) {
   const { actor, isFetching: actorFetching } = useActor();
-  const queryClient = useQueryClient();
 
   const trimmedSearchTerm = searchTerm.trim();
   const queryKey = normalizeSearchQueryKey(searchTerm);
@@ -142,24 +113,10 @@ export function useSearchChatrooms(searchTerm: string) {
       
       const chatrooms = await actor.searchChatrooms(trimmedSearchTerm);
       
-      // Guard against transient empty results during post-create window
-      if (chatrooms.length === 0 && isInPostCreateWindow()) {
-        const previousData = queryClient.getQueryData<ChatroomWithLiveStatus[]>(queryKey);
-        if (previousData && previousData.length > 0) {
-          console.warn('[useSearchChatrooms] Rejecting empty result during post-create window, keeping previous data');
-          throw new Error('Transient empty result rejected');
-        }
-      }
-      
       return chatrooms.sort((a, b) => Number(b.createdAt - a.createdAt));
     },
     enabled: !!actor && !actorFetching && shouldExecute,
-    retry: (failureCount, error) => {
-      if (error.message === 'Transient empty result rejected') {
-        return false;
-      }
-      return failureCount < 3;
-    },
+    retry: 3,
     retryDelay: 1000,
     placeholderData: (previousData) => previousData,
   });
@@ -167,7 +124,6 @@ export function useSearchChatrooms(searchTerm: string) {
 
 export function useFilterChatroomsByCategory(category: string) {
   const { actor, isFetching: actorFetching } = useActor();
-  const queryClient = useQueryClient();
 
   const trimmedCategory = category.trim();
   const queryKey = normalizeCategoryQueryKey(category);
@@ -191,24 +147,10 @@ export function useFilterChatroomsByCategory(category: string) {
       
       const chatrooms = await actor.filterChatroomsByCategory(trimmedCategory);
       
-      // Guard against transient empty results during post-create window
-      if (chatrooms.length === 0 && isInPostCreateWindow()) {
-        const previousData = queryClient.getQueryData<ChatroomWithLiveStatus[]>(queryKey);
-        if (previousData && previousData.length > 0) {
-          console.warn('[useFilterChatroomsByCategory] Rejecting empty result during post-create window, keeping previous data');
-          throw new Error('Transient empty result rejected');
-        }
-      }
-      
       return chatrooms.sort((a, b) => Number(b.createdAt - a.createdAt));
     },
     enabled: !!actor && !actorFetching && shouldExecute,
-    retry: (failureCount, error) => {
-      if (error.message === 'Transient empty result rejected') {
-        return false;
-      }
-      return failureCount < 3;
-    },
+    retry: 3,
     retryDelay: 1000,
     placeholderData: (previousData) => previousData,
   });
@@ -257,9 +199,6 @@ export function useCreateChatroom() {
       return actor.createChatroom(params.topic, params.description, params.mediaUrl, params.mediaType, params.category);
     },
     onSuccess: async () => {
-      // Mark that we just created a chatroom to activate the guard window
-      markChatroomCreated();
-      
       console.log('[CreateChatroom] Success, invalidating and refetching chatrooms...');
       
       // Invalidate entire chatrooms namespace (non-exact) to refresh all variants
@@ -506,14 +445,17 @@ export function usePinVideo() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (params: { chatroomId: bigint; messageId: bigint }) => {
+    mutationFn: async ({ chatroomId, messageId }: { chatroomId: bigint; messageId: bigint }) => {
       if (!actor) throw new Error('Actor not available');
-      await actor.pinVideo(params.chatroomId, params.messageId);
-      return params.chatroomId;
+      await actor.pinVideo(chatroomId, messageId);
+      return chatroomId;
     },
     onSuccess: (chatroomId) => {
       queryClient.invalidateQueries({ queryKey: ['chatroom', chatroomId.toString()] });
       queryClient.invalidateQueries({ queryKey: ['messages', chatroomId.toString()] });
+      // Invalidate entire chatrooms namespace (non-exact) to refresh all variants
+      queryClient.invalidateQueries({ queryKey: ['chatrooms'], exact: false });
+      toast.success('Video pinned');
     },
     onError: (error: Error) => {
       toast.error(error.message || 'Failed to pin video');
@@ -534,166 +476,13 @@ export function useUnpinVideo() {
     onSuccess: (chatroomId) => {
       queryClient.invalidateQueries({ queryKey: ['chatroom', chatroomId.toString()] });
       queryClient.invalidateQueries({ queryKey: ['messages', chatroomId.toString()] });
+      // Invalidate entire chatrooms namespace (non-exact) to refresh all variants
+      queryClient.invalidateQueries({ queryKey: ['chatrooms'], exact: false });
+      toast.success('Video unpinned');
     },
     onError: (error: Error) => {
       toast.error(error.message || 'Failed to unpin video');
     },
-  });
-}
-
-// Reactions
-export function useAddReaction() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (params: { messageId: bigint; emoji: string; chatroomId: bigint }) => {
-      if (!actor) throw new Error('Actor not available');
-      const userId = getUserId();
-      await actor.addReaction(params.messageId, params.emoji, userId);
-      return params;
-    },
-    onMutate: async ({ messageId, emoji, chatroomId }) => {
-      // Cancel outgoing refetches
-      await queryClient.cancelQueries({ queryKey: ['messages', chatroomId.toString()] });
-
-      // Snapshot previous value
-      const previousMessages = queryClient.getQueryData<MessageWithReactions[]>(['messages', chatroomId.toString()]);
-
-      // Optimistically update
-      if (previousMessages) {
-        const userId = getUserId();
-        queryClient.setQueryData<MessageWithReactions[]>(['messages', chatroomId.toString()], (old) => {
-          if (!old) return old;
-          return old.map((msg) => {
-            if (msg.id === messageId) {
-              const reactions = listToArray<Reaction>(msg.reactions);
-              const existingReaction = reactions.find((r) => r.emoji === emoji);
-
-              if (existingReaction) {
-                const users = listToArray<string>(existingReaction.users);
-                if (!users.includes(userId)) {
-                  const updatedReaction: Reaction = {
-                    ...existingReaction,
-                    count: existingReaction.count + 1n,
-                    users: [userId, existingReaction.users] as any,
-                  };
-                  const updatedReactions = reactions.map((r) => (r.emoji === emoji ? updatedReaction : r));
-                  return {
-                    ...msg,
-                    reactions: updatedReactions.reduceRight((acc, r) => [r, acc] as any, null),
-                  };
-                }
-              } else {
-                const newReaction: Reaction = {
-                  emoji,
-                  count: 1n,
-                  users: [userId, null] as any,
-                };
-                return {
-                  ...msg,
-                  reactions: [newReaction, msg.reactions] as any,
-                };
-              }
-            }
-            return msg;
-          });
-        });
-      }
-
-      return { previousMessages };
-    },
-    onError: (err, variables, context) => {
-      // Rollback on error
-      if (context?.previousMessages) {
-        queryClient.setQueryData(['messages', variables.chatroomId.toString()], context.previousMessages);
-      }
-      toast.error('Failed to add reaction');
-    },
-    onSettled: (data) => {
-      if (data) {
-        queryClient.invalidateQueries({ queryKey: ['messages', data.chatroomId.toString()] });
-      }
-    },
-  });
-}
-
-export function useRemoveReaction() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (params: { messageId: bigint; emoji: string; chatroomId: bigint }) => {
-      if (!actor) throw new Error('Actor not available');
-      const userId = getUserId();
-      await actor.removeReaction(params.messageId, params.emoji, userId);
-      return params;
-    },
-    onMutate: async ({ messageId, emoji, chatroomId }) => {
-      await queryClient.cancelQueries({ queryKey: ['messages', chatroomId.toString()] });
-
-      const previousMessages = queryClient.getQueryData<MessageWithReactions[]>(['messages', chatroomId.toString()]);
-
-      if (previousMessages) {
-        const userId = getUserId();
-        queryClient.setQueryData<MessageWithReactions[]>(['messages', chatroomId.toString()], (old) => {
-          if (!old) return old;
-          return old.map((msg) => {
-            if (msg.id === messageId) {
-              const reactions = listToArray<Reaction>(msg.reactions);
-              const updatedReactions = reactions
-                .map((r) => {
-                  if (r.emoji === emoji) {
-                    const users = listToArray<string>(r.users);
-                    const filteredUsers = users.filter((u) => u !== userId);
-                    return {
-                      ...r,
-                      count: r.count > 0n ? r.count - 1n : 0n,
-                      users: filteredUsers.reduceRight((acc, u) => [u, acc] as any, null),
-                    };
-                  }
-                  return r;
-                })
-                .filter((r) => r.count > 0n);
-
-              return {
-                ...msg,
-                reactions: updatedReactions.reduceRight((acc, r) => [r, acc] as any, null),
-              };
-            }
-            return msg;
-          });
-        });
-      }
-
-      return { previousMessages };
-    },
-    onError: (err, variables, context) => {
-      if (context?.previousMessages) {
-        queryClient.setQueryData(['messages', variables.chatroomId.toString()], context.previousMessages);
-      }
-      toast.error('Failed to remove reaction');
-    },
-    onSettled: (data) => {
-      if (data) {
-        queryClient.invalidateQueries({ queryKey: ['messages', data.chatroomId.toString()] });
-      }
-    },
-  });
-}
-
-// Reply preview
-export function useGetReplyPreview(chatroomId: bigint, messageId: bigint | null) {
-  const { actor, isFetching: actorFetching } = useActor();
-
-  return useQuery({
-    queryKey: ['replyPreview', chatroomId.toString(), messageId?.toString() ?? 'null'],
-    queryFn: async () => {
-      if (!actor || !messageId) return null;
-      return actor.getReplyPreview(chatroomId, messageId);
-    },
-    enabled: !!actor && !actorFetching && messageId !== null,
-    staleTime: 60000, // Reply previews don't change often
   });
 }
 
@@ -715,16 +504,13 @@ export function useUpdateUsername() {
       if (!actor) throw new Error('Actor not available');
       const userId = getUserId();
       
-      // Update localStorage
       localStorage.setItem('chatUsername', newUsername);
       
-      // Update all messages retroactively
       await actor.updateUsernameRetroactively(userId, newUsername);
       
       return newUsername;
     },
     onSuccess: () => {
-      // Invalidate all message queries to refetch with new username
       queryClient.invalidateQueries({ queryKey: ['messages'] });
       toast.success('Username updated');
     },
@@ -743,25 +529,128 @@ export function useUpdateAvatar() {
       if (!actor) throw new Error('Actor not available');
       const userId = getUserId();
       
-      // Update localStorage
       if (newAvatarUrl) {
         localStorage.setItem('chatAvatarUrl', newAvatarUrl);
       } else {
         localStorage.removeItem('chatAvatarUrl');
       }
       
-      // Update all messages retroactively
       await actor.updateAvatarRetroactively(userId, newAvatarUrl);
       
       return newAvatarUrl;
     },
     onSuccess: () => {
-      // Invalidate all message queries to refetch with new avatar
       queryClient.invalidateQueries({ queryKey: ['messages'] });
       toast.success('Avatar updated');
     },
     onError: (error: Error) => {
       toast.error(error.message || 'Failed to update avatar');
     },
+  });
+}
+
+// Reactions
+export function useAddReaction() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ messageId, emoji, chatroomId }: { messageId: bigint; emoji: string; chatroomId: bigint }) => {
+      if (!actor) throw new Error('Actor not available');
+      const userId = getUserId();
+      await actor.addReaction(messageId, emoji, userId);
+      return { messageId, chatroomId };
+    },
+    onMutate: async ({ messageId, emoji, chatroomId }) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['messages', chatroomId.toString()] });
+
+      // Snapshot previous value
+      const previousMessages = queryClient.getQueryData<MessageWithReactions[]>(['messages', chatroomId.toString()]);
+
+      // Optimistically update
+      if (previousMessages) {
+        const userId = getUserId();
+        queryClient.setQueryData<MessageWithReactions[]>(['messages', chatroomId.toString()], (old) => {
+          if (!old) return old;
+          return old.map((msg) => {
+            if (msg.id === messageId) {
+              const reactions = listToArray<Reaction>(msg.reactions);
+              const existingReaction = reactions.find((r) => r.emoji === emoji);
+              
+              let updatedReactions: Reaction[];
+              if (existingReaction) {
+                const users = listToArray<string>(existingReaction.users);
+                if (!users.includes(userId)) {
+                  updatedReactions = reactions.map((r) =>
+                    r.emoji === emoji
+                      ? { ...r, count: r.count + 1n, users: [userId, r.users] as any }
+                      : r
+                  );
+                } else {
+                  updatedReactions = reactions;
+                }
+              } else {
+                updatedReactions = [...reactions, { emoji, count: 1n, users: [userId, null] as any }];
+              }
+              
+              // Convert back to List format
+              let reactionsList: any = null;
+              for (let i = updatedReactions.length - 1; i >= 0; i--) {
+                reactionsList = [updatedReactions[i], reactionsList];
+              }
+              
+              return { ...msg, reactions: reactionsList };
+            }
+            return msg;
+          });
+        });
+      }
+
+      return { previousMessages };
+    },
+    onError: (err, variables, context) => {
+      // Rollback on error
+      if (context?.previousMessages) {
+        queryClient.setQueryData(['messages', variables.chatroomId.toString()], context.previousMessages);
+      }
+    },
+    onSettled: (data) => {
+      if (data) {
+        queryClient.invalidateQueries({ queryKey: ['messages', data.chatroomId.toString()] });
+      }
+    },
+  });
+}
+
+export function useRemoveReaction() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ messageId, emoji, chatroomId }: { messageId: bigint; emoji: string; chatroomId: bigint }) => {
+      if (!actor) throw new Error('Actor not available');
+      const userId = getUserId();
+      await actor.removeReaction(messageId, emoji, userId);
+      return { messageId, chatroomId };
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['messages', data.chatroomId.toString()] });
+    },
+  });
+}
+
+// Reply preview
+export function useGetReplyPreview(chatroomId: bigint, messageId: bigint | null) {
+  const { actor, isFetching: actorFetching } = useActor();
+
+  return useQuery({
+    queryKey: ['replyPreview', chatroomId.toString(), messageId?.toString()],
+    queryFn: async () => {
+      if (!actor || !messageId) return null;
+      return actor.getReplyPreview(chatroomId, messageId);
+    },
+    enabled: !!actor && !actorFetching && messageId !== null,
+    staleTime: 60000, // Reply previews don't change often
   });
 }

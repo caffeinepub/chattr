@@ -1,21 +1,57 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Purge persisted empty ['chatrooms'] React Query cache on actor-ready to force fresh lobby load",
+  "title": "Fix lobby chatroom list initial render by removing empty-result fallbacks",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "On initial actor-ready load in production, detect and purge/ignore a persisted empty-array cache for the canonical React Query key ['chatrooms'] and force a fresh refetch so lobby rooms render immediately.",
+      "summary": "Remove LobbyPage empty-array fallback so the lobby always renders the actual React Query result for the active view (all/search/category).",
       "acceptanceCriteria": [
-        "On a production session where the browser has an existing cached value of [] for the ['chatrooms'] query, the lobby shows real rooms (if any exist in the backend) on initial load without requiring a search or category click.",
-        "The fix only targets the canonical lobby query key ['chatrooms'] cache behavior on initial load; search/category filtering continues to work as before.",
-        "The implementation is applied in the existing actor-ready recovery flow (used by LobbyPage via useForceFreshChatroomsOnActorReady) and does not require backend changes."
+        "On first load of the lobby route (/), the UI renders whatever the active query returns without substituting prior non-empty results when the response is an empty array.",
+        "If the backend legitimately returns 0 chatrooms, the lobby shows the existing empty-state UI (\"No chats found yet\") without requiring any filter click.",
+        "If the backend returns chatrooms, they are visible on initial load without clicking a category badge or typing in search."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/LobbyPage.tsx",
+          "operation": "modify",
+          "description": "Delete the lobby-level lastNonEmptyRef cache and the empty-array guard that replaces an empty list with previously cached non-empty results; ensure the rendered list/empty-state is driven solely by the active query's data (all/search/category) and existing loading/error gates."
+        }
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "summary": "Treat empty chatroom arrays as valid query results by removing query-level empty-result rejection in chatroom list hooks.",
+      "acceptanceCriteria": [
+        "For the canonical chatroom list query (queryKey ['chatrooms']), if the backend returns an empty list, the query resolves successfully with an empty array (no intentional error thrown to preserve prior data).",
+        "Search and category chatroom list queries also treat empty arrays as successful results (no intentional error thrown to preserve prior data).",
+        "The lobby does not require a filter click to trigger the first correct render of the chatroom list."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Remove the 'Transient empty result rejected' guard behavior from useGetChatrooms/useSearchChatrooms/useFilterChatroomsByCategory (no throwing/rejecting on empty arrays); update related retry logic that special-cases that error so empty arrays resolve successfully while keeping other existing query behaviors (e.g., refetching/placeholderData) intact."
+        }
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "summary": "Preserve the actor-ready recovery/loading flow while ensuring post-recovery UI renders the post-refetch query data without stale substitutions.",
+      "acceptanceCriteria": [
+        "When a persisted cache contains an empty array for ['chatrooms'], the lobby shows the existing loading indicator during recovery and then renders the newly refetched results.",
+        "After recovery finishes, the lobby’s displayed list matches the current query data for the active view (all/search/category) without any additional user interaction."
       ],
       "file_operations": [
         {
           "path": "frontend/src/hooks/useForceFreshChatroomsOnActorReady.ts",
           "operation": "modify",
-          "description": "Update the actor-ready recovery sequence to explicitly handle the canonical ['chatrooms'] key: on first actor-ready in production, if the current cache value for ['chatrooms'] is an empty array, treat it as a bad persisted value by removing/resetting that query state (only for the exact key ['chatrooms']) and then forcing an immediate refetch (even if inactive). Keep existing behavior for legacy empty search/category keys and ensure the change does not impact search/category filtering keys."
+          "description": "Keep the existing recovery sequence and isRecovering signal, but adjust recovery completion behavior as needed to ensure the lobby transitions from recovery loading to rendering the freshly refetched ['chatrooms'] data (and not any locally substituted stale list), including when the refetch result is an empty array."
+        },
+        {
+          "path": "frontend/src/pages/LobbyPage.tsx",
+          "operation": "modify",
+          "description": "Confirm the lobby loading gate continues to use isRecovering, and after recovery completes it renders directly from the active query's data (all/search/category) without any stale-data substitution logic."
         }
       ]
     }

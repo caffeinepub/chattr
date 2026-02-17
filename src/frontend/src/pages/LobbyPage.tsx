@@ -11,7 +11,6 @@ import { Alert, AlertDescription, AlertTitle } from '../components/ui/alert';
 import { Badge } from '../components/ui/badge';
 import ChatroomCard from '../components/ChatroomCard';
 import CreateChatroomDialog from '../components/CreateChatroomDialog';
-import type { ChatroomWithLiveStatus } from '../backend';
 
 const CATEGORIES = [
   'General',
@@ -38,19 +37,8 @@ export default function LobbyPage() {
   const navigate = useNavigate();
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  // Track last known non-empty list per view to prevent empty array overwrites
-  const lastNonEmptyRef = useRef<{
-    all: ChatroomWithLiveStatus[] | null;
-    search: ChatroomWithLiveStatus[] | null;
-    category: ChatroomWithLiveStatus[] | null;
-  }>({
-    all: null,
-    search: null,
-    category: null,
-  });
-
   // Force fresh refetch when actor becomes ready (consolidated recovery)
-  useForceFreshChatroomsOnActorReady();
+  const { isRecovering } = useForceFreshChatroomsOnActorReady();
 
   // Debounce search term
   useEffect(() => {
@@ -87,14 +75,13 @@ export default function LobbyPage() {
     refetch: refetchCategory 
   } = useFilterChatroomsByCategory(selectedCategory || '');
 
-  // Determine which data to display with empty array guard
+  // Determine which data to display
   let chatrooms = allChatrooms;
   let isLoading = allLoading;
   let isFetching = allFetching;
   let error = allError;
   let isError = isAllError;
   let refetch = refetchAll;
-  let currentView: 'all' | 'search' | 'category' = 'all';
 
   if (debouncedSearchTerm.trim()) {
     chatrooms = searchResults;
@@ -102,23 +89,12 @@ export default function LobbyPage() {
     isFetching = searchFetching;
     isError = isSearchError;
     refetch = refetchSearch;
-    currentView = 'search';
   } else if (selectedCategory !== null) {
     chatrooms = categoryResults;
     isLoading = categoryLoading;
     isFetching = categoryFetching;
     isError = isCategoryError;
     refetch = refetchCategory;
-    currentView = 'category';
-  }
-
-  // Apply empty array guard: if incoming data is empty but we have a previous non-empty list for this view, use the previous list
-  if (chatrooms && chatrooms.length > 0) {
-    // Update last known non-empty list for current view
-    lastNonEmptyRef.current[currentView] = chatrooms;
-  } else if (chatrooms && chatrooms.length === 0 && lastNonEmptyRef.current[currentView] && lastNonEmptyRef.current[currentView]!.length > 0) {
-    // Use previous non-empty list instead of empty array
-    chatrooms = lastNonEmptyRef.current[currentView]!;
   }
 
   const handleChatroomClick = (chatroomId: bigint) => {
@@ -157,8 +133,9 @@ export default function LobbyPage() {
 
   // Show loading when:
   // 1. Actor is still connecting, OR
-  // 2. We're loading data and don't have it yet (chatrooms is undefined)
-  const showLoading = actorFetching || (isLoading && chatrooms === undefined);
+  // 2. We're loading data and don't have it yet (chatrooms is undefined), OR
+  // 3. Recovery is in progress (purging persisted empty cache)
+  const showLoading = actorFetching || (isLoading && chatrooms === undefined) || isRecovering;
 
   if (showLoading) {
     return (
@@ -166,7 +143,7 @@ export default function LobbyPage() {
         <div className="text-center">
           <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
           <p className="mt-2 text-sm text-muted-foreground">
-            {actorFetching ? 'Connecting...' : 'Loading chats...'}
+            {actorFetching ? 'Connecting...' : isRecovering ? 'Loading chats...' : 'Loading chats...'}
           </p>
         </div>
       </div>

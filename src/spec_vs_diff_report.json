@@ -1,36 +1,46 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-16T16:31:24.229Z",
-  "summary": "REQ-1 appears largely implemented via updates to `useForceFreshChatroomsOnActorReady` that detect a persisted empty array for the canonical React Query key `['chatrooms']`, purge that query, and then trigger an explicit refetch when the actor is ready. However, the diff also indicates additional cache-key/behavior changes (and other unrelated feature/style descriptions) that were not requested and may violate the “only target `['chatrooms']`” and “no unrelated changes” constraints—though those extra items are only evidenced through the modified summary file, not actual code diffs.",
-  "missing_requirements": [],
-  "hallucinated_features": [
+  "generatedAt": "2026-02-17T03:24:31.848Z",
+  "summary": "The diff appears to address the initial lobby list rendering bug by removing empty-result rejection in the React Query hooks and removing the lobby-level empty-array fallback, while keeping the existing recovery hook usage. However, the diff also introduces additional unrequested behaviors such as aggressive refetching/polling and query-key normalization changes.",
+  "missing_requirements": [
     {
-      "description": "Purging/removing “legacy/incorrect empty-filter cache entries” for chatroom queries like `['chatrooms','search','']` and `['chatrooms','category','']`, which goes beyond targeting only the canonical `['chatrooms']` cache behavior.",
-      "reason": "The BuildRequest explicitly limits the fix to the canonical lobby query key `['chatrooms']` on initial load; removing additional search/category cache entries is extra scope.",
+      "id": "REQ-3",
+      "requirement": "Keep the existing recovery/loading experience for production persisted-cache issues (the actor-ready recovery hook and the lobby loading gate using isRecovering), but ensure that after recovery completes, the lobby renders based on the post-refetch query results without stale-data substitution.",
+      "reason": "The diff shows LobbyPage still uses the recovery hook, but the provided truncated LobbyPage snippet does not include the actual loading gate logic (i.e., conditional rendering while isRecovering) or the post-recovery render behavior, so it cannot be verified from the diff summary alone.",
       "evidence": [
-        "frontend/src/hooks/useForceFreshChatroomsOnActorReady.ts"
-      ]
-    },
-    {
-      "description": "Changing chatroom query keying to use a distinct key such as `['chatrooms','category','__none__']`, adding aggressive refetch options, mutation success refetch behavior changes, and a “transient empty result guard” in `useQueries.ts`.",
-      "reason": "Not requested by REQ-1; the request specifically says to only target the canonical `['chatrooms']` persisted empty-array issue and keep search/category behavior as-is.",
-      "evidence": [
-        "frontend-file-summaries.txt"
-      ]
-    },
-    {
-      "description": "Unrelated UI/style/feature changes described across many components (e.g., voice recording input, Telegram-style voice player, layout/styling changes, global CSS tweaks, Tailwind config changes, etc.).",
-      "reason": "The BuildRequest constraints/non-goals disallow unrelated changes or styling changes beyond what is necessary for the cache fix; these described changes exceed scope.",
-      "evidence": [
-        "frontend-file-summaries.txt"
+        "frontend/src/pages/LobbyPage.tsx (truncated)"
       ]
     }
   ],
-  "confidence": 0.6,
+  "hallucinated_features": [
+    {
+      "description": "Added aggressive refetching/polling behavior for the base chatrooms query (always refetch on mount, refetch on focus/reconnect, and a 5s refetch interval).",
+      "reason": "The BuildRequest focuses on removing empty-array guards and preserving recovery UX; it does not request adding periodic polling or changing refetch policies.",
+      "evidence": [
+        "frontend/src/hooks/useQueries.ts (refetchOnMount: 'always', refetchOnWindowFocus: true, refetchOnReconnect: true, refetchInterval: 5000)"
+      ]
+    },
+    {
+      "description": "Introduced normalized query-key behavior for search/category queries (e.g., mapping empty search to ['chatrooms'] and empty category to ['chatrooms','category','__none__']).",
+      "reason": "The BuildRequest does not ask to change query key strategy; it only requests removal of guards that substitute/reject empty results.",
+      "evidence": [
+        "frontend/src/hooks/useQueries.ts (normalizeSearchQueryKey, normalizeCategoryQueryKey)"
+      ]
+    },
+    {
+      "description": "Forcing a base query refetch when clearing filters via queryClient.refetchQueries({ queryKey: ['chatrooms'], exact: true, type: 'all' }).",
+      "reason": "The BuildRequest does not request adding new manual refetch triggers on filter-clear; it only targets empty-result guard behavior.",
+      "evidence": [
+        "frontend/src/pages/LobbyPage.tsx (handleClearFilters refetchQueries call)"
+      ]
+    }
+  ],
+  "confidence": 0.62,
   "changed_files": [
     "frontend-file-summaries.txt",
-    "frontend/src/hooks/useForceFreshChatroomsOnActorReady.ts",
+    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/pages/LobbyPage.tsx",
     "project_state.json"
   ]
 }

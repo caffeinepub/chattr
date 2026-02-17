@@ -1,41 +1,86 @@
 {
   "kind": "build_request",
-  "title": "Purge persisted empty React Query cache for lobby chatrooms on initial load",
+  "title": "Fix lobby chatroom list not showing until a filter is clicked",
   "projectName": "Caffeine Chats",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Ensure the lobby does not boot with a persisted cached empty array for the canonical React Query key ['chatrooms'] in production by purging/ignoring that cached value on initial app load (actor-ready) and forcing a fresh network refetch so rooms display immediately without requiring search/category interaction.",
+      "text": "Remove the lobby-level “empty array guard” that replaces an empty chatroom list with a previously cached non-empty list so the LobbyPage always renders the actual React Query results for the current view (all/search/category).",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "recent-messages"
         ],
         "quotes": [
-          "Ok apply that fix then"
+          "Ok fix it",
+          "Two separate guards are still doing this: • useGetChatrooms silently discards empty responses and falls back to stale data • LobbyPage does the same, so the lobby never sees the true initial list"
         ]
       },
       "acceptanceCriteria": [
-        "On a production session where the browser has an existing cached value of [] for the ['chatrooms'] query, the lobby shows real rooms (if any exist in the backend) on initial load without requiring a search or category click.",
-        "The fix only targets the canonical lobby query key ['chatrooms'] cache behavior on initial load; search/category filtering continues to work as before.",
-        "The implementation is applied in the existing actor-ready recovery flow (used by LobbyPage via useForceFreshChatroomsOnActorReady) and does not require backend changes."
+        "On first load of the lobby route (/), the UI renders whatever the active query returns without substituting prior non-empty results when the response is an empty array.",
+        "If the backend legitimately returns 0 chatrooms, the lobby shows the existing empty-state UI (\"No chats found yet\") without requiring any filter click.",
+        "If the backend returns chatrooms, they are visible on initial load without clicking a category badge or typing in search."
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "text": "Remove the chatroom-query-level guard behavior that throws/rejects empty chatroom results (e.g., “Transient empty result rejected”) so that empty arrays are treated as valid backend responses and do not force stale/placeholder data to persist.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "recent-messages"
+        ],
+        "quotes": [
+          "useGetChatrooms silently discards empty responses and falls back to stale data"
+        ]
+      },
+      "acceptanceCriteria": [
+        "For the canonical chatroom list query (queryKey ['chatrooms']), if the backend returns an empty list, the query resolves successfully with an empty array (no intentional error thrown to preserve prior data).",
+        "Search and category chatroom list queries also treat empty arrays as successful results (no intentional error thrown to preserve prior data).",
+        "The lobby does not require a filter click to trigger the first correct render of the chatroom list."
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Keep the existing recovery/loading experience for production persisted-cache issues (the actor-ready recovery hook and the lobby loading gate using isRecovering), but ensure that after recovery completes, the lobby renders based on the post-refetch query results without stale-data substitution.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "recent-messages"
+        ],
+        "quotes": [
+          "Rooms don’t display on initial lobby load unless a filter is clicked; initial backend results are being overwritten by stale cached data via guard/fallback logic (useGetChatrooms + LobbyPage)."
+        ]
+      },
+      "acceptanceCriteria": [
+        "When a persisted cache contains an empty array for ['chatrooms'], the lobby shows the existing loading indicator during recovery and then renders the newly refetched results.",
+        "After recovery finishes, the lobby’s displayed list matches the current query data for the active view (all/search/category) without any additional user interaction."
       ]
     }
   ],
   "constraints": [
-    "Do not modify any files under frontend/src/components/ui (read-only components must be composed, not edited).",
-    "Do not edit immutable frontend hook entrypoints listed by the platform (e.g., frontend/src/hooks/useActor.ts, frontend/src/hooks/useInternetIdentity.ts/x, frontend/src/main.tsx).",
-    "Follow the project architectural note: do not make unrelated changes or style changes beyond what is necessary to implement this fix.",
-    "Backend remains single-actor; no backend schema/state changes are required for this fix."
+    "Do not edit files under frontend/src/components/ui (read-only UI components).",
+    "Do not modify frontend/src/hooks/useActor.ts or frontend/src/hooks/useInternetIdentity.ts (immutable paths).",
+    "Backend must remain a single Motoko actor; no new backend services."
   ],
   "nonGoals": [
-    "Adding new features beyond the cache purge/ignore behavior for ['chatrooms'].",
-    "Changing backend chatroom fetching, sorting, or storage behavior.",
-    "Redesigning the lobby UI or changing styling unrelated to the cache fix."
+    "Adding new chatroom categories or changing category behavior beyond fixing the initial display bug.",
+    "Changing backend data models or chatroom-fetching endpoints.",
+    "Implementing new real-time updates or websocket-based syncing."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
+  },
+  "userProfileUpdate": {
+    "goalsToAdd": [],
+    "goalsToRemove": [],
+    "preferencesToAdd": [],
+    "preferencesToRemove": [],
+    "miscToAdd": [],
+    "miscToRemove": [],
+    "fieldsToSet": {},
+    "fieldsToDelete": []
   }
 }
