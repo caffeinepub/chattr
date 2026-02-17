@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import { useQueryClient } from '@tanstack/react-query';
-import { useGetChatrooms, useSearchChatrooms, useFilterChatroomsByCategory } from '../hooks/useQueries';
+import { useGetChatrooms } from '../hooks/useQueries';
 import { useActor } from '../hooks/useActor';
 import { useForceFreshChatroomsOnActorReady } from '../hooks/useForceFreshChatroomsOnActorReady';
 import { Loader2, Plus, AlertCircle, Search, Filter, X } from 'lucide-react';
@@ -11,6 +10,7 @@ import { Alert, AlertDescription, AlertTitle } from '../components/ui/alert';
 import { Badge } from '../components/ui/badge';
 import ChatroomCard from '../components/ChatroomCard';
 import CreateChatroomDialog from '../components/CreateChatroomDialog';
+import type { ChatroomWithLiveStatus } from '../backend';
 
 const CATEGORIES = [
   'General',
@@ -29,7 +29,6 @@ const CATEGORIES = [
 
 export default function LobbyPage() {
   const { actor, isFetching: actorFetching } = useActor();
-  const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -49,53 +48,47 @@ export default function LobbyPage() {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  // Use appropriate query based on filters
+  // Fetch base chatrooms only (canonical query)
   const { 
     data: allChatrooms, 
-    isLoading: allLoading, 
-    isFetching: allFetching,
-    error: allError, 
-    isError: isAllError, 
-    refetch: refetchAll 
+    isLoading, 
+    isFetching,
+    error, 
+    isError, 
+    refetch 
   } = useGetChatrooms();
-  
-  const { 
-    data: searchResults, 
-    isLoading: searchLoading, 
-    isFetching: searchFetching,
-    isError: isSearchError, 
-    refetch: refetchSearch 
-  } = useSearchChatrooms(debouncedSearchTerm);
-  
-  const { 
-    data: categoryResults, 
-    isLoading: categoryLoading, 
-    isFetching: categoryFetching,
-    isError: isCategoryError, 
-    refetch: refetchCategory 
-  } = useFilterChatroomsByCategory(selectedCategory || '');
 
-  // Determine which data to display
-  let chatrooms = allChatrooms;
-  let isLoading = allLoading;
-  let isFetching = allFetching;
-  let error = allError;
-  let isError = isAllError;
-  let refetch = refetchAll;
+  // Client-side filtering: compute visible chatrooms from base data
+  const visibleChatrooms = (() => {
+    if (!allChatrooms) return undefined;
 
-  if (debouncedSearchTerm.trim()) {
-    chatrooms = searchResults;
-    isLoading = searchLoading;
-    isFetching = searchFetching;
-    isError = isSearchError;
-    refetch = refetchSearch;
-  } else if (selectedCategory !== null) {
-    chatrooms = categoryResults;
-    isLoading = categoryLoading;
-    isFetching = categoryFetching;
-    isError = isCategoryError;
-    refetch = refetchCategory;
-  }
+    let filtered = allChatrooms;
+
+    // Apply search filter
+    if (debouncedSearchTerm.trim()) {
+      const lowerSearchTerm = debouncedSearchTerm.toLowerCase();
+      filtered = filtered.filter((chatroom) => {
+        const lowerTopic = chatroom.topic.toLowerCase();
+        const lowerDescription = chatroom.description.toLowerCase();
+        const lowerCategory = chatroom.category.toLowerCase();
+        
+        return (
+          lowerTopic.includes(lowerSearchTerm) ||
+          lowerDescription.includes(lowerSearchTerm) ||
+          lowerCategory.includes(lowerSearchTerm)
+        );
+      });
+    }
+
+    // Apply category filter
+    if (selectedCategory !== null) {
+      filtered = filtered.filter((chatroom) => 
+        chatroom.category.toLowerCase() === selectedCategory
+      );
+    }
+
+    return filtered;
+  })();
 
   const handleChatroomClick = (chatroomId: bigint) => {
     navigate({ to: '/chatroom/$chatroomId', params: { chatroomId: chatroomId.toString() } });
@@ -111,17 +104,10 @@ export default function LobbyPage() {
     }
   };
 
-  const handleClearFilters = async () => {
+  const handleClearFilters = () => {
     setSearchTerm('');
     setDebouncedSearchTerm('');
     setSelectedCategory(null);
-    
-    // Force refetch of base query when clearing filters, even if inactive
-    await queryClient.refetchQueries({ 
-      queryKey: ['chatrooms'], 
-      exact: true,
-      type: 'all'
-    });
     
     // Restore focus to search input
     setTimeout(() => {
@@ -133,9 +119,9 @@ export default function LobbyPage() {
 
   // Show loading when:
   // 1. Actor is still connecting, OR
-  // 2. We're loading data and don't have it yet (chatrooms is undefined), OR
+  // 2. We're loading data and don't have it yet (allChatrooms is undefined), OR
   // 3. Recovery is in progress (purging persisted empty cache)
-  const showLoading = actorFetching || (isLoading && chatrooms === undefined) || isRecovering;
+  const showLoading = actorFetching || (isLoading && allChatrooms === undefined) || isRecovering;
 
   if (showLoading) {
     return (
@@ -151,7 +137,7 @@ export default function LobbyPage() {
   }
 
   // Show error only if actor is available but we have an error and no cached data
-  if (isError && actor && !chatrooms) {
+  if (isError && actor && !allChatrooms) {
     return (
       <div className="flex h-full items-center justify-center p-4">
         <Alert variant="destructive" className="max-w-md">
@@ -237,7 +223,7 @@ export default function LobbyPage() {
         </div>
 
         {/* Show error alert if we have cached data but background refresh failed */}
-        {isError && chatrooms && chatrooms.length > 0 && (
+        {isError && allChatrooms && allChatrooms.length > 0 && (
           <Alert variant="destructive" className="mb-4">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Refresh Error</AlertTitle>
@@ -247,7 +233,7 @@ export default function LobbyPage() {
           </Alert>
         )}
 
-        {chatrooms && chatrooms.length === 0 ? (
+        {visibleChatrooms && visibleChatrooms.length === 0 ? (
           <div className="flex h-[60vh] items-center justify-center">
             <div className="text-center">
               <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10">
@@ -275,7 +261,7 @@ export default function LobbyPage() {
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7">
-            {chatrooms?.map((chatroom) => (
+            {visibleChatrooms?.map((chatroom) => (
               <ChatroomCard
                 key={chatroom.id.toString()}
                 chatroom={chatroom}

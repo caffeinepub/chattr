@@ -1,11 +1,11 @@
 # Specification
 
 ## Summary
-**Goal:** Fix the lobby so the chatroom list (or empty state) renders correctly on first load without requiring a filter click, by removing stale-data fallback behavior when queries return empty arrays.
+**Goal:** Refactor the Lobby to rely on a single canonical chatrooms fetch and apply search/category filtering entirely client-side.
 
 **Planned changes:**
-- Remove the LobbyPage “empty array guard” that substitutes a previously cached non-empty chatroom list in place of the current React Query results (all/search/category views).
-- Update `useGetChatrooms` (and related list queries for search/category) to treat empty arrays as valid successful responses rather than throwing/rejecting to preserve prior data.
-- Keep the existing recovery/loading flow (including `isRecovering` gating), but ensure that once recovery completes the lobby renders from the post-refetch query results without stale-data substitution.
+- Update LobbyPage to fetch chatrooms only via the canonical React Query key `['chatrooms']` (useGetChatrooms) and remove usage of `useSearchChatrooms` and `useFilterChatroomsByCategory` in the lobby.
+- Implement search and category filtering in-memory on the Lobby page using the debounced search term and selected category state, without creating new React Query cache keys.
+- Preserve the existing recovery/loading behavior using `useForceFreshChatroomsOnActorReady` (`isRecovering`) and ensure the lobby renders and filters solely from the post-recovery `['chatrooms']` query result (including existing empty-state behavior).
 
-**User-visible outcome:** On first load of the lobby (/), users immediately see the current chatroom list if available, or the existing “No chats found yet” empty state if none are returned—without needing to click a category badge or type in search.
+**User-visible outcome:** On first load, the lobby shows chatrooms immediately without requiring a category click, and search/category filters update the visible list instantly without triggering extra network queries.

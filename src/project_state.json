@@ -1,41 +1,48 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Chatroom lobby app: initial room list doesn’t display on live site until a filter is clicked due to stale-data fallback/guards overriding backend responses.",
+  "summary": "Fix lobby room list not displaying on first load (rooms only appear after selecting a category) by using a single canonical base query and performing category/search filtering client-side to avoid React Query cached variant key selection issues.",
   "architectural_notes": [
-    "Lobby chatroom list fetching currently has guards that replace empty backend responses with cached/stale data (in both useGetChatrooms and LobbyPage), preventing the lobby from seeing the true initial list until a filter changes the query key."
+    "Use a single canonical chatrooms query as source of truth; implement category/search as client-side (in-memory) filtering to avoid React Query cache/key collisions."
   ],
   "known_issues": [
-    "Rooms don’t display on initial lobby load unless a filter is clicked; initial backend results are being overwritten by stale cached data via guard/fallback logic (useGetChatrooms + LobbyPage)."
+    "Live lobby may render empty room list on first load due to selecting stale cached filtered query results; rooms appear only after choosing a category/filter."
   ],
   "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-remove-the-lobby-level-empty-array-guard-that-replaces-an-empty-chatroom-list-with-a-previously-cached-non-empty-list-so-the-lobbypage-always-renders-the-actual-react-query-results-for-the-current-view-all-search-category",
-      "title": "Remove the lobby-level “empty array guard” that replaces an empty chatroom list with a previously cached non-empty list so the LobbyPage always renders the actual React Query results for the current view (all/search/category).",
+      "id": "feature-refactor-the-lobby-page-to-fetch-chatrooms-only-from-the-canonical-base-react-query-key-chatrooms-usegetchatrooms-and-remove-usage-of-separate-search-category-react-query-queries-for-the-lobby-view",
+      "title": "Refactor the Lobby page to fetch chatrooms only from the canonical base React Query key ['chatrooms'] (useGetChatrooms) and remove usage of separate search/category React Query queries for the lobby view.",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-remove-the-chatroom-query-level-guard-behavior-that-throws-rejects-empty-chatroom-results-e-g-transient-empty-result-rejected-so-that-empty-arrays-are-treated-as-valid-backend-responses-and-do-not-force-stale-placeholder-data-to-persist",
-      "title": "Remove the chatroom-query-level guard behavior that throws/rejects empty chatroom results (e.g., “Transient empty result rejected”) so that empty arrays are treated as valid backend responses and do not force stale/placeholder data to persist.",
+      "id": "feature-implement-category-and-search-filtering-purely-client-side-in-the-lobby-page-by-filtering-the-base-chatroom-array-in-memory-using-a-the-debounced-search-term-and-b-the-selected-category-state-without-creating-new-react-query-cache-keys",
+      "title": "Implement category and search filtering purely client-side in the Lobby page by filtering the base chatroom array in-memory using (a) the debounced search term and (b) the selected category state, without creating new React Query cache keys.",
       "reqIds": [
         "REQ-2"
       ],
       "version": 1
     },
     {
-      "id": "feature-keep-the-existing-recovery-loading-experience-for-production-persisted-cache-issues-the-actor-ready-recovery-hook-and-the-lobby-loading-gate-using-isrecovering-but-ensure-that-after-recovery-completes-the-lobby-renders-based-on-the-post-refetch-query-results-without-stale-data-substitution",
-      "title": "Keep the existing recovery/loading experience for production persisted-cache issues (the actor-ready recovery hook and the lobby loading gate using isRecovering), but ensure that after recovery completes, the lobby renders based on the post-refetch query results without stale-data substitution.",
+      "id": "feature-preserve-the-existing-recovery-loading-behavior-that-uses-useforcefreshchatroomsonactorready-isrecovering-and-ensure-the-lobby-renders-based-only-on-the-post-recovery-canonical-chatrooms-query-result-no-fallback-to-cached-filtered-arrays",
+      "title": "Preserve the existing recovery/loading behavior that uses useForceFreshChatroomsOnActorReady (isRecovering) and ensure the lobby renders based only on the post-recovery canonical ['chatrooms'] query result (no fallback to cached filtered arrays).",
       "reqIds": [
         "REQ-3"
       ],
       "version": 1
     }
   ],
-  "new_feature_requests": [],
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Refactor lobby data flow to use one canonical base chatrooms query and apply category/search filters in-memory (avoid multiple React Query keys) so rooms display on first load",
+      "reqIds": [],
+      "status": "pending"
+    }
+  ],
   "projectName": "Caffeine Chats",
   "clarification_mode": "instant",
   "clarification_rounds": 0

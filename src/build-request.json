@@ -1,73 +1,74 @@
 {
   "kind": "build_request",
-  "title": "Fix lobby chatroom list not showing until a filter is clicked",
+  "title": "Refactor lobby to use a single canonical chatrooms query with client-side filtering",
   "projectName": "Caffeine Chats",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Remove the lobby-level “empty array guard” that replaces an empty chatroom list with a previously cached non-empty list so the LobbyPage always renders the actual React Query results for the current view (all/search/category).",
+      "text": "Refactor the Lobby page to fetch chatrooms only from the canonical base React Query key ['chatrooms'] (useGetChatrooms) and remove usage of separate search/category React Query queries for the lobby view.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "recent-messages"
+          "msg-1"
         ],
         "quotes": [
-          "Ok fix it",
-          "Two separate guards are still doing this: • useGetChatrooms silently discards empty responses and falls back to stale data • LobbyPage does the same, so the lobby never sees the true initial list"
+          "Ok let’s try it"
         ]
       },
       "acceptanceCriteria": [
-        "On first load of the lobby route (/), the UI renders whatever the active query returns without substituting prior non-empty results when the response is an empty array.",
-        "If the backend legitimately returns 0 chatrooms, the lobby shows the existing empty-state UI (\"No chats found yet\") without requiring any filter click.",
-        "If the backend returns chatrooms, they are visible on initial load without clicking a category badge or typing in search."
+        "LobbyPage no longer imports or calls useSearchChatrooms or useFilterChatroomsByCategory.",
+        "Only the ['chatrooms'] query is responsible for network fetching of the chatroom list shown in the lobby.",
+        "On a fresh load of the live site, chatrooms render without requiring the user to click any category filter first."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Remove the chatroom-query-level guard behavior that throws/rejects empty chatroom results (e.g., “Transient empty result rejected”) so that empty arrays are treated as valid backend responses and do not force stale/placeholder data to persist.",
+      "text": "Implement category and search filtering purely client-side in the Lobby page by filtering the base chatroom array in-memory using (a) the debounced search term and (b) the selected category state, without creating new React Query cache keys.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "recent-messages"
+          "msg-1"
         ],
         "quotes": [
-          "useGetChatrooms silently discards empty responses and falls back to stale data"
+          "Ok let’s try it"
         ]
       },
       "acceptanceCriteria": [
-        "For the canonical chatroom list query (queryKey ['chatrooms']), if the backend returns an empty list, the query resolves successfully with an empty array (no intentional error thrown to preserve prior data).",
-        "Search and category chatroom list queries also treat empty arrays as successful results (no intentional error thrown to preserve prior data).",
-        "The lobby does not require a filter click to trigger the first correct render of the chatroom list."
+        "Typing in the search box filters the visible chatrooms list based on the base data set (e.g., topic/description/category text matching), without triggering any additional React Query chatroom queries.",
+        "Clicking a category badge filters the visible chatrooms list based on the base data set, without triggering any additional React Query chatroom queries.",
+        "Clearing filters returns the visible list to the full base chatroom list immediately, without relying on reading cached filtered query results."
       ]
     },
     {
       "id": "REQ-3",
-      "text": "Keep the existing recovery/loading experience for production persisted-cache issues (the actor-ready recovery hook and the lobby loading gate using isRecovering), but ensure that after recovery completes, the lobby renders based on the post-refetch query results without stale-data substitution.",
+      "text": "Preserve the existing recovery/loading behavior that uses useForceFreshChatroomsOnActorReady (isRecovering) and ensure the lobby renders based only on the post-recovery canonical ['chatrooms'] query result (no fallback to cached filtered arrays).",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "recent-messages"
+          "msg-1"
         ],
         "quotes": [
-          "Rooms don’t display on initial lobby load unless a filter is clicked; initial backend results are being overwritten by stale cached data via guard/fallback logic (useGetChatrooms + LobbyPage)."
+          "Ok let’s try it"
         ]
       },
       "acceptanceCriteria": [
-        "When a persisted cache contains an empty array for ['chatrooms'], the lobby shows the existing loading indicator during recovery and then renders the newly refetched results.",
-        "After recovery finishes, the lobby’s displayed list matches the current query data for the active view (all/search/category) without any additional user interaction."
+        "LobbyPage still uses isRecovering to gate initial render while the recovery sequence is in progress.",
+        "After recovery completes, the lobby uses only the current ['chatrooms'] query data as the source of truth for rendering and for client-side filtering.",
+        "If the base query returns an empty array, the lobby shows the existing empty-state UI (and does not replace it with any other cached chatroom arrays)."
       ]
     }
   ],
   "constraints": [
-    "Do not edit files under frontend/src/components/ui (read-only UI components).",
-    "Do not modify frontend/src/hooks/useActor.ts or frontend/src/hooks/useInternetIdentity.ts (immutable paths).",
-    "Backend must remain a single Motoko actor; no new backend services."
+    "Do not edit files under frontend/src/components/ui (Shadcn components are read-only and must be composed).",
+    "Do not modify frontend immutable hook paths (frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx).",
+    "Do not add new backend canisters or services; backend remains a single Motoko actor.",
+    "Keep all user-facing text in English."
   ],
   "nonGoals": [
-    "Adding new chatroom categories or changing category behavior beyond fixing the initial display bug.",
-    "Changing backend data models or chatroom-fetching endpoints.",
-    "Implementing new real-time updates or websocket-based syncing."
+    "Do not change or remove backend endpoints like searchChatrooms or filterChatroomsByCategory; they may remain for future use even if the lobby no longer uses them.",
+    "Do not implement server-side filtering changes or new backend data models.",
+    "Do not add new authentication providers (Internet Identity only)."
   ],
   "imageRequirements": {
     "required": [],
