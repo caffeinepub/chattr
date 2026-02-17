@@ -2,30 +2,13 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-refactor-the-lobby-page-to-fetch-chatrooms-only-from-the-canonical-base-react-query-key-chatrooms-usegetchatrooms-and-remove-usage-of-separate-search-category-react-query-queries-for-the-lobby-view",
-      "featureTitle": "Refactor the Lobby page to fetch chatrooms only from the canonical base React Query key ['chatrooms'] (useGetChatrooms) and remove usage of separate search/category React Query queries for the lobby view.",
+      "featureId": "feature-update-the-frontend-lobby-data-fetching-and-rendering-to-use-the-new-lightweight-chatroom-summary-response-for-the-chat-list-while-preserving-current-ux-loading-recovery-states-client-side-search-and-category-filtering-grid-layout-and-navigation-into-a-chatroom-if-thumbnails-media-are-not-available-in-the-lightweight-response-render-a-deterministic-placeholder-thumbnail-based-on-mediatype-instead-of-requiring-mediaurl-in-the-lobby-list-payload",
+      "featureTitle": "Update the frontend Lobby data fetching and rendering to use the new lightweight chatroom summary response for the chat list while preserving current UX (loading/recovery states, client-side search and category filtering, grid layout, and navigation into a chatroom). If thumbnails/media are not available in the lightweight response, render a deterministic placeholder thumbnail based on mediaType instead of requiring mediaUrl in the Lobby list payload.",
       "files": [
-        "frontend/src/pages/LobbyPage.tsx"
-      ],
-      "components": [
-        "authorization@1.0.1",
-        "blob-storage@2.0.3",
-        "http-outcalls@1.1.1",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-1"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-implement-category-and-search-filtering-purely-client-side-in-the-lobby-page-by-filtering-the-base-chatroom-array-in-memory-using-a-the-debounced-search-term-and-b-the-selected-category-state-without-creating-new-react-query-cache-keys",
-      "featureTitle": "Implement category and search filtering purely client-side in the Lobby page by filtering the base chatroom array in-memory using (a) the debounced search term and (b) the selected category state, without creating new React Query cache keys.",
-      "files": [
+        "frontend/src/components/ChatroomCard.tsx",
+        "frontend/src/hooks/useForceFreshChatroomsOnActorReady.ts",
+        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/lib/lobbyPlaceholderThumbnails.ts",
         "frontend/src/pages/LobbyPage.tsx"
       ],
       "components": [
@@ -44,10 +27,10 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-preserve-the-existing-recovery-loading-behavior-that-uses-useforcefreshchatroomsonactorready-isrecovering-and-ensure-the-lobby-renders-based-only-on-the-post-recovery-canonical-chatrooms-query-result-no-fallback-to-cached-filtered-arrays",
-      "featureTitle": "Preserve the existing recovery/loading behavior that uses useForceFreshChatroomsOnActorReady (isRecovering) and ensure the lobby renders based only on the post-recovery canonical ['chatrooms'] query result (no fallback to cached filtered arrays).",
+      "featureId": "feature-ensure-the-chatroom-detail-view-continues-to-fetch-full-chatroom-data-only-when-needed-e-g-on-the-chatroom-page-so-the-lobby-list-remains-lightweight-and-the-overall-app-behavior-is-unchanged-aside-from-fixing-the-payload-size-issue",
+      "featureTitle": "Ensure the chatroom detail view continues to fetch full chatroom data only when needed (e.g., on the chatroom page), so the Lobby list remains lightweight and the overall app behavior is unchanged aside from fixing the payload size issue.",
       "files": [
-        "frontend/src/pages/LobbyPage.tsx"
+        "frontend/src/hooks/useQueries.ts"
       ],
       "components": [
         "authorization@1.0.1",

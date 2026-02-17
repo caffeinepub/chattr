@@ -1,11 +1,12 @@
 # Specification
 
 ## Summary
-**Goal:** Refactor the Lobby to rely on a single canonical chatrooms fetch and apply search/category filtering entirely client-side.
+**Goal:** Prevent the Lobby chat list from failing due to oversized `getChatrooms` query responses by returning and using lightweight chatroom summaries.
 
 **Planned changes:**
-- Update LobbyPage to fetch chatrooms only via the canonical React Query key `['chatrooms']` (useGetChatrooms) and remove usage of `useSearchChatrooms` and `useFilterChatroomsByCategory` in the lobby.
-- Implement search and category filtering in-memory on the Lobby page using the debounced search term and selected category state, without creating new React Query cache keys.
-- Preserve the existing recovery/loading behavior using `useForceFreshChatroomsOnActorReady` (`isRecovering`) and ensure the lobby renders and filters solely from the post-recovery `['chatrooms']` query result (including existing empty-state behavior).
+- Update the backend `getChatrooms` query used by the Lobby list to return only lightweight chatroom summary fields and exclude any potentially large text/blob-like fields (e.g., full media URLs/data URLs, long descriptions).
+- Update the frontend Lobby data fetching/rendering to consume the lightweight summary response while preserving existing UX (loading/recovery states, client-side search, category filtering, grid layout, and navigation).
+- If Lobby thumbnails/media are not available from the summary response, render a deterministic placeholder thumbnail based on `mediaType` rather than requiring `mediaUrl` in the Lobby payload.
+- Ensure full chatroom details (topic/media/description/messages) are fetched only on the chatroom detail page, keeping the Lobby list request lightweight.
 
-**User-visible outcome:** On first load, the lobby shows chatrooms immediately without requiring a category click, and search/category filters update the visible list instantly without triggering extra network queries.
+**User-visible outcome:** The Lobby page loads reliably in production without “Failed to Load Chats” payload-too-large errors, while search/filtering and navigation into chatrooms continue to work as before.

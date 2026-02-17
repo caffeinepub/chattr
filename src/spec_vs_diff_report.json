@@ -1,13 +1,45 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-17T08:07:46.752Z",
-  "summary": "LobbyPage appears refactored to rely on the canonical useGetChatrooms (['chatrooms']) query and performs search/category filtering in-memory with debounced search, while preserving the recovery/loading gate via useForceFreshChatroomsOnActorReady (isRecovering). Diff is truncated, so some acceptance criteria (e.g., empty-state UI behavior) cannot be fully verified from provided evidence.",
-  "missing_requirements": [],
-  "hallucinated_features": [],
+  "generatedAt": "2026-02-17T09:05:35.247Z",
+  "summary": "Frontend was updated to fetch and render a new lightweight Lobby chatroom card list with deterministic placeholder thumbnails. However, the backend change to actually provide a lightweight Lobby query is not evidenced in the provided backend diff snippet, and the new recovery hook still refetches the full `getChatrooms` query from the Lobby context, which undermines the goal of keeping the Lobby request lightweight and avoiding oversized responses.",
+  "missing_requirements": [
+    {
+      "id": "REQ-1",
+      "requirement": "Modify the backend query used to power the Lobby chat list so it cannot exceed the IC 3MB query reply limit by returning only lightweight chatroom summary fields and excluding large fields (mediaUrl/data URLs/long descriptions).",
+      "reason": "The diff shows new backend types (e.g., `LobbyChatroomCard`) but does not include evidence of an implemented/modified backend query method (e.g., `getLobbyChatroomCards`) or a change to the existing Lobby-powered query to return only summary fields. The backend file content is truncated before any relevant query function implementations are shown.",
+      "evidence": [
+        "backend/main.mo (truncated; only type definitions shown, no query implementation shown)"
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "requirement": "Ensure the Lobby list remains lightweight and full chatroom details/media are fetched only when needed (on the chatroom detail view), not as part of the Lobby list flow.",
+      "reason": "A new Lobby-adjacent recovery hook explicitly refetches the full `['chatrooms']` query (which calls `actor.getChatrooms()`) when the actor becomes ready. This can cause the oversized full-chatrooms query to run from the Lobby experience, violating the intent that the Lobby stays lightweight and does not fetch full chatroom data.",
+      "evidence": [
+        "frontend/src/hooks/useForceFreshChatroomsOnActorReady.ts (refetches ['chatrooms'])",
+        "frontend/src/hooks/useQueries.ts (useGetChatrooms calls actor.getChatrooms())",
+        "frontend/src/pages/LobbyPage.tsx (uses useForceFreshChatroomsOnActorReady)"
+      ]
+    }
+  ],
+  "hallucinated_features": [
+    {
+      "description": "Automatic cache purge and forced refetch of both lobby summaries and full chatrooms queries when the actor becomes ready (\"recovery\" behavior with console logging).",
+      "reason": "BuildRequest does not ask for a recovery hook that manipulates React Query caches or triggers a background refetch of full chatroom data from the Lobby flow; it only asks to reduce payload size by using lightweight summaries for the Lobby list.",
+      "evidence": [
+        "frontend/src/hooks/useForceFreshChatroomsOnActorReady.ts"
+      ]
+    }
+  ],
   "confidence": 0.66,
   "changed_files": [
+    "backend/main.mo",
     "frontend-file-summaries.txt",
+    "frontend/src/components/ChatroomCard.tsx",
+    "frontend/src/hooks/useForceFreshChatroomsOnActorReady.ts",
+    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/lib/lobbyPlaceholderThumbnails.ts",
     "frontend/src/pages/LobbyPage.tsx",
     "project_state.json"
   ]

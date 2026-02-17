@@ -1,34 +1,26 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Fix lobby room list not displaying on first load (rooms only appear after selecting a category) by using a single canonical base query and performing category/search filtering client-side to avoid React Query cached variant key selection issues.",
+  "summary": "Internet Computer chat app experiencing production error where getChatrooms query response exceeds the 3MB IC query payload limit; plan is to fix by returning lightweight chatroom summaries to keep responses under the limit.",
   "architectural_notes": [
-    "Use a single canonical chatrooms query as source of truth; implement category/search as client-side (in-memory) filtering to avoid React Query cache/key collisions."
+    "IC query responses are hard-limited to 3MB; getChatrooms must return lightweight summary fields only (no messages/blobs/large metadata) or be paginated/split."
   ],
   "known_issues": [
-    "Live lobby may render empty room list on first load due to selecting stale cached filtered query results; rooms appear only after choosing a category/filter."
+    "Production error: getChatrooms query rejected (IC0504) due to reply payload too large (~8.8MB > 3MB), causing 'Failed to Load Chats'."
   ],
   "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-refactor-the-lobby-page-to-fetch-chatrooms-only-from-the-canonical-base-react-query-key-chatrooms-usegetchatrooms-and-remove-usage-of-separate-search-category-react-query-queries-for-the-lobby-view",
-      "title": "Refactor the Lobby page to fetch chatrooms only from the canonical base React Query key ['chatrooms'] (useGetChatrooms) and remove usage of separate search/category React Query queries for the lobby view.",
-      "reqIds": [
-        "REQ-1"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-implement-category-and-search-filtering-purely-client-side-in-the-lobby-page-by-filtering-the-base-chatroom-array-in-memory-using-a-the-debounced-search-term-and-b-the-selected-category-state-without-creating-new-react-query-cache-keys",
-      "title": "Implement category and search filtering purely client-side in the Lobby page by filtering the base chatroom array in-memory using (a) the debounced search term and (b) the selected category state, without creating new React Query cache keys.",
+      "id": "feature-update-the-frontend-lobby-data-fetching-and-rendering-to-use-the-new-lightweight-chatroom-summary-response-for-the-chat-list-while-preserving-current-ux-loading-recovery-states-client-side-search-and-category-filtering-grid-layout-and-navigation-into-a-chatroom-if-thumbnails-media-are-not-available-in-the-lightweight-response-render-a-deterministic-placeholder-thumbnail-based-on-mediatype-instead-of-requiring-mediaurl-in-the-lobby-list-payload",
+      "title": "Update the frontend Lobby data fetching and rendering to use the new lightweight chatroom summary response for the chat list while preserving current UX (loading/recovery states, client-side search and category filtering, grid layout, and navigation into a chatroom). If thumbnails/media are not available in the lightweight response, render a deterministic placeholder thumbnail based on mediaType instead of requiring mediaUrl in the Lobby list payload.",
       "reqIds": [
         "REQ-2"
       ],
       "version": 1
     },
     {
-      "id": "feature-preserve-the-existing-recovery-loading-behavior-that-uses-useforcefreshchatroomsonactorready-isrecovering-and-ensure-the-lobby-renders-based-only-on-the-post-recovery-canonical-chatrooms-query-result-no-fallback-to-cached-filtered-arrays",
-      "title": "Preserve the existing recovery/loading behavior that uses useForceFreshChatroomsOnActorReady (isRecovering) and ensure the lobby renders based only on the post-recovery canonical ['chatrooms'] query result (no fallback to cached filtered arrays).",
+      "id": "feature-ensure-the-chatroom-detail-view-continues-to-fetch-full-chatroom-data-only-when-needed-e-g-on-the-chatroom-page-so-the-lobby-list-remains-lightweight-and-the-overall-app-behavior-is-unchanged-aside-from-fixing-the-payload-size-issue",
+      "title": "Ensure the chatroom detail view continues to fetch full chatroom data only when needed (e.g., on the chatroom page), so the Lobby list remains lightweight and the overall app behavior is unchanged aside from fixing the payload size issue.",
       "reqIds": [
         "REQ-3"
       ],
@@ -38,12 +30,20 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Refactor lobby data flow to use one canonical base chatrooms query and apply category/search filters in-memory (avoid multiple React Query keys) so rooms display on first load",
+      "summary": "Fix 'Failed to Load Chats' by reducing getChatrooms query response size (return lightweight chatroom summaries only; exclude large fields) to stay under IC 3MB query limit",
       "reqIds": [],
+      "status": "in_progress"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Modify the backend query used to power the Lobby chat list so it cannot exceed the Internet Computer 3MB query reply limit by returning only lightweight chatroom summary fields (exclude any potentially large text/blob-like fields such as full media URLs/data URLs and long descriptions).",
+      "reqIds": [
+        "REQ-1"
+      ],
       "status": "pending"
     }
   ],
-  "projectName": "Caffeine Chats",
+  "projectName": "Caffeine Chat",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

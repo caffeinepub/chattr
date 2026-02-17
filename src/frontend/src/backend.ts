@@ -94,9 +94,7 @@ export interface LobbyChatroomCard {
     topic: string;
     activeUserCount: bigint;
     createdAt: bigint;
-    description: string;
     isLive: boolean;
-    mediaUrl: string;
     messageCount: bigint;
     mediaType: string;
     category: string;
@@ -923,9 +921,7 @@ function from_candid_record_n22(_uploadFile: (file: ExternalBlob) => Promise<Uin
     topic: string;
     activeUserCount: bigint;
     createdAt: bigint;
-    description: string;
     isLive: boolean;
-    mediaUrl: string;
     messageCount: bigint;
     mediaType: string;
     category: string;
@@ -936,9 +932,7 @@ function from_candid_record_n22(_uploadFile: (file: ExternalBlob) => Promise<Uin
     topic: string;
     activeUserCount: bigint;
     createdAt: bigint;
-    description: string;
     isLive: boolean;
-    mediaUrl: string;
     messageCount: bigint;
     mediaType: string;
     category: string;
@@ -950,9 +944,7 @@ function from_candid_record_n22(_uploadFile: (file: ExternalBlob) => Promise<Uin
         topic: value.topic,
         activeUserCount: value.activeUserCount,
         createdAt: value.createdAt,
-        description: value.description,
         isLive: value.isLive,
-        mediaUrl: value.mediaUrl,
         messageCount: value.messageCount,
         mediaType: value.mediaType,
         category: value.category,

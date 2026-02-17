@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
-import type { Message, ChatroomWithLiveStatus, UserProfile, MessageWithReactions, Reaction } from '../backend';
+import type { Message, ChatroomWithLiveStatus, UserProfile, MessageWithReactions, Reaction, LobbyChatroomCard } from '../backend';
 import { toast } from 'sonner';
 import { compressImage } from '../lib/imageCompression';
 
@@ -41,25 +41,36 @@ function listToArray<T>(list: any): T[] {
   return result;
 }
 
-// Normalize query key: empty/whitespace search should use base key
-function normalizeSearchQueryKey(searchTerm: string): readonly unknown[] {
-  const trimmed = searchTerm.trim();
-  if (!trimmed) {
-    return ['chatrooms'];
-  }
-  return ['chatrooms', 'search', trimmed];
+// Lightweight lobby chatroom cards query
+export function useGetLobbyChatroomCards() {
+  const { actor, isFetching: actorFetching } = useActor();
+
+  return useQuery<LobbyChatroomCard[]>({
+    queryKey: ['lobbyChatroomCards'],
+    queryFn: async () => {
+      if (!actor) {
+        console.warn('[useGetLobbyChatroomCards] Actor not available');
+        throw new Error('Actor not available');
+      }
+      
+      console.log('[useGetLobbyChatroomCards] Fetching lobby chatroom cards...');
+      const cards = await actor.getLobbyChatroomCards();
+      console.log('[useGetLobbyChatroomCards] Fetched cards:', cards.length);
+      
+      return cards.sort((a, b) => Number(b.createdAt - a.createdAt));
+    },
+    enabled: !!actor && !actorFetching,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
+    refetchInterval: 5000,
+    retry: 3,
+    retryDelay: 1000,
+    placeholderData: (previousData) => previousData,
+  });
 }
 
-// Category query key: always use distinct key, even when empty
-function normalizeCategoryQueryKey(category: string): readonly unknown[] {
-  const trimmed = category.trim();
-  if (!trimmed) {
-    return ['chatrooms', 'category', '__none__'];
-  }
-  return ['chatrooms', 'category', trimmed];
-}
-
-// Chatroom queries
+// Full chatroom queries (for detail view and admin)
 export function useGetChatrooms() {
   const { actor, isFetching: actorFetching } = useActor();
 
@@ -78,78 +89,10 @@ export function useGetChatrooms() {
       return chatrooms.sort((a, b) => Number(b.createdAt - a.createdAt));
     },
     enabled: !!actor && !actorFetching,
-    refetchOnMount: 'always', // Always refetch on mount to ensure fresh data
-    refetchOnWindowFocus: true, // Refetch when window regains focus
-    refetchOnReconnect: true, // Refetch when network reconnects
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
     refetchInterval: 5000,
-    retry: 3,
-    retryDelay: 1000,
-    placeholderData: (previousData) => previousData, // Keep previous data during refetch
-  });
-}
-
-export function useSearchChatrooms(searchTerm: string) {
-  const { actor, isFetching: actorFetching } = useActor();
-
-  const trimmedSearchTerm = searchTerm.trim();
-  const queryKey = normalizeSearchQueryKey(searchTerm);
-
-  // If search term is empty, don't execute this query - let the base query handle it
-  const shouldExecute = !!trimmedSearchTerm;
-
-  return useQuery<ChatroomWithLiveStatus[]>({
-    queryKey,
-    queryFn: async () => {
-      if (!actor) {
-        console.warn('[useSearchChatrooms] Actor not available');
-        throw new Error('Actor not available');
-      }
-      
-      // This should never be called with empty search term due to enabled condition
-      if (!trimmedSearchTerm) {
-        console.warn('[useSearchChatrooms] Called with empty search term, returning empty array');
-        return [];
-      }
-      
-      const chatrooms = await actor.searchChatrooms(trimmedSearchTerm);
-      
-      return chatrooms.sort((a, b) => Number(b.createdAt - a.createdAt));
-    },
-    enabled: !!actor && !actorFetching && shouldExecute,
-    retry: 3,
-    retryDelay: 1000,
-    placeholderData: (previousData) => previousData,
-  });
-}
-
-export function useFilterChatroomsByCategory(category: string) {
-  const { actor, isFetching: actorFetching } = useActor();
-
-  const trimmedCategory = category.trim();
-  const queryKey = normalizeCategoryQueryKey(category);
-
-  // If category is empty, don't execute this query - let the base query handle it
-  const shouldExecute = !!trimmedCategory;
-
-  return useQuery<ChatroomWithLiveStatus[]>({
-    queryKey,
-    queryFn: async () => {
-      if (!actor) {
-        console.warn('[useFilterChatroomsByCategory] Actor not available');
-        throw new Error('Actor not available');
-      }
-      
-      // This should never be called with empty category due to enabled condition
-      if (!trimmedCategory) {
-        console.warn('[useFilterChatroomsByCategory] Called with empty category, returning empty array');
-        return [];
-      }
-      
-      const chatrooms = await actor.filterChatroomsByCategory(trimmedCategory);
-      
-      return chatrooms.sort((a, b) => Number(b.createdAt - a.createdAt));
-    },
-    enabled: !!actor && !actorFetching && shouldExecute,
     retry: 3,
     retryDelay: 1000,
     placeholderData: (previousData) => previousData,
@@ -201,14 +144,20 @@ export function useCreateChatroom() {
     onSuccess: async () => {
       console.log('[CreateChatroom] Success, invalidating and refetching chatrooms...');
       
-      // Invalidate entire chatrooms namespace (non-exact) to refresh all variants
-      await queryClient.invalidateQueries({ queryKey: ['chatrooms'], exact: false });
+      // Invalidate lobby cards
+      await queryClient.invalidateQueries({ queryKey: ['lobbyChatroomCards'] });
+      await queryClient.refetchQueries({ 
+        queryKey: ['lobbyChatroomCards'], 
+        exact: true,
+        type: 'all'
+      });
       
-      // Explicitly refetch the base chatrooms query even if inactive/unobserved
+      // Invalidate full chatrooms (for admin page)
+      await queryClient.invalidateQueries({ queryKey: ['chatrooms'], exact: false });
       await queryClient.refetchQueries({ 
         queryKey: ['chatrooms'], 
         exact: true,
-        type: 'all' // Changed from 'active' to 'all' to refetch even when inactive
+        type: 'all'
       });
       
       toast.success('Chat created successfully');
@@ -237,14 +186,20 @@ export function useDeleteChatroom() {
     onSuccess: async () => {
       console.log('[DeleteChatroom] Success, invalidating and refetching chatrooms...');
       
-      // Invalidate entire chatrooms namespace (non-exact) to refresh all variants
-      await queryClient.invalidateQueries({ queryKey: ['chatrooms'], exact: false });
+      // Invalidate lobby cards
+      await queryClient.invalidateQueries({ queryKey: ['lobbyChatroomCards'] });
+      await queryClient.refetchQueries({ 
+        queryKey: ['lobbyChatroomCards'], 
+        exact: true,
+        type: 'all'
+      });
       
-      // Explicitly refetch the base chatrooms query even if inactive/unobserved
+      // Invalidate full chatrooms (for admin page)
+      await queryClient.invalidateQueries({ queryKey: ['chatrooms'], exact: false });
       await queryClient.refetchQueries({ 
         queryKey: ['chatrooms'], 
         exact: true,
-        type: 'all' // Changed from 'active' to 'all' to refetch even when inactive
+        type: 'all'
       });
       
       toast.success('Chatroom deleted successfully');
@@ -280,7 +235,7 @@ export function useIncrementViewCount() {
     },
     onSuccess: (chatroomId) => {
       queryClient.invalidateQueries({ queryKey: ['chatroom', chatroomId.toString()] });
-      // Invalidate entire chatrooms namespace (non-exact) to refresh all variants
+      queryClient.invalidateQueries({ queryKey: ['lobbyChatroomCards'] });
       queryClient.invalidateQueries({ queryKey: ['chatrooms'], exact: false });
     },
     onError: (error: Error) => {
@@ -430,7 +385,7 @@ export function useSendMessage() {
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['messages', variables.chatroomId.toString()] });
       queryClient.invalidateQueries({ queryKey: ['chatroom', variables.chatroomId.toString()] });
-      // Invalidate entire chatrooms namespace (non-exact) to refresh all variants
+      queryClient.invalidateQueries({ queryKey: ['lobbyChatroomCards'] });
       queryClient.invalidateQueries({ queryKey: ['chatrooms'], exact: false });
     },
     onError: (error: Error) => {
@@ -453,7 +408,7 @@ export function usePinVideo() {
     onSuccess: (chatroomId) => {
       queryClient.invalidateQueries({ queryKey: ['chatroom', chatroomId.toString()] });
       queryClient.invalidateQueries({ queryKey: ['messages', chatroomId.toString()] });
-      // Invalidate entire chatrooms namespace (non-exact) to refresh all variants
+      queryClient.invalidateQueries({ queryKey: ['lobbyChatroomCards'] });
       queryClient.invalidateQueries({ queryKey: ['chatrooms'], exact: false });
       toast.success('Video pinned');
     },
@@ -476,7 +431,7 @@ export function useUnpinVideo() {
     onSuccess: (chatroomId) => {
       queryClient.invalidateQueries({ queryKey: ['chatroom', chatroomId.toString()] });
       queryClient.invalidateQueries({ queryKey: ['messages', chatroomId.toString()] });
-      // Invalidate entire chatrooms namespace (non-exact) to refresh all variants
+      queryClient.invalidateQueries({ queryKey: ['lobbyChatroomCards'] });
       queryClient.invalidateQueries({ queryKey: ['chatrooms'], exact: false });
       toast.success('Video unpinned');
     },
@@ -549,7 +504,7 @@ export function useUpdateAvatar() {
   });
 }
 
-// Reactions
+// Reaction hooks
 export function useAddReaction() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
@@ -561,64 +516,11 @@ export function useAddReaction() {
       await actor.addReaction(messageId, emoji, userId);
       return { messageId, chatroomId };
     },
-    onMutate: async ({ messageId, emoji, chatroomId }) => {
-      // Cancel outgoing refetches
-      await queryClient.cancelQueries({ queryKey: ['messages', chatroomId.toString()] });
-
-      // Snapshot previous value
-      const previousMessages = queryClient.getQueryData<MessageWithReactions[]>(['messages', chatroomId.toString()]);
-
-      // Optimistically update
-      if (previousMessages) {
-        const userId = getUserId();
-        queryClient.setQueryData<MessageWithReactions[]>(['messages', chatroomId.toString()], (old) => {
-          if (!old) return old;
-          return old.map((msg) => {
-            if (msg.id === messageId) {
-              const reactions = listToArray<Reaction>(msg.reactions);
-              const existingReaction = reactions.find((r) => r.emoji === emoji);
-              
-              let updatedReactions: Reaction[];
-              if (existingReaction) {
-                const users = listToArray<string>(existingReaction.users);
-                if (!users.includes(userId)) {
-                  updatedReactions = reactions.map((r) =>
-                    r.emoji === emoji
-                      ? { ...r, count: r.count + 1n, users: [userId, r.users] as any }
-                      : r
-                  );
-                } else {
-                  updatedReactions = reactions;
-                }
-              } else {
-                updatedReactions = [...reactions, { emoji, count: 1n, users: [userId, null] as any }];
-              }
-              
-              // Convert back to List format
-              let reactionsList: any = null;
-              for (let i = updatedReactions.length - 1; i >= 0; i--) {
-                reactionsList = [updatedReactions[i], reactionsList];
-              }
-              
-              return { ...msg, reactions: reactionsList };
-            }
-            return msg;
-          });
-        });
-      }
-
-      return { previousMessages };
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['messages', data.chatroomId.toString()] });
     },
-    onError: (err, variables, context) => {
-      // Rollback on error
-      if (context?.previousMessages) {
-        queryClient.setQueryData(['messages', variables.chatroomId.toString()], context.previousMessages);
-      }
-    },
-    onSettled: (data) => {
-      if (data) {
-        queryClient.invalidateQueries({ queryKey: ['messages', data.chatroomId.toString()] });
-      }
+    onError: (error: Error) => {
+      toast.error(error.message || 'Failed to add reaction');
     },
   });
 }
@@ -637,10 +539,13 @@ export function useRemoveReaction() {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['messages', data.chatroomId.toString()] });
     },
+    onError: (error: Error) => {
+      toast.error(error.message || 'Failed to remove reaction');
+    },
   });
 }
 
-// Reply preview
+// Reply preview hook
 export function useGetReplyPreview(chatroomId: bigint, messageId: bigint | null) {
   const { actor, isFetching: actorFetching } = useActor();
 
@@ -650,7 +555,7 @@ export function useGetReplyPreview(chatroomId: bigint, messageId: bigint | null)
       if (!actor || !messageId) return null;
       return actor.getReplyPreview(chatroomId, messageId);
     },
-    enabled: !!actor && !actorFetching && messageId !== null,
-    staleTime: 60000, // Reply previews don't change often
+    enabled: !!actor && !actorFetching && !!messageId,
+    staleTime: 60000,
   });
 }

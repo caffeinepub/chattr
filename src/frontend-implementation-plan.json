@@ -1,53 +1,62 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Lobby canonical chatrooms query with client-side filtering",
+  "title": "Use lightweight lobby chatroom summaries and placeholder thumbnails to avoid oversized Lobby payloads",
   "requirements": [
     {
-      "id": "REQ-1",
-      "summary": "Refactor LobbyPage to fetch chatrooms only from the canonical React Query key ['chatrooms'] via useGetChatrooms and remove search/category queries from the lobby view.",
-      "acceptanceCriteria": [
-        "LobbyPage no longer imports or calls useSearchChatrooms or useFilterChatroomsByCategory.",
-        "Only the ['chatrooms'] query is responsible for network fetching of the chatroom list shown in the lobby.",
-        "On a fresh load of the live site, chatrooms render without requiring the user to click any category filter first."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/LobbyPage.tsx",
-          "operation": "modify",
-          "description": "Remove useSearchChatrooms/useFilterChatroomsByCategory imports and usage; ensure LobbyPage renders the chatroom list solely from useGetChatrooms() (canonical ['chatrooms'] query) and no longer switches query sources based on filters."
-        }
-      ]
-    },
-    {
       "id": "REQ-2",
-      "summary": "Implement search and category filtering in LobbyPage purely client-side by filtering the base chatrooms array in-memory using debounced search term and selected category state, without creating new React Query cache keys.",
+      "summary": "Switch Lobby list fetching/rendering to lightweight chatroom summaries and show deterministic placeholder thumbnails when media URLs are absent",
       "acceptanceCriteria": [
-        "Typing in the search box filters the visible chatrooms list based on the base data set (e.g., topic/description/category text matching), without triggering any additional React Query chatroom queries.",
-        "Clicking a category badge filters the visible chatrooms list based on the base data set, without triggering any additional React Query chatroom queries.",
-        "Clearing filters returns the visible list to the full base chatroom list immediately, without relying on reading cached filtered query results."
+        "The Lobby page loads successfully in production without showing the 'Failed to Load Chats' error caused by oversized responses.",
+        "Search and category filtering continue to work client-side on the Lobby list.",
+        "Chatroom cards still render a sensible thumbnail area (real thumbnail when possible, otherwise a placeholder) and clicking a card still navigates to the chatroom page."
       ],
       "file_operations": [
         {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Add a dedicated React Query hook for the Lobby list that calls the lightweight backend capability (getLobbyChatroomCards) and returns LobbyChatroomCard[]; keep existing full-chatroom hooks intact for non-Lobby views. Verify the component's usage instructions before implementing."
+        },
+        {
           "path": "frontend/src/pages/LobbyPage.tsx",
           "operation": "modify",
-          "description": "Compute a derived `visibleChatrooms` list by filtering `allChatrooms` in-memory using (1) debouncedSearchTerm text matching across topic/description/category and (2) selectedCategory matching; keep the UI controls but ensure they only update local state (no React Query calls/keys) and that Clear Filters resets state and immediately shows the unfiltered base list."
+          "description": "Update Lobby to use the new Lobby summaries hook instead of fetching full chatrooms; preserve current loading/recovery behavior, grid layout, and navigation. Adjust client-side search/category filtering to operate on available summary fields (topic/category, plus optional safe fallbacks) without requiring full descriptions. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/ChatroomCard.tsx",
+          "operation": "modify",
+          "description": "Refactor ChatroomCard to accept LobbyChatroomCard for the Lobby list, remove any thumbnail fetching that depends on mediaUrl, and render a deterministic placeholder thumbnail based on mediaType when media URLs are not provided in the lightweight response (e.g., use existing generated placeholder images for twitch/twitter and a default thumbnail for others). Ensure card click behavior and metadata display remain sensible with summary fields only. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/lib/lobbyPlaceholderThumbnails.ts",
+          "operation": "create",
+          "description": "Create a small helper that maps mediaType to a stable placeholder thumbnail asset selection (using existing generated assets) so Lobby cards do not need mediaUrl for a thumbnail area. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/hooks/useForceFreshChatroomsOnActorReady.ts",
+          "operation": "modify",
+          "description": "Extend the recovery/purge logic to also cover the new Lobby list query key (e.g., clear persisted empty arrays and force refetch for the Lobby summaries query) so the Lobby loading/recovery UX remains unchanged after switching away from full chatroom fetching. Verify the component's usage instructions before implementing."
         }
       ]
     },
     {
       "id": "REQ-3",
-      "summary": "Preserve the existing recovery/loading behavior via useForceFreshChatroomsOnActorReady (isRecovering) and render/filter strictly from the post-recovery canonical ['chatrooms'] query result.",
+      "summary": "Keep full chatroom fetches confined to the chatroom detail view while the Lobby remains lightweight",
       "acceptanceCriteria": [
-        "LobbyPage still uses isRecovering to gate initial render while the recovery sequence is in progress.",
-        "After recovery completes, the lobby uses only the current ['chatrooms'] query data as the source of truth for rendering and for client-side filtering.",
-        "If the base query returns an empty array, the lobby shows the existing empty-state UI (and does not replace it with any other cached chatroom arrays)."
+        "The Lobby list request remains lightweight, and full chatroom details/media are not fetched as part of the Lobby list query.",
+        "Entering a chatroom still shows the correct chatroom content (topic/media/description/messages) as before.",
+        "No console errors or unhandled promise rejections are introduced during navigation from Lobby to a chatroom."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/LobbyPage.tsx",
+          "path": "frontend/src/pages/ChatroomPage.tsx",
           "operation": "modify",
-          "description": "Keep `useForceFreshChatroomsOnActorReady()` and ensure loading/error/empty-state logic keys off the canonical `useGetChatrooms()` result only (gate initial render with isRecovering; do not use any cached filtered arrays; ensure empty base list continues to show the existing empty-state UI even when filters are set)."
+          "description": "Confirm/adjust the chatroom detail view to continue fetching full chatroom data via the dedicated full-chatroom query (e.g., useGetChatroom) and not rely on Lobby list data for media/description/messages; ensure navigation from Lobby still works without console errors. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Ensure the Lobby summaries hook and the full chatroom detail hook remain separate (no shared automatic refetch that would pull full chatroom data during Lobby rendering), and that any shared invalidation logic does not cause the Lobby to request full details. Verify the component's usage instructions before implementing."
         }
       ]
     }

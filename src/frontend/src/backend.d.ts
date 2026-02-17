@@ -12,9 +12,7 @@ export interface LobbyChatroomCard {
     topic: string;
     activeUserCount: bigint;
     createdAt: bigint;
-    description: string;
     isLive: boolean;
-    mediaUrl: string;
     messageCount: bigint;
     mediaType: string;
     category: string;
