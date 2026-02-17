@@ -1,147 +1,280 @@
-import { useState, useMemo } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import { useGetLobbyChatroomCards } from '../hooks/useQueries';
+import { useGetChatrooms } from '../hooks/useQueries';
+import { useActor } from '../hooks/useActor';
 import { useForceFreshChatroomsOnActorReady } from '../hooks/useForceFreshChatroomsOnActorReady';
+import { Loader2, Plus, AlertCircle, Search, Filter, X } from 'lucide-react';
+import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
+import { Alert, AlertDescription, AlertTitle } from '../components/ui/alert';
+import { Badge } from '../components/ui/badge';
 import ChatroomCard from '../components/ChatroomCard';
 import CreateChatroomDialog from '../components/CreateChatroomDialog';
-import { Search, Loader2, AlertCircle, Plus } from 'lucide-react';
-import { Input } from '../components/ui/input';
-import { Button } from '../components/ui/button';
-import { Alert, AlertDescription, AlertTitle } from '../components/ui/alert';
-import { useDebouncedValue } from '../hooks/useDebouncedValue';
+import type { ChatroomWithLiveStatus } from '../backend';
 
-const CATEGORIES = ['All', 'Gaming', 'Music', 'Sports', 'Tech', 'Entertainment', 'Other'];
+const CATEGORIES = [
+  'General',
+  'Gaming',
+  'Technology',
+  'Music',
+  'Art',
+  'Sports',
+  'Entertainment',
+  'Education',
+  'News',
+  'Politics',
+  'Finance',
+  'Other',
+];
 
 export default function LobbyPage() {
-  const navigate = useNavigate();
+  const { actor, isFetching: actorFetching } = useActor();
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const debouncedSearchTerm = useDebouncedValue(searchTerm, 300);
+  const navigate = useNavigate();
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
+  // Force fresh refetch when actor becomes ready (consolidated recovery)
   const { isRecovering } = useForceFreshChatroomsOnActorReady();
-  const { data: lobbyCards = [], isLoading, error, isError } = useGetLobbyChatroomCards();
 
-  // Client-side filtering
-  const filteredCards = useMemo(() => {
-    let filtered = lobbyCards;
+  // Debounce search term
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 300);
 
-    // Apply category filter
-    if (selectedCategory !== 'All') {
-      filtered = filtered.filter(card => 
-        card.category.toLowerCase() === selectedCategory.toLowerCase()
-      );
-    }
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  // Fetch base chatrooms only (canonical query)
+  const { 
+    data: allChatrooms, 
+    isLoading, 
+    isFetching,
+    error, 
+    isError, 
+    refetch 
+  } = useGetChatrooms();
+
+  // Client-side filtering: compute visible chatrooms from base data
+  const visibleChatrooms = (() => {
+    if (!allChatrooms) return undefined;
+
+    let filtered = allChatrooms;
 
     // Apply search filter
     if (debouncedSearchTerm.trim()) {
-      const searchLower = debouncedSearchTerm.toLowerCase();
-      filtered = filtered.filter(card =>
-        card.topic.toLowerCase().includes(searchLower) ||
-        card.category.toLowerCase().includes(searchLower)
+      const lowerSearchTerm = debouncedSearchTerm.toLowerCase();
+      filtered = filtered.filter((chatroom) => {
+        const lowerTopic = chatroom.topic.toLowerCase();
+        const lowerDescription = chatroom.description.toLowerCase();
+        const lowerCategory = chatroom.category.toLowerCase();
+        
+        return (
+          lowerTopic.includes(lowerSearchTerm) ||
+          lowerDescription.includes(lowerSearchTerm) ||
+          lowerCategory.includes(lowerSearchTerm)
+        );
+      });
+    }
+
+    // Apply category filter
+    if (selectedCategory !== null) {
+      filtered = filtered.filter((chatroom) => 
+        chatroom.category.toLowerCase() === selectedCategory
       );
     }
 
     return filtered;
-  }, [lobbyCards, selectedCategory, debouncedSearchTerm]);
+  })();
 
-  const handleCardClick = (chatroomId: bigint) => {
+  const handleChatroomClick = (chatroomId: bigint) => {
     navigate({ to: '/chatroom/$chatroomId', params: { chatroomId: chatroomId.toString() } });
   };
 
-  const showLoading = isLoading || isRecovering;
+  const handleCategoryClick = (category: string) => {
+    if (selectedCategory === category.toLowerCase()) {
+      setSelectedCategory(null);
+    } else {
+      setSelectedCategory(category.toLowerCase());
+      setSearchTerm('');
+      setDebouncedSearchTerm('');
+    }
+  };
+
+  const handleClearFilters = () => {
+    setSearchTerm('');
+    setDebouncedSearchTerm('');
+    setSelectedCategory(null);
+    
+    // Restore focus to search input
+    setTimeout(() => {
+      searchInputRef.current?.focus();
+    }, 0);
+  };
+
+  const hasActiveFilters = searchTerm.trim() || selectedCategory !== null;
+
+  // Show loading when:
+  // 1. Actor is still connecting, OR
+  // 2. We're loading data and don't have it yet (allChatrooms is undefined), OR
+  // 3. Recovery is in progress (purging persisted empty cache)
+  const showLoading = actorFetching || (isLoading && allChatrooms === undefined) || isRecovering;
+
+  if (showLoading) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
+          <p className="mt-2 text-sm text-muted-foreground">
+            {actorFetching ? 'Connecting...' : isRecovering ? 'Loading chats...' : 'Loading chats...'}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error only if actor is available but we have an error and no cached data
+  if (isError && actor && !allChatrooms) {
+    return (
+      <div className="flex h-full items-center justify-center p-4">
+        <Alert variant="destructive" className="max-w-md">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Failed to Load Chats</AlertTitle>
+          <AlertDescription>
+            There was a problem loading the chat list. Please try again.
+            {error && <div className="mt-2 text-xs">{String(error)}</div>}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => refetch()}
+              className="mt-3"
+            >
+              Retry
+            </Button>
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
 
   return (
-    <div className="flex h-full flex-col">
-      {/* Search and Filter Bar */}
-      <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="mx-auto max-w-7xl px-4 py-4">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            {/* Search */}
-            <div className="relative flex-1 sm:max-w-md">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                type="text"
-                placeholder="Search chats..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9"
-              />
+    <div className="h-full overflow-y-auto bg-gradient-to-b from-background to-muted/20">
+      <div className="mx-auto max-w-[1800px] px-4 py-6">
+        <div className="mb-6 flex flex-col gap-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-foreground">Chats</h1>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Join or create anonymous chats
+              </p>
             </div>
-
-            {/* Create Button */}
-            <Button onClick={() => setIsCreateDialogOpen(true)}>
-              <Plus className="mr-2 h-4 w-4" />
+            <Button onClick={() => setIsCreateDialogOpen(true)} className="gap-2">
+              <Plus className="h-5 w-5" />
               Create Chat
             </Button>
           </div>
 
-          {/* Category Filter */}
-          <div className="mt-4 flex flex-wrap gap-2">
-            {CATEGORIES.map((category) => (
+          {/* Search and Filter */}
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <div className="relative flex-1 sm:max-w-[25rem]">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                ref={searchInputRef}
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setSelectedCategory(null);
+                }}
+                placeholder="Search chats by topic, description, or category..."
+                className="pl-9"
+              />
+            </div>
+            {hasActiveFilters && (
               <Button
-                key={category}
-                variant={selectedCategory === category ? 'default' : 'outline'}
+                variant="outline"
                 size="sm"
-                onClick={() => setSelectedCategory(category)}
-                className="rounded-full"
+                onClick={handleClearFilters}
+                className="gap-2"
+              >
+                <X className="h-4 w-4" />
+                Clear Filters
+              </Button>
+            )}
+          </div>
+
+          {/* Category Filter */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <Filter className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm text-muted-foreground">Categories:</span>
+            {CATEGORIES.map((category) => (
+              <Badge
+                key={category}
+                variant={selectedCategory === category.toLowerCase() ? 'default' : 'outline'}
+                className="cursor-pointer hover:bg-primary/80 transition-colors"
+                onClick={() => handleCategoryClick(category)}
               >
                 {category}
-              </Button>
+              </Badge>
             ))}
           </div>
         </div>
-      </div>
 
-      {/* Content Area */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="mx-auto max-w-7xl px-4 py-6">
-          {showLoading ? (
-            <div className="flex h-64 items-center justify-center">
-              <div className="text-center">
-                <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
-                <p className="mt-2 text-sm text-muted-foreground">
-                  {isRecovering ? 'Refreshing chat list...' : 'Loading chats...'}
-                </p>
-              </div>
-            </div>
-          ) : isError ? (
-            <Alert variant="destructive" className="mx-auto max-w-md">
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle>Failed to Load Chats</AlertTitle>
-              <AlertDescription>
-                There was a problem loading the chat list. Please try again.
-                {error && <div className="mt-2 text-xs opacity-75">Error: {String(error)}</div>}
-              </AlertDescription>
-            </Alert>
-          ) : filteredCards.length === 0 ? (
-            <div className="flex h-64 items-center justify-center">
-              <div className="text-center">
-                <p className="text-muted-foreground">
-                  {lobbyCards.length === 0
-                    ? 'No chats yet. Create the first one!'
-                    : 'No chats match your filters.'}
-                </p>
-              </div>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {filteredCards.map((card) => (
-                <ChatroomCard
-                  key={card.id.toString()}
-                  card={card}
-                  onClick={() => handleCardClick(card.id)}
+        {/* Show error alert if we have cached data but background refresh failed */}
+        {isError && allChatrooms && allChatrooms.length > 0 && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Refresh Error</AlertTitle>
+            <AlertDescription>
+              There was a problem refreshing chats. Showing cached data.
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {visibleChatrooms && visibleChatrooms.length === 0 ? (
+          <div className="flex h-[60vh] items-center justify-center">
+            <div className="text-center">
+              <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10">
+                <img
+                  src="/assets/generated/chat-icon-transparent.dim_64x64.png"
+                  alt="Chat"
+                  className="h-12 w-12"
                 />
-              ))}
+              </div>
+              <h3 className="text-lg font-semibold text-foreground">
+                {hasActiveFilters ? 'No chats found' : 'No chats found yet'}
+              </h3>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {hasActiveFilters 
+                  ? 'Try adjusting your search or filters' 
+                  : 'Be the first to create a chat!'}
+              </p>
+              {!hasActiveFilters && (
+                <Button onClick={() => setIsCreateDialogOpen(true)} className="mt-4 gap-2">
+                  <Plus className="h-5 w-5" />
+                  Create Chat
+                </Button>
+              )}
             </div>
-          )}
-        </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7">
+            {visibleChatrooms?.map((chatroom) => (
+              <ChatroomCard
+                key={chatroom.id.toString()}
+                chatroom={chatroom}
+                onClick={() => handleChatroomClick(chatroom.id)}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* Create Chatroom Dialog */}
-      <CreateChatroomDialog 
-        open={isCreateDialogOpen} 
-        onOpenChange={setIsCreateDialogOpen} 
+      <CreateChatroomDialog
+        open={isCreateDialogOpen}
+        onOpenChange={setIsCreateDialogOpen}
       />
     </div>
   );

@@ -1,79 +1,74 @@
 {
   "kind": "build_request",
-  "title": "Fix oversized getChatrooms query by returning lightweight chatroom summaries",
-  "projectName": "Caffeine Chat",
-  "priority": "high",
+  "title": "Refactor lobby to use a single canonical chatrooms query with client-side filtering",
+  "projectName": "Caffeine Chats",
+  "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Modify the backend query used to power the Lobby chat list so it cannot exceed the Internet Computer 3MB query reply limit by returning only lightweight chatroom summary fields (exclude any potentially large text/blob-like fields such as full media URLs/data URLs and long descriptions).",
-      "target": "backend",
+      "text": "Refactor the Lobby page to fetch chatrooms only from the canonical base React Query key ['chatrooms'] (useGetChatrooms) and remove usage of separate search/category React Query queries for the lobby view.",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "recent-User-Ok-do-it",
-          "recent-Assistant-error-explanation"
+          "msg-1"
         ],
         "quotes": [
-          "Ok do it",
-          "The IC hard‑limits all query responses to 3 MB max. Your canister is trying to send 8.8 MB ... Method name: getChatrooms"
+          "Ok let’s try it"
         ]
       },
       "acceptanceCriteria": [
-        "Calling the Lobby chatrooms query no longer triggers IC0504 / reject code 5 payload-too-large errors even with many chatrooms present.",
-        "The backend response data for the Lobby chat list includes only summary fields (e.g., id, topic, category, createdAt, counts, live status, pinnedVideoId) and excludes large fields (e.g., mediaUrl/data URL payloads, large descriptions).",
-        "Existing chatroom state data remains intact; no data loss occurs."
+        "LobbyPage no longer imports or calls useSearchChatrooms or useFilterChatroomsByCategory.",
+        "Only the ['chatrooms'] query is responsible for network fetching of the chatroom list shown in the lobby.",
+        "On a fresh load of the live site, chatrooms render without requiring the user to click any category filter first."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Update the frontend Lobby data fetching and rendering to use the new lightweight chatroom summary response for the chat list while preserving current UX (loading/recovery states, client-side search and category filtering, grid layout, and navigation into a chatroom). If thumbnails/media are not available in the lightweight response, render a deterministic placeholder thumbnail based on mediaType instead of requiring mediaUrl in the Lobby list payload.",
+      "text": "Implement category and search filtering purely client-side in the Lobby page by filtering the base chatroom array in-memory using (a) the debounced search term and (b) the selected category state, without creating new React Query cache keys.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "recent-User-Ok-do-it",
-          "recent-User-error-report"
+          "msg-1"
         ],
         "quotes": [
-          "Ok do it",
-          "Failed to Load Chats\nThere was a problem loading the chat list. Please try again."
+          "Ok let’s try it"
         ]
       },
       "acceptanceCriteria": [
-        "The Lobby page loads successfully in production without showing the 'Failed to Load Chats' error caused by oversized responses.",
-        "Search and category filtering continue to work client-side on the Lobby list.",
-        "Chatroom cards still render a sensible thumbnail area (real thumbnail when possible, otherwise a placeholder) and clicking a card still navigates to the chatroom page."
+        "Typing in the search box filters the visible chatrooms list based on the base data set (e.g., topic/description/category text matching), without triggering any additional React Query chatroom queries.",
+        "Clicking a category badge filters the visible chatrooms list based on the base data set, without triggering any additional React Query chatroom queries.",
+        "Clearing filters returns the visible list to the full base chatroom list immediately, without relying on reading cached filtered query results."
       ]
     },
     {
       "id": "REQ-3",
-      "text": "Ensure the chatroom detail view continues to fetch full chatroom data only when needed (e.g., on the chatroom page), so the Lobby list remains lightweight and the overall app behavior is unchanged aside from fixing the payload size issue.",
-      "target": "both",
+      "text": "Preserve the existing recovery/loading behavior that uses useForceFreshChatroomsOnActorReady (isRecovering) and ensure the lobby renders based only on the post-recovery canonical ['chatrooms'] query result (no fallback to cached filtered arrays).",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "recent-Assistant-safest-fix",
-          "recent-User-Ok-do-it"
+          "msg-1"
         ],
         "quotes": [
-          "Safest fix: make the getChatrooms query return only small, lightweight summary data (no messages, no blobs, no media).",
-          "Ok do it"
+          "Ok let’s try it"
         ]
       },
       "acceptanceCriteria": [
-        "The Lobby list request remains lightweight, and full chatroom details/media are not fetched as part of the Lobby list query.",
-        "Entering a chatroom still shows the correct chatroom content (topic/media/description/messages) as before.",
-        "No console errors or unhandled promise rejections are introduced during navigation from Lobby to a chatroom."
+        "LobbyPage still uses isRecovering to gate initial render while the recovery sequence is in progress.",
+        "After recovery completes, the lobby uses only the current ['chatrooms'] query data as the source of truth for rendering and for client-side filtering.",
+        "If the base query returns an empty array, the lobby shows the existing empty-state UI (and does not replace it with any other cached chatroom arrays)."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single Motoko actor in backend/main.mo (no additional backend services).",
-    "Do not edit files under frontend/src/components/ui or other immutablePaths listed in SYSTEM_CONTEXT; compose existing UI components instead.",
-    "Use English for any user-facing text."
+    "Do not edit files under frontend/src/components/ui (Shadcn components are read-only and must be composed).",
+    "Do not modify frontend immutable hook paths (frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx).",
+    "Do not add new backend canisters or services; backend remains a single Motoko actor.",
+    "Keep all user-facing text in English."
   ],
   "nonGoals": [
-    "Implement pagination/infinite scroll for the Lobby chat list.",
-    "Add new authentication methods beyond existing Internet Identity support.",
-    "Introduce external databases or off-chain storage/services to bypass the IC query response limit."
+    "Do not change or remove backend endpoints like searchChatrooms or filterChatroomsByCategory; they may remain for future use even if the lobby no longer uses them.",
+    "Do not implement server-side filtering changes or new backend data models.",
+    "Do not add new authentication providers (Internet Identity only)."
   ],
   "imageRequirements": {
     "required": [],
