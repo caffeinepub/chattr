@@ -42,11 +42,10 @@ export default function AdminDeleteChatroomsPage() {
       setPasswordInput('');
       
       // After successful authentication, force refetch of base chatrooms query even if inactive
-      console.log('[AdminDeleteChatroomsPage] Authentication successful, forcing chatrooms refetch...');
       await queryClient.refetchQueries({ 
         queryKey: ['chatrooms'], 
         exact: true,
-        type: 'all' // Changed from 'active' to 'all' to refetch even when inactive
+        type: 'all'
       });
     } else {
       setPasswordError('Incorrect password. Please try again.');
@@ -122,11 +121,10 @@ function AdminChatroomList() {
   useEffect(() => {
     const cachedData = queryClient.getQueryData<ChatroomWithLiveStatus[]>(['chatrooms']);
     if (cachedData && cachedData.length === 0) {
-      console.log('[AdminChatroomList] Detected empty cached base query on mount, forcing refetch...');
       queryClient.refetchQueries({ 
         queryKey: ['chatrooms'], 
         exact: true,
-        type: 'all' // Changed from 'active' to 'all' to refetch even when inactive
+        type: 'all'
       });
     }
   }, [queryClient]);
@@ -140,7 +138,6 @@ function AdminChatroomList() {
     chatrooms.forEach((chatroom) => {
       const normalizedKey = chatroom.category.trim().toLowerCase();
       if (!categoryMap.has(normalizedKey)) {
-        // Store the first-seen trimmed value as the display label
         categoryMap.set(normalizedKey, chatroom.category.trim());
       }
     });

@@ -2,10 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-update-the-room-creation-ui-so-a-chatroom-can-be-created-with-no-media-attached-no-image-upload-no-video-url-and-no-twitter-x-url-while-keeping-the-media-input-fields-tabs-visible-at-all-times-and-still-allowing-only-one-media-type-when-used",
-      "featureTitle": "Update the room creation UI so a chatroom can be created with no media attached (no image upload, no video URL, and no Twitter/X URL), while keeping the media input fields/tabs visible at all times and still allowing only one media type when used.",
+      "featureId": "feature-ensure-the-frontend-continues-to-gate-admin-delete-chatrooms-behind-the-existing-password-prompt-ui-and-does-not-introduce-any-new-authentication-authorization-prompts-for-regular-non-admin-actions-across-the-app",
+      "featureTitle": "Ensure the frontend continues to gate `/admin/delete-chatrooms` behind the existing password prompt UI and does not introduce any new authentication/authorization prompts for regular (non-admin) actions across the app.",
       "files": [
-        "frontend/src/components/CreateChatroomDialog.tsx"
+        "frontend/src/pages/AdminDeleteChatroomsPage.tsx"
       ],
       "components": [
         "authorization@1.0.1",
@@ -18,7 +18,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-6"
+        "REQ-16"
       ],
       "confidence": "high"
     }

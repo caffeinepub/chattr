@@ -1,22 +1,31 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Optional media on chatroom creation (single media type preserved)",
+  "title": "Keep admin delete page password-gated without adding new auth prompts",
   "requirements": [
     {
-      "id": "REQ-6",
-      "summary": "Allow creating a chatroom without any media while keeping media tabs visible and preserving single-media behavior and validations when media is provided.",
+      "id": "REQ-16",
+      "summary": "Ensure /admin/delete-chatrooms remains gated by the existing sessionStorage password prompt and keep the rest of the app free of new auth/role prompts.",
       "acceptanceCriteria": [
-        "In CreateChatroomDialog, the Image/Video/Twitter tabs remain visible even if the user does not attach media.",
-        "The form can be submitted successfully when topic/description/category are filled and no media is provided.",
-        "No validation error is shown solely because the media URL/file is empty (errors only appear when the user provides a media value that is invalid).",
-        "When media is provided, only one media type is submitted (as before) and existing validations for the chosen media type still apply."
+        "Navigating to the admin delete chatrooms page shows the password prompt when not authenticated in sessionStorage, and only shows management UI after successful password entry.",
+        "Creating chatrooms, viewing chatrooms, sending messages, reactions, and other regular interactions do not require login or role checks in the UI.",
+        "All user-facing text remains in English."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/CreateChatroomDialog.tsx",
+          "path": "frontend/src/pages/AdminDeleteChatroomsPage.tsx",
           "operation": "modify",
-          "description": "Update CreateChatroomDialog submission and validation logic to make media optional: (1) remove any required-media gating in isFormValid so topic/description/category can submit without media; (2) stop setting mediaError when mediaUrl is cleared/empty; (3) ensure handleSubmit submits empty mediaUrl/mediaType when no media is selected, while still validating image/video/twitter only when a value/file is provided and still submitting only the chosen single media type."
+          "description": "Preserve and harden the existing password-prompt gating (sessionStorage-based) so the admin management UI only renders after successful password entry, and ensure all user-facing copy remains English."
+        },
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Audit and adjust user-facing error handling for non-admin actions to avoid introducing any new login/role/permission prompts in the UI (keep messages generic and English)."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Confirm the /admin/delete-chatrooms route remains wired to the existing AdminDeleteChatroomsPage password-gated flow and that no additional auth guard screens are introduced for non-admin routes."
         }
       ]
     }
