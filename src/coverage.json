@@ -1,56 +1,49 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-17T08:07:46.755Z",
+  "generatedAt": "2026-02-17T12:06:20.767Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
     "total": 3,
-    "implemented": 3,
+    "implemented": 0,
     "items": [
       {
-        "id": "REQ-1",
-        "summary": "Refactor the Lobby page to fetch chatrooms only from the canonical base React Query key ['chatrooms'] (useGetChatrooms) and remove usage of separate search/category React Query queries for the lobby view.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/pages/LobbyPage.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/pages/LobbyPage.tsx"
-        ]
+        "id": "REQ-7",
+        "summary": "Update `backend/main.mo` so `public query func getChatrooms() : async [ChatroomWithLiveStatus]` no longer exceeds the Internet Computer ~3MB query reply limit (IC0504) while keeping the exact return type `[ChatroomWithLiveStatus]` and without changing any frontend code.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
       },
       {
-        "id": "REQ-2",
-        "summary": "Implement category and search filtering purely client-side in the Lobby page by filtering the base chatroom array in-memory using (a) the debounced search term and (b) the selected category state, without creating new React Query cache keys.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/pages/LobbyPage.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/pages/LobbyPage.tsx"
-        ]
+        "id": "REQ-8",
+        "summary": "Fix the chatroom thumbnail regression by ensuring `backend/main.mo` does not blank valid non-base64 `mediaUrl` values in `getChatrooms()`. Only inline `data:` / base64 payloads should be removed.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
       },
       {
-        "id": "REQ-3",
-        "summary": "Preserve the existing recovery/loading behavior that uses useForceFreshChatroomsOnActorReady (isRecovering) and ensure the lobby renders based only on the post-recovery canonical ['chatrooms'] query result (no fallback to cached filtered arrays).",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/pages/LobbyPage.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/pages/LobbyPage.tsx"
-        ]
+        "id": "REQ-9",
+        "summary": "Continue incremental anonymization by removing (or neutralizing) the runtime authorization gate in `backend/main.mo` `deleteChatroomWithPassword(...)` so anonymous callers are not blocked by `AccessControl.hasPermission(...)` / `Debug.trap(\"Unauthorized...\")`. Keep the function signature and behavior (aside from authorization) intact.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
       }
     ]
   },
   "changedFiles": [
+    "backend/main.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/pages/LobbyPage.tsx",
+    "frontend/src/backend.d.ts",
+    "frontend/src/backend.ts",
+    "frontend/src/declarations/backend.did.d.ts",
+    "frontend/src/declarations/backend.did.js",
+    "frontend/src/hooks/useQueries.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

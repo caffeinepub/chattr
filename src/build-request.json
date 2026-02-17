@@ -1,87 +1,82 @@
 {
   "kind": "build_request",
-  "title": "Refactor lobby to use a single canonical chatrooms query with client-side filtering",
-  "projectName": "Caffeine Chats",
-  "priority": "normal",
+  "title": "Reduce getChatrooms payload and continue incremental removal of authorization gates",
+  "projectName": "Anon Chat Lobby",
+  "priority": "high",
   "requirements": [
     {
-      "id": "REQ-1",
-      "text": "Refactor the Lobby page to fetch chatrooms only from the canonical base React Query key ['chatrooms'] (useGetChatrooms) and remove usage of separate search/category React Query queries for the lobby view.",
-      "target": "frontend",
+      "id": "REQ-7",
+      "text": "Update `backend/main.mo` so `public query func getChatrooms() : async [ChatroomWithLiveStatus]` no longer exceeds the Internet Computer ~3MB query reply limit (IC0504) while keeping the exact return type `[ChatroomWithLiveStatus]` and without changing any frontend code.",
+      "target": "backend",
       "source": {
         "messageIds": [
           "msg-1"
         ],
         "quotes": [
-          "Ok let’s try it"
+          "Failed to Load Chats... application payload size (8804262) cannot be larger than 3145728",
+          "Build"
         ]
       },
       "acceptanceCriteria": [
-        "LobbyPage no longer imports or calls useSearchChatrooms or useFilterChatroomsByCategory.",
-        "Only the ['chatrooms'] query is responsible for network fetching of the chatroom list shown in the lobby.",
-        "On a fresh load of the live site, chatrooms render without requiring the user to click any category filter first."
+        "Calling `getChatrooms()` does not trigger IC0504 / reject code 5 due to reply payload size.",
+        "The Candid signature and Motoko return type of `getChatrooms()` remains `[ChatroomWithLiveStatus]` (no frontend changes required).",
+        "The response excludes or empties large fields (e.g., `description` should remain empty, and `pinnedVideoId` should remain `null`) and avoids returning any inline base64/data URL payloads.",
+        "If needed to stay under the limit, the function limits the number of returned chatrooms (e.g., return only the most recent N), and this limit is implemented entirely within `getChatrooms()` without altering stored data."
       ]
     },
     {
-      "id": "REQ-2",
-      "text": "Implement category and search filtering purely client-side in the Lobby page by filtering the base chatroom array in-memory using (a) the debounced search term and (b) the selected category state, without creating new React Query cache keys.",
-      "target": "frontend",
+      "id": "REQ-8",
+      "text": "Fix the chatroom thumbnail regression by ensuring `backend/main.mo` does not blank valid non-base64 `mediaUrl` values in `getChatrooms()`. Only inline `data:` / base64 payloads should be removed.",
+      "target": "backend",
       "source": {
         "messageIds": [
           "msg-1"
         ],
         "quotes": [
-          "Ok let’s try it"
+          "Fix thumbnail regression: ... only remove inline base64/data: payloads so room thumbnails display again",
+          "Build"
         ]
       },
       "acceptanceCriteria": [
-        "Typing in the search box filters the visible chatrooms list based on the base data set (e.g., topic/description/category text matching), without triggering any additional React Query chatroom queries.",
-        "Clicking a category badge filters the visible chatrooms list based on the base data set, without triggering any additional React Query chatroom queries.",
-        "Clearing filters returns the visible list to the full base chatroom list immediately, without relying on reading cached filtered query results."
+        "For normal URLs (including long URLs and blob-storage URLs that are not inline base64/data payloads), `getChatrooms()` returns the original `mediaUrl` unchanged.",
+        "For inline `data:` URLs, `getChatrooms()` returns an empty `mediaUrl` string (or otherwise removes the inline payload) to avoid large responses.",
+        "Room thumbnails render again in the lobby for chatrooms whose `mediaUrl` is a valid non-`data:` URL."
       ]
     },
     {
-      "id": "REQ-3",
-      "text": "Preserve the existing recovery/loading behavior that uses useForceFreshChatroomsOnActorReady (isRecovering) and ensure the lobby renders based only on the post-recovery canonical ['chatrooms'] query result (no fallback to cached filtered arrays).",
-      "target": "frontend",
+      "id": "REQ-9",
+      "text": "Continue incremental anonymization by removing (or neutralizing) the runtime authorization gate in `backend/main.mo` `deleteChatroomWithPassword(...)` so anonymous callers are not blocked by `AccessControl.hasPermission(...)` / `Debug.trap(\"Unauthorized...\")`. Keep the function signature and behavior (aside from authorization) intact.",
+      "target": "backend",
       "source": {
         "messageIds": [
           "msg-1"
         ],
         "quotes": [
-          "Ok let’s try it"
+          "Remove all caller principal checks",
+          "Ok do it in smaller pieces",
+          "Build"
         ]
       },
       "acceptanceCriteria": [
-        "LobbyPage still uses isRecovering to gate initial render while the recovery sequence is in progress.",
-        "After recovery completes, the lobby uses only the current ['chatrooms'] query data as the source of truth for rendering and for client-side filtering.",
-        "If the base query returns an empty array, the lobby shows the existing empty-state UI (and does not replace it with any other cached chatroom arrays)."
+        "`deleteChatroomWithPassword(chatroomId, _password)` no longer traps with an \"Unauthorized\" message based on `caller` permissions.",
+        "The public method name and parameters are unchanged.",
+        "No new caller/principal/authorization checks are introduced elsewhere as part of this change."
       ]
     }
   ],
   "constraints": [
-    "Do not edit files under frontend/src/components/ui (Shadcn components are read-only and must be composed).",
-    "Do not modify frontend immutable hook paths (frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx).",
-    "Do not add new backend canisters or services; backend remains a single Motoko actor.",
-    "Keep all user-facing text in English."
+    "Backend must remain a single Motoko actor; put all logic changes in `backend/main.mo`.",
+    "Do not add any new authorization, caller principal checks, or AccessControl-based permission logic.",
+    "Keep `getChatrooms()` return type as `[ChatroomWithLiveStatus]` to avoid frontend changes.",
+    "Do not edit files under `frontend/src/components/ui` or other immutable frontend paths listed in SYSTEM_CONTEXT."
   ],
   "nonGoals": [
-    "Do not change or remove backend endpoints like searchChatrooms or filterChatroomsByCategory; they may remain for future use even if the lobby no longer uses them.",
-    "Do not implement server-side filtering changes or new backend data models.",
-    "Do not add new authentication providers (Internet Identity only)."
+    "Implementing a frontend-only workaround for the IC0504 payload-size rejection.",
+    "Introducing pagination endpoints or changing the frontend data model/types.",
+    "Reworking or redesigning the chat UI/UX beyond what is required to restore thumbnails and load the lobby list."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
-  },
-  "userProfileUpdate": {
-    "goalsToAdd": [],
-    "goalsToRemove": [],
-    "preferencesToAdd": [],
-    "preferencesToRemove": [],
-    "miscToAdd": [],
-    "miscToRemove": [],
-    "fieldsToSet": {},
-    "fieldsToDelete": []
   }
 }

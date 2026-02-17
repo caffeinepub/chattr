@@ -1,14 +1,62 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-17T08:07:46.752Z",
-  "summary": "LobbyPage appears refactored to rely on the canonical useGetChatrooms (['chatrooms']) query and performs search/category filtering in-memory with debounced search, while preserving the recovery/loading gate via useForceFreshChatroomsOnActorReady (isRecovering). Diff is truncated, so some acceptance criteria (e.g., empty-state UI behavior) cannot be fully verified from provided evidence.",
-  "missing_requirements": [],
-  "hallucinated_features": [],
-  "confidence": 0.66,
+  "generatedAt": "2026-02-17T12:06:20.764Z",
+  "summary": "The diff shows edits in multiple frontend files and only a truncated portion of backend/main.mo that still contains AccessControl usage. There is no visible evidence that getChatrooms() payload reduction/URL-stripping logic or deleteChatroomWithPassword() authorization-gate removal were implemented.",
+  "missing_requirements": [
+    {
+      "id": "REQ-7",
+      "requirement": "Update backend/main.mo so public query func getChatrooms() : async [ChatroomWithLiveStatus] stays under the ~3MB IC query reply limit (IC0504) while keeping the exact return type and without frontend changes (e.g., empty large fields, remove inline base64/data URLs, optionally limit to most recent N).",
+      "reason": "The diff snippet for backend/main.mo is truncated and does not show any changes to the body of getChatrooms() implementing payload reduction (emptying large fields, limiting N, stripping inline data URLs). No other evidence in the provided diff summary indicates getChatrooms() was modified to reduce payload size.",
+      "evidence": [
+        "backend/main.mo (truncated; no getChatrooms() body shown)"
+      ]
+    },
+    {
+      "id": "REQ-8",
+      "requirement": "Fix thumbnail regression by ensuring getChatrooms() does not blank valid non-base64 mediaUrl values; only inline data: / base64 payloads should be removed.",
+      "reason": "No visible evidence shows logic in getChatrooms() that conditionally strips only data: URLs while preserving normal URLs. The provided backend snippet does not include getChatrooms() implementation details.",
+      "evidence": [
+        "backend/main.mo (truncated; no getChatrooms() body shown)"
+      ]
+    },
+    {
+      "id": "REQ-9",
+      "requirement": "Remove/neutralize the runtime authorization gate in deleteChatroomWithPassword(...) so anonymous callers are not blocked by AccessControl.hasPermission(...) / Debug.trap(\"Unauthorized...\"); keep signature intact and add no new auth checks elsewhere.",
+      "reason": "The provided backend snippet still shows AccessControl being imported and used, and there is no shown change to deleteChatroomWithPassword(...). No evidence indicates the Unauthorized trap/permission gate in that function was removed or neutralized.",
+      "evidence": [
+        "backend/main.mo (truncated; AccessControl still present, deleteChatroomWithPassword not shown)"
+      ]
+    }
+  ],
+  "hallucinated_features": [
+    {
+      "description": "Frontend React Query hook behavior changes (e.g., added/changed query key normalization, logging, refetch settings, sorting).",
+      "reason": "The BuildRequest explicitly requires backend-only logic changes in backend/main.mo and no frontend changes; the diff includes modifications to frontend/src/hooks/useQueries.ts.",
+      "evidence": [
+        "frontend/src/hooks/useQueries.ts (truncated)"
+      ]
+    },
+    {
+      "description": "Updates to frontend-file-summaries.txt content describing various UI/component behaviors.",
+      "reason": "Not requested by the BuildRequest and conflicts with the constraint to avoid editing immutable frontend paths/avoid frontend changes for this task.",
+      "evidence": [
+        "frontend-file-summaries.txt (truncated)"
+      ]
+    },
+    {
+      "description": "Updates to project_state.json project metadata/requests.",
+      "reason": "Not requested in the BuildRequest; requirement/constraint scope is backend/main.mo logic changes only.",
+      "evidence": [
+        "project_state.json (truncated)"
+      ]
+    }
+  ],
+  "confidence": 0.72,
   "changed_files": [
+    "backend/main.mo",
     "frontend-file-summaries.txt",
-    "frontend/src/pages/LobbyPage.tsx",
+    "frontend/src/hooks/useQueries.ts",
     "project_state.json"
   ]
 }

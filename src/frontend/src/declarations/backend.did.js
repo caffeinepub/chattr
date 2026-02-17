@@ -60,13 +60,13 @@ export const LobbyChatroomCard = IDL.Record({
   'pinnedVideoId' : IDL.Opt(IDL.Nat),
   'presenceIndicator' : IDL.Nat,
 });
-List.fill(IDL.Opt(IDL.Tuple(IDL.Text, List)));
+List_1.fill(IDL.Opt(IDL.Tuple(IDL.Text, List_1)));
 export const Reaction = IDL.Record({
   'count' : IDL.Nat,
   'emoji' : IDL.Text,
-  'users' : List,
+  'users' : List_1,
 });
-List_1.fill(IDL.Opt(IDL.Tuple(Reaction, List_1)));
+List.fill(IDL.Opt(IDL.Tuple(Reaction, List)));
 export const MessageWithReactions = IDL.Record({
   'id' : IDL.Nat,
   'content' : IDL.Text,
@@ -77,7 +77,7 @@ export const MessageWithReactions = IDL.Record({
   'replyToMessageId' : IDL.Opt(IDL.Nat),
   'timestamp' : IDL.Int,
   'mediaType' : IDL.Opt(IDL.Text),
-  'reactions' : List_1,
+  'reactions' : List,
   'senderId' : IDL.Text,
 });
 export const Message = IDL.Record({
@@ -144,15 +144,7 @@ export const idlService = IDL.Service({
       [],
     ),
   '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
-  'addReaction' : IDL.Func([IDL.Nat, IDL.Text, IDL.Text], [], []),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
-  'cleanupInactiveUsers' : IDL.Func([], [], []),
-  'createChatroom' : IDL.Func(
-      [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text],
-      [IDL.Nat],
-      [],
-    ),
-  'deleteChatroomWithPassword' : IDL.Func([IDL.Nat, IDL.Text], [], []),
   'fetchTwitchThumbnail' : IDL.Func([IDL.Text], [IDL.Text], []),
   'fetchTwitterOEmbed' : IDL.Func([IDL.Text], [IDL.Text], []),
   'fetchTwitterThumbnail' : IDL.Func([IDL.Text], [IDL.Text], []),
@@ -182,7 +174,6 @@ export const idlService = IDL.Service({
     ),
   'getMessages' : IDL.Func([IDL.Nat], [IDL.Vec(Message)], ['query']),
   'getPinnedVideo' : IDL.Func([IDL.Nat], [IDL.Opt(IDL.Nat)], ['query']),
-  'getReactions' : IDL.Func([IDL.Nat], [IDL.Vec(Reaction)], ['query']),
   'getReplies' : IDL.Func([IDL.Nat, IDL.Nat], [IDL.Vec(Message)], ['query']),
   'getReplyPreview' : IDL.Func(
       [IDL.Nat, IDL.Nat],
@@ -197,36 +188,17 @@ export const idlService = IDL.Service({
   'incrementViewCount' : IDL.Func([IDL.Nat, IDL.Text], [], []),
   'initializeAccessControl' : IDL.Func([], [], []),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
-  'pinVideo' : IDL.Func([IDL.Nat, IDL.Nat], [], []),
-  'removeReaction' : IDL.Func([IDL.Nat, IDL.Text, IDL.Text], [], []),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
   'searchChatrooms' : IDL.Func(
       [IDL.Text],
       [IDL.Vec(ChatroomWithLiveStatus)],
       ['query'],
     ),
-  'sendMessage' : IDL.Func(
-      [
-        IDL.Text,
-        IDL.Text,
-        IDL.Nat,
-        IDL.Opt(IDL.Text),
-        IDL.Opt(IDL.Text),
-        IDL.Opt(IDL.Text),
-        IDL.Text,
-        IDL.Opt(IDL.Nat),
-      ],
-      [],
-      [],
-    ),
   'transform' : IDL.Func(
       [TransformationInput],
       [TransformationOutput],
       ['query'],
     ),
-  'unpinVideo' : IDL.Func([IDL.Nat], [], []),
-  'updateAvatarRetroactively' : IDL.Func([IDL.Text, IDL.Opt(IDL.Text)], [], []),
-  'updateUsernameRetroactively' : IDL.Func([IDL.Text, IDL.Text], [], []),
 });
 
 export const idlInitArgs = [];
@@ -284,13 +256,13 @@ export const idlFactory = ({ IDL }) => {
     'pinnedVideoId' : IDL.Opt(IDL.Nat),
     'presenceIndicator' : IDL.Nat,
   });
-  List.fill(IDL.Opt(IDL.Tuple(IDL.Text, List)));
+  List_1.fill(IDL.Opt(IDL.Tuple(IDL.Text, List_1)));
   const Reaction = IDL.Record({
     'count' : IDL.Nat,
     'emoji' : IDL.Text,
-    'users' : List,
+    'users' : List_1,
   });
-  List_1.fill(IDL.Opt(IDL.Tuple(Reaction, List_1)));
+  List.fill(IDL.Opt(IDL.Tuple(Reaction, List)));
   const MessageWithReactions = IDL.Record({
     'id' : IDL.Nat,
     'content' : IDL.Text,
@@ -301,7 +273,7 @@ export const idlFactory = ({ IDL }) => {
     'replyToMessageId' : IDL.Opt(IDL.Nat),
     'timestamp' : IDL.Int,
     'mediaType' : IDL.Opt(IDL.Text),
-    'reactions' : List_1,
+    'reactions' : List,
     'senderId' : IDL.Text,
   });
   const Message = IDL.Record({
@@ -365,15 +337,7 @@ export const idlFactory = ({ IDL }) => {
         [],
       ),
     '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
-    'addReaction' : IDL.Func([IDL.Nat, IDL.Text, IDL.Text], [], []),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
-    'cleanupInactiveUsers' : IDL.Func([], [], []),
-    'createChatroom' : IDL.Func(
-        [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text],
-        [IDL.Nat],
-        [],
-      ),
-    'deleteChatroomWithPassword' : IDL.Func([IDL.Nat, IDL.Text], [], []),
     'fetchTwitchThumbnail' : IDL.Func([IDL.Text], [IDL.Text], []),
     'fetchTwitterOEmbed' : IDL.Func([IDL.Text], [IDL.Text], []),
     'fetchTwitterThumbnail' : IDL.Func([IDL.Text], [IDL.Text], []),
@@ -403,7 +367,6 @@ export const idlFactory = ({ IDL }) => {
       ),
     'getMessages' : IDL.Func([IDL.Nat], [IDL.Vec(Message)], ['query']),
     'getPinnedVideo' : IDL.Func([IDL.Nat], [IDL.Opt(IDL.Nat)], ['query']),
-    'getReactions' : IDL.Func([IDL.Nat], [IDL.Vec(Reaction)], ['query']),
     'getReplies' : IDL.Func([IDL.Nat, IDL.Nat], [IDL.Vec(Message)], ['query']),
     'getReplyPreview' : IDL.Func(
         [IDL.Nat, IDL.Nat],
@@ -418,40 +381,17 @@ export const idlFactory = ({ IDL }) => {
     'incrementViewCount' : IDL.Func([IDL.Nat, IDL.Text], [], []),
     'initializeAccessControl' : IDL.Func([], [], []),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
-    'pinVideo' : IDL.Func([IDL.Nat, IDL.Nat], [], []),
-    'removeReaction' : IDL.Func([IDL.Nat, IDL.Text, IDL.Text], [], []),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
     'searchChatrooms' : IDL.Func(
         [IDL.Text],
         [IDL.Vec(ChatroomWithLiveStatus)],
         ['query'],
       ),
-    'sendMessage' : IDL.Func(
-        [
-          IDL.Text,
-          IDL.Text,
-          IDL.Nat,
-          IDL.Opt(IDL.Text),
-          IDL.Opt(IDL.Text),
-          IDL.Opt(IDL.Text),
-          IDL.Text,
-          IDL.Opt(IDL.Nat),
-        ],
-        [],
-        [],
-      ),
     'transform' : IDL.Func(
         [TransformationInput],
         [TransformationOutput],
         ['query'],
       ),
-    'unpinVideo' : IDL.Func([IDL.Nat], [], []),
-    'updateAvatarRetroactively' : IDL.Func(
-        [IDL.Text, IDL.Opt(IDL.Text)],
-        [],
-        [],
-      ),
-    'updateUsernameRetroactively' : IDL.Func([IDL.Text, IDL.Text], [], []),
   });
 };
 

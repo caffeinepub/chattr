@@ -1,55 +1,6 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Lobby canonical chatrooms query with client-side filtering",
-  "requirements": [
-    {
-      "id": "REQ-1",
-      "summary": "Refactor LobbyPage to fetch chatrooms only from the canonical React Query key ['chatrooms'] via useGetChatrooms and remove search/category queries from the lobby view.",
-      "acceptanceCriteria": [
-        "LobbyPage no longer imports or calls useSearchChatrooms or useFilterChatroomsByCategory.",
-        "Only the ['chatrooms'] query is responsible for network fetching of the chatroom list shown in the lobby.",
-        "On a fresh load of the live site, chatrooms render without requiring the user to click any category filter first."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/LobbyPage.tsx",
-          "operation": "modify",
-          "description": "Remove useSearchChatrooms/useFilterChatroomsByCategory imports and usage; ensure LobbyPage renders the chatroom list solely from useGetChatrooms() (canonical ['chatrooms'] query) and no longer switches query sources based on filters."
-        }
-      ]
-    },
-    {
-      "id": "REQ-2",
-      "summary": "Implement search and category filtering in LobbyPage purely client-side by filtering the base chatrooms array in-memory using debounced search term and selected category state, without creating new React Query cache keys.",
-      "acceptanceCriteria": [
-        "Typing in the search box filters the visible chatrooms list based on the base data set (e.g., topic/description/category text matching), without triggering any additional React Query chatroom queries.",
-        "Clicking a category badge filters the visible chatrooms list based on the base data set, without triggering any additional React Query chatroom queries.",
-        "Clearing filters returns the visible list to the full base chatroom list immediately, without relying on reading cached filtered query results."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/LobbyPage.tsx",
-          "operation": "modify",
-          "description": "Compute a derived `visibleChatrooms` list by filtering `allChatrooms` in-memory using (1) debouncedSearchTerm text matching across topic/description/category and (2) selectedCategory matching; keep the UI controls but ensure they only update local state (no React Query calls/keys) and that Clear Filters resets state and immediately shows the unfiltered base list."
-        }
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "summary": "Preserve the existing recovery/loading behavior via useForceFreshChatroomsOnActorReady (isRecovering) and render/filter strictly from the post-recovery canonical ['chatrooms'] query result.",
-      "acceptanceCriteria": [
-        "LobbyPage still uses isRecovering to gate initial render while the recovery sequence is in progress.",
-        "After recovery completes, the lobby uses only the current ['chatrooms'] query data as the source of truth for rendering and for client-side filtering.",
-        "If the base query returns an empty array, the lobby shows the existing empty-state UI (and does not replace it with any other cached chatroom arrays)."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/LobbyPage.tsx",
-          "operation": "modify",
-          "description": "Keep `useForceFreshChatroomsOnActorReady()` and ensure loading/error/empty-state logic keys off the canonical `useGetChatrooms()` result only (gate initial render with isRecovering; do not use any cached filtered arrays; ensure empty base list continues to show the existing empty-state UI even when filters are set)."
-        }
-      ]
-    }
-  ]
+  "title": "Reduce getChatrooms payload and remove backend authorization gates (frontend-only plan)",
+  "requirements": []
 }

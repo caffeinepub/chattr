@@ -1,45 +1,118 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 3,
-  "summary": "Fix lobby room list not displaying on first load (rooms only appear after selecting a category) by using a single canonical base query and performing category/search filtering client-side to avoid React Query cached variant key selection issues.",
+  "projectStateVersion": 15,
+  "summary": "Continue incremental anonymization and keep backend fully anonymous while also addressing a regression from the getChatrooms payload-reduction change: room thumbnails no longer display because mediaUrl is being over-stripped; implement a small backend-only fix that preserves valid (non-base64) URLs without reintroducing any caller/principal/authorization checks.",
   "architectural_notes": [
-    "Use a single canonical chatrooms query as source of truth; implement category/search as client-side (in-memory) filtering to avoid React Query cache/key collisions."
+    "Internet Computer query replies have a hard ~3MB payload limit; backend query methods must return compact/paginated data.",
+    "User requires a surgical change: edit only backend/main.mo within getChatrooms(); no other files/pages; no refactors/style changes; no added authorization checks (no caller/principal).",
+    "Backend must remain anonymous: do not use caller/principal-based authorization checks (AccessControl) anywhere in backend/main.mo or helper modules (including backend/authorization/access-control.mo).",
+    "Large multi-file/multi-function authorization removals must be applied in small incremental chunks due to platform patch-size/stream timeout limits.",
+    "Incremental anonymization plan includes removing `accessControlState` from `backend/main.mo` as a discrete next chunk before neutralizing individual authorization checks.",
+    "Payload-minimization in getChatrooms() must not blank legitimate long mediaUrl values used for thumbnails; only strip inline base64/data: URLs to preserve thumbnails while staying under the 3MB query limit."
   ],
   "known_issues": [
-    "Live lobby may render empty room list on first load due to selecting stale cached filtered query results; rooms appear only after choosing a category/filter."
+    "Live site error 'Failed to Load Chats' due to IC rejection: getChatrooms query reply payload ~8.8MB exceeds 3MB limit (IC0504 / reject code 5).",
+    "Build/automation repeatedly fails when attempting to remove all AccessControl logic in one pass due to patch-size/stream timeout limits; requires smaller incremental edits (e.g., remove import first, then state, then checks).",
+    "Incremental patch attempts may be rejected by the platform due to diff application/transform limitations (e.g., patch too small or not applying cleanly), requiring retries or slightly larger chunks.",
+    "Room thumbnails no longer display because getChatrooms() currently strips/empties mediaUrl when the URL is long (e.g., Text.size(url) > 200), causing the frontend to receive an empty URL."
   ],
   "isFixRequest": true,
-  "existing_features": [
-    {
-      "id": "feature-refactor-the-lobby-page-to-fetch-chatrooms-only-from-the-canonical-base-react-query-key-chatrooms-usegetchatrooms-and-remove-usage-of-separate-search-category-react-query-queries-for-the-lobby-view",
-      "title": "Refactor the Lobby page to fetch chatrooms only from the canonical base React Query key ['chatrooms'] (useGetChatrooms) and remove usage of separate search/category React Query queries for the lobby view.",
-      "reqIds": [
-        "REQ-1"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-implement-category-and-search-filtering-purely-client-side-in-the-lobby-page-by-filtering-the-base-chatroom-array-in-memory-using-a-the-debounced-search-term-and-b-the-selected-category-state-without-creating-new-react-query-cache-keys",
-      "title": "Implement category and search filtering purely client-side in the Lobby page by filtering the base chatroom array in-memory using (a) the debounced search term and (b) the selected category state, without creating new React Query cache keys.",
-      "reqIds": [
-        "REQ-2"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-preserve-the-existing-recovery-loading-behavior-that-uses-useforcefreshchatroomsonactorready-isrecovering-and-ensure-the-lobby-renders-based-only-on-the-post-recovery-canonical-chatrooms-query-result-no-fallback-to-cached-filtered-arrays",
-      "title": "Preserve the existing recovery/loading behavior that uses useForceFreshChatroomsOnActorReady (isRecovering) and ensure the lobby renders based only on the post-recovery canonical ['chatrooms'] query result (no fallback to cached filtered arrays).",
-      "reqIds": [
-        "REQ-3"
-      ],
-      "version": 1
-    }
-  ],
+  "existing_features": [],
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Refactor lobby data flow to use one canonical base chatrooms query and apply category/search filters in-memory (avoid multiple React Query keys) so rooms display on first load",
+      "summary": "Surgical backend fix: modify backend/main.mo getChatrooms() to return only lightweight chatroom summary fields to stay under IC 3MB query limit; do not touch any other files or add any authorization/caller/principal checks.",
       "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Apply a surgical backend-only fix in backend/main.mo by modifying ONLY the body of the public query function getChatrooms() so that it returns lightweight chatroom summaries (no large payload fields) and no longer triggers the Internet Computer 3MB query response limit rejection (IC0504). The response must retain the existing return type ([ChatroomWithLiveStatus]) to avoid any frontend changes, but must minimize payload by not returning any large text/blob-like content (e.g., ensure description and pinnedVideoId are not populated with large data; and if mediaUrl contains an inline base64 payload, do not include the base64 payload in the returned mediaUrl string). Do not add any authorization checks or caller/principal logic.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Remove all caller/principal/authorization checks to make the site fully anonymous: strip AccessControl usage and related permission checks while keeping all functions intact. Apply changes across backend/main.mo and helper modules including backend/authorization/access-control.mo; perform edits in small incremental chunks to avoid build/patch timeouts.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-4",
+      "summary": "In backend/main.mo, remove the `import AccessControl \"authorization/access-control\";` line, and replace it with an equivalent in-file, minimal `module AccessControl { ... }` stub that preserves successful compilation while making authorization permissive (anonymous) for this incremental step.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-5",
+      "summary": "In `backend/main.mo`, continue the incremental anonymization work by removing (or neutralizing) the remaining runtime authorization gates that trap with \"Unauthorized\" based on `AccessControl.hasPermission(...)`, so that anonymous callers can use the app without being blocked. Keep all existing public functions and signatures intact; do not introduce any new caller/principal/authorization logic.",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-6",
+      "summary": "Next incremental anonymization chunk: remove the `accessControlState` variable from `backend/main.mo` as the smallest safe step before stripping individual `AccessControl.hasPermission(...)` gates; keep public functions/signatures intact and do not introduce any caller/principal logic.",
+      "reqIds": [],
+      "status": "in_progress"
+    },
+    {
+      "id": "AR-7",
+      "summary": "In `backend/main.mo`, remove the `accessControlState` variable (`let accessControlState = AccessControl.initState();`) and update all references so the canister still compiles and all existing public methods and signatures remain unchanged.",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-8",
+      "summary": "In backend/main.mo, remove or neutralize the next remaining runtime authorization gate by eliminating the `AccessControl.hasPermission(accessControlState, caller, #admin)` check (and its `Debug.trap(\"Unauthorized: Only admins can delete chatrooms\")`) inside `public shared ({ caller }) func deleteChatroomWithPassword(...)`, so anonymous callers are not blocked from deleting chatrooms by this gate.",
+      "reqIds": [
+        "REQ-5"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-9",
+      "summary": "Fix thumbnail regression: in backend/main.mo getChatrooms() response building, stop stripping/blanking valid long mediaUrl values (remove length-based URL stripping); only remove inline base64/data: payloads so room thumbnails display again; do not add any caller/principal/authorization checks.",
+      "reqIds": [],
+      "status": "in_progress"
+    },
+    {
+      "id": "AR-10",
+      "summary": "Fix the chatroom thumbnail regression by updating backend/main.mo so getChatrooms() no longer blanks valid long mediaUrl values. Specifically, change stripBase64FromUrl(url) so it only strips inline base64/data: URLs and does NOT strip URLs based on length (e.g., remove the Text.size(url) > 200 check), ensuring blob-storage URLs continue to be returned to the frontend.",
+      "reqIds": [
+        "REQ-6"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-11",
+      "summary": "Update `backend/main.mo` so `public query func getChatrooms() : async [ChatroomWithLiveStatus]` no longer exceeds the Internet Computer ~3MB query reply limit (IC0504) while keeping the exact return type `[ChatroomWithLiveStatus]` and without changing any frontend code.",
+      "reqIds": [
+        "REQ-7"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-12",
+      "summary": "Fix the chatroom thumbnail regression by ensuring `backend/main.mo` does not blank valid non-base64 `mediaUrl` values in `getChatrooms()`. Only inline `data:` / base64 payloads should be removed.",
+      "reqIds": [
+        "REQ-8"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-13",
+      "summary": "Continue incremental anonymization by removing (or neutralizing) the runtime authorization gate in `backend/main.mo` `deleteChatroomWithPassword(...)` so anonymous callers are not blocked by `AccessControl.hasPermission(...)` / `Debug.trap(\"Unauthorized...\")`. Keep the function signature and behavior (aside from authorization) intact.",
+      "reqIds": [
+        "REQ-9"
+      ],
       "status": "pending"
     }
   ],
