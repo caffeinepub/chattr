@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 15,
+  "projectStateVersion": 19,
   "summary": "Continue incremental anonymization and keep backend fully anonymous while also addressing a regression from the getChatrooms payload-reduction change: room thumbnails no longer display because mediaUrl is being over-stripped; implement a small backend-only fix that preserves valid (non-base64) URLs without reintroducing any caller/principal/authorization checks.",
   "architectural_notes": [
     "Internet Computer query replies have a hard ~3MB payload limit; backend query methods must return compact/paginated data.",
@@ -8,7 +8,10 @@
     "Backend must remain anonymous: do not use caller/principal-based authorization checks (AccessControl) anywhere in backend/main.mo or helper modules (including backend/authorization/access-control.mo).",
     "Large multi-file/multi-function authorization removals must be applied in small incremental chunks due to platform patch-size/stream timeout limits.",
     "Incremental anonymization plan includes removing `accessControlState` from `backend/main.mo` as a discrete next chunk before neutralizing individual authorization checks.",
-    "Payload-minimization in getChatrooms() must not blank legitimate long mediaUrl values used for thumbnails; only strip inline base64/data: URLs to preserve thumbnails while staying under the 3MB query limit."
+    "Payload-minimization in getChatrooms() must not blank legitimate long mediaUrl values used for thumbnails; only strip inline base64/data: URLs to preserve thumbnails while staying under the 3MB query limit.",
+    "User directive reinforced: do NOT delete any functions from backend/main.mo; only remove/neutralize caller/principal-based authorization checks, applied in smaller safe incremental chunks.",
+    "User selected next work chunks: (1) remove `accessControlState` variable and (3) apply the getChatrooms() thumbnail/base64 handling edit. Proceed with these two chunks next.",
+    "Import-removal step may require a slightly larger/more stable diff than deleting a single line (small/empty patches may be rejected); proceed with a revised import-removal chunk."
   ],
   "known_issues": [
     "Live site error 'Failed to Load Chats' due to IC rejection: getChatrooms query reply payload ~8.8MB exceeds 3MB limit (IC0504 / reject code 5).",
@@ -93,7 +96,7 @@
     },
     {
       "id": "AR-11",
-      "summary": "Update `backend/main.mo` so `public query func getChatrooms() : async [ChatroomWithLiveStatus]` no longer exceeds the Internet Computer ~3MB query reply limit (IC0504) while keeping the exact return type `[ChatroomWithLiveStatus]` and without changing any frontend code.",
+      "summary": "In `backend/main.mo`, remove the `accessControlState` variable (`let accessControlState = AccessControl.initState();`) and update all `AccessControl.*` call sites that reference `accessControlState` so the canister still compiles and all existing public functions and signatures remain intact (do not delete or rename any functions).",
       "reqIds": [
         "REQ-7"
       ],
@@ -101,7 +104,7 @@
     },
     {
       "id": "AR-12",
-      "summary": "Fix the chatroom thumbnail regression by ensuring `backend/main.mo` does not blank valid non-base64 `mediaUrl` values in `getChatrooms()`. Only inline `data:` / base64 payloads should be removed.",
+      "summary": "In `backend/main.mo`, update the `getChatrooms()` media URL sanitization so that it does not blank/strip valid long URLs used for thumbnails. Specifically, ensure `stripBase64FromUrl(url)` only strips inline base64/data URLs (e.g., values starting with/containing `data:`) and does not strip URLs based on length; `getChatrooms()` must continue returning non-base64 `mediaUrl` values unchanged so thumbnails can display.",
       "reqIds": [
         "REQ-8"
       ],
@@ -109,9 +112,17 @@
     },
     {
       "id": "AR-13",
-      "summary": "Continue incremental anonymization by removing (or neutralizing) the runtime authorization gate in `backend/main.mo` `deleteChatroomWithPassword(...)` so anonymous callers are not blocked by `AccessControl.hasPermission(...)` / `Debug.trap(\"Unauthorized...\")`. Keep the function signature and behavior (aside from authorization) intact.",
+      "summary": "In `backend/main.mo`, remove the line `import AccessControl \"authorization/access-control\";` and replace it with an in-file, minimal `module AccessControl { ... }` stub that preserves successful compilation while making authorization permissive (anonymous). The stub must define all types and functions referenced in `backend/main.mo` (including `UserRole`, `initState`, `initialize`, `getUserRole`, `assignRole`, `isAdmin`, and `hasPermission`) so that all existing public functions and signatures in `backend/main.mo` remain unchanged and runtime authorization gates no longer block anonymous callers.",
       "reqIds": [
         "REQ-9"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-14",
+      "summary": "In backend/main.mo, remove the `accessControlState` variable (`let accessControlState = AccessControl.initState();`) and update all references so the canister still compiles and all existing public functions and signatures remain unchanged.",
+      "reqIds": [
+        "REQ-10"
       ],
       "status": "pending"
     }

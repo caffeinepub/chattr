@@ -57,14 +57,14 @@ export interface MessageWithReactions {
     replyToMessageId?: bigint;
     timestamp: bigint;
     mediaType?: string;
-    reactions: List;
+    reactions: List_1;
     senderId: string;
 }
 export interface TransformationInput {
     context: Uint8Array;
     response: http_request_result;
 }
-export type List_1 = [string, List_1] | null;
+export type List_1 = [Reaction, List_1] | null;
 export interface Message {
     id: bigint;
     content: string;
@@ -77,7 +77,7 @@ export interface Message {
     mediaType?: string;
     senderId: string;
 }
-export type List = [Reaction, List] | null;
+export type List = [string, List] | null;
 export interface ChatroomWithLiveStatus {
     id: bigint;
     topic: string;
@@ -95,7 +95,7 @@ export interface ChatroomWithLiveStatus {
 export interface Reaction {
     count: bigint;
     emoji: string;
-    users: List_1;
+    users: List;
 }
 export enum UserRole {
     admin = "admin",
@@ -103,7 +103,11 @@ export enum UserRole {
     guest = "guest"
 }
 export interface backendInterface {
+    addReaction(messageId: bigint, emoji: string, userId: string): Promise<void>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
+    cleanupInactiveUsers(): Promise<void>;
+    createChatroom(topic: string, description: string, mediaUrl: string, mediaType: string, category: string): Promise<bigint>;
+    deleteChatroomWithPassword(chatroomId: bigint, _password: string): Promise<void>;
     fetchTwitchThumbnail(channelName: string): Promise<string>;
     fetchTwitterOEmbed(tweetUrl: string): Promise<string>;
     fetchTwitterThumbnail(tweetUrl: string): Promise<string>;
@@ -117,13 +121,20 @@ export interface backendInterface {
     getMessageWithReactionsAndReplies(chatroomId: bigint): Promise<Array<MessageWithReactions>>;
     getMessages(chatroomId: bigint): Promise<Array<Message>>;
     getPinnedVideo(chatroomId: bigint): Promise<bigint | null>;
+    getReactions(messageId: bigint): Promise<Array<Reaction>>;
     getReplies(chatroomId: bigint, parentMessageId: bigint): Promise<Array<Message>>;
     getReplyPreview(chatroomId: bigint, messageId: bigint): Promise<ReplyPreview | null>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     incrementViewCount(chatroomId: bigint, userId: string): Promise<void>;
     initializeAccessControl(): Promise<void>;
     isCallerAdmin(): Promise<boolean>;
+    pinVideo(chatroomId: bigint, messageId: bigint): Promise<void>;
+    removeReaction(messageId: bigint, emoji: string, userId: string): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     searchChatrooms(searchTerm: string): Promise<Array<ChatroomWithLiveStatus>>;
+    sendMessage(content: string, sender: string, chatroomId: bigint, mediaUrl: string | null, mediaType: string | null, avatarUrl: string | null, senderId: string, replyToMessageId: bigint | null): Promise<void>;
     transform(input: TransformationInput): Promise<TransformationOutput>;
+    unpinVideo(chatroomId: bigint): Promise<void>;
+    updateAvatarRetroactively(senderId: string, newAvatarUrl: string | null): Promise<void>;
+    updateUsernameRetroactively(senderId: string, newUsername: string): Promise<void>;
 }

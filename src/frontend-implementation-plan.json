@@ -1,6 +1,6 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Reduce getChatrooms payload and remove backend authorization gates (frontend-only plan)",
+  "title": "Frontend-only plan: no changes required for backend-only accessControlState removal (Caffeine Chats)",
   "requirements": []
 }

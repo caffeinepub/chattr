@@ -1,82 +1,53 @@
 {
   "kind": "build_request",
-  "title": "Reduce getChatrooms payload and continue incremental removal of authorization gates",
-  "projectName": "Anon Chat Lobby",
-  "priority": "high",
+  "title": "Incremental anonymization: remove accessControlState from backend/main.mo",
+  "projectName": "Caffeine Chats",
+  "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-7",
-      "text": "Update `backend/main.mo` so `public query func getChatrooms() : async [ChatroomWithLiveStatus]` no longer exceeds the Internet Computer ~3MB query reply limit (IC0504) while keeping the exact return type `[ChatroomWithLiveStatus]` and without changing any frontend code.",
+      "id": "REQ-10",
+      "text": "In backend/main.mo, remove the `accessControlState` variable (`let accessControlState = AccessControl.initState();`) and update all references so the canister still compiles and all existing public functions and signatures remain unchanged.",
       "target": "backend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-3",
+          "msg-12"
         ],
         "quotes": [
-          "Failed to Load Chats... application payload size (8804262) cannot be larger than 3145728",
+          "remove the `accessControlState` variable from `backend/main.mo` and adjust any references to it.",
           "Build"
         ]
       },
       "acceptanceCriteria": [
-        "Calling `getChatrooms()` does not trigger IC0504 / reject code 5 due to reply payload size.",
-        "The Candid signature and Motoko return type of `getChatrooms()` remains `[ChatroomWithLiveStatus]` (no frontend changes required).",
-        "The response excludes or empties large fields (e.g., `description` should remain empty, and `pinnedVideoId` should remain `null`) and avoids returning any inline base64/data URL payloads.",
-        "If needed to stay under the limit, the function limits the number of returned chatrooms (e.g., return only the most recent N), and this limit is implemented entirely within `getChatrooms()` without altering stored data."
-      ]
-    },
-    {
-      "id": "REQ-8",
-      "text": "Fix the chatroom thumbnail regression by ensuring `backend/main.mo` does not blank valid non-base64 `mediaUrl` values in `getChatrooms()`. Only inline `data:` / base64 payloads should be removed.",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "Fix thumbnail regression: ... only remove inline base64/data: payloads so room thumbnails display again",
-          "Build"
-        ]
-      },
-      "acceptanceCriteria": [
-        "For normal URLs (including long URLs and blob-storage URLs that are not inline base64/data payloads), `getChatrooms()` returns the original `mediaUrl` unchanged.",
-        "For inline `data:` URLs, `getChatrooms()` returns an empty `mediaUrl` string (or otherwise removes the inline payload) to avoid large responses.",
-        "Room thumbnails render again in the lobby for chatrooms whose `mediaUrl` is a valid non-`data:` URL."
-      ]
-    },
-    {
-      "id": "REQ-9",
-      "text": "Continue incremental anonymization by removing (or neutralizing) the runtime authorization gate in `backend/main.mo` `deleteChatroomWithPassword(...)` so anonymous callers are not blocked by `AccessControl.hasPermission(...)` / `Debug.trap(\"Unauthorized...\")`. Keep the function signature and behavior (aside from authorization) intact.",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "Remove all caller principal checks",
-          "Ok do it in smaller pieces",
-          "Build"
-        ]
-      },
-      "acceptanceCriteria": [
-        "`deleteChatroomWithPassword(chatroomId, _password)` no longer traps with an \"Unauthorized\" message based on `caller` permissions.",
-        "The public method name and parameters are unchanged.",
-        "No new caller/principal/authorization checks are introduced elsewhere as part of this change."
+        "`backend/main.mo` no longer defines `accessControlState`.",
+        "All prior `AccessControl.*(accessControlState, ...)` call sites compile by passing a valid `AccessControl.AccessControlState` value without reintroducing any new state variable named `accessControlState`.",
+        "No public functions are removed, renamed, or have their signatures changed.",
+        "The canister builds successfully after the change."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single Motoko actor; put all logic changes in `backend/main.mo`.",
-    "Do not add any new authorization, caller principal checks, or AccessControl-based permission logic.",
-    "Keep `getChatrooms()` return type as `[ChatroomWithLiveStatus]` to avoid frontend changes.",
-    "Do not edit files under `frontend/src/components/ui` or other immutable frontend paths listed in SYSTEM_CONTEXT."
+    "Backend must remain anonymous: do not add any new authorization, caller/principal checks, or permission gates while updating references.",
+    "Keep the existing in-file `module AccessControl { ... }` stub (or equivalent) compiling; do not introduce imports of authorization modules.",
+    "Limit changes to the smallest stable incremental chunk needed to avoid patch/diff application failures."
   ],
   "nonGoals": [
-    "Implementing a frontend-only workaround for the IC0504 payload-size rejection.",
-    "Introducing pagination endpoints or changing the frontend data model/types.",
-    "Reworking or redesigning the chat UI/UX beyond what is required to restore thumbnails and load the lobby list."
+    "Do not refactor or remove existing public methods beyond updating references needed to remove `accessControlState`.",
+    "Do not change frontend code as part of this step.",
+    "Do not address the getChatrooms payload-size limit or thumbnail regression in this build unless explicitly requested in a separate step."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
+  },
+  "userProfileUpdate": {
+    "goalsToAdd": [],
+    "goalsToRemove": [],
+    "preferencesToAdd": [],
+    "preferencesToRemove": [],
+    "miscToAdd": [],
+    "miscToRemove": [],
+    "fieldsToSet": {},
+    "fieldsToDelete": []
   }
 }

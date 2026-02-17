@@ -24,8 +24,8 @@ export interface ChatroomWithLiveStatus {
   'category' : string,
   'pinnedVideoId' : [] | [bigint],
 }
-export type List = [] | [[Reaction, List]];
-export type List_1 = [] | [[string, List_1]];
+export type List = [] | [[string, List]];
+export type List_1 = [] | [[Reaction, List_1]];
 export interface LobbyChatroomCard {
   'id' : bigint,
   'topic' : string,
@@ -62,14 +62,10 @@ export interface MessageWithReactions {
   'replyToMessageId' : [] | [bigint],
   'timestamp' : bigint,
   'mediaType' : [] | [string],
-  'reactions' : List,
+  'reactions' : List_1,
   'senderId' : string,
 }
-export interface Reaction {
-  'count' : bigint,
-  'emoji' : string,
-  'users' : List_1,
-}
+export interface Reaction { 'count' : bigint, 'emoji' : string, 'users' : List }
 export interface ReplyPreview {
   'messageId' : bigint,
   'sender' : string,
@@ -127,7 +123,14 @@ export interface _SERVICE {
     _CaffeineStorageRefillResult
   >,
   '_caffeineStorageUpdateGatewayPrincipals' : ActorMethod<[], undefined>,
+  'addReaction' : ActorMethod<[bigint, string, string], undefined>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
+  'cleanupInactiveUsers' : ActorMethod<[], undefined>,
+  'createChatroom' : ActorMethod<
+    [string, string, string, string, string],
+    bigint
+  >,
+  'deleteChatroomWithPassword' : ActorMethod<[bigint, string], undefined>,
   'fetchTwitchThumbnail' : ActorMethod<[string], string>,
   'fetchTwitterOEmbed' : ActorMethod<[string], string>,
   'fetchTwitterThumbnail' : ActorMethod<[string], string>,
@@ -147,15 +150,34 @@ export interface _SERVICE {
   >,
   'getMessages' : ActorMethod<[bigint], Array<Message>>,
   'getPinnedVideo' : ActorMethod<[bigint], [] | [bigint]>,
+  'getReactions' : ActorMethod<[bigint], Array<Reaction>>,
   'getReplies' : ActorMethod<[bigint, bigint], Array<Message>>,
   'getReplyPreview' : ActorMethod<[bigint, bigint], [] | [ReplyPreview]>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'incrementViewCount' : ActorMethod<[bigint, string], undefined>,
   'initializeAccessControl' : ActorMethod<[], undefined>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
+  'pinVideo' : ActorMethod<[bigint, bigint], undefined>,
+  'removeReaction' : ActorMethod<[bigint, string, string], undefined>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
   'searchChatrooms' : ActorMethod<[string], Array<ChatroomWithLiveStatus>>,
+  'sendMessage' : ActorMethod<
+    [
+      string,
+      string,
+      bigint,
+      [] | [string],
+      [] | [string],
+      [] | [string],
+      string,
+      [] | [bigint],
+    ],
+    undefined
+  >,
   'transform' : ActorMethod<[TransformationInput], TransformationOutput>,
+  'unpinVideo' : ActorMethod<[bigint], undefined>,
+  'updateAvatarRetroactively' : ActorMethod<[string, [] | [string]], undefined>,
+  'updateUsernameRetroactively' : ActorMethod<[string, string], undefined>,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

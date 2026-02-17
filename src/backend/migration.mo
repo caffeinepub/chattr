@@ -1,13 +1,20 @@
-import Text "mo:base/Text";
+import AccessControl "authorization/access-control";
 
 module {
   type OldActor = {
-    adminPassword : Text;
+    // Old access control state (empty object)
+    accessControlState : {};
   };
 
-  type NewActor = {};
+  type NewActor = {
+    // New access control state with additional fields
+    accessControlState : AccessControl.AccessControlState;
+  };
 
-  public func run(_ : OldActor) : NewActor {
-    {};
+  public func run(old : OldActor) : NewActor {
+    // Initialize the new access control state
+    {
+      accessControlState = AccessControl.initState();
+    };
   };
 };
