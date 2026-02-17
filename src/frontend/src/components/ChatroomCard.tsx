@@ -37,7 +37,7 @@ export default function ChatroomCard({ chatroom, onClick }: ChatroomCardProps) {
 
   // Fetch Twitch thumbnail
   useEffect(() => {
-    if (chatroom.mediaType === 'twitch' && isTwitchUrl(chatroom.mediaUrl)) {
+    if (chatroom.mediaType === 'twitch' && chatroom.mediaUrl && isTwitchUrl(chatroom.mediaUrl)) {
       const thumbnailUrl = getTwitchThumbnailUrl(chatroom.mediaUrl);
       
       if (thumbnailUrl) {
@@ -52,13 +52,13 @@ export default function ChatroomCard({ chatroom, onClick }: ChatroomCardProps) {
 
   // Fetch Twitter oEmbed preview (no html2canvas)
   useEffect(() => {
-    if (chatroom.mediaType === 'twitter' && isTwitterUrl(chatroom.mediaUrl)) {
+    if (chatroom.mediaType === 'twitter' && chatroom.mediaUrl && isTwitterUrl(chatroom.mediaUrl)) {
       let cancelled = false;
       
       const fetchPreview = async () => {
         setTwitterPreviewLoading(true);
         try {
-          const preview = await fetchTwitterOEmbedPreview(chatroom.mediaUrl);
+          const preview = await fetchTwitterOEmbedPreview(chatroom.mediaUrl!);
           if (!cancelled && preview) {
             setTwitterPreview(preview);
           }

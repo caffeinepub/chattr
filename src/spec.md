@@ -1,11 +1,12 @@
 # Specification
 
 ## Summary
-**Goal:** Remove the `accessControlState` variable from `backend/main.mo` while keeping the canister compiling and preserving all existing public function names and signatures.
+**Goal:** Allow creating a chatroom without attaching any media, while keeping media tabs visible and preserving the “only one media type when used” behavior.
 
 **Planned changes:**
-- Delete the `accessControlState` definition in `backend/main.mo`.
-- Update all `AccessControl.*(accessControlState, ...)` call sites to pass a valid `AccessControl.AccessControlState` value without reintroducing any new state variable named `accessControlState`.
-- Ensure the existing in-file `module AccessControl { ... }` stub (or equivalent) continues to compile and that the canister builds successfully.
+- Frontend: Update CreateChatroomDialog so Image/Video/Twitter tabs remain visible, and room creation can submit successfully with topic/description/category filled and no media provided.
+- Frontend: Adjust validation so empty media inputs do not produce errors; validations run only when a media value is provided, and still enforce a single chosen media type.
+- Backend: Update createChatroom(...) to accept empty mediaUrl/mediaType without trapping, skipping media validation when mediaUrl is empty and preserving existing public function signatures.
+- Backend: When no media is provided, ensure the room’s initial message does not include mediaUrl/mediaType (null/absent), while storing empty media fields in the chatroom using the existing representation.
 
-**User-visible outcome:** No user-facing changes; the backend builds successfully with the same public API as before.
+**User-visible outcome:** Users can create a chatroom without selecting/uploading/entering any media, while still seeing the Image/Video/Twitter tabs and getting the same validations when they do add exactly one media type.

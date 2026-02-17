@@ -1,40 +1,69 @@
 {
   "kind": "build_request",
-  "title": "Incremental anonymization: remove accessControlState from backend/main.mo",
-  "projectName": "Caffeine Chats",
+  "title": "Make chatroom media optional during room creation (single media type)",
+  "projectName": "Anon Media Chat",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-10",
-      "text": "In backend/main.mo, remove the `accessControlState` variable (`let accessControlState = AccessControl.initState();`) and update all references so the canister still compiles and all existing public functions and signatures remain unchanged.",
-      "target": "backend",
+      "id": "REQ-6",
+      "text": "Update the room creation UI so a chatroom can be created with no media attached (no image upload, no video URL, and no Twitter/X URL), while keeping the media input fields/tabs visible at all times and still allowing only one media type when used.",
+      "target": "frontend",
       "source": {
         "messageIds": [
+          "msg-1",
+          "msg-2",
           "msg-3",
-          "msg-12"
+          "msg-4",
+          "msg-5"
         ],
         "quotes": [
-          "remove the `accessControlState` variable from `backend/main.mo` and adjust any references to it.",
-          "Build"
+          "All media types optional",
+          "1. Visible 2. One, but optional",
+          "Can you just do the optional media part first",
+          "Build now",
+          "Don’t make any additional changes. Keep everything exactly as is"
         ]
       },
       "acceptanceCriteria": [
-        "`backend/main.mo` no longer defines `accessControlState`.",
-        "All prior `AccessControl.*(accessControlState, ...)` call sites compile by passing a valid `AccessControl.AccessControlState` value without reintroducing any new state variable named `accessControlState`.",
-        "No public functions are removed, renamed, or have their signatures changed.",
-        "The canister builds successfully after the change."
+        "In CreateChatroomDialog, the Image/Video/Twitter tabs remain visible even if the user does not attach media.",
+        "The form can be submitted successfully when topic/description/category are filled and no media is provided.",
+        "No validation error is shown solely because the media URL/file is empty (errors only appear when the user provides a media value that is invalid).",
+        "When media is provided, only one media type is submitted (as before) and existing validations for the chosen media type still apply."
+      ]
+    },
+    {
+      "id": "REQ-7",
+      "text": "Update backend chatroom creation to allow empty media (no mediaUrl/mediaType) without trapping, while keeping the existing public function signatures unchanged.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-1",
+          "msg-2",
+          "msg-4"
+        ],
+        "quotes": [
+          "All media types optional",
+          "One, but optional",
+          "Can you just do the optional media part first"
+        ]
+      },
+      "acceptanceCriteria": [
+        "backend/main.mo createChatroom(...) no longer traps when mediaUrl is an empty string.",
+        "If mediaUrl is empty, createChatroom does not call media URL validation, and the created chatroom stores empty mediaUrl/mediaType strings (or equivalent existing representation without changing types).",
+        "If mediaUrl is empty, the initial message created for the room does not include mediaUrl/mediaType (they are null/absent in the Message record).",
+        "All existing public method names and parameter/return types remain unchanged."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain anonymous: do not add any new authorization, caller/principal checks, or permission gates while updating references.",
-    "Keep the existing in-file `module AccessControl { ... }` stub (or equivalent) compiling; do not introduce imports of authorization modules.",
-    "Limit changes to the smallest stable incremental chunk needed to avoid patch/diff application failures."
+    "Do not implement the image-room thumbnail fix in this build step (optional media change only).",
+    "Do not make additional product changes beyond making chatroom media optional; keep existing behavior the same wherever not required by this change.",
+    "Do not edit any frontend files under frontend/src/components/ui or any paths listed as immutable in SYSTEM_CONTEXT."
   ],
   "nonGoals": [
-    "Do not refactor or remove existing public methods beyond updating references needed to remove `accessControlState`.",
-    "Do not change frontend code as part of this step.",
-    "Do not address the getChatrooms payload-size limit or thumbnail regression in this build unless explicitly requested in a separate step."
+    "Fixing thumbnails for image-created rooms not displaying.",
+    "Backend anonymization work (removing AccessControl, caller/principal checks).",
+    "Changing getChatrooms payload sizing behavior beyond what already exists."
   ],
   "imageRequirements": {
     "required": [],

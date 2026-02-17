@@ -21,7 +21,7 @@ actor {
 
   var adminPassword : Text = "secret123";
 
-  var accessControlState = AccessControl.initState();
+  let accessControlState = AccessControl.initState();
 
   public shared ({ caller }) func initializeAccessControl() : async () {
     AccessControl.initialize(accessControlState, caller);
@@ -56,8 +56,8 @@ actor {
     id : Nat;
     topic : Text;
     description : Text;
-    mediaUrl : Text;
-    mediaType : Text;
+    mediaUrl : ?Text;
+    mediaType : ?Text;
     createdAt : Int;
     messageCount : Nat;
     viewCount : Nat;
@@ -81,8 +81,8 @@ actor {
     id : Nat;
     topic : Text;
     description : Text;
-    mediaUrl : Text;
-    mediaType : Text;
+    mediaUrl : ?Text;
+    mediaType : ?Text;
     createdAt : Int;
     messageCount : Nat;
     viewCount : Nat;
@@ -96,8 +96,8 @@ actor {
     id : Nat;
     topic : Text;
     description : Text;
-    mediaUrl : Text;
-    mediaType : Text;
+    mediaUrl : ?Text;
+    mediaType : ?Text;
     createdAt : Int;
     messageCount : Nat;
     presenceIndicator : Nat;
@@ -189,25 +189,23 @@ actor {
       Debug.trap("Topic and description cannot be empty");
     };
 
-    if (Text.size(mediaUrl) == 0) {
-      Debug.trap("Media URL is required");
-    };
-
     if (Text.size(category) == 0) {
       Debug.trap("Category is required");
     };
 
-    let isValidMedia = validateMediaUrl(mediaUrl, mediaType);
-    if (not isValidMedia) {
-      Debug.trap("Invalid media URL format. Must be uploaded image, YouTube, Twitch, Twitter, or audio URL");
+    if (Text.size(mediaUrl) > 0) {
+      let isValidMedia = validateMediaUrl(mediaUrl, mediaType);
+      if (not isValidMedia) {
+        Debug.trap("Invalid media URL format. Must be uploaded image, YouTube, Twitch, Twitter, or audio URL");
+      };
     };
 
     let chatroom : Chatroom = {
       id = nextChatroomId;
       topic;
       description;
-      mediaUrl;
-      mediaType;
+      mediaUrl = if (Text.size(mediaUrl) > 0) { ?mediaUrl } else { null };
+      mediaType = if (Text.size(mediaType) > 0) { ?mediaType } else { null };
       createdAt = Time.now();
       messageCount = 1;
       viewCount = 0;
@@ -224,8 +222,8 @@ actor {
       timestamp = Time.now();
       sender = "Creator";
       chatroomId = nextChatroomId;
-      mediaUrl = ?mediaUrl;
-      mediaType = ?mediaType;
+      mediaUrl = if (Text.size(mediaUrl) > 0) { ?mediaUrl } else { null };
+      mediaType = if (Text.size(mediaType) > 0) { ?mediaType } else { null };
       avatarUrl = null;
       senderId = "creator";
       replyToMessageId = null;
@@ -358,12 +356,17 @@ actor {
           )
         );
 
-        let safeMediaUrl = stripBase64FromUrl(chatroom.mediaUrl);
+        let safeMediaUrl = switch (chatroom.mediaUrl) {
+          case (null) { null };
+          case (?url) { ?stripBase64FromUrl(url) };
+        };
+
+        let safeDescription = "";
 
         {
           id = chatroom.id;
           topic = chatroom.topic;
-          description = chatroom.description;
+          description = safeDescription;
           mediaUrl = safeMediaUrl;
           mediaType = chatroom.mediaType;
           createdAt = chatroom.createdAt;
@@ -382,6 +385,9 @@ actor {
 
   func stripBase64FromUrl(url : Text) : Text {
     if (Text.contains(url, #text "data:")) {
+      return "";
+    };
+    if (Text.size(url) > 200) {
       return "";
     };
     url;
@@ -645,7 +651,7 @@ actor {
 
   public shared ({ caller }) func cleanupInactiveUsers() : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Debug.trap("Unauthorized: Only admins can cleanup inactive users");
+      Debug.trap("Unauthorized: Only admins can perform system maintenance");
     };
 
     let currentTime = Time.now();
@@ -850,38 +856,22 @@ actor {
     OutCall.transform(input);
   };
 
-  public shared ({ caller }) func fetchYouTubeThumbnail(videoId : Text) : async Text {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Debug.trap("Unauthorized: Only users can fetch thumbnails");
-    };
-
+  public func fetchYouTubeThumbnail(videoId : Text) : async Text {
     let thumbnailUrl = "https://img.youtube.com/vi/" # videoId # "/hqdefault.jpg";
     await OutCall.httpGetRequest(thumbnailUrl, [], transform);
   };
 
-  public shared ({ caller }) func fetchTwitchThumbnail(channelName : Text) : async Text {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Debug.trap("Unauthorized: Only users can fetch thumbnails");
-    };
-
+  public func fetchTwitchThumbnail(channelName : Text) : async Text {
     let thumbnailUrl = "https://static-cdn.jtvnw.net/previews-ttv/live_user_" # channelName # "-640x360.jpg";
     await OutCall.httpGetRequest(thumbnailUrl, [], transform);
   };
 
-  public shared ({ caller }) func fetchTwitterOEmbed(tweetUrl : Text) : async Text {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Debug.trap("Unauthorized: Only users can fetch Twitter embeds");
-    };
-
+  public func fetchTwitterOEmbed(tweetUrl : Text) : async Text {
     let oembedUrl = "https://publish.twitter.com/oembed?url=" # tweetUrl;
     await OutCall.httpGetRequest(oembedUrl, [], transform);
   };
 
-  public shared ({ caller }) func fetchTwitterThumbnail(tweetUrl : Text) : async Text {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Debug.trap("Unauthorized: Only users can fetch Twitter thumbnails");
-    };
-
+  public func fetchTwitterThumbnail(tweetUrl : Text) : async Text {
     let apiUrl = "https://api.twitter.com/1.1/statuses/show.json?id=" # tweetUrl;
     await OutCall.httpGetRequest(apiUrl, [], transform);
   };

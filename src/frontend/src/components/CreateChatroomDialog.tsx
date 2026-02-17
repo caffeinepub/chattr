@@ -120,8 +120,7 @@ export default function CreateChatroomDialog({ open, onOpenChange }: CreateChatr
 
   const validateVideoUrl = (url: string): { isValid: boolean; type: 'youtube' | 'twitch' | null } => {
     if (!url.trim()) {
-      setMediaError('URL is required');
-      return { isValid: false, type: null };
+      return { isValid: true, type: null };
     }
 
     const videoType = detectVideoType(url);
@@ -137,8 +136,7 @@ export default function CreateChatroomDialog({ open, onOpenChange }: CreateChatr
 
   const validateTwitterUrl = (url: string): boolean => {
     if (!url.trim()) {
-      setMediaError('URL is required');
-      return false;
+      return true;
     }
 
     const lowerUrl = url.toLowerCase();
@@ -190,7 +188,7 @@ export default function CreateChatroomDialog({ open, onOpenChange }: CreateChatr
         validateTwitterUrl(value);
       }
     } else {
-      setMediaError('URL is required');
+      setMediaError('');
     }
   };
 
@@ -243,6 +241,7 @@ export default function CreateChatroomDialog({ open, onOpenChange }: CreateChatr
     let finalMediaUrl = '';
     let mediaType = '';
 
+    // Only process media if provided
     if (mediaTab === 'upload' && selectedFile) {
       if (!validateImageFile(selectedFile)) {
         return;
@@ -267,22 +266,21 @@ export default function CreateChatroomDialog({ open, onOpenChange }: CreateChatr
       } finally {
         setIsUploading(false);
       }
-    } else if (mediaTab === 'video' && mediaUrl) {
+    } else if (mediaTab === 'video' && mediaUrl.trim()) {
       const validation = validateVideoUrl(mediaUrl);
-      if (!validation.isValid || !validation.type) {
+      if (!validation.isValid) {
         return;
       }
-      finalMediaUrl = mediaUrl.trim();
-      mediaType = validation.type;
-    } else if (mediaTab === 'twitter' && mediaUrl) {
+      if (validation.type) {
+        finalMediaUrl = mediaUrl.trim();
+        mediaType = validation.type;
+      }
+    } else if (mediaTab === 'twitter' && mediaUrl.trim()) {
       if (!validateTwitterUrl(mediaUrl)) {
         return;
       }
       finalMediaUrl = mediaUrl.trim();
       mediaType = 'twitter';
-    } else {
-      setMediaError('Please provide media (image, video, or Twitter URL)');
-      return;
     }
 
     console.log('[CreateChatroom] Submitting chatroom creation:', {
@@ -336,7 +334,6 @@ export default function CreateChatroomDialog({ open, onOpenChange }: CreateChatr
     topic.trim() && 
     description.trim() && 
     category &&
-    ((mediaTab === 'upload' && selectedFile) || (mediaTab !== 'upload' && mediaUrl.trim())) && 
     !mediaError;
 
   const isSubmitting = createChatroom.isPending || isUploading;
@@ -347,7 +344,7 @@ export default function CreateChatroomDialog({ open, onOpenChange }: CreateChatr
         <DialogHeader>
           <DialogTitle>Create New Chat</DialogTitle>
           <DialogDescription>
-            Start a conversation around a topic with media content
+            Start a conversation around a topic with optional media content
           </DialogDescription>
         </DialogHeader>
 
@@ -396,7 +393,7 @@ export default function CreateChatroomDialog({ open, onOpenChange }: CreateChatr
           </div>
 
           <div className="space-y-2">
-            <Label>Media Content</Label>
+            <Label>Media Content (Optional)</Label>
             <Tabs value={mediaTab} onValueChange={(v) => setMediaTab(v as any)}>
               <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="upload" disabled={isSubmitting}>

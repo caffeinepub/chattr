@@ -1,26 +1,32 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 19,
-  "summary": "Continue incremental anonymization and keep backend fully anonymous while also addressing a regression from the getChatrooms payload-reduction change: room thumbnails no longer display because mediaUrl is being over-stripped; implement a small backend-only fix that preserves valid (non-base64) URLs without reintroducing any caller/principal/authorization checks.",
+  "projectStateVersion": 13,
+  "summary": "Project now also includes product/UI fixes: make room creation media (image/video/X post) optional (fields remain visible; only one media type allowed), and address missing thumbnails for image-created rooms, alongside ongoing backend anonymization and IC payload-size fixes.",
   "architectural_notes": [
     "Internet Computer query replies have a hard ~3MB payload limit; backend query methods must return compact/paginated data.",
     "User requires a surgical change: edit only backend/main.mo within getChatrooms(); no other files/pages; no refactors/style changes; no added authorization checks (no caller/principal).",
     "Backend must remain anonymous: do not use caller/principal-based authorization checks (AccessControl) anywhere in backend/main.mo or helper modules (including backend/authorization/access-control.mo).",
     "Large multi-file/multi-function authorization removals must be applied in small incremental chunks due to platform patch-size/stream timeout limits.",
     "Incremental anonymization plan includes removing `accessControlState` from `backend/main.mo` as a discrete next chunk before neutralizing individual authorization checks.",
-    "Payload-minimization in getChatrooms() must not blank legitimate long mediaUrl values used for thumbnails; only strip inline base64/data: URLs to preserve thumbnails while staying under the 3MB query limit.",
-    "User directive reinforced: do NOT delete any functions from backend/main.mo; only remove/neutralize caller/principal-based authorization checks, applied in smaller safe incremental chunks.",
-    "User selected next work chunks: (1) remove `accessControlState` variable and (3) apply the getChatrooms() thumbnail/base64 handling edit. Proceed with these two chunks next.",
-    "Import-removal step may require a slightly larger/more stable diff than deleting a single line (small/empty patches may be rejected); proceed with a revised import-removal chunk."
+    "Room creation UX requirement: media inputs remain visible, but attaching media is optional; user may attach at most one media type (image OR video OR X post)."
   ],
   "known_issues": [
     "Live site error 'Failed to Load Chats' due to IC rejection: getChatrooms query reply payload ~8.8MB exceeds 3MB limit (IC0504 / reject code 5).",
     "Build/automation repeatedly fails when attempting to remove all AccessControl logic in one pass due to patch-size/stream timeout limits; requires smaller incremental edits (e.g., remove import first, then state, then checks).",
     "Incremental patch attempts may be rejected by the platform due to diff application/transform limitations (e.g., patch too small or not applying cleanly), requiring retries or slightly larger chunks.",
-    "Room thumbnails no longer display because getChatrooms() currently strips/empties mediaUrl when the URL is long (e.g., Text.size(url) > 200), causing the frontend to receive an empty URL."
+    "Image-created room thumbnails are not displaying (thumbnail rendering/fallback issue)."
   ],
   "isFixRequest": true,
-  "existing_features": [],
+  "existing_features": [
+    {
+      "id": "feature-update-the-room-creation-ui-so-a-chatroom-can-be-created-with-no-media-attached-no-image-upload-no-video-url-and-no-twitter-x-url-while-keeping-the-media-input-fields-tabs-visible-at-all-times-and-still-allowing-only-one-media-type-when-used",
+      "title": "Update the room creation UI so a chatroom can be created with no media attached (no image upload, no video URL, and no Twitter/X URL), while keeping the media input fields/tabs visible at all times and still allowing only one media type when used.",
+      "reqIds": [
+        "REQ-6"
+      ],
+      "version": 1
+    }
+  ],
   "new_feature_requests": [
     {
       "id": "AR-1",
@@ -82,47 +88,21 @@
     },
     {
       "id": "AR-9",
-      "summary": "Fix thumbnail regression: in backend/main.mo getChatrooms() response building, stop stripping/blanking valid long mediaUrl values (remove length-based URL stripping); only remove inline base64/data: payloads so room thumbnails display again; do not add any caller/principal/authorization checks.",
+      "summary": "Room creation: make all media types (image, video, X post) optional so a room can be created with no media; keep media input fields visible; allow selecting only one media type when used.",
       "reqIds": [],
       "status": "in_progress"
     },
     {
       "id": "AR-10",
-      "summary": "Fix the chatroom thumbnail regression by updating backend/main.mo so getChatrooms() no longer blanks valid long mediaUrl values. Specifically, change stripBase64FromUrl(url) so it only strips inline base64/data: URLs and does NOT strip URLs based on length (e.g., remove the Text.size(url) > 200 check), ensuring blob-storage URLs continue to be returned to the frontend.",
-      "reqIds": [
-        "REQ-6"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": "AR-11",
-      "summary": "In `backend/main.mo`, remove the `accessControlState` variable (`let accessControlState = AccessControl.initState();`) and update all `AccessControl.*` call sites that reference `accessControlState` so the canister still compiles and all existing public functions and signatures remain intact (do not delete or rename any functions).",
-      "reqIds": [
-        "REQ-7"
-      ],
+      "summary": "Fix bug where thumbnails for image-created rooms are not displaying.",
+      "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-12",
-      "summary": "In `backend/main.mo`, update the `getChatrooms()` media URL sanitization so that it does not blank/strip valid long URLs used for thumbnails. Specifically, ensure `stripBase64FromUrl(url)` only strips inline base64/data URLs (e.g., values starting with/containing `data:`) and does not strip URLs based on length; `getChatrooms()` must continue returning non-base64 `mediaUrl` values unchanged so thumbnails can display.",
+      "summary": "Update backend chatroom creation to allow empty media (no mediaUrl/mediaType) without trapping, while keeping the existing public function signatures unchanged.",
       "reqIds": [
-        "REQ-8"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": "AR-13",
-      "summary": "In `backend/main.mo`, remove the line `import AccessControl \"authorization/access-control\";` and replace it with an in-file, minimal `module AccessControl { ... }` stub that preserves successful compilation while making authorization permissive (anonymous). The stub must define all types and functions referenced in `backend/main.mo` (including `UserRole`, `initState`, `initialize`, `getUserRole`, `assignRole`, `isAdmin`, and `hasPermission`) so that all existing public functions and signatures in `backend/main.mo` remain unchanged and runtime authorization gates no longer block anonymous callers.",
-      "reqIds": [
-        "REQ-9"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": "AR-14",
-      "summary": "In backend/main.mo, remove the `accessControlState` variable (`let accessControlState = AccessControl.initState();`) and update all references so the canister still compiles and all existing public functions and signatures remain unchanged.",
-      "reqIds": [
-        "REQ-10"
+        "REQ-7"
       ],
       "status": "pending"
     }

@@ -1,6 +1,24 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Frontend-only plan: no changes required for backend-only accessControlState removal (Caffeine Chats)",
-  "requirements": []
+  "title": "Optional media on chatroom creation (single media type preserved)",
+  "requirements": [
+    {
+      "id": "REQ-6",
+      "summary": "Allow creating a chatroom without any media while keeping media tabs visible and preserving single-media behavior and validations when media is provided.",
+      "acceptanceCriteria": [
+        "In CreateChatroomDialog, the Image/Video/Twitter tabs remain visible even if the user does not attach media.",
+        "The form can be submitted successfully when topic/description/category are filled and no media is provided.",
+        "No validation error is shown solely because the media URL/file is empty (errors only appear when the user provides a media value that is invalid).",
+        "When media is provided, only one media type is submitted (as before) and existing validations for the chosen media type still apply."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/CreateChatroomDialog.tsx",
+          "operation": "modify",
+          "description": "Update CreateChatroomDialog submission and validation logic to make media optional: (1) remove any required-media gating in isFormValid so topic/description/category can submit without media; (2) stop setting mediaError when mediaUrl is cleared/empty; (3) ensure handleSubmit submits empty mediaUrl/mediaType when no media is selected, while still validating image/video/twitter only when a value/file is provided and still submitting only the chosen single media type."
+        }
+      ]
+    }
+  ]
 }

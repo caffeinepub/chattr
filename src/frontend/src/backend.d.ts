@@ -14,9 +14,9 @@ export interface LobbyChatroomCard {
     createdAt: bigint;
     description: string;
     isLive: boolean;
-    mediaUrl: string;
+    mediaUrl?: string;
     messageCount: bigint;
-    mediaType: string;
+    mediaType?: string;
     category: string;
     pinnedVideoId?: bigint;
     presenceIndicator: bigint;
@@ -85,10 +85,10 @@ export interface ChatroomWithLiveStatus {
     createdAt: bigint;
     description: string;
     isLive: boolean;
-    mediaUrl: string;
+    mediaUrl?: string;
     viewCount: bigint;
     messageCount: bigint;
-    mediaType: string;
+    mediaType?: string;
     category: string;
     pinnedVideoId?: bigint;
 }

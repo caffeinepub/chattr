@@ -96,9 +96,9 @@ export interface LobbyChatroomCard {
     createdAt: bigint;
     description: string;
     isLive: boolean;
-    mediaUrl: string;
+    mediaUrl?: string;
     messageCount: bigint;
-    mediaType: string;
+    mediaType?: string;
     category: string;
     pinnedVideoId?: bigint;
     presenceIndicator: bigint;
@@ -174,10 +174,10 @@ export interface ChatroomWithLiveStatus {
     createdAt: bigint;
     description: string;
     isLive: boolean;
-    mediaUrl: string;
+    mediaUrl?: string;
     viewCount: bigint;
     messageCount: bigint;
-    mediaType: string;
+    mediaType?: string;
     category: string;
     pinnedVideoId?: bigint;
 }
@@ -468,14 +468,14 @@ export class Backend implements backendInterface {
         if (this.processError) {
             try {
                 const result = await this.actor.getCallerUserProfile();
-                return from_candid_opt_n13(this._uploadFile, this._downloadFile, result);
+                return from_candid_opt_n14(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getCallerUserProfile();
-            return from_candid_opt_n13(this._uploadFile, this._downloadFile, result);
+            return from_candid_opt_n14(this._uploadFile, this._downloadFile, result);
         }
     }
     async getCallerUserRole(): Promise<UserRole> {
@@ -622,14 +622,14 @@ export class Backend implements backendInterface {
         if (this.processError) {
             try {
                 const result = await this.actor.getUserProfile(arg0);
-                return from_candid_opt_n13(this._uploadFile, this._downloadFile, result);
+                return from_candid_opt_n14(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getUserProfile(arg0);
-            return from_candid_opt_n13(this._uploadFile, this._downloadFile, result);
+            return from_candid_opt_n14(this._uploadFile, this._downloadFile, result);
         }
     }
     async incrementViewCount(arg0: bigint, arg1: string): Promise<void> {
@@ -825,8 +825,8 @@ function from_candid_Reaction_n29(_uploadFile: (file: ExternalBlob) => Promise<U
 function from_candid_ReplyPreview_n39(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _ReplyPreview): ReplyPreview {
     return from_candid_record_n40(_uploadFile, _downloadFile, value);
 }
-function from_candid_UserProfile_n14(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _UserProfile): UserProfile {
-    return from_candid_record_n15(_uploadFile, _downloadFile, value);
+function from_candid_UserProfile_n15(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _UserProfile): UserProfile {
+    return from_candid_record_n16(_uploadFile, _downloadFile, value);
 }
 function from_candid_UserRole_n17(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _UserRole): UserRole {
     return from_candid_variant_n18(_uploadFile, _downloadFile, value);
@@ -834,11 +834,11 @@ function from_candid_UserRole_n17(_uploadFile: (file: ExternalBlob) => Promise<U
 function from_candid__CaffeineStorageRefillResult_n4(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: __CaffeineStorageRefillResult): _CaffeineStorageRefillResult {
     return from_candid_record_n5(_uploadFile, _downloadFile, value);
 }
-function from_candid_opt_n13(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_UserProfile]): UserProfile | null {
-    return value.length === 0 ? null : from_candid_UserProfile_n14(_uploadFile, _downloadFile, value[0]);
-}
-function from_candid_opt_n16(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [string]): string | null {
+function from_candid_opt_n13(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [string]): string | null {
     return value.length === 0 ? null : value[0];
+}
+function from_candid_opt_n14(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_UserProfile]): UserProfile | null {
+    return value.length === 0 ? null : from_candid_UserProfile_n15(_uploadFile, _downloadFile, value[0]);
 }
 function from_candid_opt_n19(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_ChatroomWithLiveStatus]): ChatroomWithLiveStatus | null {
     return value.length === 0 ? null : from_candid_ChatroomWithLiveStatus_n11(_uploadFile, _downloadFile, value[0]);
@@ -865,10 +865,10 @@ function from_candid_record_n12(_uploadFile: (file: ExternalBlob) => Promise<Uin
     createdAt: bigint;
     description: string;
     isLive: boolean;
-    mediaUrl: string;
+    mediaUrl: [] | [string];
     viewCount: bigint;
     messageCount: bigint;
-    mediaType: string;
+    mediaType: [] | [string];
     category: string;
     pinnedVideoId: [] | [bigint];
 }): {
@@ -878,10 +878,10 @@ function from_candid_record_n12(_uploadFile: (file: ExternalBlob) => Promise<Uin
     createdAt: bigint;
     description: string;
     isLive: boolean;
-    mediaUrl: string;
+    mediaUrl?: string;
     viewCount: bigint;
     messageCount: bigint;
-    mediaType: string;
+    mediaType?: string;
     category: string;
     pinnedVideoId?: bigint;
 } {
@@ -892,15 +892,15 @@ function from_candid_record_n12(_uploadFile: (file: ExternalBlob) => Promise<Uin
         createdAt: value.createdAt,
         description: value.description,
         isLive: value.isLive,
-        mediaUrl: value.mediaUrl,
+        mediaUrl: record_opt_to_undefined(from_candid_opt_n13(_uploadFile, _downloadFile, value.mediaUrl)),
         viewCount: value.viewCount,
         messageCount: value.messageCount,
-        mediaType: value.mediaType,
+        mediaType: record_opt_to_undefined(from_candid_opt_n13(_uploadFile, _downloadFile, value.mediaType)),
         category: value.category,
         pinnedVideoId: record_opt_to_undefined(from_candid_opt_n7(_uploadFile, _downloadFile, value.pinnedVideoId))
     };
 }
-function from_candid_record_n15(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function from_candid_record_n16(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     name: string;
     presetAvatar: [] | [string];
     anonId: string;
@@ -913,9 +913,9 @@ function from_candid_record_n15(_uploadFile: (file: ExternalBlob) => Promise<Uin
 } {
     return {
         name: value.name,
-        presetAvatar: record_opt_to_undefined(from_candid_opt_n16(_uploadFile, _downloadFile, value.presetAvatar)),
+        presetAvatar: record_opt_to_undefined(from_candid_opt_n13(_uploadFile, _downloadFile, value.presetAvatar)),
         anonId: value.anonId,
-        avatarUrl: record_opt_to_undefined(from_candid_opt_n16(_uploadFile, _downloadFile, value.avatarUrl))
+        avatarUrl: record_opt_to_undefined(from_candid_opt_n13(_uploadFile, _downloadFile, value.avatarUrl))
     };
 }
 function from_candid_record_n22(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
@@ -925,9 +925,9 @@ function from_candid_record_n22(_uploadFile: (file: ExternalBlob) => Promise<Uin
     createdAt: bigint;
     description: string;
     isLive: boolean;
-    mediaUrl: string;
+    mediaUrl: [] | [string];
     messageCount: bigint;
-    mediaType: string;
+    mediaType: [] | [string];
     category: string;
     pinnedVideoId: [] | [bigint];
     presenceIndicator: bigint;
@@ -938,9 +938,9 @@ function from_candid_record_n22(_uploadFile: (file: ExternalBlob) => Promise<Uin
     createdAt: bigint;
     description: string;
     isLive: boolean;
-    mediaUrl: string;
+    mediaUrl?: string;
     messageCount: bigint;
-    mediaType: string;
+    mediaType?: string;
     category: string;
     pinnedVideoId?: bigint;
     presenceIndicator: bigint;
@@ -952,9 +952,9 @@ function from_candid_record_n22(_uploadFile: (file: ExternalBlob) => Promise<Uin
         createdAt: value.createdAt,
         description: value.description,
         isLive: value.isLive,
-        mediaUrl: value.mediaUrl,
+        mediaUrl: record_opt_to_undefined(from_candid_opt_n13(_uploadFile, _downloadFile, value.mediaUrl)),
         messageCount: value.messageCount,
-        mediaType: value.mediaType,
+        mediaType: record_opt_to_undefined(from_candid_opt_n13(_uploadFile, _downloadFile, value.mediaType)),
         category: value.category,
         pinnedVideoId: record_opt_to_undefined(from_candid_opt_n7(_uploadFile, _downloadFile, value.pinnedVideoId)),
         presenceIndicator: value.presenceIndicator
@@ -990,11 +990,11 @@ function from_candid_record_n25(_uploadFile: (file: ExternalBlob) => Promise<Uin
         content: value.content,
         chatroomId: value.chatroomId,
         sender: value.sender,
-        mediaUrl: record_opt_to_undefined(from_candid_opt_n16(_uploadFile, _downloadFile, value.mediaUrl)),
-        avatarUrl: record_opt_to_undefined(from_candid_opt_n16(_uploadFile, _downloadFile, value.avatarUrl)),
+        mediaUrl: record_opt_to_undefined(from_candid_opt_n13(_uploadFile, _downloadFile, value.mediaUrl)),
+        avatarUrl: record_opt_to_undefined(from_candid_opt_n13(_uploadFile, _downloadFile, value.avatarUrl)),
         replyToMessageId: record_opt_to_undefined(from_candid_opt_n7(_uploadFile, _downloadFile, value.replyToMessageId)),
         timestamp: value.timestamp,
-        mediaType: record_opt_to_undefined(from_candid_opt_n16(_uploadFile, _downloadFile, value.mediaType)),
+        mediaType: record_opt_to_undefined(from_candid_opt_n13(_uploadFile, _downloadFile, value.mediaType)),
         reactions: from_candid_List_1_n26(_uploadFile, _downloadFile, value.reactions),
         senderId: value.senderId
     };
@@ -1042,11 +1042,11 @@ function from_candid_record_n36(_uploadFile: (file: ExternalBlob) => Promise<Uin
         content: value.content,
         chatroomId: value.chatroomId,
         sender: value.sender,
-        mediaUrl: record_opt_to_undefined(from_candid_opt_n16(_uploadFile, _downloadFile, value.mediaUrl)),
-        avatarUrl: record_opt_to_undefined(from_candid_opt_n16(_uploadFile, _downloadFile, value.avatarUrl)),
+        mediaUrl: record_opt_to_undefined(from_candid_opt_n13(_uploadFile, _downloadFile, value.mediaUrl)),
+        avatarUrl: record_opt_to_undefined(from_candid_opt_n13(_uploadFile, _downloadFile, value.avatarUrl)),
         replyToMessageId: record_opt_to_undefined(from_candid_opt_n7(_uploadFile, _downloadFile, value.replyToMessageId)),
         timestamp: value.timestamp,
-        mediaType: record_opt_to_undefined(from_candid_opt_n16(_uploadFile, _downloadFile, value.mediaType)),
+        mediaType: record_opt_to_undefined(from_candid_opt_n13(_uploadFile, _downloadFile, value.mediaType)),
         senderId: value.senderId
     };
 }
@@ -1064,7 +1064,7 @@ function from_candid_record_n40(_uploadFile: (file: ExternalBlob) => Promise<Uin
     return {
         messageId: value.messageId,
         sender: value.sender,
-        mediaThumbnail: record_opt_to_undefined(from_candid_opt_n16(_uploadFile, _downloadFile, value.mediaThumbnail)),
+        mediaThumbnail: record_opt_to_undefined(from_candid_opt_n13(_uploadFile, _downloadFile, value.mediaThumbnail)),
         contentSnippet: value.contentSnippet
     };
 }
