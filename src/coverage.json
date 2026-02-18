@@ -1,7 +1,7 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-18T22:05:08.834Z",
+  "generatedAt": "2026-02-18T22:31:53.427Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
@@ -12,18 +12,18 @@
     "items": [
       {
         "id": "REQ-1",
-        "summary": "In the Header component, change the progress bar background color from 'bg-accent' to match the site's blue color used for other inputs",
+        "summary": "Replace the existing MessageInput component chat input area with a new styled design that includes: a border-top separator, card background, left-aligned image upload button (rounded-full, size-9, with lucide-image icon), left-aligned microphone/voice recording button (rounded-full, size-9, with lucide-mic icon), center auto-expanding rounded-full textarea (min-h-[40px], max-h-[120px], field-sizing-content, with placeholder 'Type a message...'), and right-aligned send button (rounded-full, size-9, bg-primary, with lucide-send icon)",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/Header.tsx"
+          "frontend/src/components/MessageInput.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/Header.tsx"
+          "frontend/src/components/MessageInput.tsx"
         ]
       },
       {
         "id": "REQ-2",
-        "summary": "In the MessageInput component, remove the unnecessary border from the chat input textarea",
+        "summary": "Ensure the image upload button and microphone/voice recording button remain fully functional with their existing upload and recording capabilities",
         "status": "implemented",
         "plannedFiles": [
           "frontend/src/components/MessageInput.tsx"
@@ -34,13 +34,13 @@
       },
       {
         "id": "REQ-3",
-        "summary": "In the Header component, update the Chattr logo to use a rounded-full background with bg-primary, containing a message-circle icon (24x24) with text-primary-foreground color. The logo container should be flex h-10 w-10 items-center justify-center rounded-full bg-primary",
+        "summary": "Make the send button enabled only when the user has typed text in the textarea, and disabled when the textarea is empty",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/Header.tsx"
+          "frontend/src/components/MessageInput.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/Header.tsx"
+          "frontend/src/components/MessageInput.tsx"
         ]
       }
     ]
@@ -50,7 +50,6 @@
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/components/Header.tsx",
     "frontend/src/components/MessageInput.tsx",
     "project_state.json",
     "scratch/component-selection.json",

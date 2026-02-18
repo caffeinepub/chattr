@@ -1,11 +1,15 @@
 # Specification
 
 ## Summary
-**Goal:** Fix styling issues in the chatroom page including progress bar visibility, chat input border, and header logo design.
+**Goal:** Redesign the chat input area with styled rounded buttons and an auto-expanding textarea.
 
 **Planned changes:**
-- Change progress bar background color in Header component to use the site's blue color (matching other input fields) instead of bg-accent
-- Remove the border from the chat input textarea in MessageInput component
-- Update Chattr logo in Header to display as a rounded circular background with bg-primary containing a message-circle icon (24x24) with text-primary-foreground color
+- Replace the MessageInput component styling with a new design featuring a border-top separator and card background
+- Add left-aligned rounded image upload button with lucide-image icon
+- Add left-aligned rounded microphone/voice recording button with lucide-mic icon
+- Implement center auto-expanding rounded textarea (min 40px, max 120px height) with placeholder text
+- Add right-aligned rounded send button with primary background and lucide-send icon
+- Enable send button only when textarea contains text, disabled when empty
+- Preserve all existing media attachment and recording functionality
 
-**User-visible outcome:** Users will see a properly styled chatroom page with a visible blue progress bar, cleaner chat input without unnecessary borders, and a polished circular logo in the header.
+**User-visible outcome:** Users will see a redesigned chat input area with clearly styled rounded buttons for image uploads and voice recording, an auto-expanding text input field, and a send button that activates when they type a message.

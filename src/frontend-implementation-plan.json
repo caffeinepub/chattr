@@ -1,51 +1,56 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Fix chatroom page styling: progress bar color, chat input border, and header logo",
+  "title": "Redesign chat input with styled buttons and auto-expanding textarea",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Change Header progress bar background color from 'bg-accent' to match the site's blue color used for other inputs",
+      "summary": "Replace the existing MessageInput component chat input area with a new styled design including border-top separator, card background, left-aligned rounded-full image upload and microphone buttons, center auto-expanding rounded-full textarea, and right-aligned rounded-full send button with primary background",
       "acceptanceCriteria": [
-        "Progress bar background uses the same blue color as other input fields",
-        "Progress bar is clearly visible against the background"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/Header.tsx",
-          "operation": "modify",
-          "description": "Update the progress bar background color from 'bg-accent' to use the site's primary blue color (bg-blue-500 or the equivalent theme color used for input fields). Locate the progress bar element and change its className from 'bg-accent' to match the blue color scheme used consistently across input elements in the application."
-        }
-      ]
-    },
-    {
-      "id": "REQ-2",
-      "summary": "Remove the unnecessary border from the chat input textarea in MessageInput component",
-      "acceptanceCriteria": [
-        "Chat input textarea has no visible border",
-        "Input maintains proper spacing and alignment without the border"
+        "Chat input area has border-top separator and card background",
+        "Image upload button is rendered as a rounded-full button with lucide-image icon on the left",
+        "Microphone/voice recording button is rendered as a rounded-full button with lucide-mic icon on the left",
+        "Textarea is rounded-full, auto-expands between min-h-[40px] and max-h-[120px], and has field-sizing-content",
+        "Send button is rendered as a rounded-full button with bg-primary and lucide-send icon on the right",
+        "All buttons use the provided Tailwind classes for borders, shadows, and hover states"
       ],
       "file_operations": [
         {
           "path": "frontend/src/components/MessageInput.tsx",
           "operation": "modify",
-          "description": "Remove the border styling from the chat input textarea element. Locate the textarea element and remove any border-related classes (e.g., 'border', 'border-*') from its className. Ensure the textarea maintains proper spacing and alignment after the border removal."
+          "description": "Replace the existing container div structure with a new styled layout: add a parent div with 'flex-shrink-0 border-t border-border bg-card' classes. Inside, create a flex layout with: (1) left section containing the image upload button (rounded-full, size-9, with lucide-image icon) and microphone button (rounded-full, size-9, with lucide-mic icon), (2) center section with an auto-expanding textarea (rounded-full, min-h-[40px], max-h-[120px], field-sizing-content, placeholder 'Type a message...'), and (3) right section with the send button (rounded-full, size-9, bg-primary, with lucide-send icon). Move the existing media upload tabs (Image/Video/Twitter) into a collapsible or hidden section that appears only when the image upload button is clicked. Preserve all existing event handlers for file uploads, voice recording, and message submission."
+        }
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "summary": "Ensure the image upload button and microphone/voice recording button remain fully functional with their existing upload and recording capabilities",
+      "acceptanceCriteria": [
+        "Image upload button opens file picker and handles image uploads as before",
+        "Microphone button initiates voice recording and handles audio capture as before",
+        "All existing media attachment functionality is preserved"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/MessageInput.tsx",
+          "operation": "modify",
+          "description": "Preserve all existing functionality for the image upload button (file input trigger, handleImageChange, imagePreview state, progress tracking) and microphone button (handleStartRecording, handleStopRecording, handleCancelRecording, recording state, audioBlob, recordingTime). Ensure the refactored button elements maintain the same onClick handlers and state management. Keep the video URL and Twitter URL input functionality accessible through the media tabs or an alternative UI pattern that doesn't interfere with the new primary input design."
         }
       ]
     },
     {
       "id": "REQ-3",
-      "summary": "Update Header Chattr logo to use rounded-full background with message-circle icon",
+      "summary": "Make the send button enabled only when the user has typed text in the textarea, and disabled when the textarea is empty",
       "acceptanceCriteria": [
-        "Logo displays as a circular background with primary color",
-        "Message circle icon is properly sized (h-6 w-6) and uses primary-foreground text color",
-        "Logo maintains 40x40px dimensions (h-10 w-10)"
+        "Send button is disabled when textarea is empty",
+        "Send button becomes enabled when textarea contains text",
+        "Send button returns to disabled state when textarea is cleared"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/Header.tsx",
+          "path": "frontend/src/components/MessageInput.tsx",
           "operation": "modify",
-          "description": "Replace the current Chattr logo implementation with a new design featuring a circular background. Update the logo element to use the following structure: a container div with classes 'flex h-10 w-10 items-center justify-center rounded-full bg-primary', containing an SVG message-circle icon (lucide-react MessageCircle or inline SVG) with classes 'h-6 w-6 text-primary-foreground' and attributes width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'. The SVG path should be: 'M7.9 20A9 9 0 1 0 4 16.1L2 22Z'."
+          "description": "Add a disabled state check to the send button based on the message state value. When message.trim().length === 0, set the button's disabled attribute to true and apply appropriate disabled styling (e.g., 'disabled:opacity-50 disabled:cursor-not-allowed'). When message contains text, enable the button. Ensure this logic works correctly with the existing handleSendMessage function."
         }
       ]
     }
