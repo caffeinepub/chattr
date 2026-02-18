@@ -338,9 +338,6 @@ export default function CreateChatroomDialog({ open, onOpenChange }: CreateChatr
 
   const isSubmitting = createChatroom.isPending || isUploading;
 
-  const topicProgressPercentage = (topic.length / 65) * 100;
-  const descriptionProgressPercentage = (description.length / 150) * 100;
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
@@ -361,15 +358,8 @@ export default function CreateChatroomDialog({ open, onOpenChange }: CreateChatr
               placeholder="Enter chat topic"
               disabled={isSubmitting}
               required
-              maxLength={65}
               style={{ fontSize: '16px' }}
             />
-            <div className="h-1 w-full bg-muted rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-accent transition-all duration-200"
-                style={{ width: `${topicProgressPercentage}%` }}
-              />
-            </div>
           </div>
 
           <div className="space-y-2">
@@ -381,16 +371,9 @@ export default function CreateChatroomDialog({ open, onOpenChange }: CreateChatr
               placeholder="Describe what this chat is about"
               disabled={isSubmitting}
               required
-              maxLength={150}
               rows={3}
               style={{ fontSize: '16px' }}
             />
-            <div className="h-1 w-full bg-muted rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-accent transition-all duration-200"
-                style={{ width: `${descriptionProgressPercentage}%` }}
-              />
-            </div>
           </div>
 
           <div className="space-y-2">

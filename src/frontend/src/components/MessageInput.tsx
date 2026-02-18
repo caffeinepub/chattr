@@ -405,90 +405,61 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
     }
   };
 
-  const messageProgressPercentage = (message.length / 2000) * 100;
+  const canSend = !disabled && !isUploading && !isSending && !isRecording && (
+    (showMediaInput && ((mediaTab === 'image' && selectedFile) || (mediaTab !== 'image' && videoUrl.trim()))) ||
+    (!showMediaInput && message.trim())
+  );
 
   return (
-    <div className="border-t border-border bg-card p-4">
-      {recordingError && (
-        <div className="mb-2 rounded-md bg-destructive/10 p-2 text-sm text-destructive">
-          {recordingError}
-        </div>
-      )}
-
-      {isRecording && (
-        <div className="mb-3 flex items-center justify-between rounded-lg bg-accent/20 p-3">
-          <div className="flex items-center gap-2">
-            <div className="h-3 w-3 animate-pulse rounded-full bg-destructive" />
-            <span className="text-sm font-medium">Recording: {formatRecordingTime(recordingTime)}</span>
-          </div>
-          <div className="flex gap-2">
-            <Button
-              onClick={stopRecording}
-              size="sm"
-              variant="default"
-              disabled={isUploading}
-            >
-              <Square className="mr-1 h-3 w-3" />
-              Send
-            </Button>
-            <Button
-              onClick={cancelRecording}
-              size="sm"
-              variant="outline"
-            >
-              <X className="mr-1 h-3 w-3" />
-              Cancel
-            </Button>
-          </div>
-        </div>
-      )}
-
+    <div className="space-y-2">
       {showMediaInput && (
-        <div className="mb-3 rounded-lg border border-border bg-muted/50 p-3">
+        <div className="rounded-lg border border-border bg-card p-3">
           <div className="mb-2 flex items-center justify-between">
             <Label className="text-sm font-medium">Add Media</Label>
             <Button
-              onClick={handleCancelMedia}
-              size="sm"
+              type="button"
               variant="ghost"
+              size="sm"
+              onClick={handleCancelMedia}
+              disabled={isUploading || isSending}
               className="h-6 w-6 p-0"
             >
               <X className="h-4 w-4" />
             </Button>
           </div>
-
-          <Tabs value={mediaTab} onValueChange={(v) => setMediaTab(v as any)} className="w-full">
+          
+          <Tabs value={mediaTab} onValueChange={(v) => setMediaTab(v as any)}>
             <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="image">
+              <TabsTrigger value="image" disabled={isUploading || isSending}>
                 <ImageIcon className="mr-1 h-3 w-3" />
                 Image
               </TabsTrigger>
-              <TabsTrigger value="video">
+              <TabsTrigger value="video" disabled={isUploading || isSending}>
                 <Video className="mr-1 h-3 w-3" />
                 Video
               </TabsTrigger>
-              <TabsTrigger value="twitter">
+              <TabsTrigger value="twitter" disabled={isUploading || isSending}>
                 <SiX className="mr-1 h-3 w-3" />
                 Twitter
               </TabsTrigger>
             </TabsList>
-
-            <TabsContent value="image" className="mt-2">
+            
+            <TabsContent value="image" className="space-y-2 mt-3">
               <Input
                 ref={fileInputRef}
                 type="file"
                 accept="image/*"
                 onChange={handleFileChange}
-                disabled={isUploading}
+                disabled={isUploading || isSending}
                 className="text-sm"
               />
               {selectedFile && (
-                <p className="mt-1 text-xs text-primary">
+                <p className="text-xs text-primary">
                   Selected: {selectedFile.name}
                 </p>
               )}
               {isUploading && (
-                <div className="mt-2 space-y-1">
+                <div className="space-y-1">
                   <Progress value={uploadProgress} className="h-2" />
                   <p className="text-xs text-muted-foreground text-center">
                     {uploadProgress < 40 ? 'Compressing...' : 'Uploading...'} {Math.round(uploadProgress)}%
@@ -496,104 +467,127 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
                 </div>
               )}
             </TabsContent>
-
-            <TabsContent value="video" className="mt-2">
+            
+            <TabsContent value="video" className="space-y-2 mt-3">
               <Input
                 value={videoUrl}
                 onChange={(e) => handleVideoUrlChange(e.target.value)}
                 placeholder="YouTube or Twitch URL"
                 type="url"
-                disabled={isUploading}
+                disabled={isUploading || isSending}
                 className="text-sm"
                 style={{ fontSize: '16px' }}
               />
-              <p className="mt-1 text-xs text-muted-foreground">
-                Paste a YouTube or Twitch video URL
+              <p className="text-xs text-muted-foreground">
+                Paste a YouTube or Twitch video URL - automatically detected
               </p>
             </TabsContent>
 
-            <TabsContent value="twitter" className="mt-2">
+            <TabsContent value="twitter" className="space-y-2 mt-3">
               <Input
                 value={videoUrl}
                 onChange={(e) => handleVideoUrlChange(e.target.value)}
                 placeholder="https://twitter.com/user/status/..."
                 type="url"
-                disabled={isUploading}
+                disabled={isUploading || isSending}
                 className="text-sm"
                 style={{ fontSize: '16px' }}
               />
-              <p className="mt-1 text-xs text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 Paste a Twitter/X post URL
               </p>
             </TabsContent>
           </Tabs>
-
+          
           {mediaError && (
             <p className="mt-2 text-xs text-destructive">{mediaError}</p>
           )}
         </div>
       )}
 
-      <div className="space-y-2">
-        <div className="flex gap-2">
-          <Textarea
-            ref={textareaRef}
-            value={message}
-            onChange={handleInput}
-            onKeyDown={handleKeyDown}
-            placeholder={isRecording ? "Recording voice message..." : "Type a message..."}
-            disabled={disabled || isUploading || isSending || isRecording}
-            className="min-h-[44px] max-h-[120px] resize-none"
-            rows={1}
-            maxLength={2000}
-            style={{ fontSize: '16px' }}
-          />
-          <div className="flex flex-col gap-2">
-            {!showMediaInput && !isRecording && (
-              <>
-                <Button
-                  onClick={() => setShowMediaInput(true)}
-                  size="icon"
-                  variant="outline"
-                  disabled={disabled || isUploading || isSending}
-                  className="h-11 w-11 shrink-0"
-                >
-                  <ImageIcon className="h-5 w-5" />
-                </Button>
-                <Button
-                  onClick={startRecording}
-                  size="icon"
-                  variant="outline"
-                  disabled={disabled || isUploading || isSending}
-                  className="h-11 w-11 shrink-0"
-                >
-                  <Mic className="h-5 w-5" />
-                </Button>
-              </>
-            )}
-            {!isRecording && (
+      {isRecording && (
+        <div className="rounded-lg border border-primary bg-primary/5 p-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="h-3 w-3 animate-pulse rounded-full bg-destructive" />
+              <span className="text-sm font-medium">Recording: {formatRecordingTime(recordingTime)}</span>
+            </div>
+            <div className="flex gap-2">
               <Button
-                onClick={handleSend}
-                size="icon"
-                disabled={disabled || isUploading || isSending || (!message.trim() && !selectedFile && !videoUrl.trim())}
-                className="h-11 w-11 shrink-0"
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={cancelRecording}
+                className="h-8"
               >
-                {(isUploading || isSending) ? (
-                  <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
-                ) : (
-                  <Send className="h-5 w-5" />
-                )}
+                <X className="mr-1 h-4 w-4" />
+                Cancel
               </Button>
-            )}
+              <Button
+                type="button"
+                variant="default"
+                size="sm"
+                onClick={stopRecording}
+                className="h-8"
+              >
+                <Square className="mr-1 h-4 w-4" />
+                Stop
+              </Button>
+            </div>
           </div>
+          {recordingError && (
+            <p className="mt-2 text-xs text-destructive">{recordingError}</p>
+          )}
         </div>
-        
-        <div className="h-1 w-full bg-muted rounded-full overflow-hidden">
-          <div 
-            className="h-full bg-accent transition-all duration-200"
-            style={{ width: `${messageProgressPercentage}%` }}
-          />
-        </div>
+      )}
+
+      <div className="flex items-center gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          onClick={() => setShowMediaInput(!showMediaInput)}
+          disabled={disabled || isUploading || isSending || isRecording}
+          className="h-10 w-10 shrink-0 rounded-full"
+        >
+          <ImageIcon className="h-5 w-5" />
+        </Button>
+
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          onClick={isRecording ? stopRecording : startRecording}
+          disabled={disabled || isUploading || isSending || showMediaInput}
+          className="h-10 w-10 shrink-0 rounded-full"
+        >
+          <Mic className="h-5 w-5" />
+        </Button>
+
+        <Textarea
+          ref={textareaRef}
+          value={message}
+          onChange={handleInput}
+          onKeyDown={handleKeyDown}
+          placeholder={isRecording ? "Recording..." : "Type a message..."}
+          disabled={disabled || isUploading || isSending || isRecording}
+          className="min-h-[40px] max-h-[120px] resize-none rounded-full px-4 py-2.5"
+          rows={1}
+          style={{ fontSize: '16px' }}
+        />
+
+        <Button
+          onClick={handleSend}
+          disabled={!canSend}
+          size="icon"
+          className="h-10 w-10 shrink-0 rounded-full"
+        >
+          {isUploading || isSending ? (
+            <div className="h-5 w-5 animate-spin rounded-full border-2 border-background border-t-transparent" />
+          ) : (
+            <Send className="h-5 w-5" />
+          )}
+        </Button>
       </div>
     </div>
   );
