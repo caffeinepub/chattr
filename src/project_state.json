@@ -1,25 +1,22 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "A real-time chatroom application with room creation and messaging features",
-  "architectural_notes": [
-    "Chatroom page includes chat input with character count progress bar",
-    "Create room modal uses character count progress bar pattern for inputs"
-  ],
+  "summary": "New project",
+  "architectural_notes": [],
   "known_issues": [],
-  "isFixRequest": true,
+  "isFixRequest": false,
   "existing_features": [
     {
-      "id": "feature-add-a-character-count-progress-bar-to-the-chat-input-in-the-chatroom-page-matching-the-style-and-implementation-used-in-the-create-room-modal-inputs-characterlimitprogress-component-with-percentage-based-width-and-color-transitions",
-      "title": "Add a character count progress bar to the chat input in the chatroom page, matching the style and implementation used in the create room modal inputs (CharacterLimitProgress component with percentage-based width and color transitions)",
+      "id": "feature-convert-all-category-text-labels-to-lowercase-display-throughout-the-ui-including-category-badges-in-the-lobby-and-chatroom-cards",
+      "title": "Convert all category text labels to lowercase display throughout the UI, including category badges in the lobby and chatroom cards",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-remove-the-extra-top-border-from-the-chat-input-area-in-the-chatroom-page-without-changing-any-other-styles",
-      "title": "Remove the extra top border from the chat input area in the chatroom page without changing any other styles",
+      "id": "feature-match-the-padding-font-size-and-visual-styling-of-category-tags-to-the-existing-live-indicator-badges-in-the-lobby-and-chatroom-cards",
+      "title": "Match the padding, font size, and visual styling of category tags to the existing 'LIVE' indicator badges in the lobby and chatroom cards",
       "reqIds": [
         "REQ-2"
       ],
@@ -29,18 +26,18 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Restore character count progress bar to chatroom chat input (matching create room modal style)",
+      "summary": "Make categories lowercase",
       "reqIds": [],
-      "status": "in_progress"
+      "status": "pending"
     },
     {
       "id": "AR-2",
-      "summary": "Remove extra top border from chat input area in chatroom page",
+      "summary": "Make category tags same size as live tags (padding, etc.)",
       "reqIds": [],
-      "status": "in_progress"
+      "status": "pending"
     }
   ],
-  "projectName": "Restore character count progress bar and remove extra border in chatroom chat input",
+  "projectName": "Update category tag styling to match live tags",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

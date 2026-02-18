@@ -1,38 +1,46 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Restore character count progress bar and remove extra border in chatroom chat input",
+  "title": "Update category tag styling to match live tags",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Add character count progress bar to chat input matching the CreateChatroomDialog implementation",
+      "summary": "Convert all category text labels to lowercase display throughout the UI",
       "acceptanceCriteria": [
-        "Character count progress bar appears below the textarea in MessageInput component",
-        "Progress bar style matches the CharacterLimitProgress component used in CreateChatroomDialog",
-        "Progress bar shows visual feedback with color transitions based on character count percentage",
-        "Progress bar updates in real-time as user types"
+        "All category labels display in lowercase",
+        "Category text transformation is consistent across lobby and chatroom views"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/MessageInput.tsx",
+          "path": "frontend/src/pages/LobbyPage.tsx",
           "operation": "modify",
-          "description": "Add CharacterLimitProgress component below the textarea to display character count progress. Extract the percentage-based width calculation and color transition logic from CreateChatroomDialog's character limit implementation. Wire the progress bar to update in real-time as the user types in the message textarea. Use the same 500-character limit and visual styling (gray → yellow → red transitions) as used in the create room modal inputs."
+          "description": "Apply lowercase transformation to category badge text in the lobby chatroom cards. Modify the category badge rendering to use .toLowerCase() or CSS text-transform: lowercase on the category string displayed in the badge."
+        },
+        {
+          "path": "frontend/src/components/ChatroomCard.tsx",
+          "operation": "modify",
+          "description": "Apply lowercase transformation to category badge text in individual chatroom cards. Ensure the category display uses .toLowerCase() or CSS text-transform: lowercase to match the lobby implementation."
         }
       ]
     },
     {
       "id": "REQ-2",
-      "summary": "Remove extra top border from chat input area",
+      "summary": "Match the padding, font size, and visual styling of category tags to the existing LIVE indicator badges",
       "acceptanceCriteria": [
-        "No visible border appears at the top of the chat input area",
-        "All other styling remains unchanged",
-        "The fix applies specifically to the MessageInput component in the chatroom context"
+        "Category tags have identical padding to LIVE tags",
+        "Category tags have identical font size to LIVE tags",
+        "Category tags maintain visual consistency with LIVE tags in terms of height and border radius"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/MessageInput.tsx",
+          "path": "frontend/src/pages/LobbyPage.tsx",
           "operation": "modify",
-          "description": "Remove the extra border-t class or border-top style from the container element wrapping the MessageInput component. Identify the outermost div in the component that currently has a top border and remove only that border property without changing any other styles."
+          "description": "Update category badge styling in the lobby to match LIVE tag dimensions. Apply the same Tailwind classes or inline styles used by the LIVE badge (padding, text size, border radius, height) to the category badge element."
+        },
+        {
+          "path": "frontend/src/components/ChatroomCard.tsx",
+          "operation": "modify",
+          "description": "Update category badge styling in ChatroomCard to match LIVE tag dimensions. Ensure padding, font-size, border-radius, and height match the LIVE badge styling. Use consistent Tailwind utility classes or inline styles to maintain visual parity."
         }
       ]
     }

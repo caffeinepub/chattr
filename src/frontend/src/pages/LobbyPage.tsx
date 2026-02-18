@@ -216,7 +216,7 @@ export default function LobbyPage() {
                 className="cursor-pointer hover:bg-primary/80 transition-colors"
                 onClick={() => handleCategoryClick(category)}
               >
-                {category}
+                {category.toLowerCase()}
               </Badge>
             ))}
           </div>

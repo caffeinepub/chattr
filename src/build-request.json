@@ -1,58 +1,52 @@
 {
   "kind": "build_request",
-  "title": "Restore character count progress bar and remove extra border in chatroom chat input",
+  "title": "Update category tag styling to match live tags",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Add a character count progress bar to the chat input in the chatroom page, matching the style and implementation used in the create room modal inputs (CharacterLimitProgress component with percentage-based width and color transitions)",
+      "text": "Convert all category text labels to lowercase display throughout the UI, including category badges in the lobby and chatroom cards",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-user-1",
-          "msg-user-3"
+          "msg-last"
         ],
         "quotes": [
-          "readd the character count progress bar to the chat input in the chatroom page (it was removed)",
-          "the same progress bar used in the create a room modal inputs"
+          "lets make categories lowercase"
         ]
       },
       "acceptanceCriteria": [
-        "Character count progress bar appears below the textarea in MessageInput component",
-        "Progress bar style matches the CharacterLimitProgress component used in CreateChatroomDialog",
-        "Progress bar shows visual feedback with color transitions based on character count percentage",
-        "Progress bar updates in real-time as user types"
+        "All category labels display in lowercase",
+        "Category text transformation is consistent across lobby and chatroom views"
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Remove the extra top border from the chat input area in the chatroom page without changing any other styles",
+      "text": "Match the padding, font size, and visual styling of category tags to the existing 'LIVE' indicator badges in the lobby and chatroom cards",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-user-1",
-          "msg-user-3"
+          "msg-last"
         ],
         "quotes": [
-          "remove extra border on the top of the chat input area",
-          "theres an extra border top in the chat input area"
+          "make the category tags the same size as the live tags (padding, etc.)"
         ]
       },
       "acceptanceCriteria": [
-        "No visible border appears at the top of the chat input area",
-        "All other styling remains unchanged",
-        "The fix applies specifically to the MessageInput component in the chatroom context"
+        "Category tags have identical padding to LIVE tags",
+        "Category tags have identical font size to LIVE tags",
+        "Category tags maintain visual consistency with LIVE tags in terms of height and border radius"
       ]
     }
   ],
   "constraints": [
-    "Do not change any styles except for the border removal and character count addition",
-    "Character count progress bar must match exactly the style used in CreateChatroomDialog"
+    "Only modify category tag styling, do not change LIVE tag appearance",
+    "Maintain existing category functionality and behavior"
   ],
   "nonGoals": [
-    "Modifying any other component styling",
-    "Changing the character limit value",
-    "Adding new features beyond the character count restoration"
+    "Changing category names or adding new categories",
+    "Modifying backend category logic",
+    "Altering other UI elements beyond category tags"
   ],
   "imageRequirements": {
     "required": [],

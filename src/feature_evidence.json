@@ -2,10 +2,11 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-add-a-character-count-progress-bar-to-the-chat-input-in-the-chatroom-page-matching-the-style-and-implementation-used-in-the-create-room-modal-inputs-characterlimitprogress-component-with-percentage-based-width-and-color-transitions",
-      "featureTitle": "Add a character count progress bar to the chat input in the chatroom page, matching the style and implementation used in the create room modal inputs (CharacterLimitProgress component with percentage-based width and color transitions)",
+      "featureId": "feature-convert-all-category-text-labels-to-lowercase-display-throughout-the-ui-including-category-badges-in-the-lobby-and-chatroom-cards",
+      "featureTitle": "Convert all category text labels to lowercase display throughout the UI, including category badges in the lobby and chatroom cards",
       "files": [
-        "frontend/src/components/MessageInput.tsx"
+        "frontend/src/components/ChatroomCard.tsx",
+        "frontend/src/pages/LobbyPage.tsx"
       ],
       "components": [
         "authorization@1.0.1",
@@ -23,10 +24,11 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-remove-the-extra-top-border-from-the-chat-input-area-in-the-chatroom-page-without-changing-any-other-styles",
-      "featureTitle": "Remove the extra top border from the chat input area in the chatroom page without changing any other styles",
+      "featureId": "feature-match-the-padding-font-size-and-visual-styling-of-category-tags-to-the-existing-live-indicator-badges-in-the-lobby-and-chatroom-cards",
+      "featureTitle": "Match the padding, font size, and visual styling of category tags to the existing 'LIVE' indicator badges in the lobby and chatroom cards",
       "files": [
-        "frontend/src/components/MessageInput.tsx"
+        "frontend/src/components/ChatroomCard.tsx",
+        "frontend/src/pages/LobbyPage.tsx"
       ],
       "components": [
         "authorization@1.0.1",

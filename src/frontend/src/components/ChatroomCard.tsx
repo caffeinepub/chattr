@@ -308,8 +308,8 @@ export default function ChatroomCard({ chatroom, onClick }: ChatroomCardProps) {
         )}
         {chatroom.category && (
           <div className="absolute bottom-2 right-2">
-            <Badge variant="secondary" className="text-xs">
-              {chatroom.category}
+            <Badge variant="secondary" className="px-2 py-0.5 text-xs">
+              {chatroom.category.toLowerCase()}
             </Badge>
           </div>
         )}

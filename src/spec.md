@@ -1,10 +1,10 @@
 # Specification
 
 ## Summary
-**Goal:** Restore character count progress bar and remove extra border in chatroom chat input.
+**Goal:** Update category tag styling to match the visual appearance of live indicator badges.
 
 **Planned changes:**
-- Add character count progress bar below the textarea in MessageInput component matching the CharacterLimitProgress component style from CreateChatroomDialog
-- Remove the extra top border from the chat input area in the chatroom page
+- Convert all category text labels to lowercase display throughout the UI
+- Match category tag padding, font size, height, and border radius to existing LIVE tags
 
-**User-visible outcome:** Users will see a visual character count progress bar while typing messages in chatrooms (with color transitions based on usage), and the chat input area will have cleaner styling without the duplicate top border.
+**User-visible outcome:** Category tags in the lobby and chatroom cards will display in lowercase with consistent styling that matches the LIVE indicator badges.

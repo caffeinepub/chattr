@@ -418,17 +418,17 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
               <div className="flex gap-2">
                 <button
                   onClick={cancelRecording}
-                  className="rounded-full p-2 hover:bg-muted transition-colors"
+                  className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 size-9 h-10 w-10 shrink-0 rounded-full"
                   title="Cancel recording"
                 >
-                  <X className="h-5 w-5 text-muted-foreground" />
+                  <X className="h-5 w-5" />
                 </button>
                 <button
                   onClick={stopRecording}
-                  className="rounded-full bg-destructive p-2 hover:bg-destructive/90 transition-colors"
+                  className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground shadow-xs hover:bg-primary/90 size-9 h-10 w-10 shrink-0 rounded-full"
                   title="Stop and send"
                 >
-                  <Square className="h-5 w-5 text-destructive-foreground" />
+                  <Square className="h-5 w-5" />
                 </button>
               </div>
             </div>
@@ -534,9 +534,9 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
               )}
 
               {isUploading && (
-                <div className="mt-3 space-y-2">
-                  <Progress value={uploadProgress} />
-                  <p className="text-sm text-muted-foreground text-center">
+                <div className="mt-3">
+                  <Progress value={uploadProgress} className="h-2" />
+                  <p className="mt-1 text-xs text-muted-foreground">
                     Uploading... {uploadProgress}%
                   </p>
                 </div>
@@ -547,27 +547,23 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
           <div className="flex items-end gap-2">
             <button
               onClick={handleImageButtonClick}
-              disabled={disabled || isUploading || isSending || isRecording}
-              className="flex-shrink-0 rounded-full p-2.5 bg-muted hover:bg-muted/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              title="Add image or video"
+              disabled={disabled || isRecording}
+              className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 size-9 h-10 w-10 shrink-0 rounded-full"
+              type="button"
             >
-              <ImageIcon className="h-5 w-5 text-muted-foreground" />
+              <ImageIcon className="h-5 w-5" />
             </button>
 
             <button
               onClick={handleMicButtonClick}
-              disabled={disabled || isUploading || isSending || showMediaInput}
-              className={`flex-shrink-0 rounded-full p-2.5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
-                isRecording 
-                  ? 'bg-destructive hover:bg-destructive/90' 
-                  : 'bg-muted hover:bg-muted/80'
-              }`}
-              title={isRecording ? 'Cancel recording' : 'Record voice message'}
+              disabled={disabled || showMediaInput}
+              className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 size-9 h-10 w-10 shrink-0 rounded-full"
+              type="button"
             >
-              <Mic className={`h-5 w-5 ${isRecording ? 'text-destructive-foreground' : 'text-muted-foreground'}`} />
+              <Mic className="h-5 w-5" />
             </button>
 
-            <div className="flex-1 space-y-1">
+            <div className="relative flex-1">
               <textarea
                 ref={textareaRef}
                 value={message}
@@ -575,20 +571,16 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
                 onKeyDown={handleKeyDown}
                 onFocus={() => setIsTextareaFocused(true)}
                 onBlur={() => setIsTextareaFocused(false)}
-                placeholder={isRecording ? 'Recording...' : 'Type a message...'}
-                disabled={disabled || isUploading || isSending || isRecording}
+                placeholder="Type a message..."
+                disabled={disabled || isRecording}
                 maxLength={MAX_MESSAGE_LENGTH}
                 rows={1}
-                className="w-full resize-none rounded-full border border-border bg-background px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 overflow-hidden"
-                style={{ 
-                  fontSize: '16px',
-                  minHeight: '42px',
-                  maxHeight: '120px',
-                }}
+                className="border-input placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 flex field-sizing-content w-full border bg-transparent text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm min-h-[40px] max-h-[120px] resize-none rounded-full px-4 py-2.5"
+                style={{ fontSize: '16px' }}
               />
               {isTextareaFocused && (
-                <div className="h-1 w-full bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                  <div 
+                <div className="absolute -bottom-2 left-0 right-0 h-1 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
+                  <div
                     className="h-full bg-primary transition-all duration-200"
                     style={{ width: `${messageProgressPercentage}%` }}
                   />
@@ -598,11 +590,11 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
 
             <button
               onClick={handleSend}
-              disabled={disabled || !message.trim() || isUploading || isSending || isRecording}
-              className="flex-shrink-0 rounded-full bg-primary p-2.5 hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              title="Send message"
+              disabled={disabled || isUploading || isSending || isRecording || (!message.trim() && !showMediaInput)}
+              className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground shadow-xs hover:bg-primary/90 size-9 h-10 w-10 shrink-0 rounded-full"
+              type="button"
             >
-              <Send className="h-5 w-5 text-primary-foreground" />
+              <Send className="h-5 w-5" />
             </button>
           </div>
         </div>
