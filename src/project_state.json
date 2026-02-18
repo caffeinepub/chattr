@@ -4,43 +4,25 @@
   "summary": "New project",
   "architectural_notes": [],
   "known_issues": [],
-  "isFixRequest": true,
-  "existing_features": [
+  "isFixRequest": false,
+  "existing_features": [],
+  "new_feature_requests": [
     {
-      "id": "feature-update-the-username-input-progress-bar-to-use-the-blue-accent-color-accent-for-the-fill-so-the-progress-is-visible",
-      "title": "Update the username input progress bar to use the blue accent color (--accent) for the fill so the progress is visible",
+      "id": "AR-1",
+      "summary": "Hide Creator message in rooms without media",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Modify the room card display logic to only show the Creator message for rooms that were created with media (image, video, or X post). Rooms created without any media should not display the Creator message at all.",
       "reqIds": [
         "REQ-1"
       ],
-      "version": 1
-    },
-    {
-      "id": "feature-update-the-room-title-input-progress-bar-to-use-the-blue-accent-color-accent-for-the-fill-so-the-progress-is-visible",
-      "title": "Update the room title input progress bar to use the blue accent color (--accent) for the fill so the progress is visible",
-      "reqIds": [
-        "REQ-2"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-show-the-username-input-progress-bar-indicator-only-when-the-user-is-actively-typing-in-the-username-field-on-focus-input-activity",
-      "title": "Show the username input progress bar indicator only when the user is actively typing in the username field (on focus/input activity)",
-      "reqIds": [
-        "REQ-3"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-show-the-room-title-input-progress-bar-indicator-only-when-the-user-is-actively-typing-in-the-room-title-field-on-focus-input-activity",
-      "title": "Show the room title input progress bar indicator only when the user is actively typing in the room title field (on focus/input activity)",
-      "reqIds": [
-        "REQ-4"
-      ],
-      "version": 1
+      "status": "pending"
     }
   ],
-  "new_feature_requests": [],
-  "projectName": "Make progress bars visible with blue fill and show only when typing",
+  "projectName": "Hide Creator message in rooms without media",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

@@ -37,10 +37,19 @@ export default function ChatArea({ chatroomId, chatroom }: ChatAreaProps) {
     messagesEndRef.current?.scrollIntoView({ behavior });
   };
 
+  // Filter out Creator messages that don't have media
+  const filteredMessages = messages?.filter((message) => {
+    // If it's a Creator message without media, hide it
+    if (message.sender === 'Creator' && !message.mediaUrl) {
+      return false;
+    }
+    return true;
+  });
+
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
-    if (messages) {
-      const currentMessageCount = messages.length;
+    if (filteredMessages) {
+      const currentMessageCount = filteredMessages.length;
       const previousMessageCount = previousMessageCountRef.current;
       
       // If this is the first load or new messages arrived, scroll to bottom
@@ -50,7 +59,7 @@ export default function ChatArea({ chatroomId, chatroom }: ChatAreaProps) {
       
       previousMessageCountRef.current = currentMessageCount;
     }
-  }, [messages]);
+  }, [filteredMessages]);
 
   const handleSendMessage = async (content: string, mediaUrl?: string, mediaType?: string) => {
     if (!content.trim() && !mediaUrl) return;
@@ -104,7 +113,7 @@ export default function ChatArea({ chatroomId, chatroom }: ChatAreaProps) {
   };
 
   // Find pinned video message
-  const pinnedVideoMessage = messages?.find(
+  const pinnedVideoMessage = filteredMessages?.find(
     (msg) => chatroom.pinnedVideoId && msg.id === chatroom.pinnedVideoId
   );
 
@@ -219,8 +228,8 @@ export default function ChatArea({ chatroomId, chatroom }: ChatAreaProps) {
         className="flex-1 min-h-0 overflow-y-auto px-4 py-4"
       >
         <div className="mx-auto max-w-3xl space-y-4">
-          {messages && messages.length > 0 ? (
-            messages.map((message) => (
+          {filteredMessages && filteredMessages.length > 0 ? (
+            filteredMessages.map((message) => (
               <div
                 key={message.id.toString()}
                 ref={(el) => {
@@ -238,7 +247,7 @@ export default function ChatArea({ chatroomId, chatroom }: ChatAreaProps) {
                   isPinned={chatroom.pinnedVideoId === message.id}
                   onReply={handleReply}
                   onScrollToMessage={handleScrollToMessage}
-                  allMessages={messages}
+                  allMessages={filteredMessages}
                   isHighlighted={highlightedMessageId === message.id}
                 />
               </div>

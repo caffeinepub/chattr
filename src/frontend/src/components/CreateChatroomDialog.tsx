@@ -373,9 +373,9 @@ export default function CreateChatroomDialog({ open, onOpenChange }: CreateChatr
               style={{ fontSize: '16px' }}
             />
             {isTopicFocused && (
-              <div className="h-1 w-full bg-muted rounded-full overflow-hidden">
+              <div className="h-1 w-full bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                 <div 
-                  className="h-full bg-accent transition-all duration-200"
+                  className="h-full bg-primary transition-all duration-200"
                   style={{ width: `${topicProgressPercentage}%` }}
                 />
               </div>
@@ -398,9 +398,9 @@ export default function CreateChatroomDialog({ open, onOpenChange }: CreateChatr
               style={{ fontSize: '16px' }}
             />
             {isDescriptionFocused && (
-              <div className="h-1 w-full bg-muted rounded-full overflow-hidden">
+              <div className="h-1 w-full bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                 <div 
-                  className="h-full bg-accent transition-all duration-200"
+                  className="h-full bg-primary transition-all duration-200"
                   style={{ width: `${descriptionProgressPercentage}%` }}
                 />
               </div>
@@ -424,38 +424,39 @@ export default function CreateChatroomDialog({ open, onOpenChange }: CreateChatr
           </div>
 
           <div className="space-y-2">
-            <Label>Media Content (Optional)</Label>
-            <Tabs value={mediaTab} onValueChange={(v) => setMediaTab(v as any)}>
+            <Label>Media (Optional)</Label>
+            <Tabs value={mediaTab} onValueChange={(value) => setMediaTab(value as 'upload' | 'video' | 'twitter')}>
               <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="upload" disabled={isSubmitting}>
-                  <Upload className="mr-1 h-3 w-3" />
+                <TabsTrigger value="upload">
+                  <Upload className="h-4 w-4 mr-2" />
                   Image
                 </TabsTrigger>
-                <TabsTrigger value="video" disabled={isSubmitting}>
-                  <Video className="mr-1 h-3 w-3" />
+                <TabsTrigger value="video">
+                  <Video className="h-4 w-4 mr-2" />
                   Video
                 </TabsTrigger>
-                <TabsTrigger value="twitter" disabled={isSubmitting}>
-                  <SiX className="mr-1 h-3 w-3" />
+                <TabsTrigger value="twitter">
+                  <SiX className="h-4 w-4 mr-2" />
                   Twitter
                 </TabsTrigger>
               </TabsList>
 
-              <TabsContent value="upload" className="space-y-3">
-                <div className="space-y-2">
+              <TabsContent value="upload" className="space-y-2">
+                <div className="flex items-center gap-2">
                   <Input
                     type="file"
                     accept="image/*"
                     onChange={handleFileChange}
                     disabled={isSubmitting}
-                    className="cursor-pointer"
+                    className="flex-1"
+                    style={{ fontSize: '16px' }}
                   />
-                  {selectedFile && (
-                    <p className="text-sm text-muted-foreground">
-                      Selected: {selectedFile.name}
-                    </p>
-                  )}
                 </div>
+                {selectedFile && (
+                  <div className="text-sm text-muted-foreground">
+                    Selected: {selectedFile.name}
+                  </div>
+                )}
                 {isUploading && (
                   <div className="space-y-2">
                     <Progress value={uploadProgress} />
@@ -466,40 +467,36 @@ export default function CreateChatroomDialog({ open, onOpenChange }: CreateChatr
                 )}
               </TabsContent>
 
-              <TabsContent value="video" className="space-y-3">
-                <div className="space-y-2">
-                  <Input
-                    value={mediaUrl}
-                    onChange={(e) => handleMediaUrlChange(e.target.value)}
-                    placeholder="Paste YouTube or Twitch URL"
-                    disabled={isSubmitting}
-                    style={{ fontSize: '16px' }}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Supports YouTube and Twitch videos
-                  </p>
-                </div>
+              <TabsContent value="video" className="space-y-2">
+                <Input
+                  value={mediaUrl}
+                  onChange={(e) => handleMediaUrlChange(e.target.value)}
+                  placeholder="Paste YouTube or Twitch URL"
+                  disabled={isSubmitting}
+                  style={{ fontSize: '16px' }}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Supports YouTube and Twitch videos
+                </p>
               </TabsContent>
 
-              <TabsContent value="twitter" className="space-y-3">
-                <div className="space-y-2">
-                  <Input
-                    value={mediaUrl}
-                    onChange={(e) => handleMediaUrlChange(e.target.value)}
-                    placeholder="Paste Twitter/X post URL"
-                    disabled={isSubmitting}
-                    style={{ fontSize: '16px' }}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Paste a link to a Twitter/X post
-                  </p>
-                </div>
+              <TabsContent value="twitter" className="space-y-2">
+                <Input
+                  value={mediaUrl}
+                  onChange={(e) => handleMediaUrlChange(e.target.value)}
+                  placeholder="Paste Twitter/X post URL"
+                  disabled={isSubmitting}
+                  style={{ fontSize: '16px' }}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Paste a link to a Twitter/X post
+                </p>
                 {tweetLoading && (
                   <div className="flex items-center justify-center py-4">
                     <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                   </div>
                 )}
-                <div ref={tweetPreviewRef} className="flex justify-center" />
+                <div ref={tweetPreviewRef} className="mt-2" />
               </TabsContent>
             </Tabs>
           </div>

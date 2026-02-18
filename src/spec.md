@@ -1,12 +1,11 @@
 # Specification
 
 ## Summary
-**Goal:** Make progress bars visible and show only during active typing.
+**Goal:** Conditionally display the Creator message on room cards only when the room was created with media attachments.
 
 **Planned changes:**
-- Change username input progress bar fill to use blue accent color (--accent)
-- Change room title input progress bar fill to use blue accent color (--accent)
-- Show username progress bar only when user is typing in the username field
-- Show room title progress bar only when user is typing in the room title field
+- Update room card display logic to check if a room has media (image, video, or X post)
+- Hide the Creator message for rooms created without any media
+- Keep the Creator message visible for rooms with media attachments
 
-**User-visible outcome:** Users will see blue progress bars that appear only when typing in username or room title inputs, making character limit feedback clearer and less cluttered.
+**User-visible outcome:** Room cards will show the Creator message only for rooms that include media content, creating a cleaner interface for text-only rooms.

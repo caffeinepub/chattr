@@ -1,69 +1,32 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-18T20:38:16.517Z",
+  "generatedAt": "2026-02-18T21:16:19.893Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 4,
-    "implemented": 4,
+    "total": 1,
+    "implemented": 0,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Update the username input progress bar to use the blue accent color (--accent) for the fill so the progress is visible",
-        "status": "implemented",
+        "summary": "Modify the room card display logic to only show the Creator message for rooms that were created with media (image, video, or X post). Rooms created without any media should not display the Creator message at all.",
+        "status": "missing",
         "plannedFiles": [
-          "frontend/src/components/Header.tsx"
+          "frontend/src/components/ChatroomCard.tsx"
         ],
-        "matchedFiles": [
-          "frontend/src/components/Header.tsx"
-        ]
-      },
-      {
-        "id": "REQ-2",
-        "summary": "Update the room title input progress bar to use the blue accent color (--accent) for the fill so the progress is visible",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/CreateChatroomDialog.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/CreateChatroomDialog.tsx"
-        ]
-      },
-      {
-        "id": "REQ-3",
-        "summary": "Show the username input progress bar indicator only when the user is actively typing in the username field (on focus/input activity)",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/Header.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/Header.tsx"
-        ]
-      },
-      {
-        "id": "REQ-4",
-        "summary": "Show the room title input progress bar indicator only when the user is actively typing in the room title field (on focus/input activity)",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/CreateChatroomDialog.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/CreateChatroomDialog.tsx"
-        ]
+        "matchedFiles": []
       }
     ]
   },
   "changedFiles": [
     "build-request.json",
-    "caffeine.lock.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/components/CreateChatroomDialog.tsx",
-    "frontend/src/components/Header.tsx",
+    "frontend/src/components/ChatArea.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

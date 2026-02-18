@@ -1,67 +1,22 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Make progress bars visible with blue fill and show only when typing",
+  "title": "Hide Creator Message in Rooms Without Media",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Update the username input progress bar to use the blue accent color (--accent) for the fill so the progress is visible",
+      "summary": "Conditionally display Creator message in room cards only when media is present",
       "acceptanceCriteria": [
-        "The username progress bar fill uses the blue accent color defined in the theme",
-        "The fill is visibly distinct from the background when progress increases"
+        "Rooms created with images display the Creator message",
+        "Rooms created with videos display the Creator message",
+        "Rooms created with X posts display the Creator message",
+        "Rooms created without any media do not display the Creator message"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/Header.tsx",
+          "path": "frontend/src/components/ChatroomCard.tsx",
           "operation": "modify",
-          "description": "Update the username progress bar styling to use the --accent CSS variable (blue) for the fill color instead of the current gray color. Locate the progress bar element (div with h-1 height) and change its background color from bg-gray-300 to use the accent color via style prop or Tailwind class that references --accent."
-        }
-      ]
-    },
-    {
-      "id": "REQ-2",
-      "summary": "Update the room title input progress bar to use the blue accent color (--accent) for the fill so the progress is visible",
-      "acceptanceCriteria": [
-        "The room title progress bar fill uses the blue accent color defined in the theme",
-        "The fill is visibly distinct from the background when progress increases"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/CreateChatroomDialog.tsx",
-          "operation": "modify",
-          "description": "Update the room title progress bar styling to use the --accent CSS variable (blue) for the fill color instead of the current gray color. Locate the progress bar element (div with h-1 height) and change its background color from bg-gray-300 to use the accent color via style prop or Tailwind class that references --accent."
-        }
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "summary": "Show the username input progress bar indicator only when the user is actively typing in the username field (on focus/input activity)",
-      "acceptanceCriteria": [
-        "Progress bar is hidden by default when the username input is not focused",
-        "Progress bar becomes visible when the user focuses or types in the username input",
-        "Progress bar hides again when the input loses focus"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/Header.tsx",
-          "operation": "modify",
-          "description": "Add state to track whether the username input is focused (e.g., useState for isUsernameFocused). Add onFocus and onBlur event handlers to the username input that set this state to true/false. Conditionally render the progress bar container based on this focus state, so it only appears when the input has focus."
-        }
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "summary": "Show the room title input progress bar indicator only when the user is actively typing in the room title field (on focus/input activity)",
-      "acceptanceCriteria": [
-        "Progress bar is hidden by default when the room title input is not focused",
-        "Progress bar becomes visible when the user focuses or types in the room title input",
-        "Progress bar hides again when the input loses focus"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/CreateChatroomDialog.tsx",
-          "operation": "modify",
-          "description": "Add state to track whether the room title input is focused (e.g., useState for isTitleFocused). Add onFocus and onBlur event handlers to the room title input that set this state to true/false. Conditionally render the progress bar container based on this focus state, so it only appears when the input has focus."
+          "description": "Update the ChatroomCard component to conditionally render the Creator message section based on the presence of mediaUrl and mediaType. Add a check that evaluates whether the room has associated media (image, video, or X post) before rendering the Creator message element. The mediaUrl and mediaType fields from LobbyChatroomCard are already available in the component props and can be used to determine if media exists. Keep all existing thumbnail preview logic, live status indicators, participant counts, and timestamp formatting unchanged."
         }
       ]
     }

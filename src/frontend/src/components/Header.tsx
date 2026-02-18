@@ -112,9 +112,9 @@ export default function Header() {
                     style={{ fontSize: '16px' }}
                   />
                   {isUsernameFocused && (
-                    <div className="h-1 w-full bg-muted rounded-full overflow-hidden">
+                    <div className="h-1 w-full bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                       <div 
-                        className="h-full bg-accent transition-all duration-200"
+                        className="h-full bg-primary transition-all duration-200"
                         style={{ width: `${progressPercentage}%` }}
                       />
                     </div>

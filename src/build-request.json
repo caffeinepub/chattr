@@ -1,87 +1,36 @@
 {
   "kind": "build_request",
-  "title": "Make progress bars visible with blue fill and show only when typing",
+  "title": "Hide Creator message in rooms without media",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Update the username input progress bar to use the blue accent color (--accent) for the fill so the progress is visible",
+      "text": "Modify the room card display logic to only show the Creator message for rooms that were created with media (image, video, or X post). Rooms created without any media should not display the Creator message at all.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-last"
+          "msg-5",
+          "msg-6",
+          "msg-7"
         ],
         "quotes": [
-          "the progress bar fill color needs to be the accent color (blue) thats why its not working"
+          "can we make it so rooms without media dont display the Creator message at all",
+          "only show the creator message with rooms that were created with media"
         ]
       },
       "acceptanceCriteria": [
-        "The username progress bar fill uses the blue accent color defined in the theme",
-        "The fill is visibly distinct from the background when progress increases"
-      ]
-    },
-    {
-      "id": "REQ-2",
-      "text": "Update the room title input progress bar to use the blue accent color (--accent) for the fill so the progress is visible",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-last"
-        ],
-        "quotes": [
-          "the progress bar fill color needs to be the accent color (blue) thats why its not working"
-        ]
-      },
-      "acceptanceCriteria": [
-        "The room title progress bar fill uses the blue accent color defined in the theme",
-        "The fill is visibly distinct from the background when progress increases"
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "text": "Show the username input progress bar indicator only when the user is actively typing in the username field (on focus/input activity)",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-last"
-        ],
-        "quotes": [
-          "make the progress bar indicators only visible when being typed in"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Progress bar is hidden by default when the username input is not focused",
-        "Progress bar becomes visible when the user focuses or types in the username input",
-        "Progress bar hides again when the input loses focus"
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "text": "Show the room title input progress bar indicator only when the user is actively typing in the room title field (on focus/input activity)",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-last"
-        ],
-        "quotes": [
-          "make the progress bar indicators only visible when being typed in"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Progress bar is hidden by default when the room title input is not focused",
-        "Progress bar becomes visible when the user focuses or types in the room title input",
-        "Progress bar hides again when the input loses focus"
+        "Rooms created with images display the Creator message",
+        "Rooms created with videos display the Creator message",
+        "Rooms created with X posts display the Creator message",
+        "Rooms created without any media do not display the Creator message"
       ]
     }
   ],
-  "constraints": [
-    "Do not change the character limit logic or calculations",
-    "Maintain existing progress bar positioning and layout"
-  ],
+  "constraints": [],
   "nonGoals": [
-    "Changing the character limits for username or room title",
-    "Adding progress bars to other input fields",
-    "Modifying the Header logo or username button appearance"
+    "Changing the Creator message content or styling",
+    "Modifying how media is uploaded or stored",
+    "Altering the backend data model for rooms"
   ],
   "imageRequirements": {
     "required": [],
