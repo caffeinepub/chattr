@@ -2,10 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-ensure-the-frontend-continues-to-gate-admin-delete-chatrooms-behind-the-existing-password-prompt-ui-and-does-not-introduce-any-new-authentication-authorization-prompts-for-regular-non-admin-actions-across-the-app",
-      "featureTitle": "Ensure the frontend continues to gate `/admin/delete-chatrooms` behind the existing password prompt UI and does not introduce any new authentication/authorization prompts for regular (non-admin) actions across the app.",
+      "featureId": "feature-update-profilesetupmodal-component-to-calculate-character-count-percentage-directly-during-render-instead-of-using-useeffect-ensuring-the-progress-bar-for-username-input-updates-instantly-as-the-user-types",
+      "featureTitle": "Update ProfileSetupModal component to calculate character count percentage directly during render instead of using useEffect, ensuring the progress bar for username input updates instantly as the user types",
       "files": [
-        "frontend/src/pages/AdminDeleteChatroomsPage.tsx"
+        "frontend/src/components/ProfileSetupModal.tsx"
       ],
       "components": [
         "authorization@1.0.1",
@@ -18,7 +18,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-16"
+        "REQ-2"
       ],
       "confidence": "high"
     }

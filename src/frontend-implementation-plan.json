@@ -1,31 +1,69 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Keep admin delete page password-gated without adding new auth prompts",
+  "title": "Fix character count progress bars to update instantly on typing",
   "requirements": [
     {
-      "id": "REQ-16",
-      "summary": "Ensure /admin/delete-chatrooms remains gated by the existing sessionStorage password prompt and keep the rest of the app free of new auth/role prompts.",
+      "id": "REQ-1",
+      "summary": "Update CreateChatroomDialog component to calculate character count percentage directly during render instead of using useEffect, ensuring the progress bar for topic input updates instantly as the user types",
       "acceptanceCriteria": [
-        "Navigating to the admin delete chatrooms page shows the password prompt when not authenticated in sessionStorage, and only shows management UI after successful password entry.",
-        "Creating chatrooms, viewing chatrooms, sending messages, reactions, and other regular interactions do not require login or role checks in the UI.",
-        "All user-facing text remains in English."
+        "Topic input progress bar fills immediately on each keystroke",
+        "No delay between typing and progress bar update",
+        "Percentage calculation happens inline in the render, not in useEffect"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/AdminDeleteChatroomsPage.tsx",
+          "path": "frontend/src/components/CreateChatroomDialog.tsx",
           "operation": "modify",
-          "description": "Preserve and harden the existing password-prompt gating (sessionStorage-based) so the admin management UI only renders after successful password entry, and ensure all user-facing copy remains English."
-        },
+          "description": "Remove useEffect that sets topicPercentage state and calculate topicPercentage inline during render as (topic.length / TOPIC_LIMIT) * 100. Remove topicPercentage state variable. Update the progress bar to use the calculated value directly."
+        }
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "summary": "Update ProfileSetupModal component to calculate character count percentage directly during render instead of using useEffect, ensuring the progress bar for username input updates instantly as the user types",
+      "acceptanceCriteria": [
+        "Username input progress bar fills immediately on each keystroke",
+        "No delay between typing and progress bar update",
+        "Percentage calculation happens inline in the render, not in useEffect"
+      ],
+      "file_operations": [
         {
-          "path": "frontend/src/hooks/useQueries.ts",
+          "path": "frontend/src/components/ProfileSetupModal.tsx",
           "operation": "modify",
-          "description": "Audit and adjust user-facing error handling for non-admin actions to avoid introducing any new login/role/permission prompts in the UI (keep messages generic and English)."
-        },
+          "description": "Implement the ProfileSetupModal component with username input and character count progress bar. Calculate username percentage inline during render as (username.length / USERNAME_LIMIT) * 100 without using useEffect. Include avatar selection functionality and profile saving."
+        }
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "summary": "Update MessageInput component to calculate character count percentage directly during render instead of using useEffect, ensuring the progress bar for message text input updates instantly as the user types",
+      "acceptanceCriteria": [
+        "Message text input progress bar fills immediately on each keystroke",
+        "No delay between typing and progress bar update",
+        "Percentage calculation happens inline in the render, not in useEffect"
+      ],
+      "file_operations": [
         {
-          "path": "frontend/src/App.tsx",
+          "path": "frontend/src/components/MessageInput.tsx",
           "operation": "modify",
-          "description": "Confirm the /admin/delete-chatrooms route remains wired to the existing AdminDeleteChatroomsPage password-gated flow and that no additional auth guard screens are introduced for non-admin routes."
+          "description": "Remove useEffect that sets messagePercentage state and calculate messagePercentage inline during render as (text.length / MESSAGE_LIMIT) * 100. Remove messagePercentage state variable. Update the progress bar to use the calculated value directly."
+        }
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "summary": "Update ChatroomCard component to calculate character count percentage directly during render instead of using useEffect, ensuring any progress bar displays update instantly when relevant data changes",
+      "acceptanceCriteria": [
+        "Any progress bars in ChatroomCard update immediately when data changes",
+        "No delay between data updates and progress bar rendering",
+        "Percentage calculation happens inline in the render, not in useEffect"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/ChatroomCard.tsx",
+          "operation": "modify",
+          "description": "Review the component for any character count progress bars or percentage calculations using useEffect. If found, remove the useEffect and calculate percentages inline during render. If no progress bars exist in this component, add a comment documenting that no progress bars are present and the requirement is satisfied by design."
         }
       ]
     }
