@@ -1,73 +1,46 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 5,
-  "summary": "Update backend to make the site fully anonymous by ensuring all non-admin actions succeed regardless of AccessControl authorization checks, while keeping the admin page password-protected.",
-  "architectural_notes": [
-    "Current backend getChatrooms() logic strips media URLs containing \"data:\" (sets mediaUrl to null), preventing lobby thumbnails for image rooms.",
-    "Decision: keep admin page password protection, but bypass/neutralize all other AccessControl-based authorization checks across backend functions (actions always allowed)."
-  ],
-  "known_issues": [
-    "Lobby thumbnails for image posts/rooms are not displayed because backend removes data: image URLs in getChatrooms().",
-    "Build attempts to implement bypassing authorization checks failed with 'AI struggled with your request' (deployment/build did not complete)."
-  ],
-  "isFixRequest": false,
+  "projectStateVersion": 3,
+  "summary": "New project",
+  "architectural_notes": [],
+  "known_issues": [],
+  "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-ensure-the-frontend-continues-to-gate-admin-delete-chatrooms-behind-the-existing-password-prompt-ui-and-does-not-introduce-any-new-authentication-authorization-prompts-for-regular-non-admin-actions-across-the-app",
-      "title": "Ensure the frontend continues to gate `/admin/delete-chatrooms` behind the existing password prompt UI and does not introduce any new authentication/authorization prompts for regular (non-admin) actions across the app.",
+      "id": "feature-update-the-username-input-progress-bar-to-use-the-blue-accent-color-accent-for-the-fill-so-the-progress-is-visible",
+      "title": "Update the username input progress bar to use the blue accent color (--accent) for the fill so the progress is visible",
       "reqIds": [
-        "REQ-16"
+        "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-room-title-input-progress-bar-to-use-the-blue-accent-color-accent-for-the-fill-so-the-progress-is-visible",
+      "title": "Update the room title input progress bar to use the blue accent color (--accent) for the fill so the progress is visible",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-show-the-username-input-progress-bar-indicator-only-when-the-user-is-actively-typing-in-the-username-field-on-focus-input-activity",
+      "title": "Show the username input progress bar indicator only when the user is actively typing in the username field (on focus/input activity)",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-show-the-room-title-input-progress-bar-indicator-only-when-the-user-is-actively-typing-in-the-room-title-field-on-focus-input-activity",
+      "title": "Show the room title input progress bar indicator only when the user is actively typing in the room title field (on focus/input activity)",
+      "reqIds": [
+        "REQ-4"
       ],
       "version": 1
     }
   ],
-  "new_feature_requests": [
-    {
-      "id": "AR-1",
-      "summary": "Surgical fix: allow data: image URLs through getChatrooms() so lobby thumbnails display for image posts/rooms",
-      "reqIds": [],
-      "status": "in_progress"
-    },
-    {
-      "id": "AR-2",
-      "summary": "Modify ONLY `backend/main.mo` inside the body of `public query func getChatrooms() : async [ChatroomWithLiveStatus]` so that it no longer replaces `chatroom.mediaUrl` with `null` when the URL contains the substring `\"data:\"`; instead, return the stored `chatroom.mediaUrl` unchanged so image rooms using `data:` URLs can display thumbnails in the lobby.",
-      "reqIds": [
-        "REQ-12"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": "AR-3",
-      "summary": "Make all backend functions allow actions regardless of AccessControl/caller authorization checks (treat checks as always-allow), while keeping only the admin page password protection.",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-4",
-      "summary": "Modify ONLY `backend/main.mo` inside the body of `public query func getChatrooms() : async [ChatroomWithLiveStatus]` so that it no longer replaces `chatroom.mediaUrl` with `null` when the URL contains the substring `\"data:\"`; instead, return the stored `chatroom.mediaUrl` unchanged so image rooms using `data:` URLs can display thumbnails in the lobby.",
-      "reqIds": [
-        "REQ-13"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": "AR-5",
-      "summary": "Update `backend/main.mo` so that all non-admin operations succeed regardless of AccessControl/caller authorization checks (treat checks as always-allow), by removing or bypassing any `AccessControl.hasPermission(...)`, `AccessControl.isAdmin(...)`, or related authorization logic that currently traps/blocks these operations.",
-      "reqIds": [
-        "REQ-14"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": "AR-6",
-      "summary": "Keep the admin delete functionality password-protected by enforcing the admin password in `backend/main.mo` `deleteChatroomWithPassword(chatroomId, password)` using the same password currently used by the frontend (`lunasimbaliamsammy1987!`), and remove/bypass any AccessControl-based admin check inside that backend method.",
-      "reqIds": [
-        "REQ-15"
-      ],
-      "status": "pending"
-    }
-  ],
-  "projectName": "Caffeine Chats",
+  "new_feature_requests": [],
+  "projectName": "Make progress bars visible with blue fill and show only when typing",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

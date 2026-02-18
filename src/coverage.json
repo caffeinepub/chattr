@@ -1,60 +1,69 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-17T16:01:33.723Z",
+  "generatedAt": "2026-02-18T20:38:16.517Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
     "total": 4,
-    "implemented": 1,
+    "implemented": 4,
     "items": [
       {
-        "id": "REQ-13",
-        "summary": "Modify ONLY `backend/main.mo` inside the body of `public query func getChatrooms() : async [ChatroomWithLiveStatus]` so that it no longer replaces `chatroom.mediaUrl` with `null` when the URL contains the substring `\"data:\"`; instead, return the stored `chatroom.mediaUrl` unchanged so image rooms using `data:` URLs can display thumbnails in the lobby.",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-14",
-        "summary": "Update `backend/main.mo` so that all non-admin operations succeed regardless of AccessControl/caller authorization checks (treat checks as always-allow), by removing or bypassing any `AccessControl.hasPermission(...)`, `AccessControl.isAdmin(...)`, or related authorization logic that currently traps/blocks these operations.",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-15",
-        "summary": "Keep the admin delete functionality password-protected by enforcing the admin password in `backend/main.mo` `deleteChatroomWithPassword(chatroomId, password)` using the same password currently used by the frontend (`lunasimbaliamsammy1987!`), and remove/bypass any AccessControl-based admin check inside that backend method.",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-16",
-        "summary": "Ensure the frontend continues to gate `/admin/delete-chatrooms` behind the existing password prompt UI and does not introduce any new authentication/authorization prompts for regular (non-admin) actions across the app.",
+        "id": "REQ-1",
+        "summary": "Update the username input progress bar to use the blue accent color (--accent) for the fill so the progress is visible",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/pages/AdminDeleteChatroomsPage.tsx",
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/App.tsx"
+          "frontend/src/components/Header.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/pages/AdminDeleteChatroomsPage.tsx"
+          "frontend/src/components/Header.tsx"
+        ]
+      },
+      {
+        "id": "REQ-2",
+        "summary": "Update the room title input progress bar to use the blue accent color (--accent) for the fill so the progress is visible",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/CreateChatroomDialog.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/CreateChatroomDialog.tsx"
+        ]
+      },
+      {
+        "id": "REQ-3",
+        "summary": "Show the username input progress bar indicator only when the user is actively typing in the username field (on focus/input activity)",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/Header.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/Header.tsx"
+        ]
+      },
+      {
+        "id": "REQ-4",
+        "summary": "Show the room title input progress bar indicator only when the user is actively typing in the room title field (on focus/input activity)",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/CreateChatroomDialog.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/CreateChatroomDialog.tsx"
         ]
       }
     ]
   },
   "changedFiles": [
-    "backend/main.mo",
     "build-request.json",
+    "caffeine.lock.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/backend.d.ts",
-    "frontend/src/backend.ts",
-    "frontend/src/pages/AdminDeleteChatroomsPage.tsx",
+    "frontend/src/components/CreateChatroomDialog.tsx",
+    "frontend/src/components/Header.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

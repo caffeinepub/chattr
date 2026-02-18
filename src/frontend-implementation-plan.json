@@ -1,31 +1,67 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Keep admin delete page password-gated without adding new auth prompts",
+  "title": "Make progress bars visible with blue fill and show only when typing",
   "requirements": [
     {
-      "id": "REQ-16",
-      "summary": "Ensure /admin/delete-chatrooms remains gated by the existing sessionStorage password prompt and keep the rest of the app free of new auth/role prompts.",
+      "id": "REQ-1",
+      "summary": "Update the username input progress bar to use the blue accent color (--accent) for the fill so the progress is visible",
       "acceptanceCriteria": [
-        "Navigating to the admin delete chatrooms page shows the password prompt when not authenticated in sessionStorage, and only shows management UI after successful password entry.",
-        "Creating chatrooms, viewing chatrooms, sending messages, reactions, and other regular interactions do not require login or role checks in the UI.",
-        "All user-facing text remains in English."
+        "The username progress bar fill uses the blue accent color defined in the theme",
+        "The fill is visibly distinct from the background when progress increases"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/AdminDeleteChatroomsPage.tsx",
+          "path": "frontend/src/components/Header.tsx",
           "operation": "modify",
-          "description": "Preserve and harden the existing password-prompt gating (sessionStorage-based) so the admin management UI only renders after successful password entry, and ensure all user-facing copy remains English."
-        },
+          "description": "Update the username progress bar styling to use the --accent CSS variable (blue) for the fill color instead of the current gray color. Locate the progress bar element (div with h-1 height) and change its background color from bg-gray-300 to use the accent color via style prop or Tailwind class that references --accent."
+        }
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "summary": "Update the room title input progress bar to use the blue accent color (--accent) for the fill so the progress is visible",
+      "acceptanceCriteria": [
+        "The room title progress bar fill uses the blue accent color defined in the theme",
+        "The fill is visibly distinct from the background when progress increases"
+      ],
+      "file_operations": [
         {
-          "path": "frontend/src/hooks/useQueries.ts",
+          "path": "frontend/src/components/CreateChatroomDialog.tsx",
           "operation": "modify",
-          "description": "Audit and adjust user-facing error handling for non-admin actions to avoid introducing any new login/role/permission prompts in the UI (keep messages generic and English)."
-        },
+          "description": "Update the room title progress bar styling to use the --accent CSS variable (blue) for the fill color instead of the current gray color. Locate the progress bar element (div with h-1 height) and change its background color from bg-gray-300 to use the accent color via style prop or Tailwind class that references --accent."
+        }
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "summary": "Show the username input progress bar indicator only when the user is actively typing in the username field (on focus/input activity)",
+      "acceptanceCriteria": [
+        "Progress bar is hidden by default when the username input is not focused",
+        "Progress bar becomes visible when the user focuses or types in the username input",
+        "Progress bar hides again when the input loses focus"
+      ],
+      "file_operations": [
         {
-          "path": "frontend/src/App.tsx",
+          "path": "frontend/src/components/Header.tsx",
           "operation": "modify",
-          "description": "Confirm the /admin/delete-chatrooms route remains wired to the existing AdminDeleteChatroomsPage password-gated flow and that no additional auth guard screens are introduced for non-admin routes."
+          "description": "Add state to track whether the username input is focused (e.g., useState for isUsernameFocused). Add onFocus and onBlur event handlers to the username input that set this state to true/false. Conditionally render the progress bar container based on this focus state, so it only appears when the input has focus."
+        }
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "summary": "Show the room title input progress bar indicator only when the user is actively typing in the room title field (on focus/input activity)",
+      "acceptanceCriteria": [
+        "Progress bar is hidden by default when the room title input is not focused",
+        "Progress bar becomes visible when the user focuses or types in the room title input",
+        "Progress bar hides again when the input loses focus"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/CreateChatroomDialog.tsx",
+          "operation": "modify",
+          "description": "Add state to track whether the room title input is focused (e.g., useState for isTitleFocused). Add onFocus and onBlur event handlers to the room title input that set this state to true/false. Conditionally render the progress bar container based on this focus state, so it only appears when the input has focus."
         }
       ]
     }

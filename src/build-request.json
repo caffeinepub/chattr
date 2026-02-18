@@ -1,90 +1,87 @@
 {
   "kind": "build_request",
-  "title": "Bypass backend authorization checks while keeping admin password protection; allow data: media URLs in getChatrooms",
-  "projectName": "Caffeine Chats",
+  "title": "Make progress bars visible with blue fill and show only when typing",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-13",
-      "text": "Modify ONLY `backend/main.mo` inside the body of `public query func getChatrooms() : async [ChatroomWithLiveStatus]` so that it no longer replaces `chatroom.mediaUrl` with `null` when the URL contains the substring `\"data:\"`; instead, return the stored `chatroom.mediaUrl` unchanged so image rooms using `data:` URLs can display thumbnails in the lobby.",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "Modify ONLY `backend/main.mo` inside the body of `public query func getChatrooms() : async [ChatroomWithLiveStatus]` so that it no longer replaces `chatroom.mediaUrl` with `null` when the URL contains the substring `\"data:\"`; instead, return the stored `chatroom.mediaUrl` unchanged so image rooms using `data:` URLs can display thumbnails in the lobby."
-        ]
-      },
-      "acceptanceCriteria": [
-        "In `backend/main.mo`, the implementation of `getChatrooms()` returns each chatroom's `mediaUrl` exactly as stored (including when it contains `\"data:\"`).",
-        "Lobby thumbnail rendering works for chatrooms whose stored `mediaUrl` is a `data:` URL (no longer stripped/blanked by `getChatrooms()`)."
-      ]
-    },
-    {
-      "id": "REQ-14",
-      "text": "Update `backend/main.mo` so that all non-admin operations succeed regardless of AccessControl/caller authorization checks (treat checks as always-allow), by removing or bypassing any `AccessControl.hasPermission(...)`, `AccessControl.isAdmin(...)`, or related authorization logic that currently traps/blocks these operations.",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-2"
-        ],
-        "quotes": [
-          "Would it be easier if instead of removing the access control checks we simply allow the action anyway?"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Calls to non-admin backend operations (e.g., creating chatrooms, sending messages, saving/fetching the caller profile, adding reactions, etc.) no longer trap with \"Unauthorized\" due to AccessControl checks.",
-        "These operations work for any caller principal without requiring roles to be initialized or assigned in AccessControl.",
-        "No user-facing error messages mention missing roles/permissions for non-admin actions."
-      ]
-    },
-    {
-      "id": "REQ-15",
-      "text": "Keep the admin delete functionality password-protected by enforcing the admin password in `backend/main.mo` `deleteChatroomWithPassword(chatroomId, password)` using the same password currently used by the frontend (`lunasimbaliamsammy1987!`), and remove/bypass any AccessControl-based admin check inside that backend method.",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-3"
-        ],
-        "quotes": [
-          "keep the admin password protection but remove all other authorization checks everywhere else"
-        ]
-      },
-      "acceptanceCriteria": [
-        "`deleteChatroomWithPassword` rejects/throws when `password` is incorrect, and proceeds when the password equals `lunasimbaliamsammy1987!`.",
-        "`deleteChatroomWithPassword` no longer traps/blocks based on `AccessControl.hasPermission(... #admin)` or any other AccessControl role check.",
-        "The existing frontend admin page flow (password prompt) remains effective: deletion succeeds only after entering the correct password."
-      ]
-    },
-    {
-      "id": "REQ-16",
-      "text": "Ensure the frontend continues to gate `/admin/delete-chatrooms` behind the existing password prompt UI and does not introduce any new authentication/authorization prompts for regular (non-admin) actions across the app.",
+      "id": "REQ-1",
+      "text": "Update the username input progress bar to use the blue accent color (--accent) for the fill so the progress is visible",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-4"
+          "msg-last"
         ],
         "quotes": [
-          "all access‑control checks will allow the action to proceed, while the admin page remains password‑protected."
+          "the progress bar fill color needs to be the accent color (blue) thats why its not working"
         ]
       },
       "acceptanceCriteria": [
-        "Navigating to the admin delete chatrooms page shows the password prompt when not authenticated in sessionStorage, and only shows management UI after successful password entry.",
-        "Creating chatrooms, viewing chatrooms, sending messages, reactions, and other regular interactions do not require login or role checks in the UI.",
-        "All user-facing text remains in English."
+        "The username progress bar fill uses the blue accent color defined in the theme",
+        "The fill is visibly distinct from the background when progress increases"
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "text": "Update the room title input progress bar to use the blue accent color (--accent) for the fill so the progress is visible",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-last"
+        ],
+        "quotes": [
+          "the progress bar fill color needs to be the accent color (blue) thats why its not working"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The room title progress bar fill uses the blue accent color defined in the theme",
+        "The fill is visibly distinct from the background when progress increases"
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Show the username input progress bar indicator only when the user is actively typing in the username field (on focus/input activity)",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-last"
+        ],
+        "quotes": [
+          "make the progress bar indicators only visible when being typed in"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Progress bar is hidden by default when the username input is not focused",
+        "Progress bar becomes visible when the user focuses or types in the username input",
+        "Progress bar hides again when the input loses focus"
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "Show the room title input progress bar indicator only when the user is actively typing in the room title field (on focus/input activity)",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-last"
+        ],
+        "quotes": [
+          "make the progress bar indicators only visible when being typed in"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Progress bar is hidden by default when the room title input is not focused",
+        "Progress bar becomes visible when the user focuses or types in the room title input",
+        "Progress bar hides again when the input loses focus"
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single-actor Motoko canister; keep all logic in `backend/main.mo`.",
-    "Do not edit any paths listed in `frontend.immutablePaths` (compose existing UI components instead).",
-    "For REQ-13, modify ONLY `backend/main.mo` within the body of `public query func getChatrooms()` as specified (no other edits for that particular fix)."
+    "Do not change the character limit logic or calculations",
+    "Maintain existing progress bar positioning and layout"
   ],
   "nonGoals": [
-    "Adding third-party authentication providers (only Internet Identity is supported, and no new auth is requested).",
-    "Introducing external databases or additional backend services.",
-    "Implementing real-time features (WebSockets/push notifications) or unrelated UI redesign."
+    "Changing the character limits for username or room title",
+    "Adding progress bars to other input fields",
+    "Modifying the Header logo or username button appearance"
   ],
   "imageRequirements": {
     "required": [],

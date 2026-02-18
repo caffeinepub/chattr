@@ -2,10 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-ensure-the-frontend-continues-to-gate-admin-delete-chatrooms-behind-the-existing-password-prompt-ui-and-does-not-introduce-any-new-authentication-authorization-prompts-for-regular-non-admin-actions-across-the-app",
-      "featureTitle": "Ensure the frontend continues to gate `/admin/delete-chatrooms` behind the existing password prompt UI and does not introduce any new authentication/authorization prompts for regular (non-admin) actions across the app.",
+      "featureId": "feature-update-the-username-input-progress-bar-to-use-the-blue-accent-color-accent-for-the-fill-so-the-progress-is-visible",
+      "featureTitle": "Update the username input progress bar to use the blue accent color (--accent) for the fill so the progress is visible",
       "files": [
-        "frontend/src/pages/AdminDeleteChatroomsPage.tsx"
+        "frontend/src/components/Header.tsx"
       ],
       "components": [
         "authorization@1.0.1",
@@ -18,7 +18,70 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-16"
+        "REQ-1"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-update-the-room-title-input-progress-bar-to-use-the-blue-accent-color-accent-for-the-fill-so-the-progress-is-visible",
+      "featureTitle": "Update the room title input progress bar to use the blue accent color (--accent) for the fill so the progress is visible",
+      "files": [
+        "frontend/src/components/CreateChatroomDialog.tsx"
+      ],
+      "components": [
+        "authorization@1.0.1",
+        "blob-storage@2.0.3",
+        "http-outcalls@1.1.1",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-2"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-show-the-username-input-progress-bar-indicator-only-when-the-user-is-actively-typing-in-the-username-field-on-focus-input-activity",
+      "featureTitle": "Show the username input progress bar indicator only when the user is actively typing in the username field (on focus/input activity)",
+      "files": [
+        "frontend/src/components/Header.tsx"
+      ],
+      "components": [
+        "authorization@1.0.1",
+        "blob-storage@2.0.3",
+        "http-outcalls@1.1.1",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-3"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-show-the-room-title-input-progress-bar-indicator-only-when-the-user-is-actively-typing-in-the-room-title-field-on-focus-input-activity",
+      "featureTitle": "Show the room title input progress bar indicator only when the user is actively typing in the room title field (on focus/input activity)",
+      "files": [
+        "frontend/src/components/CreateChatroomDialog.tsx"
+      ],
+      "components": [
+        "authorization@1.0.1",
+        "blob-storage@2.0.3",
+        "http-outcalls@1.1.1",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-4"
       ],
       "confidence": "high"
     }

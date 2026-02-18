@@ -101,6 +101,8 @@ export default function CreateChatroomDialog({ open, onOpenChange }: CreateChatr
   const [isUploading, setIsUploading] = useState(false);
   const [mediaTab, setMediaTab] = useState<'upload' | 'video' | 'twitter'>('upload');
   const [tweetLoading, setTweetLoading] = useState(false);
+  const [isTopicFocused, setIsTopicFocused] = useState(false);
+  const [isDescriptionFocused, setIsDescriptionFocused] = useState(false);
   const tweetPreviewRef = useRef<HTMLDivElement>(null);
   const createChatroom = useCreateChatroom();
 
@@ -308,6 +310,8 @@ export default function CreateChatroomDialog({ open, onOpenChange }: CreateChatr
     setMediaError('');
     setUploadProgress(0);
     setTweetLoading(false);
+    setIsTopicFocused(false);
+    setIsDescriptionFocused(false);
     if (tweetPreviewRef.current) {
       tweetPreviewRef.current.innerHTML = '';
     }
@@ -324,6 +328,8 @@ export default function CreateChatroomDialog({ open, onOpenChange }: CreateChatr
     setUploadProgress(0);
     setIsUploading(false);
     setTweetLoading(false);
+    setIsTopicFocused(false);
+    setIsDescriptionFocused(false);
     if (tweetPreviewRef.current) {
       tweetPreviewRef.current.innerHTML = '';
     }
@@ -337,6 +343,9 @@ export default function CreateChatroomDialog({ open, onOpenChange }: CreateChatr
     !mediaError;
 
   const isSubmitting = createChatroom.isPending || isUploading;
+
+  const topicProgressPercentage = (topic.length / 65) * 100;
+  const descriptionProgressPercentage = (description.length / 150) * 100;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -355,11 +364,22 @@ export default function CreateChatroomDialog({ open, onOpenChange }: CreateChatr
               id="topic"
               value={topic}
               onChange={(e) => setTopic(e.target.value)}
+              onFocus={() => setIsTopicFocused(true)}
+              onBlur={() => setIsTopicFocused(false)}
               placeholder="Enter chat topic"
               disabled={isSubmitting}
               required
+              maxLength={65}
               style={{ fontSize: '16px' }}
             />
+            {isTopicFocused && (
+              <div className="h-1 w-full bg-muted rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-accent transition-all duration-200"
+                  style={{ width: `${topicProgressPercentage}%` }}
+                />
+              </div>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -368,12 +388,23 @@ export default function CreateChatroomDialog({ open, onOpenChange }: CreateChatr
               id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
+              onFocus={() => setIsDescriptionFocused(true)}
+              onBlur={() => setIsDescriptionFocused(false)}
               placeholder="Describe what this chat is about"
               disabled={isSubmitting}
               required
+              maxLength={150}
               rows={3}
               style={{ fontSize: '16px' }}
             />
+            {isDescriptionFocused && (
+              <div className="h-1 w-full bg-muted rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-accent transition-all duration-200"
+                  style={{ width: `${descriptionProgressPercentage}%` }}
+                />
+              </div>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -410,77 +441,75 @@ export default function CreateChatroomDialog({ open, onOpenChange }: CreateChatr
                 </TabsTrigger>
               </TabsList>
 
-              <TabsContent value="upload" className="space-y-2">
-                <Input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileChange}
-                  disabled={isSubmitting}
-                  className="text-sm"
-                />
-                {selectedFile && (
-                  <p className="text-xs text-primary">
-                    Selected: {selectedFile.name}
-                  </p>
-                )}
+              <TabsContent value="upload" className="space-y-3">
+                <div className="space-y-2">
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    disabled={isSubmitting}
+                    className="cursor-pointer"
+                  />
+                  {selectedFile && (
+                    <p className="text-sm text-muted-foreground">
+                      Selected: {selectedFile.name}
+                    </p>
+                  )}
+                </div>
                 {isUploading && (
-                  <div className="space-y-1">
-                    <Progress value={uploadProgress} className="h-2" />
-                    <p className="text-xs text-muted-foreground text-center">
-                      {uploadProgress < 40 ? 'Compressing...' : 'Uploading...'} {Math.round(uploadProgress)}%
+                  <div className="space-y-2">
+                    <Progress value={uploadProgress} />
+                    <p className="text-sm text-muted-foreground text-center">
+                      Uploading... {uploadProgress}%
                     </p>
                   </div>
                 )}
               </TabsContent>
 
-              <TabsContent value="video" className="space-y-2">
-                <Input
-                  value={mediaUrl}
-                  onChange={(e) => handleMediaUrlChange(e.target.value)}
-                  placeholder="YouTube or Twitch URL"
-                  type="url"
-                  disabled={isSubmitting}
-                  className="text-sm"
-                  style={{ fontSize: '16px' }}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Paste a YouTube or Twitch video URL - automatically detected
-                </p>
+              <TabsContent value="video" className="space-y-3">
+                <div className="space-y-2">
+                  <Input
+                    value={mediaUrl}
+                    onChange={(e) => handleMediaUrlChange(e.target.value)}
+                    placeholder="Paste YouTube or Twitch URL"
+                    disabled={isSubmitting}
+                    style={{ fontSize: '16px' }}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Supports YouTube and Twitch videos
+                  </p>
+                </div>
               </TabsContent>
 
-              <TabsContent value="twitter" className="space-y-2">
-                <Input
-                  value={mediaUrl}
-                  onChange={(e) => handleMediaUrlChange(e.target.value)}
-                  placeholder="https://twitter.com/user/status/..."
-                  type="url"
-                  disabled={isSubmitting}
-                  className="text-sm"
-                  style={{ fontSize: '16px' }}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Paste a Twitter/X post URL
-                </p>
-                {(tweetLoading || (mediaUrl.trim() && getTwitterPostId(mediaUrl))) && (
-                  <>
-                    {tweetLoading && (
-                      <div className="flex items-center justify-center py-4">
-                        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-                      </div>
-                    )}
-                    <div ref={tweetPreviewRef} />
-                  </>
+              <TabsContent value="twitter" className="space-y-3">
+                <div className="space-y-2">
+                  <Input
+                    value={mediaUrl}
+                    onChange={(e) => handleMediaUrlChange(e.target.value)}
+                    placeholder="Paste Twitter/X post URL"
+                    disabled={isSubmitting}
+                    style={{ fontSize: '16px' }}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Paste a link to a Twitter/X post
+                  </p>
+                </div>
+                {tweetLoading && (
+                  <div className="flex items-center justify-center py-4">
+                    <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                  </div>
                 )}
+                <div ref={tweetPreviewRef} className="flex justify-center" />
               </TabsContent>
             </Tabs>
-
-            {mediaError && (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{mediaError}</AlertDescription>
-              </Alert>
-            )}
           </div>
+
+          {mediaError && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{mediaError}</AlertDescription>
+            </Alert>
+          )}
 
           <DialogFooter>
             <Button
@@ -492,8 +521,17 @@ export default function CreateChatroomDialog({ open, onOpenChange }: CreateChatr
               Cancel
             </Button>
             <Button type="submit" disabled={!isFormValid || isSubmitting}>
-              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Create Chat
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                <>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Create Chat
+                </>
+              )}
             </Button>
           </DialogFooter>
         </form>

@@ -1,12 +1,12 @@
 # Specification
 
 ## Summary
-**Goal:** Allow `data:` media URLs to flow through `getChatrooms()` so lobby thumbnails render, while bypassing backend authorization checks for non-admin actions and keeping admin delete password protection intact.
+**Goal:** Make progress bars visible and show only during active typing.
 
 **Planned changes:**
-- Update `backend/main.mo` `public query func getChatrooms()` to return each chatroom’s stored `mediaUrl` unchanged (do not null out `data:` URLs).
-- Update `backend/main.mo` to bypass/always-allow AccessControl-based authorization checks for non-admin backend operations so they no longer trap with “Unauthorized”.
-- Update `backend/main.mo` `deleteChatroomWithPassword(chatroomId, password)` to enforce the fixed admin password (`lunasimbaliamsammy1987!`) and remove/bypass any AccessControl-based admin checks in that method.
-- Ensure the frontend continues to gate `/admin/delete-chatrooms` behind the existing password-prompt flow and does not add new auth prompts for regular app actions.
+- Change username input progress bar fill to use blue accent color (--accent)
+- Change room title input progress bar fill to use blue accent color (--accent)
+- Show username progress bar only when user is typing in the username field
+- Show room title progress bar only when user is typing in the room title field
 
-**User-visible outcome:** Users can create and interact normally without role/permission errors, lobby thumbnails display for chatrooms using `data:` media URLs, and deleting chatrooms via the admin page still requires the correct password.
+**User-visible outcome:** Users will see blue progress bars that appear only when typing in username or room title inputs, making character limit feedback clearer and less cluttered.

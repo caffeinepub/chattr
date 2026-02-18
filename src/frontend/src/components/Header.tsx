@@ -16,6 +16,7 @@ export default function Header() {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState('');
   const [isAvatarPickerOpen, setIsAvatarPickerOpen] = useState(false);
+  const [isUsernameFocused, setIsUsernameFocused] = useState(false);
 
   const isInChatroom = routerState.location.pathname.startsWith('/chatroom/');
 
@@ -37,12 +38,14 @@ export default function Header() {
     if (editValue.trim()) {
       await updateUsername.mutateAsync(editValue.trim());
       setIsEditing(false);
+      setIsUsernameFocused(false);
     }
   };
 
   const handleCancelEdit = () => {
     setIsEditing(false);
     setEditValue('');
+    setIsUsernameFocused(false);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -56,6 +59,8 @@ export default function Header() {
   const handleBackToLobby = () => {
     router.navigate({ to: '/' });
   };
+
+  const progressPercentage = (editValue.length / 15) * 100;
 
   return (
     <>
@@ -73,30 +78,54 @@ export default function Header() {
               </Button>
             )}
             <div className="flex items-center gap-2">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary">
-                <MessageCircle className="h-6 w-6 text-primary-foreground" />
-              </div>
+              <MessageCircle className="h-6 w-6 text-primary" />
               <h1 className="text-xl font-bold text-foreground">Chattr</h1>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
+            <button
+              onClick={() => setIsAvatarPickerOpen(true)}
+              className="transition-opacity hover:opacity-80"
+            >
+              <Avatar className="h-9 w-9 cursor-pointer">
+                <AvatarImage src={currentAvatar || undefined} alt={currentUsername || 'User'} />
+                <AvatarFallback className="bg-primary text-primary-foreground text-sm">
+                  {currentUsername ? getInitials(currentUsername) : 'U'}
+                </AvatarFallback>
+              </Avatar>
+            </button>
+
             {isEditing ? (
               <div className="flex items-center gap-2">
-                <Input
-                  value={editValue}
-                  onChange={(e) => setEditValue(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  placeholder="Enter username"
-                  className="h-8 w-32 sm:w-40"
-                  autoFocus
-                />
+                <div className="space-y-1">
+                  <Input
+                    value={editValue}
+                    onChange={(e) => setEditValue(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    onFocus={() => setIsUsernameFocused(true)}
+                    onBlur={() => setIsUsernameFocused(false)}
+                    placeholder="Enter username"
+                    maxLength={15}
+                    className="h-9 w-40"
+                    autoFocus
+                    style={{ fontSize: '16px' }}
+                  />
+                  {isUsernameFocused && (
+                    <div className="h-1 w-full bg-muted rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-accent transition-all duration-200"
+                        style={{ width: `${progressPercentage}%` }}
+                      />
+                    </div>
+                  )}
+                </div>
                 <Button
                   onClick={handleSaveUsername}
                   size="icon"
                   variant="ghost"
-                  className="h-8 w-8"
-                  disabled={!editValue.trim() || updateUsername.isPending}
+                  className="h-9 w-9"
+                  disabled={!editValue.trim()}
                 >
                   <Check className="h-4 w-4" />
                 </Button>
@@ -104,33 +133,19 @@ export default function Header() {
                   onClick={handleCancelEdit}
                   size="icon"
                   variant="ghost"
-                  className="h-8 w-8"
+                  className="h-9 w-9"
                 >
                   <X className="h-4 w-4" />
                 </Button>
               </div>
             ) : (
-              <div className="flex items-center gap-2">
-                <Avatar 
-                  className="h-8 w-8 cursor-pointer hover:opacity-80 transition-opacity"
-                  onClick={() => setIsAvatarPickerOpen(true)}
-                >
-                  {currentAvatar ? (
-                    <AvatarImage src={currentAvatar} alt={currentUsername || 'User'} />
-                  ) : null}
-                  <AvatarFallback className="bg-primary text-primary-foreground text-xs">
-                    {currentUsername ? getInitials(currentUsername) : '?'}
-                  </AvatarFallback>
-                </Avatar>
-                <Button
-                  onClick={handleStartEdit}
-                  variant="outline"
-                  size="sm"
-                  className="gap-2"
-                >
-                  <span>{currentUsername}</span>
-                </Button>
-              </div>
+              <Button
+                onClick={handleStartEdit}
+                variant="outline"
+                className="h-9 px-3"
+              >
+                {currentUsername || 'Set Username'}
+              </Button>
             )}
           </div>
         </div>
