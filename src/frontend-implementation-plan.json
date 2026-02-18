@@ -1,36 +1,38 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Fix chat input styling issues",
+  "title": "Restore character count progress bar and remove extra border in chatroom chat input",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Remove the unwanted border on the top of the chat input area in the MessageInput component",
+      "summary": "Add character count progress bar to chat input matching the CreateChatroomDialog implementation",
       "acceptanceCriteria": [
-        "The top border of the chat input area is no longer visible",
-        "Other borders and styling remain intact"
+        "Character count progress bar appears below the textarea in MessageInput component",
+        "Progress bar style matches the CharacterLimitProgress component used in CreateChatroomDialog",
+        "Progress bar shows visual feedback with color transitions based on character count percentage",
+        "Progress bar updates in real-time as user types"
       ],
       "file_operations": [
         {
           "path": "frontend/src/components/MessageInput.tsx",
           "operation": "modify",
-          "description": "Remove the border-t or border-top styling from the chat input area container. Locate the main container div of the MessageInput component and remove any border-t, border-t-* Tailwind classes or inline styles that create the top border. Ensure other borders (left, right, bottom) remain unchanged if they exist."
+          "description": "Add CharacterLimitProgress component below the textarea to display character count progress. Extract the percentage-based width calculation and color transition logic from CreateChatroomDialog's character limit implementation. Wire the progress bar to update in real-time as the user types in the message textarea. Use the same 500-character limit and visual styling (gray → yellow → red transitions) as used in the create room modal inputs."
         }
       ]
     },
     {
       "id": "REQ-2",
-      "summary": "Restore the character counter that was accidentally removed from the MessageInput component",
+      "summary": "Remove extra top border from chat input area",
       "acceptanceCriteria": [
-        "Character counter is visible in the chat input area",
-        "Counter accurately displays remaining characters as user types",
-        "Counter styling matches the overall design"
+        "No visible border appears at the top of the chat input area",
+        "All other styling remains unchanged",
+        "The fix applies specifically to the MessageInput component in the chatroom context"
       ],
       "file_operations": [
         {
           "path": "frontend/src/components/MessageInput.tsx",
           "operation": "modify",
-          "description": "Add back the character counter UI element to the MessageInput component. Calculate remaining characters based on the current text input value and a character limit (determine the limit from existing validation logic). Display the counter near the text input area (typically bottom-right or next to the send button) with styling that matches the app's design system. Show the counter in a muted color when under limit and warning color when approaching or exceeding the limit. Ensure the counter updates in real-time as the user types."
+          "description": "Remove the extra border-t class or border-top style from the container element wrapping the MessageInput component. Identify the outermost div in the component that currently has a top border and remove only that border property without changing any other styles."
         }
       ]
     }

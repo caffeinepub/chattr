@@ -1,33 +1,46 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "New project",
-  "architectural_notes": [],
-  "known_issues": [
-    "Chat input area has unwanted border on top",
-    "Character counter was removed from chat input area"
+  "summary": "A real-time chatroom application with room creation and messaging features",
+  "architectural_notes": [
+    "Chatroom page includes chat input with character count progress bar",
+    "Create room modal uses character count progress bar pattern for inputs"
   ],
+  "known_issues": [],
   "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-remove-the-unwanted-border-on-the-top-of-the-chat-input-area-in-the-messageinput-component",
-      "title": "Remove the unwanted border on the top of the chat input area in the MessageInput component",
+      "id": "feature-add-a-character-count-progress-bar-to-the-chat-input-in-the-chatroom-page-matching-the-style-and-implementation-used-in-the-create-room-modal-inputs-characterlimitprogress-component-with-percentage-based-width-and-color-transitions",
+      "title": "Add a character count progress bar to the chat input in the chatroom page, matching the style and implementation used in the create room modal inputs (CharacterLimitProgress component with percentage-based width and color transitions)",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-restore-the-character-counter-that-was-accidentally-removed-from-the-messageinput-component",
-      "title": "Restore the character counter that was accidentally removed from the MessageInput component",
+      "id": "feature-remove-the-extra-top-border-from-the-chat-input-area-in-the-chatroom-page-without-changing-any-other-styles",
+      "title": "Remove the extra top border from the chat input area in the chatroom page without changing any other styles",
       "reqIds": [
         "REQ-2"
       ],
       "version": 1
     }
   ],
-  "new_feature_requests": [],
-  "projectName": "Fix chat input styling issues",
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Restore character count progress bar to chatroom chat input (matching create room modal style)",
+      "reqIds": [],
+      "status": "in_progress"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Remove extra top border from chat input area in chatroom page",
+      "reqIds": [],
+      "status": "in_progress"
+    }
+  ],
+  "projectName": "Restore character count progress bar and remove extra border in chatroom chat input",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

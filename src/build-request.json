@@ -1,52 +1,58 @@
 {
   "kind": "build_request",
-  "title": "Fix chat input styling issues",
+  "title": "Restore character count progress bar and remove extra border in chatroom chat input",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Remove the unwanted border on the top of the chat input area in the MessageInput component",
+      "text": "Add a character count progress bar to the chat input in the chatroom page, matching the style and implementation used in the create room modal inputs (CharacterLimitProgress component with percentage-based width and color transitions)",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-user-issue-report"
+          "msg-user-1",
+          "msg-user-3"
         ],
         "quotes": [
-          "the chat input area has border on the top that shouldnt be there"
+          "readd the character count progress bar to the chat input in the chatroom page (it was removed)",
+          "the same progress bar used in the create a room modal inputs"
         ]
       },
       "acceptanceCriteria": [
-        "The top border of the chat input area is no longer visible",
-        "Other borders and styling remain intact"
+        "Character count progress bar appears below the textarea in MessageInput component",
+        "Progress bar style matches the CharacterLimitProgress component used in CreateChatroomDialog",
+        "Progress bar shows visual feedback with color transitions based on character count percentage",
+        "Progress bar updates in real-time as user types"
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Restore the character counter that was accidentally removed from the MessageInput component",
+      "text": "Remove the extra top border from the chat input area in the chatroom page without changing any other styles",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-user-issue-report"
+          "msg-user-1",
+          "msg-user-3"
         ],
         "quotes": [
-          "the character counter was removed unexpectedly"
+          "remove extra border on the top of the chat input area",
+          "theres an extra border top in the chat input area"
         ]
       },
       "acceptanceCriteria": [
-        "Character counter is visible in the chat input area",
-        "Counter accurately displays remaining characters as user types",
-        "Counter styling matches the overall design"
+        "No visible border appears at the top of the chat input area",
+        "All other styling remains unchanged",
+        "The fix applies specifically to the MessageInput component in the chatroom context"
       ]
     }
   ],
   "constraints": [
-    "Do not modify the existing functionality of the MessageInput component beyond fixing the styling issues",
-    "Maintain the current button layout and interaction patterns"
+    "Do not change any styles except for the border removal and character count addition",
+    "Character count progress bar must match exactly the style used in CreateChatroomDialog"
   ],
   "nonGoals": [
-    "Redesigning the entire MessageInput component",
-    "Adding new features to the chat input area",
-    "Changing the character limit"
+    "Modifying any other component styling",
+    "Changing the character limit value",
+    "Adding new features beyond the character count restoration"
   ],
   "imageRequirements": {
     "required": [],

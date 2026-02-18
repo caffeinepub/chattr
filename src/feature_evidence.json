@@ -2,8 +2,8 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-remove-the-unwanted-border-on-the-top-of-the-chat-input-area-in-the-messageinput-component",
-      "featureTitle": "Remove the unwanted border on the top of the chat input area in the MessageInput component",
+      "featureId": "feature-add-a-character-count-progress-bar-to-the-chat-input-in-the-chatroom-page-matching-the-style-and-implementation-used-in-the-create-room-modal-inputs-characterlimitprogress-component-with-percentage-based-width-and-color-transitions",
+      "featureTitle": "Add a character count progress bar to the chat input in the chatroom page, matching the style and implementation used in the create room modal inputs (CharacterLimitProgress component with percentage-based width and color transitions)",
       "files": [
         "frontend/src/components/MessageInput.tsx"
       ],
@@ -23,8 +23,8 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-restore-the-character-counter-that-was-accidentally-removed-from-the-messageinput-component",
-      "featureTitle": "Restore the character counter that was accidentally removed from the MessageInput component",
+      "featureId": "feature-remove-the-extra-top-border-from-the-chat-input-area-in-the-chatroom-page-without-changing-any-other-styles",
+      "featureTitle": "Remove the extra top border from the chat input area in the chatroom page without changing any other styles",
       "files": [
         "frontend/src/components/MessageInput.tsx"
       ],

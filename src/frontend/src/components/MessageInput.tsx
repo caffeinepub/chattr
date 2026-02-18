@@ -25,6 +25,7 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [recordingError, setRecordingError] = useState('');
+  const [isTextareaFocused, setIsTextareaFocused] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -32,7 +33,7 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
   const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
-  const MAX_CHARS = 2000;
+  const MAX_MESSAGE_LENGTH = 2000;
 
   useEffect(() => {
     return () => {
@@ -374,10 +375,7 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
   };
 
   const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const value = e.target.value;
-    if (value.length <= MAX_CHARS) {
-      setMessage(value);
-    }
+    setMessage(e.target.value);
     e.target.style.height = 'auto';
     e.target.style.height = `${Math.min(e.target.scrollHeight, 120)}px`;
   };
@@ -397,8 +395,7 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
     }
   };
 
-  const remainingChars = MAX_CHARS - message.length;
-  const isNearLimit = remainingChars <= 200;
+  const messageProgressPercentage = (message.length / MAX_MESSAGE_LENGTH) * 100;
 
   return (
     <div className="flex-shrink-0 bg-card">
@@ -537,9 +534,9 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
               )}
 
               {isUploading && (
-                <div className="mt-3">
-                  <Progress value={uploadProgress} className="h-2" />
-                  <p className="mt-1 text-xs text-muted-foreground text-center">
+                <div className="mt-3 space-y-2">
+                  <Progress value={uploadProgress} />
+                  <p className="text-sm text-muted-foreground text-center">
                     Uploading... {uploadProgress}%
                   </p>
                 </div>
@@ -550,7 +547,7 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
           <div className="flex items-end gap-2">
             <button
               onClick={handleImageButtonClick}
-              disabled={disabled || isRecording || isUploading || isSending}
+              disabled={disabled || isUploading || isSending || isRecording}
               className="flex-shrink-0 rounded-full p-2.5 bg-muted hover:bg-muted/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               title="Add image or video"
             >
@@ -559,44 +556,50 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
 
             <button
               onClick={handleMicButtonClick}
-              disabled={disabled || showMediaInput || isUploading || isSending}
+              disabled={disabled || isUploading || isSending || showMediaInput}
               className={`flex-shrink-0 rounded-full p-2.5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
                 isRecording 
                   ? 'bg-destructive hover:bg-destructive/90' 
                   : 'bg-muted hover:bg-muted/80'
               }`}
-              title={isRecording ? "Cancel recording" : "Record voice message"}
+              title={isRecording ? 'Cancel recording' : 'Record voice message'}
             >
               <Mic className={`h-5 w-5 ${isRecording ? 'text-destructive-foreground' : 'text-muted-foreground'}`} />
             </button>
 
-            <div className="flex-1 relative">
+            <div className="flex-1 space-y-1">
               <textarea
                 ref={textareaRef}
                 value={message}
                 onChange={handleInput}
                 onKeyDown={handleKeyDown}
-                placeholder="Type a message..."
-                disabled={disabled || isRecording || isUploading || isSending}
-                className="w-full resize-none rounded-full border border-border bg-background px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden"
+                onFocus={() => setIsTextareaFocused(true)}
+                onBlur={() => setIsTextareaFocused(false)}
+                placeholder={isRecording ? 'Recording...' : 'Type a message...'}
+                disabled={disabled || isUploading || isSending || isRecording}
+                maxLength={MAX_MESSAGE_LENGTH}
+                rows={1}
+                className="w-full resize-none rounded-full border border-border bg-background px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 overflow-hidden"
                 style={{ 
+                  fontSize: '16px',
                   minHeight: '42px',
                   maxHeight: '120px',
-                  fontSize: '16px'
                 }}
-                rows={1}
               />
-              {message.length > 0 && (
-                <div className={`absolute -bottom-5 right-2 text-xs ${isNearLimit ? 'text-warning' : 'text-muted-foreground'}`}>
-                  {remainingChars}
+              {isTextareaFocused && (
+                <div className="h-1 w-full bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-primary transition-all duration-200"
+                    style={{ width: `${messageProgressPercentage}%` }}
+                  />
                 </div>
               )}
             </div>
 
             <button
               onClick={handleSend}
-              disabled={disabled || !message.trim() || isRecording || isUploading || isSending}
-              className="flex-shrink-0 rounded-full p-2.5 bg-primary hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={disabled || !message.trim() || isUploading || isSending || isRecording}
+              className="flex-shrink-0 rounded-full bg-primary p-2.5 hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               title="Send message"
             >
               <Send className="h-5 w-5 text-primary-foreground" />

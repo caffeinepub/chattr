@@ -1,7 +1,7 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-18T22:42:41.173Z",
+  "generatedAt": "2026-02-18T22:56:52.302Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
@@ -12,7 +12,7 @@
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Remove the unwanted border on the top of the chat input area in the MessageInput component",
+        "summary": "Add a character count progress bar to the chat input in the chatroom page, matching the style and implementation used in the create room modal inputs (CharacterLimitProgress component with percentage-based width and color transitions)",
         "status": "implemented",
         "plannedFiles": [
           "frontend/src/components/MessageInput.tsx"
@@ -23,7 +23,7 @@
       },
       {
         "id": "REQ-2",
-        "summary": "Restore the character counter that was accidentally removed from the MessageInput component",
+        "summary": "Remove the extra top border from the chat input area in the chatroom page without changing any other styles",
         "status": "implemented",
         "plannedFiles": [
           "frontend/src/components/MessageInput.tsx"
