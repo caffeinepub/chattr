@@ -2,8 +2,8 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-replace-the-existing-messageinput-component-chat-input-area-with-a-new-styled-design-that-includes-a-border-top-separator-card-background-left-aligned-image-upload-button-rounded-full-size-9-with-lucide-image-icon-left-aligned-microphone-voice-recording-button-rounded-full-size-9-with-lucide-mic-icon-center-auto-expanding-rounded-full-textarea-min-h-40px-max-h-120px-field-sizing-content-with-placeholder-type-a-message-and-right-aligned-send-button-rounded-full-size-9-bg-primary-with-lucide-send-icon",
-      "featureTitle": "Replace the existing MessageInput component chat input area with a new styled design that includes: a border-top separator, card background, left-aligned image upload button (rounded-full, size-9, with lucide-image icon), left-aligned microphone/voice recording button (rounded-full, size-9, with lucide-mic icon), center auto-expanding rounded-full textarea (min-h-[40px], max-h-[120px], field-sizing-content, with placeholder 'Type a message...'), and right-aligned send button (rounded-full, size-9, bg-primary, with lucide-send icon)",
+      "featureId": "feature-remove-the-unwanted-border-on-the-top-of-the-chat-input-area-in-the-messageinput-component",
+      "featureTitle": "Remove the unwanted border on the top of the chat input area in the MessageInput component",
       "files": [
         "frontend/src/components/MessageInput.tsx"
       ],
@@ -23,8 +23,8 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-ensure-the-image-upload-button-and-microphone-voice-recording-button-remain-fully-functional-with-their-existing-upload-and-recording-capabilities",
-      "featureTitle": "Ensure the image upload button and microphone/voice recording button remain fully functional with their existing upload and recording capabilities",
+      "featureId": "feature-restore-the-character-counter-that-was-accidentally-removed-from-the-messageinput-component",
+      "featureTitle": "Restore the character counter that was accidentally removed from the MessageInput component",
       "files": [
         "frontend/src/components/MessageInput.tsx"
       ],
@@ -40,27 +40,6 @@
       ],
       "testIds": [
         "REQ-2"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-make-the-send-button-enabled-only-when-the-user-has-typed-text-in-the-textarea-and-disabled-when-the-textarea-is-empty",
-      "featureTitle": "Make the send button enabled only when the user has typed text in the textarea, and disabled when the textarea is empty",
-      "files": [
-        "frontend/src/components/MessageInput.tsx"
-      ],
-      "components": [
-        "authorization@1.0.1",
-        "blob-storage@2.0.3",
-        "http-outcalls@1.1.1",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-3"
       ],
       "confidence": "high"
     }

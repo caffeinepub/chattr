@@ -1,56 +1,36 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Redesign chat input with styled buttons and auto-expanding textarea",
+  "title": "Fix chat input styling issues",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Replace the existing MessageInput component chat input area with a new styled design including border-top separator, card background, left-aligned rounded-full image upload and microphone buttons, center auto-expanding rounded-full textarea, and right-aligned rounded-full send button with primary background",
+      "summary": "Remove the unwanted border on the top of the chat input area in the MessageInput component",
       "acceptanceCriteria": [
-        "Chat input area has border-top separator and card background",
-        "Image upload button is rendered as a rounded-full button with lucide-image icon on the left",
-        "Microphone/voice recording button is rendered as a rounded-full button with lucide-mic icon on the left",
-        "Textarea is rounded-full, auto-expands between min-h-[40px] and max-h-[120px], and has field-sizing-content",
-        "Send button is rendered as a rounded-full button with bg-primary and lucide-send icon on the right",
-        "All buttons use the provided Tailwind classes for borders, shadows, and hover states"
+        "The top border of the chat input area is no longer visible",
+        "Other borders and styling remain intact"
       ],
       "file_operations": [
         {
           "path": "frontend/src/components/MessageInput.tsx",
           "operation": "modify",
-          "description": "Replace the existing container div structure with a new styled layout: add a parent div with 'flex-shrink-0 border-t border-border bg-card' classes. Inside, create a flex layout with: (1) left section containing the image upload button (rounded-full, size-9, with lucide-image icon) and microphone button (rounded-full, size-9, with lucide-mic icon), (2) center section with an auto-expanding textarea (rounded-full, min-h-[40px], max-h-[120px], field-sizing-content, placeholder 'Type a message...'), and (3) right section with the send button (rounded-full, size-9, bg-primary, with lucide-send icon). Move the existing media upload tabs (Image/Video/Twitter) into a collapsible or hidden section that appears only when the image upload button is clicked. Preserve all existing event handlers for file uploads, voice recording, and message submission."
+          "description": "Remove the border-t or border-top styling from the chat input area container. Locate the main container div of the MessageInput component and remove any border-t, border-t-* Tailwind classes or inline styles that create the top border. Ensure other borders (left, right, bottom) remain unchanged if they exist."
         }
       ]
     },
     {
       "id": "REQ-2",
-      "summary": "Ensure the image upload button and microphone/voice recording button remain fully functional with their existing upload and recording capabilities",
+      "summary": "Restore the character counter that was accidentally removed from the MessageInput component",
       "acceptanceCriteria": [
-        "Image upload button opens file picker and handles image uploads as before",
-        "Microphone button initiates voice recording and handles audio capture as before",
-        "All existing media attachment functionality is preserved"
+        "Character counter is visible in the chat input area",
+        "Counter accurately displays remaining characters as user types",
+        "Counter styling matches the overall design"
       ],
       "file_operations": [
         {
           "path": "frontend/src/components/MessageInput.tsx",
           "operation": "modify",
-          "description": "Preserve all existing functionality for the image upload button (file input trigger, handleImageChange, imagePreview state, progress tracking) and microphone button (handleStartRecording, handleStopRecording, handleCancelRecording, recording state, audioBlob, recordingTime). Ensure the refactored button elements maintain the same onClick handlers and state management. Keep the video URL and Twitter URL input functionality accessible through the media tabs or an alternative UI pattern that doesn't interfere with the new primary input design."
-        }
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "summary": "Make the send button enabled only when the user has typed text in the textarea, and disabled when the textarea is empty",
-      "acceptanceCriteria": [
-        "Send button is disabled when textarea is empty",
-        "Send button becomes enabled when textarea contains text",
-        "Send button returns to disabled state when textarea is cleared"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/MessageInput.tsx",
-          "operation": "modify",
-          "description": "Add a disabled state check to the send button based on the message state value. When message.trim().length === 0, set the button's disabled attribute to true and apply appropriate disabled styling (e.g., 'disabled:opacity-50 disabled:cursor-not-allowed'). When message contains text, enable the button. Ensure this logic works correctly with the existing handleSendMessage function."
+          "description": "Add back the character counter UI element to the MessageInput component. Calculate remaining characters based on the current text input value and a character limit (determine the limit from existing validation logic). Display the counter near the text input area (typically bottom-right or next to the send button) with styling that matches the app's design system. Show the counter in a muted color when under limit and warning color when approaching or exceeding the limit. Ensure the counter updates in real-time as the user types."
         }
       ]
     }

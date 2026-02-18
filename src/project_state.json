@@ -3,36 +3,31 @@
   "projectStateVersion": 3,
   "summary": "New project",
   "architectural_notes": [],
-  "known_issues": [],
-  "isFixRequest": false,
+  "known_issues": [
+    "Chat input area has unwanted border on top",
+    "Character counter was removed from chat input area"
+  ],
+  "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-replace-the-existing-messageinput-component-chat-input-area-with-a-new-styled-design-that-includes-a-border-top-separator-card-background-left-aligned-image-upload-button-rounded-full-size-9-with-lucide-image-icon-left-aligned-microphone-voice-recording-button-rounded-full-size-9-with-lucide-mic-icon-center-auto-expanding-rounded-full-textarea-min-h-40px-max-h-120px-field-sizing-content-with-placeholder-type-a-message-and-right-aligned-send-button-rounded-full-size-9-bg-primary-with-lucide-send-icon",
-      "title": "Replace the existing MessageInput component chat input area with a new styled design that includes: a border-top separator, card background, left-aligned image upload button (rounded-full, size-9, with lucide-image icon), left-aligned microphone/voice recording button (rounded-full, size-9, with lucide-mic icon), center auto-expanding rounded-full textarea (min-h-[40px], max-h-[120px], field-sizing-content, with placeholder 'Type a message...'), and right-aligned send button (rounded-full, size-9, bg-primary, with lucide-send icon)",
+      "id": "feature-remove-the-unwanted-border-on-the-top-of-the-chat-input-area-in-the-messageinput-component",
+      "title": "Remove the unwanted border on the top of the chat input area in the MessageInput component",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-ensure-the-image-upload-button-and-microphone-voice-recording-button-remain-fully-functional-with-their-existing-upload-and-recording-capabilities",
-      "title": "Ensure the image upload button and microphone/voice recording button remain fully functional with their existing upload and recording capabilities",
+      "id": "feature-restore-the-character-counter-that-was-accidentally-removed-from-the-messageinput-component",
+      "title": "Restore the character counter that was accidentally removed from the MessageInput component",
       "reqIds": [
         "REQ-2"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-make-the-send-button-enabled-only-when-the-user-has-typed-text-in-the-textarea-and-disabled-when-the-textarea-is-empty",
-      "title": "Make the send button enabled only when the user has typed text in the textarea, and disabled when the textarea is empty",
-      "reqIds": [
-        "REQ-3"
       ],
       "version": 1
     }
   ],
   "new_feature_requests": [],
-  "projectName": "Redesign chat input with styled buttons and auto-expanding textarea",
+  "projectName": "Fix chat input styling issues",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

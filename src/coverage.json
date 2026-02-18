@@ -1,18 +1,18 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-18T22:31:53.427Z",
+  "generatedAt": "2026-02-18T22:42:41.173Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 3,
-    "implemented": 3,
+    "total": 2,
+    "implemented": 2,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Replace the existing MessageInput component chat input area with a new styled design that includes: a border-top separator, card background, left-aligned image upload button (rounded-full, size-9, with lucide-image icon), left-aligned microphone/voice recording button (rounded-full, size-9, with lucide-mic icon), center auto-expanding rounded-full textarea (min-h-[40px], max-h-[120px], field-sizing-content, with placeholder 'Type a message...'), and right-aligned send button (rounded-full, size-9, bg-primary, with lucide-send icon)",
+        "summary": "Remove the unwanted border on the top of the chat input area in the MessageInput component",
         "status": "implemented",
         "plannedFiles": [
           "frontend/src/components/MessageInput.tsx"
@@ -23,18 +23,7 @@
       },
       {
         "id": "REQ-2",
-        "summary": "Ensure the image upload button and microphone/voice recording button remain fully functional with their existing upload and recording capabilities",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/MessageInput.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/MessageInput.tsx"
-        ]
-      },
-      {
-        "id": "REQ-3",
-        "summary": "Make the send button enabled only when the user has typed text in the textarea, and disabled when the textarea is empty",
+        "summary": "Restore the character counter that was accidentally removed from the MessageInput component",
         "status": "implemented",
         "plannedFiles": [
           "frontend/src/components/MessageInput.tsx"

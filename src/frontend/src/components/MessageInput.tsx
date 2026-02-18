@@ -32,6 +32,8 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
   const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
+  const MAX_CHARS = 2000;
+
   useEffect(() => {
     return () => {
       if (recordingTimerRef.current) {
@@ -372,7 +374,10 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
   };
 
   const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setMessage(e.target.value);
+    const value = e.target.value;
+    if (value.length <= MAX_CHARS) {
+      setMessage(value);
+    }
     e.target.style.height = 'auto';
     e.target.style.height = `${Math.min(e.target.scrollHeight, 120)}px`;
   };
@@ -392,8 +397,11 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
     }
   };
 
+  const remainingChars = MAX_CHARS - message.length;
+  const isNearLimit = remainingChars <= 200;
+
   return (
-    <div className="flex-shrink-0 border-t border-border bg-card">
+    <div className="flex-shrink-0 bg-card">
       <div className="mx-auto max-w-3xl px-4 py-3">
         <div className="space-y-2">
           {recordingError && (
@@ -523,7 +531,9 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
               </Tabs>
 
               {mediaError && (
-                <div className="mt-2 text-sm text-destructive">{mediaError}</div>
+                <div className="mt-2 text-sm text-destructive">
+                  {mediaError}
+                </div>
               )}
 
               {isUploading && (
@@ -537,48 +547,59 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
             </div>
           )}
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-end gap-2">
             <button
               onClick={handleImageButtonClick}
-              disabled={disabled || isRecording || isUploading}
-              className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 size-9 h-10 w-10 shrink-0 rounded-full"
-              type="button"
-              title="Add image"
+              disabled={disabled || isRecording || isUploading || isSending}
+              className="flex-shrink-0 rounded-full p-2.5 bg-muted hover:bg-muted/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Add image or video"
             >
-              <ImageIcon className="h-5 w-5" aria-hidden="true" />
+              <ImageIcon className="h-5 w-5 text-muted-foreground" />
             </button>
 
             <button
               onClick={handleMicButtonClick}
-              disabled={disabled || showMediaInput || isUploading}
-              className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 size-9 h-10 w-10 shrink-0 rounded-full"
-              type="button"
-              title={isRecording ? 'Cancel recording' : 'Record voice message'}
+              disabled={disabled || showMediaInput || isUploading || isSending}
+              className={`flex-shrink-0 rounded-full p-2.5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                isRecording 
+                  ? 'bg-destructive hover:bg-destructive/90' 
+                  : 'bg-muted hover:bg-muted/80'
+              }`}
+              title={isRecording ? "Cancel recording" : "Record voice message"}
             >
-              <Mic className="h-5 w-5" aria-hidden="true" />
+              <Mic className={`h-5 w-5 ${isRecording ? 'text-destructive-foreground' : 'text-muted-foreground'}`} />
             </button>
 
-            <textarea
-              ref={textareaRef}
-              value={message}
-              onChange={handleInput}
-              onKeyDown={handleKeyDown}
-              placeholder="Type a message..."
-              disabled={disabled || isRecording || isUploading}
-              maxLength={2000}
-              rows={1}
-              className="border-input placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 flex field-sizing-content w-full border bg-transparent text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm min-h-[40px] max-h-[120px] resize-none rounded-full px-4 py-2.5"
-              style={{ fontSize: '16px' }}
-            />
+            <div className="flex-1 relative">
+              <textarea
+                ref={textareaRef}
+                value={message}
+                onChange={handleInput}
+                onKeyDown={handleKeyDown}
+                placeholder="Type a message..."
+                disabled={disabled || isRecording || isUploading || isSending}
+                className="w-full resize-none rounded-full border border-border bg-background px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden"
+                style={{ 
+                  minHeight: '42px',
+                  maxHeight: '120px',
+                  fontSize: '16px'
+                }}
+                rows={1}
+              />
+              {message.length > 0 && (
+                <div className={`absolute -bottom-5 right-2 text-xs ${isNearLimit ? 'text-warning' : 'text-muted-foreground'}`}>
+                  {remainingChars}
+                </div>
+              )}
+            </div>
 
             <button
               onClick={handleSend}
-              disabled={disabled || isUploading || isSending || isRecording || message.trim().length === 0}
-              className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground shadow-xs hover:bg-primary/90 size-9 h-10 w-10 shrink-0 rounded-full"
-              type="button"
+              disabled={disabled || !message.trim() || isRecording || isUploading || isSending}
+              className="flex-shrink-0 rounded-full p-2.5 bg-primary hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               title="Send message"
             >
-              <Send className="h-5 w-5" aria-hidden="true" />
+              <Send className="h-5 w-5 text-primary-foreground" />
             </button>
           </div>
         </div>

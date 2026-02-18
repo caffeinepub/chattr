@@ -1,75 +1,52 @@
 {
   "kind": "build_request",
-  "title": "Redesign chat input with styled buttons and auto-expanding textarea",
+  "title": "Fix chat input styling issues",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Replace the existing MessageInput component chat input area with a new styled design that includes: a border-top separator, card background, left-aligned image upload button (rounded-full, size-9, with lucide-image icon), left-aligned microphone/voice recording button (rounded-full, size-9, with lucide-mic icon), center auto-expanding rounded-full textarea (min-h-[40px], max-h-[120px], field-sizing-content, with placeholder 'Type a message...'), and right-aligned send button (rounded-full, size-9, bg-primary, with lucide-send icon)",
+      "text": "Remove the unwanted border on the top of the chat input area in the MessageInput component",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-user-input-styling"
+          "msg-user-issue-report"
         ],
         "quotes": [
-          "the chat input area for chatrooms needs to be styled like this: <div class=\"flex-shrink-0 border-t border-border bg-card\">"
+          "the chat input area has border on the top that shouldnt be there"
         ]
       },
       "acceptanceCriteria": [
-        "Chat input area has border-top separator and card background",
-        "Image upload button is rendered as a rounded-full button with lucide-image icon on the left",
-        "Microphone/voice recording button is rendered as a rounded-full button with lucide-mic icon on the left",
-        "Textarea is rounded-full, auto-expands between min-h-[40px] and max-h-[120px], and has field-sizing-content",
-        "Send button is rendered as a rounded-full button with bg-primary and lucide-send icon on the right",
-        "All buttons use the provided Tailwind classes for borders, shadows, and hover states"
+        "The top border of the chat input area is no longer visible",
+        "Other borders and styling remain intact"
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Ensure the image upload button and microphone/voice recording button remain fully functional with their existing upload and recording capabilities",
+      "text": "Restore the character counter that was accidentally removed from the MessageInput component",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-user-functional-clarification"
+          "msg-user-issue-report"
         ],
         "quotes": [
-          "functional (they should already be working)"
+          "the character counter was removed unexpectedly"
         ]
       },
       "acceptanceCriteria": [
-        "Image upload button opens file picker and handles image uploads as before",
-        "Microphone button initiates voice recording and handles audio capture as before",
-        "All existing media attachment functionality is preserved"
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "text": "Make the send button enabled only when the user has typed text in the textarea, and disabled when the textarea is empty",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-user-send-button-clarification"
-        ],
-        "quotes": [
-          "enabled when a user types"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Send button is disabled when textarea is empty",
-        "Send button becomes enabled when textarea contains text",
-        "Send button returns to disabled state when textarea is cleared"
+        "Character counter is visible in the chat input area",
+        "Counter accurately displays remaining characters as user types",
+        "Counter styling matches the overall design"
       ]
     }
   ],
   "constraints": [
-    "Do not modify the backend message handling logic",
-    "Preserve all existing media attachment functionality (image upload, video URL, Twitter URL, voice recording)",
-    "Maintain the existing message sending behavior when the send button is clicked"
+    "Do not modify the existing functionality of the MessageInput component beyond fixing the styling issues",
+    "Maintain the current button layout and interaction patterns"
   ],
   "nonGoals": [
-    "Changing the backend API for message creation",
-    "Modifying message display or rendering logic",
-    "Adding new media types beyond what already exists"
+    "Redesigning the entire MessageInput component",
+    "Adding new features to the chat input area",
+    "Changing the character limit"
   ],
   "imageRequirements": {
     "required": [],
