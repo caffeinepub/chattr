@@ -1,36 +1,70 @@
 {
   "kind": "build_request",
-  "title": "Hide Creator message in rooms without media",
+  "title": "Fix chatroom page styling: progress bar color, chat input border, and header logo",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Modify the room card display logic to only show the Creator message for rooms that were created with media (image, video, or X post). Rooms created without any media should not display the Creator message at all.",
+      "text": "In the Header component, change the progress bar background color from 'bg-accent' to match the site's blue color used for other inputs",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-5",
-          "msg-6",
-          "msg-7"
+          "msg-recent-6"
         ],
         "quotes": [
-          "can we make it so rooms without media dont display the Creator message at all",
-          "only show the creator message with rooms that were created with media"
+          "the background color for the progress bar is still using bg-accent instead of the sites blue, thats why its not visible. please fix it so its blue just like the other inputs"
         ]
       },
       "acceptanceCriteria": [
-        "Rooms created with images display the Creator message",
-        "Rooms created with videos display the Creator message",
-        "Rooms created with X posts display the Creator message",
-        "Rooms created without any media do not display the Creator message"
+        "Progress bar background uses the same blue color as other input fields",
+        "Progress bar is clearly visible against the background"
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "text": "In the MessageInput component, remove the unnecessary border from the chat input textarea",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-recent-6"
+        ],
+        "quotes": [
+          "also remove the unnecessary border in the chat input"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Chat input textarea has no visible border",
+        "Input maintains proper spacing and alignment without the border"
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "In the Header component, update the Chattr logo to use a rounded-full background with bg-primary, containing a message-circle icon (24x24) with text-primary-foreground color. The logo container should be flex h-10 w-10 items-center justify-center rounded-full bg-primary",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-recent-8"
+        ],
+        "quotes": [
+          "also the chattr logo in the header is supposed to be styled like this: <div class=\"flex h-10 w-10 items-center justify-center rounded-full bg-primary\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-message-circle h-6 w-6 text-primary-foreground\" aria-hidden=\"true\"><path d=\"M7.9 20A9 9 0 1 0 4 16.1L2 22Z\"></path></svg></div>"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Logo displays as a circular background with primary color",
+        "Message circle icon is properly sized (h-6 w-6) and uses primary-foreground text color",
+        "Logo maintains 40x40px dimensions (h-10 w-10)"
       ]
     }
   ],
-  "constraints": [],
+  "constraints": [
+    "Only modify styling in Header.tsx and MessageInput.tsx",
+    "Do not change backend functionality",
+    "Maintain existing component structure and props"
+  ],
   "nonGoals": [
-    "Changing the Creator message content or styling",
-    "Modifying how media is uploaded or stored",
-    "Altering the backend data model for rooms"
+    "Changing other UI components not mentioned",
+    "Modifying backend logic",
+    "Adding new features beyond the specified styling fixes"
   ],
   "imageRequirements": {
     "required": [],

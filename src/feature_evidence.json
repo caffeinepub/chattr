@@ -1,4 +1,68 @@
 {
   "kind": "feature_evidence_report",
-  "features": []
+  "features": [
+    {
+      "featureId": "feature-in-the-header-component-change-the-progress-bar-background-color-from-bg-accent-to-match-the-site-s-blue-color-used-for-other-inputs",
+      "featureTitle": "In the Header component, change the progress bar background color from 'bg-accent' to match the site's blue color used for other inputs",
+      "files": [
+        "frontend/src/components/Header.tsx"
+      ],
+      "components": [
+        "authorization@1.0.1",
+        "blob-storage@2.0.3",
+        "http-outcalls@1.1.1",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-1"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-in-the-messageinput-component-remove-the-unnecessary-border-from-the-chat-input-textarea",
+      "featureTitle": "In the MessageInput component, remove the unnecessary border from the chat input textarea",
+      "files": [
+        "frontend/src/components/MessageInput.tsx"
+      ],
+      "components": [
+        "authorization@1.0.1",
+        "blob-storage@2.0.3",
+        "http-outcalls@1.1.1",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-2"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-in-the-header-component-update-the-chattr-logo-to-use-a-rounded-full-background-with-bg-primary-containing-a-message-circle-icon-24x24-with-text-primary-foreground-color-the-logo-container-should-be-flex-h-10-w-10-items-center-justify-center-rounded-full-bg-primary",
+      "featureTitle": "In the Header component, update the Chattr logo to use a rounded-full background with bg-primary, containing a message-circle icon (24x24) with text-primary-foreground color. The logo container should be flex h-10 w-10 items-center justify-center rounded-full bg-primary",
+      "files": [
+        "frontend/src/components/Header.tsx"
+      ],
+      "components": [
+        "authorization@1.0.1",
+        "blob-storage@2.0.3",
+        "http-outcalls@1.1.1",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-3"
+      ],
+      "confidence": "high"
+    }
+  ]
 }

@@ -1,22 +1,51 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Hide Creator Message in Rooms Without Media",
+  "title": "Fix chatroom page styling: progress bar color, chat input border, and header logo",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Conditionally display Creator message in room cards only when media is present",
+      "summary": "Change Header progress bar background color from 'bg-accent' to match the site's blue color used for other inputs",
       "acceptanceCriteria": [
-        "Rooms created with images display the Creator message",
-        "Rooms created with videos display the Creator message",
-        "Rooms created with X posts display the Creator message",
-        "Rooms created without any media do not display the Creator message"
+        "Progress bar background uses the same blue color as other input fields",
+        "Progress bar is clearly visible against the background"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/ChatroomCard.tsx",
+          "path": "frontend/src/components/Header.tsx",
           "operation": "modify",
-          "description": "Update the ChatroomCard component to conditionally render the Creator message section based on the presence of mediaUrl and mediaType. Add a check that evaluates whether the room has associated media (image, video, or X post) before rendering the Creator message element. The mediaUrl and mediaType fields from LobbyChatroomCard are already available in the component props and can be used to determine if media exists. Keep all existing thumbnail preview logic, live status indicators, participant counts, and timestamp formatting unchanged."
+          "description": "Update the progress bar background color from 'bg-accent' to use the site's primary blue color (bg-blue-500 or the equivalent theme color used for input fields). Locate the progress bar element and change its className from 'bg-accent' to match the blue color scheme used consistently across input elements in the application."
+        }
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "summary": "Remove the unnecessary border from the chat input textarea in MessageInput component",
+      "acceptanceCriteria": [
+        "Chat input textarea has no visible border",
+        "Input maintains proper spacing and alignment without the border"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/MessageInput.tsx",
+          "operation": "modify",
+          "description": "Remove the border styling from the chat input textarea element. Locate the textarea element and remove any border-related classes (e.g., 'border', 'border-*') from its className. Ensure the textarea maintains proper spacing and alignment after the border removal."
+        }
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "summary": "Update Header Chattr logo to use rounded-full background with message-circle icon",
+      "acceptanceCriteria": [
+        "Logo displays as a circular background with primary color",
+        "Message circle icon is properly sized (h-6 w-6) and uses primary-foreground text color",
+        "Logo maintains 40x40px dimensions (h-10 w-10)"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/Header.tsx",
+          "operation": "modify",
+          "description": "Replace the current Chattr logo implementation with a new design featuring a circular background. Update the logo element to use the following structure: a container div with classes 'flex h-10 w-10 items-center justify-center rounded-full bg-primary', containing an SVG message-circle icon (lucide-react MessageCircle or inline SVG) with classes 'h-6 w-6 text-primary-foreground' and attributes width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'. The SVG path should be: 'M7.9 20A9 9 0 1 0 4 16.1L2 22Z'."
         }
       ]
     }

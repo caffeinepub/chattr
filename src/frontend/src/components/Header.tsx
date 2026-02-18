@@ -78,7 +78,9 @@ export default function Header() {
               </Button>
             )}
             <div className="flex items-center gap-2">
-              <MessageCircle className="h-6 w-6 text-primary" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary">
+                <MessageCircle className="h-6 w-6 text-primary-foreground" aria-hidden="true" />
+              </div>
               <h1 className="text-xl font-bold text-foreground">Chattr</h1>
             </div>
           </div>
