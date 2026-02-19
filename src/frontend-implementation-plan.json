@@ -1,6 +1,22 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Remove all caller principal checks from user-facing backend functions",
-  "requirements": []
+  "title": "Ensure category tags are lowercase in chatrooms",
+  "requirements": [
+    {
+      "id": "REQ-1",
+      "summary": "Convert category display text to lowercase in the ChatroomPage component where category tags are rendered",
+      "acceptanceCriteria": [
+        "Category tags displayed in the chatroom view show lowercase text",
+        "Styling matches the existing LIVE badge format (padding, font size)"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/ChatroomPage.tsx",
+          "operation": "modify",
+          "description": "Update the category badge rendering to display lowercase text using .toLowerCase() on the category value. Ensure the badge styling (px-2 py-0.5 rounded text-xs font-medium bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300) matches the existing LIVE badge format from ChatroomCard.tsx and LobbyPage.tsx for visual consistency."
+        }
+      ]
+    }
+  ]
 }

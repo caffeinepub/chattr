@@ -24,7 +24,6 @@ export interface ChatroomWithLiveStatus {
   'category' : string,
   'pinnedVideoId' : [] | [bigint],
 }
-export type ExternalBlob = Uint8Array;
 export type List = [] | [[string, List]];
 export type List_1 = [] | [[Reaction, List_1]];
 export interface LobbyChatroomCard {
@@ -43,7 +42,6 @@ export interface LobbyChatroomCard {
 }
 export interface Message {
   'id' : bigint,
-  'giphyUrl' : [] | [string],
   'content' : string,
   'chatroomId' : bigint,
   'sender' : string,
@@ -52,7 +50,6 @@ export interface Message {
   'replyToMessageId' : [] | [bigint],
   'timestamp' : bigint,
   'mediaType' : [] | [string],
-  'imageId' : [] | [bigint],
   'senderId' : string,
 }
 export interface MessageWithReactions {
@@ -146,7 +143,6 @@ export interface _SERVICE {
   'getCallerUserRole' : ActorMethod<[], UserRole>,
   'getChatroom' : ActorMethod<[bigint], [] | [ChatroomWithLiveStatus]>,
   'getChatrooms' : ActorMethod<[], Array<ChatroomWithLiveStatus>>,
-  'getImage' : ActorMethod<[bigint], [] | [ExternalBlob]>,
   'getLobbyChatroomCards' : ActorMethod<[], Array<LobbyChatroomCard>>,
   'getMessageWithReactionsAndReplies' : ActorMethod<
     [bigint],
@@ -175,12 +171,9 @@ export interface _SERVICE {
       [] | [string],
       string,
       [] | [bigint],
-      [] | [bigint],
-      [] | [string],
     ],
     undefined
   >,
-  'storeImage' : ActorMethod<[ExternalBlob], bigint>,
   'transform' : ActorMethod<[TransformationInput], TransformationOutput>,
   'unpinVideo' : ActorMethod<[bigint], undefined>,
   'updateAvatarRetroactively' : ActorMethod<[string, [] | [string]], undefined>,

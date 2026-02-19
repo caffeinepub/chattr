@@ -1,70 +1,97 @@
-import { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from '@tanstack/react-router';
-import ChatArea from '../components/ChatArea';
 import { useGetChatroom, useIncrementViewCount } from '../hooks/useQueries';
+import { useActor } from '../hooks/useActor';
+import { Loader2, AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '../components/ui/alert';
 import { Button } from '../components/ui/button';
-import { ArrowLeft } from 'lucide-react';
+import ChatArea from '../components/ChatArea';
+import { useEffect, useRef } from 'react';
 
 export default function ChatroomPage() {
   const { chatroomId } = useParams({ from: '/chatroom/$chatroomId' });
   const navigate = useNavigate();
-  const chatroomIdBigInt = chatroomId ? BigInt(chatroomId) : undefined;
-  const { data: chatroom, isLoading, error } = useGetChatroom(chatroomIdBigInt);
+  const chatroomIdBigInt = BigInt(chatroomId);
+  const { actor, isFetching: actorFetching } = useActor();
+  const { 
+    data: chatroom, 
+    isLoading: chatroomLoading, 
+    error, 
+    isError,
+    isFetched 
+  } = useGetChatroom(chatroomIdBigInt);
   const incrementViewCount = useIncrementViewCount();
-  const hasIncrementedRef = useRef(false);
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const hasIncrementedView = useRef(false);
 
+  // Increment view count when chatroom is loaded
   useEffect(() => {
-    if (chatroomIdBigInt && !hasIncrementedRef.current && chatroom) {
+    if (chatroom && !hasIncrementedView.current) {
+      hasIncrementedView.current = true;
       incrementViewCount.mutate(chatroomIdBigInt);
-      hasIncrementedRef.current = true;
     }
-  }, [chatroomIdBigInt, chatroom, incrementViewCount]);
+  }, [chatroom, chatroomIdBigInt, incrementViewCount]);
 
-  useEffect(() => {
-    if (!isLoading) {
-      setIsInitialLoad(false);
-    }
-  }, [isLoading]);
+  // Show loading while actor is initializing or chatroom is being fetched
+  const isLoading = actorFetching || chatroomLoading;
 
-  if (isInitialLoad || isLoading) {
+  console.log('[ChatroomPage] State:', {
+    chatroomId,
+    actorFetching,
+    chatroomLoading,
+    isLoading,
+    isFetched,
+    hasChatroom: !!chatroom,
+    isError,
+    error: error ? String(error) : null,
+  });
+
+  if (isLoading) {
     return (
-      <div className="flex h-screen items-center justify-center">
+      <div className="flex h-full items-center justify-center">
         <div className="text-center">
-          <div className="mb-4 h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent mx-auto" />
-          <p className="text-muted-foreground">Loading chatroom...</p>
+          <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
+          <p className="mt-2 text-sm text-muted-foreground">
+            {actorFetching ? 'Connecting to backend...' : 'Loading chat...'}
+          </p>
         </div>
       </div>
     );
   }
 
-  if (error) {
+  // Show error if chatroom not found after fetching is complete
+  if (isFetched && (isError || !chatroom)) {
     return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="text-center space-y-4">
-          <p className="text-destructive">Failed to load chatroom</p>
-          <Button onClick={() => navigate({ to: '/' })} variant="outline">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Lobby
-          </Button>
-        </div>
+      <div className="flex h-full items-center justify-center p-4">
+        <Alert variant="destructive" className="max-w-md">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Chat Not Found</AlertTitle>
+          <AlertDescription>
+            {error ? String(error) : 'The chat you are looking for does not exist or has been removed.'}
+            <div className="mt-4">
+              <Button onClick={() => navigate({ to: '/' })} variant="outline">
+                Back to Lobby
+              </Button>
+            </div>
+          </AlertDescription>
+        </Alert>
       </div>
     );
   }
 
+  // Don't render ChatArea until we have the chatroom data
   if (!chatroom) {
     return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="text-center space-y-4">
-          <p className="text-muted-foreground">Chatroom not found</p>
-          <Button onClick={() => navigate({ to: '/' })} variant="outline">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Lobby
-          </Button>
+      <div className="flex h-full items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
+          <p className="mt-2 text-sm text-muted-foreground">Loading chat...</p>
         </div>
       </div>
     );
   }
 
-  return <ChatArea chatroomId={chatroomIdBigInt!} chatroom={chatroom} />;
+  return (
+    <div className="flex h-full min-h-0 flex-col">
+      <ChatArea chatroomId={chatroomIdBigInt} chatroom={chatroom} />
+    </div>
+  );
 }

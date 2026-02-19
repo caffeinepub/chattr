@@ -1,53 +1,39 @@
 import { useState, useRef, KeyboardEvent, useEffect } from 'react';
-import { Send, Mic, Square, X, Image as ImageIcon, Smile } from 'lucide-react';
-import { Progress } from './ui/progress';
-import { useActor } from '../hooks/useActor';
-import { compressImage } from '../lib/imageCompression';
-import { useDetectLinksInText } from '../hooks/useDetectLinksInText';
-import MessageInputLinkPreview from './MessageInputLinkPreview';
-import { searchGiphy, fetchTrendingGiphy, type GiphyGif } from '../lib/giphy';
-import { useDebouncedValue } from '../hooks/useDebouncedValue';
-import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
+import { Send, Image as ImageIcon, Video, X, Mic, Square } from 'lucide-react';
+import { SiX } from 'react-icons/si';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Input } from './ui/input';
-import { ScrollArea } from './ui/scroll-area';
-import { ExternalBlob } from '../backend';
-import { Button } from './ui/button';
+import { Label } from './ui/label';
+import { Progress } from './ui/progress';
+import { uploadImage } from '../hooks/useQueries';
 
 interface MessageInputProps {
-  onSendMessage: (content: string, mediaUrl?: string, mediaType?: string, imageId?: bigint, giphyUrl?: string) => void;
+  onSendMessage: (content: string, mediaUrl?: string, mediaType?: string) => void;
   disabled?: boolean;
   isSending?: boolean;
 }
 
 export default function MessageInput({ onSendMessage, disabled, isSending }: MessageInputProps) {
   const [message, setMessage] = useState('');
+  const [showMediaInput, setShowMediaInput] = useState(false);
+  const [mediaTab, setMediaTab] = useState<'image' | 'video' | 'twitter'>('image');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [videoUrl, setVideoUrl] = useState('');
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
+  const [mediaError, setMediaError] = useState('');
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [recordingError, setRecordingError] = useState('');
   const [isTextareaFocused, setIsTextareaFocused] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [selectedImage, setSelectedImage] = useState<{ preview: string; imageId: bigint } | null>(null);
-  const [selectedGif, setSelectedGif] = useState<string | null>(null);
-  const [giphySearchTerm, setGiphySearchTerm] = useState('');
-  const [giphyResults, setGiphyResults] = useState<GiphyGif[]>([]);
-  const [giphyLoading, setGiphyLoading] = useState(false);
-  const [showGiphyPicker, setShowGiphyPicker] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
-  const { actor } = useActor();
 
   const MAX_MESSAGE_LENGTH = 2000;
-
-  // Detect links in the message text
-  const detectedLink = useDetectLinksInText(message);
-
-  // Debounced Giphy search
-  const debouncedGiphySearch = useDebouncedValue(giphySearchTerm, 500);
 
   useEffect(() => {
     return () => {
@@ -63,90 +49,93 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
     };
   }, []);
 
-  // Load trending GIFs when picker opens
-  useEffect(() => {
-    if (showGiphyPicker && giphyResults.length === 0 && !giphySearchTerm) {
-      loadTrendingGifs();
+  const detectVideoType = (url: string): 'youtube' | 'twitch' | null => {
+    const lowerUrl = url.toLowerCase();
+    
+    if (lowerUrl.includes('youtube.com') || lowerUrl.includes('youtu.be')) {
+      return 'youtube';
     }
-  }, [showGiphyPicker]);
-
-  // Search GIFs when search term changes
-  useEffect(() => {
-    if (debouncedGiphySearch.trim()) {
-      searchGifs(debouncedGiphySearch);
-    } else if (showGiphyPicker) {
-      loadTrendingGifs();
+    
+    if (lowerUrl.includes('twitch.tv') || lowerUrl.includes('clips.twitch.tv')) {
+      return 'twitch';
     }
-  }, [debouncedGiphySearch]);
-
-  const loadTrendingGifs = async () => {
-    setGiphyLoading(true);
-    try {
-      const result = await fetchTrendingGiphy();
-      setGiphyResults(result.gifs);
-    } catch (error) {
-      console.error('Failed to load trending GIFs:', error);
-    } finally {
-      setGiphyLoading(false);
-    }
+    
+    return null;
   };
 
-  const searchGifs = async (term: string) => {
-    setGiphyLoading(true);
-    try {
-      const result = await searchGiphy(term);
-      setGiphyResults(result.gifs);
-    } catch (error) {
-      console.error('Failed to search GIFs:', error);
-    } finally {
-      setGiphyLoading(false);
+  const validateVideoUrl = (url: string): { isValid: boolean; type: 'youtube' | 'twitch' | null } => {
+    if (!url.trim()) {
+      setMediaError('URL is required');
+      return { isValid: false, type: null };
     }
+
+    const videoType = detectVideoType(url);
+    
+    if (!videoType) {
+      setMediaError('Invalid video URL. Must be a YouTube or Twitch URL');
+      return { isValid: false, type: null };
+    }
+
+    setMediaError('');
+    return { isValid: true, type: videoType };
   };
 
-  const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const validateTwitterUrl = (url: string): boolean => {
+    if (!url.trim()) {
+      setMediaError('URL is required');
+      return false;
+    }
+
+    const lowerUrl = url.toLowerCase();
+    const isTwitter = lowerUrl.includes('twitter.com') || lowerUrl.includes('x.com');
+    
+    if (!isTwitter) {
+      setMediaError('Invalid Twitter/X URL');
+      return false;
+    }
+
+    setMediaError('');
+    return true;
+  };
+
+  const validateImageFile = (file: File): boolean => {
+    if (!file.type.startsWith('image/')) {
+      setMediaError('Invalid file type. Must be an image file');
+      return false;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      setMediaError('File size must be less than 10MB');
+      return false;
+    }
+
+    setMediaError('');
+    return true;
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !actor) return;
-
-    try {
-      setIsUploading(true);
-      setUploadProgress(0);
-
-      // Compress the image
-      const compressedFile = await compressImage(file, {}, (progress) => {
-        setUploadProgress(progress * 0.5); // First 50% for compression
-      });
-
-      // Convert to bytes
-      const arrayBuffer = await compressedFile.arrayBuffer();
-      const bytes = new Uint8Array(arrayBuffer);
-
-      setUploadProgress(60);
-
-      // Create ExternalBlob and store
-      const blob = ExternalBlob.fromBytes(bytes);
-      const imageId = await actor.storeImage(blob);
-
-      setUploadProgress(100);
-
-      // Create preview URL
-      const previewUrl = URL.createObjectURL(compressedFile);
-      setSelectedImage({ preview: previewUrl, imageId });
-      setSelectedGif(null); // Clear GIF if image is selected
-    } catch (error) {
-      console.error('Failed to upload image:', error);
-      setRecordingError('Failed to upload image');
-    } finally {
-      setIsUploading(false);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+    if (file) {
+      if (validateImageFile(file)) {
+        setSelectedFile(file);
+        setMediaError('');
+      } else {
+        setSelectedFile(null);
       }
     }
   };
 
-  const handleGifSelect = (gif: GiphyGif) => {
-    setSelectedGif(gif.originalUrl);
-    setSelectedImage(null); // Clear image if GIF is selected
-    setShowGiphyPicker(false);
+  const handleVideoUrlChange = (value: string) => {
+    setVideoUrl(value);
+    if (value.trim()) {
+      if (mediaTab === 'video') {
+        validateVideoUrl(value);
+      } else if (mediaTab === 'twitter') {
+        validateTwitterUrl(value);
+      }
+    } else {
+      setMediaError('');
+    }
   };
 
   const uploadAudio = async (audioBlob: Blob): Promise<string> => {
@@ -289,45 +278,88 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
       recordingTimerRef.current = null;
     }
     
+    audioChunksRef.current = [];
+    
     setIsRecording(false);
     setRecordingTime(0);
-    audioChunksRef.current = [];
+    setRecordingError('');
   };
 
-  const handleSend = () => {
-    const trimmedMessage = message.trim();
-    
-    if (selectedImage) {
-      onSendMessage(trimmedMessage || 'Image', undefined, undefined, selectedImage.imageId);
-      setSelectedImage(null);
-      setMessage('');
-      if (textareaRef.current) {
-        textareaRef.current.style.height = 'auto';
+  const formatRecordingTime = (seconds: number): string => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const handleSend = async () => {
+    if (disabled || isUploading || isSending || isRecording) return;
+
+    if (showMediaInput) {
+      if (mediaTab === 'image' && selectedFile) {
+        if (!validateImageFile(selectedFile)) return;
+        
+        try {
+          setIsUploading(true);
+          const mediaUrl = await uploadImage(selectedFile, (progress) => {
+            setUploadProgress(progress);
+          });
+          const content = message.trim() || 'Image';
+          onSendMessage(content, mediaUrl, 'image');
+          
+          setMessage('');
+          setSelectedFile(null);
+          setShowMediaInput(false);
+          setMediaError('');
+          setUploadProgress(0);
+          if (textareaRef.current) {
+            textareaRef.current.style.height = 'auto';
+          }
+          if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+          }
+        } catch (error) {
+          setMediaError(error instanceof Error ? error.message : 'Failed to upload image');
+        } finally {
+          setIsUploading(false);
+        }
+        return;
+      } else if (mediaTab === 'video' && videoUrl.trim()) {
+        const validation = validateVideoUrl(videoUrl);
+        if (!validation.isValid || !validation.type) return;
+        
+        const content = message.trim() || `${validation.type === 'youtube' ? 'YouTube' : 'Twitch'} Video`;
+        onSendMessage(content, videoUrl.trim(), validation.type);
+        
+        setMessage('');
+        setVideoUrl('');
+        setShowMediaInput(false);
+        setMediaError('');
+        if (textareaRef.current) {
+          textareaRef.current.style.height = 'auto';
+        }
+        return;
+      } else if (mediaTab === 'twitter' && videoUrl.trim()) {
+        if (!validateTwitterUrl(videoUrl)) return;
+        
+        const content = message.trim() || 'Twitter Post';
+        onSendMessage(content, videoUrl.trim(), 'twitter');
+        
+        setMessage('');
+        setVideoUrl('');
+        setShowMediaInput(false);
+        setMediaError('');
+        if (textareaRef.current) {
+          textareaRef.current.style.height = 'auto';
+        }
+        return;
+      } else {
+        setMediaError('Please select media or enter a URL');
+        return;
       }
-      return;
     }
 
-    if (selectedGif) {
-      onSendMessage(trimmedMessage || 'GIF', undefined, undefined, undefined, selectedGif);
-      setSelectedGif(null);
-      setMessage('');
-      if (textareaRef.current) {
-        textareaRef.current.style.height = 'auto';
-      }
-      return;
-    }
-
-    if (detectedLink) {
-      onSendMessage(trimmedMessage, detectedLink.url, detectedLink.type);
-      setMessage('');
-      if (textareaRef.current) {
-        textareaRef.current.style.height = 'auto';
-      }
-      return;
-    }
-
-    if (trimmedMessage) {
-      onSendMessage(trimmedMessage);
+    if (message.trim()) {
+      onSendMessage(message);
       setMessage('');
       if (textareaRef.current) {
         textareaRef.current.style.height = 'auto';
@@ -342,221 +374,231 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
     }
   };
 
-  const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const value = e.target.value;
-    if (value.length <= MAX_MESSAGE_LENGTH) {
-      setMessage(value);
-      
-      // Auto-resize textarea
-      if (textareaRef.current) {
-        textareaRef.current.style.height = 'auto';
-        textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
-      }
+  const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setMessage(e.target.value);
+    e.target.style.height = 'auto';
+    e.target.style.height = `${Math.min(e.target.scrollHeight, 120)}px`;
+  };
+
+  const handleImageButtonClick = () => {
+    if (isRecording) return;
+    setShowMediaInput(!showMediaInput);
+    setMediaTab('image');
+  };
+
+  const handleMicButtonClick = () => {
+    if (showMediaInput) return;
+    if (isRecording) {
+      cancelRecording();
+    } else {
+      startRecording();
     }
   };
 
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  const canSend = (message.trim() || selectedImage || selectedGif || detectedLink) && !isSending && !isUploading;
+  const messageProgressPercentage = (message.length / MAX_MESSAGE_LENGTH) * 100;
 
   return (
-    <div className="border-t border-border bg-card p-4">
-      {recordingError && (
-        <div className="mb-2 rounded-md bg-destructive/10 p-2 text-sm text-destructive">
-          {recordingError}
-        </div>
-      )}
+    <div className="flex-shrink-0 bg-card">
+      <div className="mx-auto max-w-3xl px-4 py-3">
+        <div className="space-y-2">
+          {recordingError && (
+            <div className="rounded-md bg-destructive/10 p-2 text-sm text-destructive">
+              {recordingError}
+            </div>
+          )}
 
-      {isUploading && (
-        <div className="mb-2">
-          <Progress value={uploadProgress} className="h-1" />
-        </div>
-      )}
-
-      {detectedLink && (
-        <MessageInputLinkPreview url={detectedLink.url} type={detectedLink.type} />
-      )}
-
-      {selectedImage && (
-        <div className="mb-2 relative inline-block">
-          <img 
-            src={selectedImage.preview} 
-            alt="Selected" 
-            className="max-h-32 rounded-lg border border-border"
-          />
-          <button
-            onClick={() => setSelectedImage(null)}
-            className="absolute -top-2 -right-2 rounded-full bg-destructive p-1 text-destructive-foreground hover:bg-destructive/90"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-      )}
-
-      {selectedGif && (
-        <div className="mb-2 relative inline-block">
-          <img 
-            src={selectedGif} 
-            alt="Selected GIF" 
-            className="max-h-32 rounded-lg border border-border"
-          />
-          <button
-            onClick={() => setSelectedGif(null)}
-            className="absolute -top-2 -right-2 rounded-full bg-destructive p-1 text-destructive-foreground hover:bg-destructive/90"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-      )}
-
-      {isRecording ? (
-        <div className="flex items-center gap-3 rounded-lg bg-destructive/10 p-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-destructive">
-            <div className="h-3 w-3 animate-pulse rounded-full bg-white" />
-          </div>
-          <div className="flex-1">
-            <div className="text-sm font-medium text-foreground">Recording...</div>
-            <div className="text-xs text-muted-foreground">{formatTime(recordingTime)}</div>
-          </div>
-          <button
-            onClick={cancelRecording}
-            className="rounded-full p-2 hover:bg-muted"
-            aria-label="Cancel recording"
-          >
-            <X className="h-5 w-5 text-muted-foreground" />
-          </button>
-          <button
-            onClick={stopRecording}
-            className="rounded-full bg-primary p-2 hover:bg-primary/90"
-            aria-label="Stop recording"
-          >
-            <Square className="h-5 w-5 text-primary-foreground" />
-          </button>
-        </div>
-      ) : (
-        <div className="flex items-end gap-2">
-          <div className="flex-1">
-            <textarea
-              ref={textareaRef}
-              value={message}
-              onChange={handleTextareaChange}
-              onKeyDown={handleKeyDown}
-              onFocus={() => setIsTextareaFocused(true)}
-              onBlur={() => setIsTextareaFocused(false)}
-              placeholder="Type a message..."
-              disabled={disabled || isUploading}
-              className="w-full resize-none rounded-lg border border-input bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-              rows={1}
-              style={{ 
-                maxHeight: '120px', 
-                minHeight: '44px',
-                fontSize: '16px'
-              }}
-            />
-            {isTextareaFocused && (
-              <div className="mt-1 text-xs text-muted-foreground text-right">
-                {message.length}/{MAX_MESSAGE_LENGTH}
+          {isRecording && (
+            <div className="flex items-center justify-between rounded-lg bg-destructive/10 p-3">
+              <div className="flex items-center gap-2">
+                <div className="h-3 w-3 animate-pulse rounded-full bg-destructive" />
+                <span className="text-sm font-medium text-foreground">
+                  Recording: {formatRecordingTime(recordingTime)}
+                </span>
               </div>
-            )}
-          </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={cancelRecording}
+                  className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 size-9 h-10 w-10 shrink-0 rounded-full"
+                  title="Cancel recording"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+                <button
+                  onClick={stopRecording}
+                  className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground shadow-xs hover:bg-primary/90 size-9 h-10 w-10 shrink-0 rounded-full"
+                  title="Stop and send"
+                >
+                  <Square className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
+          )}
 
-          {/* Inline Image Upload Button */}
-          <div>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              onChange={handleImageSelect}
-              className="hidden"
-            />
-            <Button
-              onClick={() => fileInputRef.current?.click()}
-              disabled={disabled || isUploading}
-              variant="ghost"
-              size="icon"
-              className="h-11 w-11 shrink-0"
-              aria-label="Upload image"
+          {showMediaInput && (
+            <div className="rounded-lg border border-border bg-muted/30 p-4">
+              <div className="mb-3 flex items-center justify-between">
+                <h3 className="text-sm font-medium text-foreground">Add Media</h3>
+                <button
+                  onClick={() => {
+                    setShowMediaInput(false);
+                    setSelectedFile(null);
+                    setVideoUrl('');
+                    setMediaError('');
+                    if (fileInputRef.current) {
+                      fileInputRef.current.value = '';
+                    }
+                  }}
+                  className="rounded-full p-1 hover:bg-muted transition-colors"
+                >
+                  <X className="h-4 w-4 text-muted-foreground" />
+                </button>
+              </div>
+
+              <Tabs value={mediaTab} onValueChange={(value) => setMediaTab(value as 'image' | 'video' | 'twitter')}>
+                <TabsList className="grid w-full grid-cols-3 mb-3">
+                  <TabsTrigger value="image" className="flex items-center gap-1">
+                    <ImageIcon className="h-4 w-4" />
+                    <span className="hidden sm:inline">Image</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="video" className="flex items-center gap-1">
+                    <Video className="h-4 w-4" />
+                    <span className="hidden sm:inline">Video</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="twitter" className="flex items-center gap-1">
+                    <SiX className="h-4 w-4" />
+                    <span className="hidden sm:inline">Twitter</span>
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="image" className="space-y-3">
+                  <div>
+                    <Label htmlFor="image-upload" className="text-sm text-muted-foreground">
+                      Upload Image
+                    </Label>
+                    <Input
+                      id="image-upload"
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileChange}
+                      className="mt-1"
+                      style={{ fontSize: '16px' }}
+                    />
+                  </div>
+                  {selectedFile && (
+                    <div className="text-sm text-muted-foreground">
+                      Selected: {selectedFile.name}
+                    </div>
+                  )}
+                </TabsContent>
+
+                <TabsContent value="video" className="space-y-3">
+                  <div>
+                    <Label htmlFor="video-url" className="text-sm text-muted-foreground">
+                      YouTube or Twitch URL
+                    </Label>
+                    <Input
+                      id="video-url"
+                      type="url"
+                      value={videoUrl}
+                      onChange={(e) => handleVideoUrlChange(e.target.value)}
+                      placeholder="https://youtube.com/watch?v=..."
+                      className="mt-1"
+                      style={{ fontSize: '16px' }}
+                    />
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="twitter" className="space-y-3">
+                  <div>
+                    <Label htmlFor="twitter-url" className="text-sm text-muted-foreground">
+                      Twitter/X Post URL
+                    </Label>
+                    <Input
+                      id="twitter-url"
+                      type="url"
+                      value={videoUrl}
+                      onChange={(e) => handleVideoUrlChange(e.target.value)}
+                      placeholder="https://twitter.com/user/status/..."
+                      className="mt-1"
+                      style={{ fontSize: '16px' }}
+                    />
+                  </div>
+                </TabsContent>
+              </Tabs>
+
+              {mediaError && (
+                <div className="mt-2 text-sm text-destructive">
+                  {mediaError}
+                </div>
+              )}
+
+              {isUploading && (
+                <div className="mt-3">
+                  <Progress value={uploadProgress} className="h-2" />
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Uploading... {uploadProgress}%
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
+          <div className="flex items-end gap-2">
+            <button
+              onClick={handleImageButtonClick}
+              disabled={disabled || isRecording}
+              className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 size-9 h-10 w-10 shrink-0 rounded-full"
+              type="button"
             >
               <ImageIcon className="h-5 w-5" />
-            </Button>
+            </button>
+
+            <button
+              onClick={handleMicButtonClick}
+              disabled={disabled || showMediaInput}
+              className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 size-9 h-10 w-10 shrink-0 rounded-full"
+              type="button"
+            >
+              <Mic className="h-5 w-5" />
+            </button>
+
+            <div className="relative flex-1">
+              <textarea
+                ref={textareaRef}
+                value={message}
+                onChange={handleInput}
+                onKeyDown={handleKeyDown}
+                onFocus={() => setIsTextareaFocused(true)}
+                onBlur={() => setIsTextareaFocused(false)}
+                placeholder="Type a message..."
+                disabled={disabled || isRecording}
+                maxLength={MAX_MESSAGE_LENGTH}
+                rows={1}
+                className="border-input placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 flex field-sizing-content w-full border bg-transparent text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm min-h-[40px] max-h-[120px] resize-none rounded-full px-4 py-2.5"
+                style={{ fontSize: '16px' }}
+              />
+              {isTextareaFocused && (
+                <div className="absolute -bottom-2 left-0 right-0 h-1 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
+                  <div
+                    className="h-full bg-primary transition-all duration-200"
+                    style={{ width: `${messageProgressPercentage}%` }}
+                  />
+                </div>
+              )}
+            </div>
+
+            <button
+              onClick={handleSend}
+              disabled={disabled || isUploading || isSending || isRecording || (!message.trim() && !showMediaInput)}
+              className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground shadow-xs hover:bg-primary/90 size-9 h-10 w-10 shrink-0 rounded-full"
+              type="button"
+            >
+              <Send className="h-5 w-5" />
+            </button>
           </div>
-
-          {/* Inline GIF Picker Button */}
-          <Popover open={showGiphyPicker} onOpenChange={setShowGiphyPicker}>
-            <PopoverTrigger asChild>
-              <Button
-                disabled={disabled || isUploading}
-                variant="ghost"
-                size="icon"
-                className="h-11 w-11 shrink-0"
-                aria-label="Add GIF"
-              >
-                <Smile className="h-5 w-5" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-80 p-0" align="end" side="top">
-              <div className="p-3 border-b border-border">
-                <Input
-                  placeholder="Search GIFs..."
-                  value={giphySearchTerm}
-                  onChange={(e) => setGiphySearchTerm(e.target.value)}
-                  className="h-9"
-                  style={{ fontSize: '16px' }}
-                />
-              </div>
-              <ScrollArea className="h-64">
-                {giphyLoading ? (
-                  <div className="flex items-center justify-center h-full">
-                    <div className="text-sm text-muted-foreground">Loading...</div>
-                  </div>
-                ) : giphyResults.length > 0 ? (
-                  <div className="grid grid-cols-2 gap-2 p-2">
-                    {giphyResults.map((gif) => (
-                      <button
-                        key={gif.id}
-                        onClick={() => handleGifSelect(gif)}
-                        className="relative aspect-square overflow-hidden rounded-lg hover:opacity-80 transition-opacity"
-                      >
-                        <img
-                          src={gif.previewUrl}
-                          alt={gif.title}
-                          className="h-full w-full object-cover"
-                        />
-                      </button>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-center h-full">
-                    <div className="text-sm text-muted-foreground">No GIFs found</div>
-                  </div>
-                )}
-              </ScrollArea>
-            </PopoverContent>
-          </Popover>
-
-          <button
-            onClick={startRecording}
-            disabled={disabled || isUploading}
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-muted hover:bg-muted/80 disabled:cursor-not-allowed disabled:opacity-50"
-            aria-label="Record voice message"
-          >
-            <Mic className="h-5 w-5 text-muted-foreground" />
-          </button>
-
-          <button
-            onClick={handleSend}
-            disabled={!canSend}
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-primary hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
-            aria-label="Send message"
-          >
-            <Send className="h-5 w-5 text-primary-foreground" />
-          </button>
         </div>
-      )}
+      </div>
     </div>
   );
 }

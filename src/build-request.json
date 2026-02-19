@@ -1,57 +1,33 @@
 {
   "kind": "build_request",
-  "title": "Remove all caller principal checks from user-facing backend functions",
-  "priority": "high",
+  "title": "Ensure category tags are lowercase in chatrooms",
+  "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Remove all AccessControl.isAuthorized() calls from user-facing functions in backend/main.mo including createChatroom, sendMessage, addReaction, removeReaction, updateUsername, updateAvatar, addReply, and any other functions that regular users need to access",
-      "target": "backend",
+      "text": "Convert category display text to lowercase in the ChatroomPage component where category tags are rendered",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-last"
+          "msg-6"
         ],
         "quotes": [
-          "no actions are working because you added caller principal checks",
-          "remove all caller principal checks from main.mo"
+          "make sure category tags are lowercase in chatrooms as well."
         ]
       },
       "acceptanceCriteria": [
-        "Anonymous users can create chatrooms without authorization checks",
-        "Anonymous users can send messages without authorization checks",
-        "Anonymous users can add and remove reactions without authorization checks",
-        "Anonymous users can update their username and avatar without authorization checks",
-        "Anonymous users can add replies without authorization checks",
-        "All user-facing backend functions work without requiring caller principal verification"
-      ]
-    },
-    {
-      "id": "REQ-2",
-      "text": "Preserve admin password-protected functions (deleteChatroom and any other admin-only operations) so they remain protected",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-last"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Admin functions like deleteChatroom remain password-protected",
-        "Admin page continues to require password authentication"
+        "Category tags displayed in the chatroom view show lowercase text",
+        "Styling matches the existing LIVE badge format (padding, font size)"
       ]
     }
   ],
   "constraints": [
-    "Do not modify any frontend files",
-    "Keep admin password protection intact",
-    "Maintain existing session ID system in localStorage",
-    "Do not change the single-actor architecture"
+    "Do not modify ChatroomCard.tsx or LobbyPage.tsx as they already implement lowercase categories",
+    "Maintain consistent styling with existing category tag implementation"
   ],
   "nonGoals": [
-    "Adding new features",
-    "Modifying frontend components",
-    "Changing the UI design",
-    "Adding any form of user authentication",
-    "Modifying the AccessControl module itself"
+    "Changing backend category storage format",
+    "Modifying category selection in CreateChatroomDialog"
   ],
   "imageRequirements": {
     "required": [],

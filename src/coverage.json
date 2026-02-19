@@ -1,40 +1,32 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-19T01:15:37.329Z",
+  "generatedAt": "2026-02-18T23:42:57.196Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 2,
+    "total": 1,
     "implemented": 0,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Remove all AccessControl.isAuthorized() calls from user-facing functions in backend/main.mo including createChatroom, sendMessage, addReaction, removeReaction, updateUsername, updateAvatar, addReply, and any other functions that regular users need to access",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-2",
-        "summary": "Preserve admin password-protected functions (deleteChatroom and any other admin-only operations) so they remain protected",
-        "status": "unknown",
-        "plannedFiles": [],
+        "summary": "Convert category display text to lowercase in the ChatroomPage component where category tags are rendered",
+        "status": "missing",
+        "plannedFiles": [
+          "frontend/src/pages/ChatroomPage.tsx"
+        ],
         "matchedFiles": []
       }
     ]
   },
   "changedFiles": [
-    "backend/main.mo",
     "build-request.json",
     "feature_evidence.json",
+    "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/backend.d.ts",
-    "frontend/src/backend.ts",
-    "frontend/src/declarations/backend.did.d.ts",
-    "frontend/src/declarations/backend.did.js",
+    "frontend/src/components/ChatArea.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

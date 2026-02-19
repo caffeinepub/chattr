@@ -2,6 +2,7 @@ import List "mo:base/List";
 import Time "mo:base/Time";
 import Text "mo:base/Text";
 import Nat "mo:base/Nat";
+import Principal "mo:base/Principal";
 import OrderedMap "mo:base/OrderedMap";
 import Iter "mo:base/Iter";
 import Int "mo:base/Int";
@@ -9,16 +10,30 @@ import Array "mo:base/Array";
 import Storage "blob-storage/Storage";
 import MixinStorage "blob-storage/Mixin";
 import OutCall "http-outcalls/outcall";
-import Principal "mo:base/Principal";
-import AccessControl "authorization/access-control";
 import Debug "mo:base/Debug";
+import AccessControl "authorization/access-control";
 
 actor {
   let storage = Storage.new();
   include MixinStorage(storage);
 
-  // Initialize the access control system
   let accessControlState = AccessControl.initState();
+
+  public shared ({ caller }) func initializeAccessControl() : async () {
+    AccessControl.initialize(accessControlState, caller);
+  };
+
+  public query ({ caller }) func getCallerUserRole() : async AccessControl.UserRole {
+    AccessControl.getUserRole(accessControlState, caller);
+  };
+
+  public shared ({ caller }) func assignCallerUserRole(user : Principal, role : AccessControl.UserRole) : async () {
+    AccessControl.assignRole(accessControlState, caller, user, role);
+  };
+
+  public query ({ caller }) func isCallerAdmin() : async Bool {
+    AccessControl.isAdmin(accessControlState, caller);
+  };
 
   public type Message = {
     id : Nat;
@@ -31,8 +46,6 @@ actor {
     avatarUrl : ?Text;
     senderId : Text;
     replyToMessageId : ?Nat;
-    imageId : ?Nat;
-    giphyUrl : ?Text;
   };
 
   public type Chatroom = {
@@ -119,67 +132,25 @@ actor {
 
   var nextMessageId = 0;
   var nextChatroomId = 0;
-  var nextImageId = 0;
 
   transient let natMap = OrderedMap.Make<Nat>(Nat.compare);
-  transient let principalMap = OrderedMap.Make<Principal>(Principal.compare);
   var chatrooms : OrderedMap.Map<Nat, Chatroom> = natMap.empty();
   var messages : OrderedMap.Map<Nat, List.List<Message>> = natMap.empty();
   var activeUsers : OrderedMap.Map<Nat, List.List<ActiveUser>> = natMap.empty();
   var reactions : OrderedMap.Map<Nat, List.List<Reaction>> = natMap.empty();
-  var imageStorage : OrderedMap.Map<Nat, Storage.ExternalBlob> = natMap.empty();
+
+  transient let principalMap = OrderedMap.Make<Principal>(Principal.compare);
   var userProfiles = principalMap.empty<UserProfile>();
 
-  // Access Control Functions
-  public shared ({ caller }) func initializeAccessControl() : async () {
-    AccessControl.initialize(accessControlState, caller);
-  };
-
-  public query ({ caller }) func getCallerUserRole() : async AccessControl.UserRole {
-    AccessControl.getUserRole(accessControlState, caller);
-  };
-
-  public shared ({ caller }) func assignCallerUserRole(user : Principal, role : AccessControl.UserRole) : async () {
-    AccessControl.assignRole(accessControlState, caller, user, role);
-  };
-
-  public query ({ caller }) func isCallerAdmin() : async Bool {
-    AccessControl.isAdmin(accessControlState, caller);
-  };
-
-  public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Debug.trap("Unauthorized: Only users can access profiles");
-    };
-    principalMap.get(userProfiles, caller);
-  };
-
-  public query ({ caller }) func getUserProfile(user : Principal) : async ?UserProfile {
-    if (caller != user and not AccessControl.isAdmin(accessControlState, caller)) {
-      Debug.trap("Unauthorized: Can only view your own profile");
-    };
-    principalMap.get(userProfiles, user);
-  };
-
-  public shared ({ caller }) func saveCallerUserProfile(profile : UserProfile) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Debug.trap("Unauthorized: Only users can save profiles");
-    };
-    userProfiles := principalMap.put(userProfiles, caller, profile);
-  };
-
-  // Admin-only function
-  public shared ({ caller }) func deleteChatroomWithPassword(chatroomId : Nat, password : Text) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Debug.trap("Unauthorized: Only admins can delete chatrooms");
-    };
-
+  public shared func deleteChatroomWithPassword(chatroomId : Nat, password : Text) : async () {
     if (password != "lunasimbaliamsammy1987!") {
-      Debug.trap("Invalid password");
+      assert false;
     };
 
     switch (natMap.get(chatrooms, chatroomId)) {
-      case (null) { Debug.trap("Chatroom not found") };
+      case (null) {
+        assert false;
+      };
       case (?_chatroom) {
         chatrooms := natMap.delete(chatrooms, chatroomId);
         messages := natMap.delete(messages, chatroomId);
@@ -190,7 +161,10 @@ actor {
           let messageExistsInChatroom = switch (natMap.get(messages, chatroomId)) {
             case (null) { false };
             case (?chatroomMessages) {
-              List.some<Message>(chatroomMessages, func(msg) { msg.id == messageId });
+              List.some<Message>(
+                chatroomMessages,
+                func(msg) { msg.id == messageId },
+              );
             };
           };
           if (messageExistsInChatroom) {
@@ -202,16 +176,19 @@ actor {
     };
   };
 
-  // Now public (no auth)
-  public shared func createChatroom(topic : Text, description : Text, mediaUrl : Text, mediaType : Text, category : Text) : async Nat {
-    if (Text.size(topic) == 0 or Text.size(description) == 0 or Text.size(category) == 0) {
-      Debug.trap("Invalid input: topic, description, and category are required");
+  public shared ({ caller = _caller }) func createChatroom(topic : Text, description : Text, mediaUrl : Text, mediaType : Text, category : Text) : async Nat {
+    if (Text.size(topic) == 0 or Text.size(description) == 0) {
+      assert false;
+    };
+
+    if (Text.size(category) == 0) {
+      assert false;
     };
 
     if (Text.size(mediaUrl) > 0) {
       let isValidMedia = validateMediaUrl(mediaUrl, mediaType);
       if (not isValidMedia) {
-        Debug.trap("Invalid media URL");
+        assert false;
       };
     };
 
@@ -240,10 +217,8 @@ actor {
       mediaUrl = if (Text.size(mediaUrl) > 0) { ?mediaUrl } else { null };
       mediaType = if (Text.size(mediaType) > 0) { ?mediaType } else { null };
       avatarUrl = null;
-      senderId = "";
+      senderId = "creator";
       replyToMessageId = null;
-      imageId = null;
-      giphyUrl = null;
     };
 
     messages := natMap.put(messages, nextChatroomId, List.push(firstMessage, List.nil<Message>()));
@@ -255,11 +230,21 @@ actor {
   func validateMediaUrl(url : Text, mediaType : Text) : Bool {
     let lowerUrl = Text.toLowercase(url);
     switch (mediaType) {
-      case ("image") { isValidImageUrl(lowerUrl) };
-      case ("youtube") { isValidYouTubeUrl(lowerUrl) };
-      case ("twitch") { isValidTwitchUrl(lowerUrl) };
-      case ("twitter") { isValidTwitterUrl(lowerUrl) };
-      case ("audio") { isValidAudioUrl(lowerUrl) };
+      case ("image") {
+        isValidImageUrl(lowerUrl);
+      };
+      case ("youtube") {
+        isValidYouTubeUrl(lowerUrl);
+      };
+      case ("twitch") {
+        isValidTwitchUrl(lowerUrl);
+      };
+      case ("twitter") {
+        isValidTwitterUrl(lowerUrl);
+      };
+      case ("audio") {
+        isValidAudioUrl(lowerUrl);
+      };
       case (_) { false };
     };
   };
@@ -271,6 +256,7 @@ actor {
     };
 
     let hasImageExtension = Text.endsWith(url, #text ".jpg") or Text.endsWith(url, #text ".jpeg") or Text.endsWith(url, #text ".png") or Text.endsWith(url, #text ".gif");
+
     hasImageExtension;
   };
 
@@ -296,7 +282,6 @@ actor {
     hasAudioExtension;
   };
 
-  // Public query - guests can view
   public query func getLobbyChatroomCards() : async [LobbyChatroomCard] {
     if (natMap.size(chatrooms) == 0) {
       return [];
@@ -316,13 +301,17 @@ actor {
         let activeUserCount = List.size(
           List.filter<ActiveUser>(
             activeUsersForRoom,
-            func(user) { Int.abs(currentTime - user.lastActive) <= activeThreshold },
+            func(user) {
+              Int.abs(currentTime - user.lastActive) <= activeThreshold;
+            },
           )
         );
 
         {
           chatroom with
-          presenceIndicator = if (activeUserCount > 0) { activeUserCount } else {
+          presenceIndicator = if (activeUserCount > 0) {
+            activeUserCount;
+          } else {
             chatroom.viewCount;
           };
           isLive = activeUserCount > 0;
@@ -334,7 +323,6 @@ actor {
     Iter.toArray(lobbyCards);
   };
 
-  // Public query - guests can view
   public query func getChatrooms() : async [ChatroomWithLiveStatus] {
     if (natMap.size(chatrooms) == 0) {
       return [];
@@ -354,7 +342,9 @@ actor {
         let activeUserCount = List.size(
           List.filter<ActiveUser>(
             activeUsersForRoom,
-            func(user) { Int.abs(currentTime - user.lastActive) <= activeThreshold },
+            func(user) {
+              Int.abs(currentTime - user.lastActive) <= activeThreshold;
+            },
           )
         );
 
@@ -379,7 +369,6 @@ actor {
     url;
   };
 
-  // Public query - guests can view
   public query func getChatroom(id : Nat) : async ?ChatroomWithLiveStatus {
     switch (natMap.get(chatrooms, id)) {
       case (null) { null };
@@ -395,7 +384,9 @@ actor {
         let activeUserCount = List.size(
           List.filter<ActiveUser>(
             activeUsersForRoom,
-            func(user) { Int.abs(currentTime - user.lastActive) <= activeThreshold },
+            func(user) {
+              Int.abs(currentTime - user.lastActive) <= activeThreshold;
+            },
           )
         );
 
@@ -408,14 +399,13 @@ actor {
     };
   };
 
-  // Now public (no auth)
-  public shared func sendMessage(content : Text, sender : Text, chatroomId : Nat, mediaUrl : ?Text, mediaType : ?Text, avatarUrl : ?Text, senderId : Text, replyToMessageId : ?Nat, imageId : ?Nat, giphyUrl : ?Text) : async () {
+  public shared func sendMessage(content : Text, sender : Text, chatroomId : Nat, mediaUrl : ?Text, mediaType : ?Text, avatarUrl : ?Text, senderId : Text, replyToMessageId : ?Nat) : async () {
     if (Text.size(content) == 0) {
-      Debug.trap("Message content cannot be empty");
+      assert false;
     };
 
     switch (natMap.get(chatrooms, chatroomId)) {
-      case (null) { Debug.trap("Chatroom not found") };
+      case (null) { assert false };
       case (?chatroom) {
         let message : Message = {
           id = nextMessageId;
@@ -428,8 +418,6 @@ actor {
           avatarUrl;
           senderId;
           replyToMessageId;
-          imageId;
-          giphyUrl;
         };
 
         let chatroomMessages = switch (natMap.get(messages, chatroomId)) {
@@ -468,20 +456,6 @@ actor {
     };
   };
 
-  // Now public (no auth)
-  public shared func storeImage(blob : Storage.ExternalBlob) : async Nat {
-    let imageId = nextImageId;
-    imageStorage := natMap.put(imageStorage, imageId, blob);
-    nextImageId += 1;
-    imageId;
-  };
-
-  // Public query - guests can view
-  public query func getImage(imageId : Nat) : async ?Storage.ExternalBlob {
-    natMap.get(imageStorage, imageId);
-  };
-
-  // Public query - guests can view
   public query func getMessages(chatroomId : Nat) : async [Message] {
     switch (natMap.get(messages, chatroomId)) {
       case (null) { [] };
@@ -499,10 +473,9 @@ actor {
     };
   };
 
-  // Public function - guests can increment view count
   public func incrementViewCount(chatroomId : Nat, userId : Text) : async () {
     switch (natMap.get(chatrooms, chatroomId)) {
-      case (null) { Debug.trap("Chatroom not found") };
+      case (null) { assert false };
       case (?chatroom) {
         let updatedChatroom = {
           chatroom with
@@ -532,14 +505,9 @@ actor {
     };
   };
 
-  // Admin-only function
-  public shared ({ caller }) func pinVideo(chatroomId : Nat, messageId : Nat) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Debug.trap("Unauthorized: Only admins can pin videos");
-    };
-
+  public shared func pinVideo(chatroomId : Nat, messageId : Nat) : async () {
     switch (natMap.get(chatrooms, chatroomId)) {
-      case (null) { Debug.trap("Chatroom not found") };
+      case (null) { assert false };
       case (?chatroom) {
         let updatedChatroom = {
           chatroom with
@@ -550,14 +518,9 @@ actor {
     };
   };
 
-  // Admin-only function
-  public shared ({ caller }) func unpinVideo(chatroomId : Nat) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Debug.trap("Unauthorized: Only admins can unpin videos");
-    };
-
+  public shared func unpinVideo(chatroomId : Nat) : async () {
     switch (natMap.get(chatrooms, chatroomId)) {
-      case (null) { Debug.trap("Chatroom not found") };
+      case (null) { assert false };
       case (?chatroom) {
         let updatedChatroom = {
           chatroom with
@@ -568,7 +531,6 @@ actor {
     };
   };
 
-  // Public query - guests can view
   public query func getPinnedVideo(chatroomId : Nat) : async ?Nat {
     switch (natMap.get(chatrooms, chatroomId)) {
       case (null) { null };
@@ -576,8 +538,28 @@ actor {
     };
   };
 
-  // Now public (no auth)
-  public shared func updateUsernameRetroactively(senderId : Text, newUsername : Text) : async () {
+  public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
+    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
+      Debug.trap("Unauthorized: Only users can get their own profile");
+    };
+    principalMap.get(userProfiles, caller);
+  };
+
+  public shared ({ caller }) func saveCallerUserProfile(profile : UserProfile) : async () {
+    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
+      Debug.trap("Unauthorized: Only users can save their own profile");
+    };
+    userProfiles := principalMap.put(userProfiles, caller, profile);
+  };
+
+  public query ({ caller }) func getUserProfile(user : Principal) : async ?UserProfile {
+    if (caller != user and not AccessControl.isAdmin(accessControlState, caller)) {
+      Debug.trap("Unauthorized: Can only view your own profile or as admin");
+    };
+    principalMap.get(userProfiles, user);
+  };
+
+  public shared ({ caller = _caller }) func updateUsernameRetroactively(senderId : Text, newUsername : Text) : async () {
     var updatedMessages = messages;
 
     for ((chatroomId, chatroomMessages) in natMap.entries(messages)) {
@@ -587,7 +569,7 @@ actor {
           if (message.senderId == senderId) {
             {
               message with
-              sender = newUsername
+              sender = newUsername;
             };
           } else {
             message;
@@ -600,8 +582,7 @@ actor {
     messages := updatedMessages;
   };
 
-  // Now public (no auth)
-  public shared func updateAvatarRetroactively(senderId : Text, newAvatarUrl : ?Text) : async () {
+  public shared ({ caller = _caller }) func updateAvatarRetroactively(senderId : Text, newAvatarUrl : ?Text) : async () {
     var updatedMessages = messages;
 
     for ((chatroomId, chatroomMessages) in natMap.entries(messages)) {
@@ -611,7 +592,7 @@ actor {
           if (message.senderId == senderId) {
             {
               message with
-              avatarUrl = newAvatarUrl
+              avatarUrl = newAvatarUrl;
             };
           } else {
             message;
@@ -624,12 +605,7 @@ actor {
     messages := updatedMessages;
   };
 
-  // Admin-only function
-  public shared ({ caller }) func cleanupInactiveUsers() : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Debug.trap("Unauthorized: Only admins can cleanup inactive users");
-    };
-
+  public shared func cleanupInactiveUsers() : async () {
     let currentTime = Time.now();
     let activeThreshold = 60 * 1_000_000_000;
 
@@ -648,7 +624,6 @@ actor {
     activeUsers := updatedActiveUsers;
   };
 
-  // Now public (no auth)
   public shared func addReaction(messageId : Nat, emoji : Text, userId : Text) : async () {
     let messageReactions = switch (natMap.get(reactions, messageId)) {
       case (null) { List.nil<Reaction>() };
@@ -660,7 +635,10 @@ actor {
       (List.nil<Reaction>(), false),
       func((acc, found), reaction) {
         if (reaction.emoji == emoji) {
-          let hasReacted = List.some<Text>(reaction.users, func(user) { user == userId });
+          let hasReacted = List.some<Text>(
+            reaction.users,
+            func(user) { user == userId },
+          );
 
           if (not hasReacted) {
             let updatedReaction = {
@@ -690,7 +668,6 @@ actor {
     };
   };
 
-  // Now public (no auth)
   public shared func removeReaction(messageId : Nat, emoji : Text, userId : Text) : async () {
     let messageReactions = switch (natMap.get(reactions, messageId)) {
       case (null) { List.nil<Reaction>() };
@@ -704,7 +681,10 @@ actor {
           {
             reaction with
             count = if (reaction.count > 0) { reaction.count - 1 : Nat } else { 0 };
-            users = List.filter<Text>(reaction.users, func(user) { user != userId });
+            users = List.filter<Text>(
+              reaction.users,
+              func(user) { user != userId },
+            );
           };
         } else {
           reaction;
@@ -715,7 +695,6 @@ actor {
     reactions := natMap.put(reactions, messageId, updatedReactions);
   };
 
-  // Public query - guests can view
   public query func getReactions(messageId : Nat) : async [Reaction] {
     switch (natMap.get(reactions, messageId)) {
       case (null) { [] };
@@ -723,7 +702,6 @@ actor {
     };
   };
 
-  // Public query - guests can search
   public query func searchChatrooms(searchTerm : Text) : async [ChatroomWithLiveStatus] {
     let lowerSearchTerm = Text.toLowercase(searchTerm);
 
@@ -773,7 +751,6 @@ actor {
     Iter.toArray(filteredChatrooms);
   };
 
-  // Public query - guests can filter
   public query func filterChatroomsByCategory(category : Text) : async [ChatroomWithLiveStatus] {
     let lowerCategory = Text.toLowercase(category);
 
@@ -819,36 +796,30 @@ actor {
     Iter.toArray(filteredChatrooms);
   };
 
-  // Public query - transform function for HTTP outcalls
   public query func transform(input : OutCall.TransformationInput) : async OutCall.TransformationOutput {
     OutCall.transform(input);
   };
 
-  // Public function - HTTP outcalls
   public func fetchYouTubeThumbnail(videoId : Text) : async Text {
     let thumbnailUrl = "https://img.youtube.com/vi/" # videoId # "/hqdefault.jpg";
     await OutCall.httpGetRequest(thumbnailUrl, [], transform);
   };
 
-  // Public function - HTTP outcalls
   public func fetchTwitchThumbnail(channelName : Text) : async Text {
     let thumbnailUrl = "https://static-cdn.jtvnw.net/previews-ttv/live_user_" # channelName # "-640x360.jpg";
     await OutCall.httpGetRequest(thumbnailUrl, [], transform);
   };
 
-  // Public function - HTTP outcalls
   public func fetchTwitterOEmbed(tweetUrl : Text) : async Text {
     let oembedUrl = "https://publish.twitter.com/oembed?url=" # tweetUrl;
     await OutCall.httpGetRequest(oembedUrl, [], transform);
   };
 
-  // Public function - HTTP outcalls
   public func fetchTwitterThumbnail(tweetUrl : Text) : async Text {
     let apiUrl = "https://api.twitter.com/1.1/statuses/show.json?id=" # tweetUrl;
     await OutCall.httpGetRequest(apiUrl, [], transform);
   };
 
-  // Public query - guests can view
   public query func getMessageWithReactionsAndReplies(chatroomId : Nat) : async [MessageWithReactions] {
     switch (natMap.get(messages, chatroomId)) {
       case (null) { [] };
@@ -880,7 +851,6 @@ actor {
     };
   };
 
-  // Public query - guests can view
   public query func getReplyPreview(chatroomId : Nat, messageId : Nat) : async ?ReplyPreview {
     switch (natMap.get(messages, chatroomId)) {
       case (null) { null };
@@ -911,7 +881,6 @@ actor {
     };
   };
 
-  // Public query - guests can view
   public query func getReplies(chatroomId : Nat, parentMessageId : Nat) : async [Message] {
     switch (natMap.get(messages, chatroomId)) {
       case (null) { [] };
@@ -945,3 +914,4 @@ actor {
     Text.fromArray(Array.tabulate(length, func(i : Nat) : Char { chars[i] }));
   };
 };
+

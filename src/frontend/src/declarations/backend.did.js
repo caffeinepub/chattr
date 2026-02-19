@@ -46,7 +46,6 @@ export const UserProfile = IDL.Record({
   'anonId' : IDL.Text,
   'avatarUrl' : IDL.Opt(IDL.Text),
 });
-export const ExternalBlob = IDL.Vec(IDL.Nat8);
 export const LobbyChatroomCard = IDL.Record({
   'id' : IDL.Nat,
   'topic' : IDL.Text,
@@ -83,7 +82,6 @@ export const MessageWithReactions = IDL.Record({
 });
 export const Message = IDL.Record({
   'id' : IDL.Nat,
-  'giphyUrl' : IDL.Opt(IDL.Text),
   'content' : IDL.Text,
   'chatroomId' : IDL.Nat,
   'sender' : IDL.Text,
@@ -92,7 +90,6 @@ export const Message = IDL.Record({
   'replyToMessageId' : IDL.Opt(IDL.Nat),
   'timestamp' : IDL.Int,
   'mediaType' : IDL.Opt(IDL.Text),
-  'imageId' : IDL.Opt(IDL.Nat),
   'senderId' : IDL.Text,
 });
 export const ReplyPreview = IDL.Record({
@@ -173,7 +170,6 @@ export const idlService = IDL.Service({
       ['query'],
     ),
   'getChatrooms' : IDL.Func([], [IDL.Vec(ChatroomWithLiveStatus)], ['query']),
-  'getImage' : IDL.Func([IDL.Nat], [IDL.Opt(ExternalBlob)], ['query']),
   'getLobbyChatroomCards' : IDL.Func(
       [],
       [IDL.Vec(LobbyChatroomCard)],
@@ -219,13 +215,10 @@ export const idlService = IDL.Service({
         IDL.Opt(IDL.Text),
         IDL.Text,
         IDL.Opt(IDL.Nat),
-        IDL.Opt(IDL.Nat),
-        IDL.Opt(IDL.Text),
       ],
       [],
       [],
     ),
-  'storeImage' : IDL.Func([ExternalBlob], [IDL.Nat], []),
   'transform' : IDL.Func(
       [TransformationInput],
       [TransformationOutput],
@@ -277,7 +270,6 @@ export const idlFactory = ({ IDL }) => {
     'anonId' : IDL.Text,
     'avatarUrl' : IDL.Opt(IDL.Text),
   });
-  const ExternalBlob = IDL.Vec(IDL.Nat8);
   const LobbyChatroomCard = IDL.Record({
     'id' : IDL.Nat,
     'topic' : IDL.Text,
@@ -314,7 +306,6 @@ export const idlFactory = ({ IDL }) => {
   });
   const Message = IDL.Record({
     'id' : IDL.Nat,
-    'giphyUrl' : IDL.Opt(IDL.Text),
     'content' : IDL.Text,
     'chatroomId' : IDL.Nat,
     'sender' : IDL.Text,
@@ -323,7 +314,6 @@ export const idlFactory = ({ IDL }) => {
     'replyToMessageId' : IDL.Opt(IDL.Nat),
     'timestamp' : IDL.Int,
     'mediaType' : IDL.Opt(IDL.Text),
-    'imageId' : IDL.Opt(IDL.Nat),
     'senderId' : IDL.Text,
   });
   const ReplyPreview = IDL.Record({
@@ -401,7 +391,6 @@ export const idlFactory = ({ IDL }) => {
         ['query'],
       ),
     'getChatrooms' : IDL.Func([], [IDL.Vec(ChatroomWithLiveStatus)], ['query']),
-    'getImage' : IDL.Func([IDL.Nat], [IDL.Opt(ExternalBlob)], ['query']),
     'getLobbyChatroomCards' : IDL.Func(
         [],
         [IDL.Vec(LobbyChatroomCard)],
@@ -447,13 +436,10 @@ export const idlFactory = ({ IDL }) => {
           IDL.Opt(IDL.Text),
           IDL.Text,
           IDL.Opt(IDL.Nat),
-          IDL.Opt(IDL.Nat),
-          IDL.Opt(IDL.Text),
         ],
         [],
         [],
       ),
-    'storeImage' : IDL.Func([ExternalBlob], [IDL.Nat], []),
     'transform' : IDL.Func(
         [TransformationInput],
         [TransformationOutput],

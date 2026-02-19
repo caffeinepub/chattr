@@ -1,37 +1,30 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Anonymous chat application with all caller principal checks removed from user-facing actions",
+  "summary": "Chat application with category tag styling requirements",
   "architectural_notes": [
-    "All user-facing backend functions must operate without caller principal checks or authentication requirements",
-    "Session IDs stored in localStorage manage anonymous user state",
-    "Admin functions may remain password-protected but should not use Internet Identity or caller principal checks"
+    "Category tags should be displayed in lowercase across all views including chatrooms"
   ],
-  "known_issues": [
-    "Caller principal checks currently blocking all user actions on live site",
-    "AccessControl.isAuthorized() calls preventing anonymous users from creating rooms, sending messages, and other basic functions"
-  ],
-  "isFixRequest": true,
+  "known_issues": [],
+  "isFixRequest": false,
   "existing_features": [],
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Remove all AccessControl.isAuthorized() calls from user-facing functions in backend/main.mo including createChatroom, sendMessage, addReaction, removeReaction, updateUsername, updateAvatar, addReply, and any other functions that regular users need to access",
-      "reqIds": [
-        "REQ-1"
-      ],
+      "summary": "Ensure category tags are lowercase in chatrooms",
+      "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-2",
-      "summary": "Preserve admin password-protected functions (deleteChatroom and any other admin-only operations) so they remain protected",
+      "summary": "Convert category display text to lowercase in the ChatroomPage component where category tags are rendered",
       "reqIds": [
-        "REQ-2"
+        "REQ-1"
       ],
       "status": "pending"
     }
   ],
-  "projectName": "Remove all caller principal checks from user-facing backend functions",
+  "projectName": "Ensure category tags are lowercase in chatrooms",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }
