@@ -1,32 +1,56 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-18T23:42:57.196Z",
+  "generatedAt": "2026-02-19T21:15:38.919Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 1,
-    "implemented": 0,
+    "total": 2,
+    "implemented": 2,
     "items": [
       {
-        "id": "REQ-1",
-        "summary": "Convert category display text to lowercase in the ChatroomPage component where category tags are rendered",
-        "status": "missing",
+        "id": "REQ-2",
+        "summary": "Implement automatic link detection and embedding in chat messages for YouTube, Twitch, X (Twitter), Instagram, TikTok, Rumble, and direct image URLs. When a user posts a message containing these links, the system should automatically detect and render rich previews/embeds inline within the message bubble.",
+        "status": "implemented",
         "plannedFiles": [
-          "frontend/src/pages/ChatroomPage.tsx"
+          "frontend/src/lib/videoUtils.ts",
+          "frontend/src/components/MessageBubble.tsx",
+          "frontend/src/components/MessageInput.tsx"
         ],
-        "matchedFiles": []
+        "matchedFiles": [
+          "frontend/src/lib/videoUtils.ts",
+          "frontend/src/components/MessageBubble.tsx",
+          "frontend/src/components/MessageInput.tsx"
+        ]
+      },
+      {
+        "id": "REQ-3",
+        "summary": "Modify the Add Media button functionality to exclusively support image uploads and add GIF selection via Giphy integration. Remove any video link input options from the Add Media dialog, as video links will now be posted directly into chat.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/MessageInput.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/MessageInput.tsx"
+        ]
       }
     ]
   },
   "changedFiles": [
+    "backend/main.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/components/ChatArea.tsx",
+    "frontend/src/backend.d.ts",
+    "frontend/src/backend.ts",
+    "frontend/src/components/MessageBubble.tsx",
+    "frontend/src/components/MessageInput.tsx",
+    "frontend/src/declarations/backend.did.d.ts",
+    "frontend/src/declarations/backend.did.js",
+    "frontend/src/lib/videoUtils.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

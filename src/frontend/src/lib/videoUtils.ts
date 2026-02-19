@@ -116,6 +116,41 @@ export function getTwitterPostId(url: string): string | null {
 }
 
 /**
+ * Extract Instagram post shortcode from URL
+ */
+export function getInstagramPostId(url: string): string | null {
+  const match = url.match(/instagram\.com\/(?:p|reel)\/([^/?]+)/);
+  return match ? match[1] : null;
+}
+
+/**
+ * Extract TikTok video ID from URL
+ */
+export function getTikTokVideoId(url: string): string | null {
+  const patterns = [
+    /tiktok\.com\/@[^/]+\/video\/(\d+)/,
+    /tiktok\.com\/v\/(\d+)/,
+    /vm\.tiktok\.com\/([^/?]+)/,
+  ];
+  
+  for (const pattern of patterns) {
+    const match = url.match(pattern);
+    if (match && match[1]) {
+      return match[1];
+    }
+  }
+  return null;
+}
+
+/**
+ * Extract Rumble video slug from URL
+ */
+export function getRumbleVideoSlug(url: string): string | null {
+  const match = url.match(/rumble\.com\/([^/?]+)/);
+  return match ? match[1] : null;
+}
+
+/**
  * Check if URL is a YouTube URL
  */
 export function isYouTubeUrl(url: string): boolean {
@@ -136,6 +171,44 @@ export function isTwitchUrl(url: string): boolean {
 export function isTwitterUrl(url: string): boolean {
   const lowerUrl = url.toLowerCase();
   return lowerUrl.includes('twitter.com') || lowerUrl.includes('x.com');
+}
+
+/**
+ * Check if URL is an Instagram URL
+ */
+export function isInstagramUrl(url: string): boolean {
+  return url.toLowerCase().includes('instagram.com');
+}
+
+/**
+ * Check if URL is a TikTok URL
+ */
+export function isTikTokUrl(url: string): boolean {
+  const lowerUrl = url.toLowerCase();
+  return lowerUrl.includes('tiktok.com') || lowerUrl.includes('vm.tiktok.com');
+}
+
+/**
+ * Check if URL is a Rumble URL
+ */
+export function isRumbleUrl(url: string): boolean {
+  return url.toLowerCase().includes('rumble.com');
+}
+
+/**
+ * Check if URL is a direct image URL
+ */
+export function isDirectImageUrl(url: string): boolean {
+  const lowerUrl = url.toLowerCase();
+  return /\.(jpg|jpeg|png|gif|webp|bmp|svg)(\?|$)/i.test(lowerUrl);
+}
+
+/**
+ * Detect all URLs in text
+ */
+export function detectUrls(text: string): string[] {
+  const urlRegex = /https?:\/\/[^\s]+/gi;
+  return text.match(urlRegex) || [];
 }
 
 /**

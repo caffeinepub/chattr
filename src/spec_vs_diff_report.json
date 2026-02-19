@@ -1,14 +1,32 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-18T23:42:57.194Z",
-  "summary": "The diff implements REQ-1 by converting category display text to lowercase in ChatArea.tsx (the ChatroomPage component). The implementation adds category badge rendering with lowercase text and px-2 py-0.5 padding to match the LIVE badge format as required. All acceptance criteria are met.",
+  "generatedAt": "2026-02-19T21:15:38.916Z",
+  "summary": "The diff implements both REQ-2 (automatic link detection and embedding) and REQ-3 (Add Media dialog with image upload and GIF selection via Giphy). The implementation covers all requested platforms and acceptance criteria with comprehensive URL detection and embedding logic in MessageBubble.tsx, video utility functions in videoUtils.ts, Giphy integration in MessageInput.tsx, and backend support for GIF data structures.",
   "missing_requirements": [],
-  "hallucinated_features": [],
-  "confidence": 0.95,
+  "hallucinated_features": [
+    {
+      "description": "Voice message recording functionality with audio recording controls, timer, and playback",
+      "reason": "The MessageInput.tsx component includes extensive voice recording implementation with MediaRecorder API, recording controls (Mic/Square icons), recording timer state, audio chunks handling, and VoiceMessagePlayer component import. This was not requested in the BuildRequest.",
+      "evidence": [
+        "frontend/src/components/MessageInput.tsx"
+      ]
+    },
+    {
+      "description": "Backend type definitions for ExternalGif, GifSearchResult, and LinkPreview",
+      "reason": "The backend/main.mo file includes new type definitions (ExternalGif, GifSearchResult, LinkPreview) that were not explicitly requested. While these support the GIF feature, the backend data structure changes go beyond the frontend-only scope implied by REQ-3's [frontend] tag.",
+      "evidence": [
+        "backend/main.mo"
+      ]
+    }
+  ],
+  "confidence": 0.92,
   "changed_files": [
+    "backend/main.mo",
     "frontend-file-summaries.txt",
-    "frontend/src/components/ChatArea.tsx",
+    "frontend/src/components/MessageBubble.tsx",
+    "frontend/src/components/MessageInput.tsx",
+    "frontend/src/lib/videoUtils.ts",
     "project_state.json"
   ]
 }

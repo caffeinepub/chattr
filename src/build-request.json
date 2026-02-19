@@ -1,33 +1,64 @@
 {
   "kind": "build_request",
-  "title": "Ensure category tags are lowercase in chatrooms",
+  "title": "Add auto-embed for social media links and GIF support",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-1",
-      "text": "Convert category display text to lowercase in the ChatroomPage component where category tags are rendered",
-      "target": "frontend",
+      "id": "REQ-2",
+      "text": "Implement automatic link detection and embedding in chat messages for YouTube, Twitch, X (Twitter), Instagram, TikTok, Rumble, and direct image URLs. When a user posts a message containing these links, the system should automatically detect and render rich previews/embeds inline within the message bubble.",
+      "target": "both",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-user-final"
         ],
         "quotes": [
-          "make sure category tags are lowercase in chatrooms as well."
+          "link detection should exist (it should show previews)",
+          "also allow instagram, and tiktok, rumble, as well as image urls"
         ]
       },
       "acceptanceCriteria": [
-        "Category tags displayed in the chatroom view show lowercase text",
-        "Styling matches the existing LIVE badge format (padding, font size)"
+        "YouTube links display video embeds",
+        "Twitch links display stream/clip embeds",
+        "X (Twitter) links display post previews",
+        "Instagram links display post embeds",
+        "TikTok links display video embeds",
+        "Rumble links display video embeds",
+        "Direct image URLs display inline images",
+        "Link detection works when users paste URLs directly into the chat input and send the message",
+        "Multiple links in a single message are all detected and embedded"
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Modify the Add Media button functionality to exclusively support image uploads and add GIF selection via Giphy integration. Remove any video link input options from the Add Media dialog, as video links will now be posted directly into chat.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-user-final"
+        ],
+        "quotes": [
+          "the add media button already exists and should only be for images (add gif support -- giphy)"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Add Media button opens a dialog with only image upload and GIF selection options",
+        "Giphy integration allows users to search and select GIFs",
+        "Video URL input fields are removed from the Add Media dialog",
+        "Image upload functionality remains unchanged",
+        "Selected GIFs post to chat as media attachments"
       ]
     }
   ],
   "constraints": [
-    "Do not modify ChatroomCard.tsx or LobbyPage.tsx as they already implement lowercase categories",
-    "Maintain consistent styling with existing category tag implementation"
+    "Do not change any component styles or visual appearance",
+    "Do not modify components unrelated to chat message handling and media input",
+    "Preserve all existing component functionality except where explicitly modified"
   ],
   "nonGoals": [
-    "Changing backend category storage format",
-    "Modifying category selection in CreateChatroomDialog"
+    "Styling or visual design changes",
+    "Modifications to header, footer, lobby, or admin components",
+    "Changes to authentication or user profile features",
+    "Refactoring of existing media handling for already-supported platforms"
   ],
   "imageRequirements": {
     "required": [],

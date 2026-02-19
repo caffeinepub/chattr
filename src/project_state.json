@@ -1,13 +1,33 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 3,
-  "summary": "Chat application with category tag styling requirements",
+  "projectStateVersion": 5,
+  "summary": "Chat application with category tag styling requirements and media embedding capabilities",
   "architectural_notes": [
-    "Category tags should be displayed in lowercase across all views including chatrooms"
+    "Category tags should be displayed in lowercase across all views including chatrooms",
+    "Chat should automatically detect and embed links for YouTube, Twitch, X, Instagram, TikTok, Rumble, and image URLs",
+    "Add Media button is exclusively for images and GIF uploads (Giphy integration)",
+    "No styling changes should be made during media embedding feature implementation"
   ],
   "known_issues": [],
   "isFixRequest": false,
-  "existing_features": [],
+  "existing_features": [
+    {
+      "id": "feature-implement-automatic-link-detection-and-embedding-in-chat-messages-for-youtube-twitch-x-twitter-instagram-tiktok-rumble-and-direct-image-urls-when-a-user-posts-a-message-containing-these-links-the-system-should-automatically-detect-and-render-rich-previews-embeds-inline-within-the-message-bubble",
+      "title": "Implement automatic link detection and embedding in chat messages for YouTube, Twitch, X (Twitter), Instagram, TikTok, Rumble, and direct image URLs. When a user posts a message containing these links, the system should automatically detect and render rich previews/embeds inline within the message bubble.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-modify-the-add-media-button-functionality-to-exclusively-support-image-uploads-and-add-gif-selection-via-giphy-integration-remove-any-video-link-input-options-from-the-add-media-dialog-as-video-links-will-now-be-posted-directly-into-chat",
+      "title": "Modify the Add Media button functionality to exclusively support image uploads and add GIF selection via Giphy integration. Remove any video link input options from the Add Media dialog, as video links will now be posted directly into chat.",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "version": 1
+    }
+  ],
   "new_feature_requests": [
     {
       "id": "AR-1",
@@ -21,6 +41,18 @@
       "reqIds": [
         "REQ-1"
       ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Auto-detect and embed links with previews for YouTube, Twitch, X (Twitter), Instagram, TikTok, Rumble, and direct image URLs in chatroom",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-4",
+      "summary": "Modify Add Media button to support only images and GIFs (Giphy integration)",
+      "reqIds": [],
       "status": "pending"
     }
   ],

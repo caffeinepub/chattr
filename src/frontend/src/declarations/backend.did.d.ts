@@ -131,6 +131,7 @@ export interface _SERVICE {
     bigint
   >,
   'deleteChatroomWithPassword' : ActorMethod<[bigint, string], undefined>,
+  'fetchLinkPreview' : ActorMethod<[string], string>,
   'fetchTwitchThumbnail' : ActorMethod<[string], string>,
   'fetchTwitterOEmbed' : ActorMethod<[string], string>,
   'fetchTwitterThumbnail' : ActorMethod<[string], string>,
@@ -161,6 +162,7 @@ export interface _SERVICE {
   'removeReaction' : ActorMethod<[bigint, string, string], undefined>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
   'searchChatrooms' : ActorMethod<[string], Array<ChatroomWithLiveStatus>>,
+  'searchGiphyGifs' : ActorMethod<[string, bigint, bigint], string>,
   'sendMessage' : ActorMethod<
     [
       string,

@@ -153,6 +153,7 @@ export const idlService = IDL.Service({
       [],
     ),
   'deleteChatroomWithPassword' : IDL.Func([IDL.Nat, IDL.Text], [], []),
+  'fetchLinkPreview' : IDL.Func([IDL.Text], [IDL.Text], []),
   'fetchTwitchThumbnail' : IDL.Func([IDL.Text], [IDL.Text], []),
   'fetchTwitterOEmbed' : IDL.Func([IDL.Text], [IDL.Text], []),
   'fetchTwitterThumbnail' : IDL.Func([IDL.Text], [IDL.Text], []),
@@ -205,6 +206,7 @@ export const idlService = IDL.Service({
       [IDL.Vec(ChatroomWithLiveStatus)],
       ['query'],
     ),
+  'searchGiphyGifs' : IDL.Func([IDL.Text, IDL.Nat, IDL.Nat], [IDL.Text], []),
   'sendMessage' : IDL.Func(
       [
         IDL.Text,
@@ -374,6 +376,7 @@ export const idlFactory = ({ IDL }) => {
         [],
       ),
     'deleteChatroomWithPassword' : IDL.Func([IDL.Nat, IDL.Text], [], []),
+    'fetchLinkPreview' : IDL.Func([IDL.Text], [IDL.Text], []),
     'fetchTwitchThumbnail' : IDL.Func([IDL.Text], [IDL.Text], []),
     'fetchTwitterOEmbed' : IDL.Func([IDL.Text], [IDL.Text], []),
     'fetchTwitterThumbnail' : IDL.Func([IDL.Text], [IDL.Text], []),
@@ -426,6 +429,7 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Vec(ChatroomWithLiveStatus)],
         ['query'],
       ),
+    'searchGiphyGifs' : IDL.Func([IDL.Text, IDL.Nat, IDL.Nat], [IDL.Text], []),
     'sendMessage' : IDL.Func(
         [
           IDL.Text,

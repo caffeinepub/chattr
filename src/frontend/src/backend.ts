@@ -207,6 +207,7 @@ export interface backendInterface {
     cleanupInactiveUsers(): Promise<void>;
     createChatroom(topic: string, description: string, mediaUrl: string, mediaType: string, category: string): Promise<bigint>;
     deleteChatroomWithPassword(chatroomId: bigint, password: string): Promise<void>;
+    fetchLinkPreview(url: string): Promise<string>;
     fetchTwitchThumbnail(channelName: string): Promise<string>;
     fetchTwitterOEmbed(tweetUrl: string): Promise<string>;
     fetchTwitterThumbnail(tweetUrl: string): Promise<string>;
@@ -231,6 +232,7 @@ export interface backendInterface {
     removeReaction(messageId: bigint, emoji: string, userId: string): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     searchChatrooms(searchTerm: string): Promise<Array<ChatroomWithLiveStatus>>;
+    searchGiphyGifs(searchTerm: string, limit: bigint, offset: bigint): Promise<string>;
     sendMessage(content: string, sender: string, chatroomId: bigint, mediaUrl: string | null, mediaType: string | null, avatarUrl: string | null, senderId: string, replyToMessageId: bigint | null): Promise<void>;
     transform(input: TransformationInput): Promise<TransformationOutput>;
     unpinVideo(chatroomId: bigint): Promise<void>;
@@ -391,6 +393,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.deleteChatroomWithPassword(arg0, arg1);
+            return result;
+        }
+    }
+    async fetchLinkPreview(arg0: string): Promise<string> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.fetchLinkPreview(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.fetchLinkPreview(arg0);
             return result;
         }
     }
@@ -728,6 +744,20 @@ export class Backend implements backendInterface {
         } else {
             const result = await this.actor.searchChatrooms(arg0);
             return from_candid_vec_n10(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async searchGiphyGifs(arg0: string, arg1: bigint, arg2: bigint): Promise<string> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.searchGiphyGifs(arg0, arg1, arg2);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.searchGiphyGifs(arg0, arg1, arg2);
+            return result;
         }
     }
     async sendMessage(arg0: string, arg1: string, arg2: bigint, arg3: string | null, arg4: string | null, arg5: string | null, arg6: string, arg7: bigint | null): Promise<void> {

@@ -1,4 +1,49 @@
 {
   "kind": "feature_evidence_report",
-  "features": []
+  "features": [
+    {
+      "featureId": "feature-implement-automatic-link-detection-and-embedding-in-chat-messages-for-youtube-twitch-x-twitter-instagram-tiktok-rumble-and-direct-image-urls-when-a-user-posts-a-message-containing-these-links-the-system-should-automatically-detect-and-render-rich-previews-embeds-inline-within-the-message-bubble",
+      "featureTitle": "Implement automatic link detection and embedding in chat messages for YouTube, Twitch, X (Twitter), Instagram, TikTok, Rumble, and direct image URLs. When a user posts a message containing these links, the system should automatically detect and render rich previews/embeds inline within the message bubble.",
+      "files": [
+        "frontend/src/components/MessageBubble.tsx",
+        "frontend/src/components/MessageInput.tsx",
+        "frontend/src/lib/videoUtils.ts"
+      ],
+      "components": [
+        "authorization@1.0.1",
+        "blob-storage@2.0.3",
+        "http-outcalls@1.1.1",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-2"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-modify-the-add-media-button-functionality-to-exclusively-support-image-uploads-and-add-gif-selection-via-giphy-integration-remove-any-video-link-input-options-from-the-add-media-dialog-as-video-links-will-now-be-posted-directly-into-chat",
+      "featureTitle": "Modify the Add Media button functionality to exclusively support image uploads and add GIF selection via Giphy integration. Remove any video link input options from the Add Media dialog, as video links will now be posted directly into chat.",
+      "files": [
+        "frontend/src/components/MessageInput.tsx"
+      ],
+      "components": [
+        "authorization@1.0.1",
+        "blob-storage@2.0.3",
+        "http-outcalls@1.1.1",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-3"
+      ],
+      "confidence": "high"
+    }
+  ]
 }

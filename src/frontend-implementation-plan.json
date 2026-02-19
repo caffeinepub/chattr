@@ -1,20 +1,55 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Ensure category tags are lowercase in chatrooms",
+  "title": "Add auto-embed for social media links and GIF support",
   "requirements": [
     {
-      "id": "REQ-1",
-      "summary": "Convert category display text to lowercase in the ChatroomPage component where category tags are rendered",
+      "id": "REQ-2",
+      "summary": "Implement automatic link detection and embedding in chat messages for YouTube, Twitch, X (Twitter), Instagram, TikTok, Rumble, and direct image URLs",
       "acceptanceCriteria": [
-        "Category tags displayed in the chatroom view show lowercase text",
-        "Styling matches the existing LIVE badge format (padding, font size)"
+        "YouTube links display video embeds",
+        "Twitch links display stream/clip embeds",
+        "X (Twitter) links display post previews",
+        "Instagram links display post embeds",
+        "TikTok links display video embeds",
+        "Rumble links display video embeds",
+        "Direct image URLs display inline images",
+        "Link detection works when users paste URLs directly into the chat input and send the message",
+        "Multiple links in a single message are all detected and embedded"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/ChatroomPage.tsx",
+          "path": "frontend/src/lib/videoUtils.ts",
           "operation": "modify",
-          "description": "Update the category badge rendering to display lowercase text using .toLowerCase() on the category value. Ensure the badge styling (px-2 py-0.5 rounded text-xs font-medium bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300) matches the existing LIVE badge format from ChatroomCard.tsx and LobbyPage.tsx for visual consistency."
+          "description": "Add URL detection and parsing functions for Instagram, TikTok, Rumble, and direct image URLs. Include functions to extract identifiers from Instagram posts (e.g., /p/[shortcode]/), TikTok videos (e.g., /video/[id]), and Rumble videos (e.g., /[slug]). Add a helper to detect direct image URLs by file extension (.jpg, .jpeg, .png, .gif, .webp). Add a general URL detection regex that can identify multiple URLs within message text."
+        },
+        {
+          "path": "frontend/src/components/MessageBubble.tsx",
+          "operation": "modify",
+          "description": "Extend the message rendering logic to automatically detect and embed Instagram, TikTok, and Rumble links found in message.content. Use the URL detection helpers from videoUtils.ts to parse multiple links within a single message. For Instagram posts, render an iframe embed using the Instagram oEmbed endpoint pattern. For TikTok videos, render an iframe embed using TikTok's embed URL format. For Rumble videos, render an iframe embed using Rumble's embed URL format. For direct image URLs detected in the message text, render inline <img> tags. Preserve existing YouTube, Twitch, and Twitter embed rendering. Ensure all embeds are styled consistently and positioned below the message text content."
+        },
+        {
+          "path": "frontend/src/components/MessageInput.tsx",
+          "operation": "modify",
+          "description": "Update the message sending logic to allow URLs pasted directly into the text input to be detected and embedded automatically when the message is sent. Remove any validation that prevents sending messages containing only URLs or that strips URLs from text content. Ensure that when a user pastes a YouTube, Twitch, Twitter, Instagram, TikTok, Rumble, or direct image URL into the text input and sends the message, it is transmitted as part of the message content and not treated as a media attachment."
+        }
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "summary": "Modify the Add Media button functionality to exclusively support image uploads and add GIF selection via Giphy integration",
+      "acceptanceCriteria": [
+        "Add Media button opens a dialog with only image upload and GIF selection options",
+        "Giphy integration allows users to search and select GIFs",
+        "Video URL input fields are removed from the Add Media dialog",
+        "Image upload functionality remains unchanged",
+        "Selected GIFs post to chat as media attachments"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/MessageInput.tsx",
+          "operation": "modify",
+          "description": "Remove all video URL input fields and Twitter URL input fields from the Add Media dialog. Retain only the image upload functionality. Add a new GIF selection mode within the Add Media dialog that allows users to search and select GIFs using the existing Giphy integration (already present in AvatarPickerDialog.tsx). When a user selects a GIF, set it as the media attachment (mediaUrl and mediaType) for the message. Ensure the dialog UI clearly separates the image upload option from the GIF selection option (e.g., using tabs or toggle buttons). Preserve all existing image upload functionality including progress tracking and compression."
         }
       ]
     }

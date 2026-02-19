@@ -108,6 +108,7 @@ export interface backendInterface {
     cleanupInactiveUsers(): Promise<void>;
     createChatroom(topic: string, description: string, mediaUrl: string, mediaType: string, category: string): Promise<bigint>;
     deleteChatroomWithPassword(chatroomId: bigint, password: string): Promise<void>;
+    fetchLinkPreview(url: string): Promise<string>;
     fetchTwitchThumbnail(channelName: string): Promise<string>;
     fetchTwitterOEmbed(tweetUrl: string): Promise<string>;
     fetchTwitterThumbnail(tweetUrl: string): Promise<string>;
@@ -132,6 +133,7 @@ export interface backendInterface {
     removeReaction(messageId: bigint, emoji: string, userId: string): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     searchChatrooms(searchTerm: string): Promise<Array<ChatroomWithLiveStatus>>;
+    searchGiphyGifs(searchTerm: string, limit: bigint, offset: bigint): Promise<string>;
     sendMessage(content: string, sender: string, chatroomId: bigint, mediaUrl: string | null, mediaType: string | null, avatarUrl: string | null, senderId: string, replyToMessageId: bigint | null): Promise<void>;
     transform(input: TransformationInput): Promise<TransformationOutput>;
     unpinVideo(chatroomId: bigint): Promise<void>;

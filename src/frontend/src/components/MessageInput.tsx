@@ -1,11 +1,12 @@
 import { useState, useRef, KeyboardEvent, useEffect } from 'react';
-import { Send, Image as ImageIcon, Video, X, Mic, Square } from 'lucide-react';
-import { SiX } from 'react-icons/si';
+import { Send, Image as ImageIcon, X, Mic, Square } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Progress } from './ui/progress';
 import { uploadImage } from '../hooks/useQueries';
+import { searchGiphy, fetchTrendingGiphy, type GiphyGif } from '../lib/giphy';
+import { useDebouncedValue } from '../hooks/useDebouncedValue';
 
 interface MessageInputProps {
   onSendMessage: (content: string, mediaUrl?: string, mediaType?: string) => void;
@@ -16,9 +17,8 @@ interface MessageInputProps {
 export default function MessageInput({ onSendMessage, disabled, isSending }: MessageInputProps) {
   const [message, setMessage] = useState('');
   const [showMediaInput, setShowMediaInput] = useState(false);
-  const [mediaTab, setMediaTab] = useState<'image' | 'video' | 'twitter'>('image');
+  const [mediaTab, setMediaTab] = useState<'image' | 'gif'>('image');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [videoUrl, setVideoUrl] = useState('');
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
   const [mediaError, setMediaError] = useState('');
@@ -26,6 +26,10 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
   const [recordingTime, setRecordingTime] = useState(0);
   const [recordingError, setRecordingError] = useState('');
   const [isTextareaFocused, setIsTextareaFocused] = useState(false);
+  const [gifSearchQuery, setGifSearchQuery] = useState('');
+  const [gifResults, setGifResults] = useState<GiphyGif[]>([]);
+  const [isLoadingGifs, setIsLoadingGifs] = useState(false);
+  const [selectedGif, setSelectedGif] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -34,6 +38,7 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
   const streamRef = useRef<MediaStream | null>(null);
 
   const MAX_MESSAGE_LENGTH = 2000;
+  const debouncedGifSearch = useDebouncedValue(gifSearchQuery, 500);
 
   useEffect(() => {
     return () => {
@@ -49,54 +54,52 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
     };
   }, []);
 
-  const detectVideoType = (url: string): 'youtube' | 'twitch' | null => {
-    const lowerUrl = url.toLowerCase();
-    
-    if (lowerUrl.includes('youtube.com') || lowerUrl.includes('youtu.be')) {
-      return 'youtube';
+  // Load trending GIFs on mount
+  useEffect(() => {
+    if (mediaTab === 'gif' && gifResults.length === 0) {
+      setIsLoadingGifs(true);
+      fetchTrendingGiphy()
+        .then((result) => {
+          setGifResults(result.gifs);
+        })
+        .catch((error) => {
+          console.error('Error loading trending GIFs:', error);
+        })
+        .finally(() => {
+          setIsLoadingGifs(false);
+        });
     }
-    
-    if (lowerUrl.includes('twitch.tv') || lowerUrl.includes('clips.twitch.tv')) {
-      return 'twitch';
+  }, [mediaTab, gifResults.length]);
+
+  // Search GIFs when query changes
+  useEffect(() => {
+    if (debouncedGifSearch.trim()) {
+      setIsLoadingGifs(true);
+      searchGiphy(debouncedGifSearch)
+        .then((result) => {
+          setGifResults(result.gifs);
+        })
+        .catch((error) => {
+          console.error('Error searching GIFs:', error);
+        })
+        .finally(() => {
+          setIsLoadingGifs(false);
+        });
+    } else if (mediaTab === 'gif') {
+      // Load trending when search is cleared
+      setIsLoadingGifs(true);
+      fetchTrendingGiphy()
+        .then((result) => {
+          setGifResults(result.gifs);
+        })
+        .catch((error) => {
+          console.error('Error loading trending GIFs:', error);
+        })
+        .finally(() => {
+          setIsLoadingGifs(false);
+        });
     }
-    
-    return null;
-  };
-
-  const validateVideoUrl = (url: string): { isValid: boolean; type: 'youtube' | 'twitch' | null } => {
-    if (!url.trim()) {
-      setMediaError('URL is required');
-      return { isValid: false, type: null };
-    }
-
-    const videoType = detectVideoType(url);
-    
-    if (!videoType) {
-      setMediaError('Invalid video URL. Must be a YouTube or Twitch URL');
-      return { isValid: false, type: null };
-    }
-
-    setMediaError('');
-    return { isValid: true, type: videoType };
-  };
-
-  const validateTwitterUrl = (url: string): boolean => {
-    if (!url.trim()) {
-      setMediaError('URL is required');
-      return false;
-    }
-
-    const lowerUrl = url.toLowerCase();
-    const isTwitter = lowerUrl.includes('twitter.com') || lowerUrl.includes('x.com');
-    
-    if (!isTwitter) {
-      setMediaError('Invalid Twitter/X URL');
-      return false;
-    }
-
-    setMediaError('');
-    return true;
-  };
+  }, [debouncedGifSearch, mediaTab]);
 
   const validateImageFile = (file: File): boolean => {
     if (!file.type.startsWith('image/')) {
@@ -122,19 +125,6 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
       } else {
         setSelectedFile(null);
       }
-    }
-  };
-
-  const handleVideoUrlChange = (value: string) => {
-    setVideoUrl(value);
-    if (value.trim()) {
-      if (mediaTab === 'video') {
-        validateVideoUrl(value);
-      } else if (mediaTab === 'twitter') {
-        validateTwitterUrl(value);
-      }
-    } else {
-      setMediaError('');
     }
   };
 
@@ -323,29 +313,12 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
           setIsUploading(false);
         }
         return;
-      } else if (mediaTab === 'video' && videoUrl.trim()) {
-        const validation = validateVideoUrl(videoUrl);
-        if (!validation.isValid || !validation.type) return;
-        
-        const content = message.trim() || `${validation.type === 'youtube' ? 'YouTube' : 'Twitch'} Video`;
-        onSendMessage(content, videoUrl.trim(), validation.type);
+      } else if (mediaTab === 'gif' && selectedGif) {
+        const content = message.trim() || 'GIF';
+        onSendMessage(content, selectedGif, 'image');
         
         setMessage('');
-        setVideoUrl('');
-        setShowMediaInput(false);
-        setMediaError('');
-        if (textareaRef.current) {
-          textareaRef.current.style.height = 'auto';
-        }
-        return;
-      } else if (mediaTab === 'twitter' && videoUrl.trim()) {
-        if (!validateTwitterUrl(videoUrl)) return;
-        
-        const content = message.trim() || 'Twitter Post';
-        onSendMessage(content, videoUrl.trim(), 'twitter');
-        
-        setMessage('');
-        setVideoUrl('');
+        setSelectedGif(null);
         setShowMediaInput(false);
         setMediaError('');
         if (textareaRef.current) {
@@ -353,7 +326,7 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
         }
         return;
       } else {
-        setMediaError('Please select media or enter a URL');
+        setMediaError('Please select an image or GIF');
         return;
       }
     }
@@ -442,8 +415,9 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
                   onClick={() => {
                     setShowMediaInput(false);
                     setSelectedFile(null);
-                    setVideoUrl('');
+                    setSelectedGif(null);
                     setMediaError('');
+                    setGifSearchQuery('');
                     if (fileInputRef.current) {
                       fileInputRef.current.value = '';
                     }
@@ -454,19 +428,14 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
                 </button>
               </div>
 
-              <Tabs value={mediaTab} onValueChange={(value) => setMediaTab(value as 'image' | 'video' | 'twitter')}>
-                <TabsList className="grid w-full grid-cols-3 mb-3">
+              <Tabs value={mediaTab} onValueChange={(value) => setMediaTab(value as 'image' | 'gif')}>
+                <TabsList className="grid w-full grid-cols-2 mb-3">
                   <TabsTrigger value="image" className="flex items-center gap-1">
                     <ImageIcon className="h-4 w-4" />
                     <span className="hidden sm:inline">Image</span>
                   </TabsTrigger>
-                  <TabsTrigger value="video" className="flex items-center gap-1">
-                    <Video className="h-4 w-4" />
-                    <span className="hidden sm:inline">Video</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="twitter" className="flex items-center gap-1">
-                    <SiX className="h-4 w-4" />
-                    <span className="hidden sm:inline">Twitter</span>
+                  <TabsTrigger value="gif" className="flex items-center gap-1">
+                    <span className="text-lg">GIF</span>
                   </TabsTrigger>
                 </TabsList>
 
@@ -492,51 +461,70 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
                   )}
                 </TabsContent>
 
-                <TabsContent value="video" className="space-y-3">
+                <TabsContent value="gif" className="space-y-3">
                   <div>
-                    <Label htmlFor="video-url" className="text-sm text-muted-foreground">
-                      YouTube or Twitch URL
+                    <Label htmlFor="gif-search" className="text-sm text-muted-foreground">
+                      Search GIFs
                     </Label>
                     <Input
-                      id="video-url"
-                      type="url"
-                      value={videoUrl}
-                      onChange={(e) => handleVideoUrlChange(e.target.value)}
-                      placeholder="https://youtube.com/watch?v=..."
+                      id="gif-search"
+                      type="text"
+                      value={gifSearchQuery}
+                      onChange={(e) => setGifSearchQuery(e.target.value)}
+                      placeholder="Search Giphy..."
                       className="mt-1"
                       style={{ fontSize: '16px' }}
                     />
                   </div>
-                </TabsContent>
-
-                <TabsContent value="twitter" className="space-y-3">
-                  <div>
-                    <Label htmlFor="twitter-url" className="text-sm text-muted-foreground">
-                      Twitter/X Post URL
-                    </Label>
-                    <Input
-                      id="twitter-url"
-                      type="url"
-                      value={videoUrl}
-                      onChange={(e) => handleVideoUrlChange(e.target.value)}
-                      placeholder="https://twitter.com/user/status/..."
-                      className="mt-1"
-                      style={{ fontSize: '16px' }}
-                    />
+                  
+                  <div className="max-h-[300px] overflow-y-auto rounded-lg border border-border bg-background p-2">
+                    {isLoadingGifs ? (
+                      <div className="flex items-center justify-center py-8">
+                        <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                      </div>
+                    ) : gifResults.length > 0 ? (
+                      <div className="grid grid-cols-2 gap-2">
+                        {gifResults.map((gif) => (
+                          <button
+                            key={gif.id}
+                            onClick={() => setSelectedGif(gif.originalUrl)}
+                            className={`relative aspect-square overflow-hidden rounded-lg border-2 transition-all ${
+                              selectedGif === gif.originalUrl
+                                ? 'border-primary scale-95'
+                                : 'border-transparent hover:border-primary/50'
+                            }`}
+                          >
+                            <img
+                              src={gif.previewUrl}
+                              alt={gif.title || 'GIF'}
+                              className="h-full w-full object-cover"
+                            />
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="py-8 text-center text-sm text-muted-foreground">
+                        No GIFs found
+                      </div>
+                    )}
                   </div>
+                  
+                  {selectedGif && (
+                    <div className="text-sm text-muted-foreground">
+                      GIF selected
+                    </div>
+                  )}
                 </TabsContent>
               </Tabs>
 
               {mediaError && (
-                <div className="mt-2 text-sm text-destructive">
-                  {mediaError}
-                </div>
+                <div className="mt-2 text-sm text-destructive">{mediaError}</div>
               )}
 
               {isUploading && (
-                <div className="mt-3">
-                  <Progress value={uploadProgress} className="h-2" />
-                  <p className="mt-1 text-xs text-muted-foreground">
+                <div className="mt-3 space-y-1">
+                  <Progress value={uploadProgress} className="h-1" />
+                  <p className="text-xs text-muted-foreground text-center">
                     Uploading... {uploadProgress}%
                   </p>
                 </div>
@@ -549,18 +537,9 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
               onClick={handleImageButtonClick}
               disabled={disabled || isRecording}
               className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 size-9 h-10 w-10 shrink-0 rounded-full"
-              type="button"
+              title="Add image or GIF"
             >
               <ImageIcon className="h-5 w-5" />
-            </button>
-
-            <button
-              onClick={handleMicButtonClick}
-              disabled={disabled || showMediaInput}
-              className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 size-9 h-10 w-10 shrink-0 rounded-full"
-              type="button"
-            >
-              <Mic className="h-5 w-5" />
             </button>
 
             <div className="relative flex-1">
@@ -574,13 +553,17 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
                 placeholder="Type a message..."
                 disabled={disabled || isRecording}
                 maxLength={MAX_MESSAGE_LENGTH}
+                className="w-full resize-none rounded-full border border-input bg-background px-4 py-2.5 text-sm outline-none transition-all placeholder:text-muted-foreground focus:border-ring focus:ring-[3px] focus:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-input/30"
+                style={{ 
+                  minHeight: '40px',
+                  maxHeight: '120px',
+                  fontSize: '16px'
+                }}
                 rows={1}
-                className="border-input placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 flex field-sizing-content w-full border bg-transparent text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm min-h-[40px] max-h-[120px] resize-none rounded-full px-4 py-2.5"
-                style={{ fontSize: '16px' }}
               />
-              {isTextareaFocused && (
-                <div className="absolute -bottom-2 left-0 right-0 h-1 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
-                  <div
+              {isTextareaFocused && message.length > 0 && (
+                <div className="absolute -bottom-1 left-0 right-0 h-0.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                  <div 
                     className="h-full bg-primary transition-all duration-200"
                     style={{ width: `${messageProgressPercentage}%` }}
                   />
@@ -589,10 +572,23 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
             </div>
 
             <button
+              onClick={handleMicButtonClick}
+              disabled={disabled || showMediaInput}
+              className={`inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border shadow-xs size-9 h-10 w-10 shrink-0 rounded-full ${
+                isRecording 
+                  ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90' 
+                  : 'bg-background hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50'
+              }`}
+              title={isRecording ? 'Cancel recording' : 'Record voice message'}
+            >
+              {isRecording ? <X className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+            </button>
+
+            <button
               onClick={handleSend}
-              disabled={disabled || isUploading || isSending || isRecording || (!message.trim() && !showMediaInput)}
+              disabled={disabled || isUploading || isSending || isRecording || (!message.trim() && !selectedFile && !selectedGif)}
               className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground shadow-xs hover:bg-primary/90 size-9 h-10 w-10 shrink-0 rounded-full"
-              type="button"
+              title="Send message"
             >
               <Send className="h-5 w-5" />
             </button>
