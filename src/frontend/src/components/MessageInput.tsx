@@ -1,11 +1,9 @@
 import { useState, useRef, KeyboardEvent, useEffect } from 'react';
-import { Send, Image as ImageIcon, Video, X, Mic, Square } from 'lucide-react';
-import { SiX } from 'react-icons/si';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
-import { Input } from './ui/input';
-import { Label } from './ui/label';
+import { Send, Mic, Square, X } from 'lucide-react';
 import { Progress } from './ui/progress';
 import { uploadImage } from '../hooks/useQueries';
+import { useDetectLinksInText } from '../hooks/useDetectLinksInText';
+import MessageInputLinkPreview from './MessageInputLinkPreview';
 
 interface MessageInputProps {
   onSendMessage: (content: string, mediaUrl?: string, mediaType?: string) => void;
@@ -15,25 +13,22 @@ interface MessageInputProps {
 
 export default function MessageInput({ onSendMessage, disabled, isSending }: MessageInputProps) {
   const [message, setMessage] = useState('');
-  const [showMediaInput, setShowMediaInput] = useState(false);
-  const [mediaTab, setMediaTab] = useState<'image' | 'video' | 'twitter'>('image');
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [videoUrl, setVideoUrl] = useState('');
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [isUploading, setIsUploading] = useState(false);
-  const [mediaError, setMediaError] = useState('');
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [recordingError, setRecordingError] = useState('');
   const [isTextareaFocused, setIsTextareaFocused] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
   const MAX_MESSAGE_LENGTH = 2000;
+
+  // Detect links in the message text
+  const detectedLink = useDetectLinksInText(message);
 
   useEffect(() => {
     return () => {
@@ -48,95 +43,6 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
       }
     };
   }, []);
-
-  const detectVideoType = (url: string): 'youtube' | 'twitch' | null => {
-    const lowerUrl = url.toLowerCase();
-    
-    if (lowerUrl.includes('youtube.com') || lowerUrl.includes('youtu.be')) {
-      return 'youtube';
-    }
-    
-    if (lowerUrl.includes('twitch.tv') || lowerUrl.includes('clips.twitch.tv')) {
-      return 'twitch';
-    }
-    
-    return null;
-  };
-
-  const validateVideoUrl = (url: string): { isValid: boolean; type: 'youtube' | 'twitch' | null } => {
-    if (!url.trim()) {
-      setMediaError('URL is required');
-      return { isValid: false, type: null };
-    }
-
-    const videoType = detectVideoType(url);
-    
-    if (!videoType) {
-      setMediaError('Invalid video URL. Must be a YouTube or Twitch URL');
-      return { isValid: false, type: null };
-    }
-
-    setMediaError('');
-    return { isValid: true, type: videoType };
-  };
-
-  const validateTwitterUrl = (url: string): boolean => {
-    if (!url.trim()) {
-      setMediaError('URL is required');
-      return false;
-    }
-
-    const lowerUrl = url.toLowerCase();
-    const isTwitter = lowerUrl.includes('twitter.com') || lowerUrl.includes('x.com');
-    
-    if (!isTwitter) {
-      setMediaError('Invalid Twitter/X URL');
-      return false;
-    }
-
-    setMediaError('');
-    return true;
-  };
-
-  const validateImageFile = (file: File): boolean => {
-    if (!file.type.startsWith('image/')) {
-      setMediaError('Invalid file type. Must be an image file');
-      return false;
-    }
-
-    if (file.size > 10 * 1024 * 1024) {
-      setMediaError('File size must be less than 10MB');
-      return false;
-    }
-
-    setMediaError('');
-    return true;
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (validateImageFile(file)) {
-        setSelectedFile(file);
-        setMediaError('');
-      } else {
-        setSelectedFile(null);
-      }
-    }
-  };
-
-  const handleVideoUrlChange = (value: string) => {
-    setVideoUrl(value);
-    if (value.trim()) {
-      if (mediaTab === 'video') {
-        validateVideoUrl(value);
-      } else if (mediaTab === 'twitter') {
-        validateTwitterUrl(value);
-      }
-    } else {
-      setMediaError('');
-    }
-  };
 
   const uploadAudio = async (audioBlob: Blob): Promise<string> => {
     try {
@@ -294,76 +200,19 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
   const handleSend = async () => {
     if (disabled || isUploading || isSending || isRecording) return;
 
-    if (showMediaInput) {
-      if (mediaTab === 'image' && selectedFile) {
-        if (!validateImageFile(selectedFile)) return;
-        
-        try {
-          setIsUploading(true);
-          const mediaUrl = await uploadImage(selectedFile, (progress) => {
-            setUploadProgress(progress);
-          });
-          const content = message.trim() || 'Image';
-          onSendMessage(content, mediaUrl, 'image');
-          
-          setMessage('');
-          setSelectedFile(null);
-          setShowMediaInput(false);
-          setMediaError('');
-          setUploadProgress(0);
-          if (textareaRef.current) {
-            textareaRef.current.style.height = 'auto';
-          }
-          if (fileInputRef.current) {
-            fileInputRef.current.value = '';
-          }
-        } catch (error) {
-          setMediaError(error instanceof Error ? error.message : 'Failed to upload image');
-        } finally {
-          setIsUploading(false);
-        }
-        return;
-      } else if (mediaTab === 'video' && videoUrl.trim()) {
-        const validation = validateVideoUrl(videoUrl);
-        if (!validation.isValid || !validation.type) return;
-        
-        const content = message.trim() || `${validation.type === 'youtube' ? 'YouTube' : 'Twitch'} Video`;
-        onSendMessage(content, videoUrl.trim(), validation.type);
-        
-        setMessage('');
-        setVideoUrl('');
-        setShowMediaInput(false);
-        setMediaError('');
-        if (textareaRef.current) {
-          textareaRef.current.style.height = 'auto';
-        }
-        return;
-      } else if (mediaTab === 'twitter' && videoUrl.trim()) {
-        if (!validateTwitterUrl(videoUrl)) return;
-        
-        const content = message.trim() || 'Twitter Post';
-        onSendMessage(content, videoUrl.trim(), 'twitter');
-        
-        setMessage('');
-        setVideoUrl('');
-        setShowMediaInput(false);
-        setMediaError('');
-        if (textareaRef.current) {
-          textareaRef.current.style.height = 'auto';
-        }
-        return;
-      } else {
-        setMediaError('Please select media or enter a URL');
-        return;
-      }
+    const trimmedMessage = message.trim();
+    if (!trimmedMessage) return;
+
+    // Check if there's a detected link in the message
+    if (detectedLink) {
+      onSendMessage(trimmedMessage, detectedLink.url, detectedLink.type);
+    } else {
+      onSendMessage(trimmedMessage);
     }
 
-    if (message.trim()) {
-      onSendMessage(message);
-      setMessage('');
-      if (textareaRef.current) {
-        textareaRef.current.style.height = 'auto';
-      }
+    setMessage('');
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
     }
   };
 
@@ -380,14 +229,7 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
     e.target.style.height = `${Math.min(e.target.scrollHeight, 120)}px`;
   };
 
-  const handleImageButtonClick = () => {
-    if (isRecording) return;
-    setShowMediaInput(!showMediaInput);
-    setMediaTab('image');
-  };
-
   const handleMicButtonClick = () => {
-    if (showMediaInput) return;
     if (isRecording) {
       cancelRecording();
     } else {
@@ -434,133 +276,18 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
             </div>
           )}
 
-          {showMediaInput && (
-            <div className="rounded-lg border border-border bg-muted/30 p-4">
-              <div className="mb-3 flex items-center justify-between">
-                <h3 className="text-sm font-medium text-foreground">Add Media</h3>
-                <button
-                  onClick={() => {
-                    setShowMediaInput(false);
-                    setSelectedFile(null);
-                    setVideoUrl('');
-                    setMediaError('');
-                    if (fileInputRef.current) {
-                      fileInputRef.current.value = '';
-                    }
-                  }}
-                  className="rounded-full p-1 hover:bg-muted transition-colors"
-                >
-                  <X className="h-4 w-4 text-muted-foreground" />
-                </button>
-              </div>
-
-              <Tabs value={mediaTab} onValueChange={(value) => setMediaTab(value as 'image' | 'video' | 'twitter')}>
-                <TabsList className="grid w-full grid-cols-3 mb-3">
-                  <TabsTrigger value="image" className="flex items-center gap-1">
-                    <ImageIcon className="h-4 w-4" />
-                    <span className="hidden sm:inline">Image</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="video" className="flex items-center gap-1">
-                    <Video className="h-4 w-4" />
-                    <span className="hidden sm:inline">Video</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="twitter" className="flex items-center gap-1">
-                    <SiX className="h-4 w-4" />
-                    <span className="hidden sm:inline">Twitter</span>
-                  </TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="image" className="space-y-3">
-                  <div>
-                    <Label htmlFor="image-upload" className="text-sm text-muted-foreground">
-                      Upload Image
-                    </Label>
-                    <Input
-                      id="image-upload"
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*"
-                      onChange={handleFileChange}
-                      className="mt-1"
-                      style={{ fontSize: '16px' }}
-                    />
-                  </div>
-                  {selectedFile && (
-                    <div className="text-sm text-muted-foreground">
-                      Selected: {selectedFile.name}
-                    </div>
-                  )}
-                </TabsContent>
-
-                <TabsContent value="video" className="space-y-3">
-                  <div>
-                    <Label htmlFor="video-url" className="text-sm text-muted-foreground">
-                      YouTube or Twitch URL
-                    </Label>
-                    <Input
-                      id="video-url"
-                      type="url"
-                      value={videoUrl}
-                      onChange={(e) => handleVideoUrlChange(e.target.value)}
-                      placeholder="https://youtube.com/watch?v=..."
-                      className="mt-1"
-                      style={{ fontSize: '16px' }}
-                    />
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="twitter" className="space-y-3">
-                  <div>
-                    <Label htmlFor="twitter-url" className="text-sm text-muted-foreground">
-                      Twitter/X Post URL
-                    </Label>
-                    <Input
-                      id="twitter-url"
-                      type="url"
-                      value={videoUrl}
-                      onChange={(e) => handleVideoUrlChange(e.target.value)}
-                      placeholder="https://twitter.com/user/status/..."
-                      className="mt-1"
-                      style={{ fontSize: '16px' }}
-                    />
-                  </div>
-                </TabsContent>
-              </Tabs>
-
-              {mediaError && (
-                <div className="mt-2 text-sm text-destructive">
-                  {mediaError}
-                </div>
-              )}
-
-              {isUploading && (
-                <div className="mt-3">
-                  <Progress value={uploadProgress} className="h-2" />
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    Uploading... {uploadProgress}%
-                  </p>
-                </div>
-              )}
-            </div>
-          )}
-
           <div className="flex items-end gap-2">
             <button
-              onClick={handleImageButtonClick}
-              disabled={disabled || isRecording}
-              className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 size-9 h-10 w-10 shrink-0 rounded-full"
-              type="button"
-            >
-              <ImageIcon className="h-5 w-5" />
-            </button>
-
-            <button
               onClick={handleMicButtonClick}
-              disabled={disabled || showMediaInput}
+              disabled={disabled || isUploading}
               className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 size-9 h-10 w-10 shrink-0 rounded-full"
-              type="button"
+              title={isRecording ? 'Cancel recording' : 'Record voice message'}
             >
-              <Mic className="h-5 w-5" />
+              {isRecording ? (
+                <X className="h-5 w-5 text-destructive" />
+              ) : (
+                <Mic className="h-5 w-5" />
+              )}
             </button>
 
             <div className="relative flex-1">
@@ -572,14 +299,18 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
                 onFocus={() => setIsTextareaFocused(true)}
                 onBlur={() => setIsTextareaFocused(false)}
                 placeholder="Type a message..."
-                disabled={disabled || isRecording}
+                disabled={disabled || isRecording || isUploading}
                 maxLength={MAX_MESSAGE_LENGTH}
                 rows={1}
-                className="border-input placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 flex field-sizing-content w-full border bg-transparent text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm min-h-[40px] max-h-[120px] resize-none rounded-full px-4 py-2.5"
-                style={{ fontSize: '16px' }}
+                className="w-full resize-none rounded-full border border-input bg-background px-4 py-2.5 text-sm outline-none transition-all placeholder:text-muted-foreground focus:border-ring focus:ring-2 focus:ring-ring/20 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-input/30"
+                style={{ 
+                  fontSize: '16px',
+                  minHeight: '44px',
+                  maxHeight: '120px',
+                }}
               />
-              {isTextareaFocused && (
-                <div className="absolute -bottom-2 left-0 right-0 h-1 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
+              {isTextareaFocused && message.length > 0 && (
+                <div className="absolute -bottom-1 left-0 right-0 h-1 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
                   <div
                     className="h-full bg-primary transition-all duration-200"
                     style={{ width: `${messageProgressPercentage}%` }}
@@ -590,13 +321,25 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
 
             <button
               onClick={handleSend}
-              disabled={disabled || isUploading || isSending || isRecording || (!message.trim() && !showMediaInput)}
+              disabled={disabled || !message.trim() || isRecording || isUploading || isSending}
               className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground shadow-xs hover:bg-primary/90 size-9 h-10 w-10 shrink-0 rounded-full"
-              type="button"
+              title="Send message"
             >
               <Send className="h-5 w-5" />
             </button>
           </div>
+
+          {/* Link preview */}
+          {detectedLink && (
+            <MessageInputLinkPreview url={detectedLink.url} type={detectedLink.type} />
+          )}
+
+          {isUploading && (
+            <div className="space-y-1">
+              <div className="text-xs text-muted-foreground">Uploading...</div>
+              <Progress value={uploadProgress} className="h-1" />
+            </div>
+          )}
         </div>
       </div>
     </div>

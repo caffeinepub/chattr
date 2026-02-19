@@ -140,8 +140,8 @@ export default function ChatArea({ chatroomId, chatroom }: ChatAreaProps) {
                 <div className="flex items-center gap-2 md:justify-center">
                   <h2 className="text-base font-semibold text-foreground">{chatroom.topic}</h2>
                   {chatroom.category && (
-                    <Badge variant="secondary" className="text-xs">
-                      {chatroom.category}
+                    <Badge variant="secondary" className="px-2 py-0.5 text-xs">
+                      {chatroom.category.toLowerCase()}
                     </Badge>
                   )}
                   {chatroom.isLive && (

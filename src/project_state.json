@@ -1,43 +1,63 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 3,
-  "summary": "New project",
-  "architectural_notes": [],
+  "projectStateVersion": 5,
+  "summary": "Chat application with inline link embedding for X posts and YouTube/Twitch videos directly in chat input",
+  "architectural_notes": [
+    "Category tags should be displayed in lowercase across all views including chatrooms",
+    "Chat input should detect and preview X post links and YouTube/Twitch video links before sending",
+    "Embedded content (X posts, videos) should display inline in the chat message feed"
+  ],
   "known_issues": [],
   "isFixRequest": false,
   "existing_features": [
     {
-      "id": "feature-convert-all-category-text-labels-to-lowercase-display-throughout-the-ui-including-category-badges-in-the-lobby-and-chatroom-cards",
-      "title": "Convert all category text labels to lowercase display throughout the UI, including category badges in the lobby and chatroom cards",
+      "id": "feature-remove-the-separate-x-post-input-field-and-video-input-field-youtube-twitch-from-the-messageinput-component",
+      "title": "Remove the separate X post input field and video input field (YouTube/Twitch) from the MessageInput component",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-match-the-padding-font-size-and-visual-styling-of-category-tags-to-the-existing-live-indicator-badges-in-the-lobby-and-chatroom-cards",
-      "title": "Match the padding, font size, and visual styling of category tags to the existing 'LIVE' indicator badges in the lobby and chatroom cards",
+      "id": "feature-detect-x-post-links-x-com-or-twitter-com-urls-and-youtube-twitch-video-links-in-the-main-chat-input-field-and-display-an-inline-preview-of-the-embedded-content-before-the-user-sends-the-message",
+      "title": "Detect X post links (x.com or twitter.com URLs) and YouTube/Twitch video links in the main chat input field and display an inline preview of the embedded content before the user sends the message",
       "reqIds": [
         "REQ-2"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-message-sending-logic-to-detect-and-extract-x-post-urls-and-youtube-twitch-video-urls-from-the-chat-input-text-and-store-them-in-the-appropriate-mediatype-and-mediaurl-fields-when-creating-a-message",
+      "title": "Update the message sending logic to detect and extract X post URLs and YouTube/Twitch video URLs from the chat input text and store them in the appropriate mediaType and mediaUrl fields when creating a message",
+      "reqIds": [
+        "REQ-4"
       ],
       "version": 1
     }
   ],
   "new_feature_requests": [
     {
-      "id": "AR-1",
-      "summary": "Make categories lowercase",
+      "id": "AR-3",
+      "summary": "Enable inline embedding of X posts and YouTube/Twitch videos by pasting links directly into chat input with preview before sending",
       "reqIds": [],
       "status": "pending"
     },
     {
-      "id": "AR-2",
-      "summary": "Make category tags same size as live tags (padding, etc.)",
+      "id": "AR-4",
+      "summary": "Remove separate X post input and video input fields from chatroom page",
       "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-7",
+      "summary": "When a message containing X post links or YouTube/Twitch video links is sent, embed the content inline within the chat message feed using the existing MessageBubble embed rendering logic",
+      "reqIds": [
+        "REQ-3"
+      ],
       "status": "pending"
     }
   ],
-  "projectName": "Update category tag styling to match live tags",
+  "projectName": "Ensure category tags are lowercase in chatrooms",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

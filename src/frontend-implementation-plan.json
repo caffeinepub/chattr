@@ -1,46 +1,92 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Update category tag styling to match live tags",
+  "title": "Enable inline link embedding in chat with preview",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Convert all category text labels to lowercase display throughout the UI",
+      "summary": "Remove separate X post and video input fields from MessageInput",
       "acceptanceCriteria": [
-        "All category labels display in lowercase",
-        "Category text transformation is consistent across lobby and chatroom views"
+        "The MessageInput component no longer displays separate input fields for X post URLs or YouTube/Twitch video URLs",
+        "Only the main chat text input and voice recording buttons remain visible"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/LobbyPage.tsx",
+          "path": "frontend/src/components/MessageInput.tsx",
           "operation": "modify",
-          "description": "Apply lowercase transformation to category badge text in the lobby chatroom cards. Modify the category badge rendering to use .toLowerCase() or CSS text-transform: lowercase on the category string displayed in the badge."
-        },
-        {
-          "path": "frontend/src/components/ChatroomCard.tsx",
-          "operation": "modify",
-          "description": "Apply lowercase transformation to category badge text in individual chatroom cards. Ensure the category display uses .toLowerCase() or CSS text-transform: lowercase to match the lobby implementation."
+          "description": "Remove the separate input fields and UI controls for X post URLs and YouTube/Twitch video URLs. Retain only the main text input field, voice recording button, and basic send functionality. Remove state variables and handlers related to separate media URL inputs."
         }
       ]
     },
     {
       "id": "REQ-2",
-      "summary": "Match the padding, font size, and visual styling of category tags to the existing LIVE indicator badges",
+      "summary": "Display inline preview of X post and video links in chat input",
       "acceptanceCriteria": [
-        "Category tags have identical padding to LIVE tags",
-        "Category tags have identical font size to LIVE tags",
-        "Category tags maintain visual consistency with LIVE tags in terms of height and border radius"
+        "When a user pastes an X post URL (x.com or twitter.com) into the chat input, a preview of the tweet content appears below the input field before sending",
+        "When a user pastes a YouTube or Twitch video URL into the chat input, a thumbnail preview of the video appears below the input field before sending",
+        "The preview updates dynamically as the user types or modifies the URL",
+        "The preview disappears if the user removes the URL from the input field",
+        "Multiple link types in one message are handled gracefully"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/LobbyPage.tsx",
-          "operation": "modify",
-          "description": "Update category badge styling in the lobby to match LIVE tag dimensions. Apply the same Tailwind classes or inline styles used by the LIVE badge (padding, text size, border radius, height) to the category badge element."
+          "path": "frontend/src/hooks/useDetectLinksInText.ts",
+          "operation": "create",
+          "description": "Create a custom React hook that detects X post URLs (x.com, twitter.com) and video URLs (YouTube, Twitch) within a text string. Returns detected link type and extracted URL. Use URL detection logic from frontend/src/lib/videoUtils.ts to identify YouTube/Twitch URLs."
         },
         {
-          "path": "frontend/src/components/ChatroomCard.tsx",
+          "path": "frontend/src/components/MessageInputLinkPreview.tsx",
+          "operation": "create",
+          "description": "Create a component that renders inline preview below the chat input. For X post URLs, fetch and display the Twitter oEmbed preview using the existing frontend/src/lib/twitterOEmbedPreview.ts functionality. For YouTube/Twitch URLs, display a thumbnail preview using the existing video thumbnail generation logic from frontend/src/lib/videoUtils.ts. Handle loading states and errors gracefully. Support dynamic updates when the detected URL changes. Verify the component usage instructions for twitterOEmbedPreview.ts and videoUtils.ts before implementing."
+        },
+        {
+          "path": "frontend/src/components/MessageInput.tsx",
           "operation": "modify",
-          "description": "Update category badge styling in ChatroomCard to match LIVE tag dimensions. Ensure padding, font-size, border-radius, and height match the LIVE badge styling. Use consistent Tailwind utility classes or inline styles to maintain visual parity."
+          "description": "Integrate the useDetectLinksInText hook to monitor the main text input field for X post and video URLs. Render the MessageInputLinkPreview component below the input field when a URL is detected. Pass the detected URL and type to the preview component. Ensure the preview updates dynamically as the user types and disappears when the URL is removed."
+        }
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "summary": "Render embedded content inline in sent messages",
+      "acceptanceCriteria": [
+        "Sent messages containing X post URLs display the embedded tweet inline in the message bubble using the existing Twitter embed rendering",
+        "Sent messages containing YouTube URLs display the embedded video player inline in the message bubble",
+        "Sent messages containing Twitch URLs display the embedded Twitch player inline in the message bubble",
+        "The embedded content renders consistently with the existing media embed functionality in MessageBubble"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/MessageBubble.tsx",
+          "operation": "modify",
+          "description": "Verify that the existing embed rendering logic correctly handles messages where mediaType and mediaUrl are populated. Ensure that X post (mediaType='twitter'), YouTube (mediaType='youtube'), and Twitch (mediaType='twitch') embeds render consistently inline within the message bubble. No changes should be needed if the existing logic already supports these media types."
+        }
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "summary": "Extract and store detected URLs when sending messages",
+      "acceptanceCriteria": [
+        "When sending a message with an X post URL, the message is created with mediaType set to 'twitter' and mediaUrl containing the extracted X post URL",
+        "When sending a message with a YouTube URL, the message is created with mediaType set to 'youtube' and mediaUrl containing the extracted YouTube URL",
+        "When sending a message with a Twitch URL, the message is created with mediaType set to 'twitch' and mediaUrl containing the extracted Twitch URL",
+        "The URL detection logic correctly identifies x.com, twitter.com, youtube.com, youtu.be, and twitch.tv URLs"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/lib/urlExtractor.ts",
+          "operation": "create",
+          "description": "Create a utility function that extracts the first X post URL or video URL (YouTube/Twitch) from a text string. Returns an object containing the extracted URL and its type (twitter, youtube, or twitch), or null if no supported URL is found. Reuse URL detection and parsing logic from frontend/src/lib/videoUtils.ts. Handle x.com, twitter.com, youtube.com, youtu.be, and twitch.tv URLs."
+        },
+        {
+          "path": "frontend/src/components/MessageInput.tsx",
+          "operation": "modify",
+          "description": "Update the message sending logic to call the urlExtractor utility when the user submits a message. If a supported URL is detected in the text, populate the mediaType and mediaUrl fields when calling the backend sendMessage function. Ensure the text content itself is preserved in the message. Remove any old logic that relied on separate media input fields."
+        },
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Update the useSendMessage mutation to accept mediaType and mediaUrl parameters extracted from the message text. Ensure the mutation correctly passes these parameters to the backend sendMessage function."
         }
       ]
     }

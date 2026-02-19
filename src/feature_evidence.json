@@ -2,11 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-convert-all-category-text-labels-to-lowercase-display-throughout-the-ui-including-category-badges-in-the-lobby-and-chatroom-cards",
-      "featureTitle": "Convert all category text labels to lowercase display throughout the UI, including category badges in the lobby and chatroom cards",
+      "featureId": "feature-remove-the-separate-x-post-input-field-and-video-input-field-youtube-twitch-from-the-messageinput-component",
+      "featureTitle": "Remove the separate X post input field and video input field (YouTube/Twitch) from the MessageInput component",
       "files": [
-        "frontend/src/components/ChatroomCard.tsx",
-        "frontend/src/pages/LobbyPage.tsx"
+        "frontend/src/components/MessageInput.tsx"
       ],
       "components": [
         "authorization@1.0.1",
@@ -24,11 +23,12 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-match-the-padding-font-size-and-visual-styling-of-category-tags-to-the-existing-live-indicator-badges-in-the-lobby-and-chatroom-cards",
-      "featureTitle": "Match the padding, font size, and visual styling of category tags to the existing 'LIVE' indicator badges in the lobby and chatroom cards",
+      "featureId": "feature-detect-x-post-links-x-com-or-twitter-com-urls-and-youtube-twitch-video-links-in-the-main-chat-input-field-and-display-an-inline-preview-of-the-embedded-content-before-the-user-sends-the-message",
+      "featureTitle": "Detect X post links (x.com or twitter.com URLs) and YouTube/Twitch video links in the main chat input field and display an inline preview of the embedded content before the user sends the message",
       "files": [
-        "frontend/src/components/ChatroomCard.tsx",
-        "frontend/src/pages/LobbyPage.tsx"
+        "frontend/src/components/MessageInput.tsx",
+        "frontend/src/components/MessageInputLinkPreview.tsx",
+        "frontend/src/hooks/useDetectLinksInText.ts"
       ],
       "components": [
         "authorization@1.0.1",
@@ -42,6 +42,29 @@
       ],
       "testIds": [
         "REQ-2"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-update-the-message-sending-logic-to-detect-and-extract-x-post-urls-and-youtube-twitch-video-urls-from-the-chat-input-text-and-store-them-in-the-appropriate-mediatype-and-mediaurl-fields-when-creating-a-message",
+      "featureTitle": "Update the message sending logic to detect and extract X post URLs and YouTube/Twitch video URLs from the chat input text and store them in the appropriate mediaType and mediaUrl fields when creating a message",
+      "files": [
+        "frontend/src/components/MessageInput.tsx",
+        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/lib/urlExtractor.ts"
+      ],
+      "components": [
+        "authorization@1.0.1",
+        "blob-storage@2.0.3",
+        "http-outcalls@1.1.1",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-4"
       ],
       "confidence": "high"
     }

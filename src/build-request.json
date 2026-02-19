@@ -1,52 +1,98 @@
 {
   "kind": "build_request",
-  "title": "Update category tag styling to match live tags",
+  "title": "Enable inline link embedding in chat with preview",
+  "projectName": "Stream Chat",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Convert all category text labels to lowercase display throughout the UI, including category badges in the lobby and chatroom cards",
+      "text": "Remove the separate X post input field and video input field (YouTube/Twitch) from the MessageInput component",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-last"
+          "msg-user-clarification-3"
         ],
         "quotes": [
-          "lets make categories lowercase"
+          "removed"
         ]
       },
       "acceptanceCriteria": [
-        "All category labels display in lowercase",
-        "Category text transformation is consistent across lobby and chatroom views"
+        "The MessageInput component no longer displays separate input fields for X post URLs or YouTube/Twitch video URLs",
+        "Only the main chat text input and voice recording buttons remain visible"
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Match the padding, font size, and visual styling of category tags to the existing 'LIVE' indicator badges in the lobby and chatroom cards",
+      "text": "Detect X post links (x.com or twitter.com URLs) and YouTube/Twitch video links in the main chat input field and display an inline preview of the embedded content before the user sends the message",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-last"
+          "msg-user-clarification-1",
+          "msg-user-clarification-2"
         ],
         "quotes": [
-          "make the category tags the same size as the live tags (padding, etc.)"
+          "inline",
+          "preview"
         ]
       },
       "acceptanceCriteria": [
-        "Category tags have identical padding to LIVE tags",
-        "Category tags have identical font size to LIVE tags",
-        "Category tags maintain visual consistency with LIVE tags in terms of height and border radius"
+        "When a user pastes an X post URL (x.com or twitter.com) into the chat input, a preview of the tweet content appears below the input field before sending",
+        "When a user pastes a YouTube or Twitch video URL into the chat input, a thumbnail preview of the video appears below the input field before sending",
+        "The preview updates dynamically as the user types or modifies the URL",
+        "The preview disappears if the user removes the URL from the input field",
+        "Multiple link types in one message are handled gracefully"
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "When a message containing X post links or YouTube/Twitch video links is sent, embed the content inline within the chat message feed using the existing MessageBubble embed rendering logic",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-user-clarification-1"
+        ],
+        "quotes": [
+          "inline"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Sent messages containing X post URLs display the embedded tweet inline in the message bubble using the existing Twitter embed rendering",
+        "Sent messages containing YouTube URLs display the embedded video player inline in the message bubble",
+        "Sent messages containing Twitch URLs display the embedded Twitch player inline in the message bubble",
+        "The embedded content renders consistently with the existing media embed functionality in MessageBubble"
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "Update the message sending logic to detect and extract X post URLs and YouTube/Twitch video URLs from the chat input text and store them in the appropriate mediaType and mediaUrl fields when creating a message",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-user-request"
+        ],
+        "quotes": [
+          "typing the links directly onto the chat input"
+        ]
+      },
+      "acceptanceCriteria": [
+        "When sending a message with an X post URL, the message is created with mediaType set to 'twitter' and mediaUrl containing the extracted X post URL",
+        "When sending a message with a YouTube URL, the message is created with mediaType set to 'youtube' and mediaUrl containing the extracted YouTube URL",
+        "When sending a message with a Twitch URL, the message is created with mediaType set to 'twitch' and mediaUrl containing the extracted Twitch URL",
+        "The URL detection logic correctly identifies x.com, twitter.com, youtube.com, youtu.be, and twitch.tv URLs"
       ]
     }
   ],
   "constraints": [
-    "Only modify category tag styling, do not change LIVE tag appearance",
-    "Maintain existing category functionality and behavior"
+    "Reuse the existing Twitter oEmbed preview functionality from frontend/src/lib/twitterOEmbedPreview.ts for X post previews",
+    "Reuse the existing video thumbnail generation logic from frontend/src/lib/videoUtils.ts for YouTube/Twitch previews",
+    "Maintain the existing MessageBubble embed rendering for consistency",
+    "Do not modify the backend message schema or storage logic"
   ],
   "nonGoals": [
-    "Changing category names or adding new categories",
-    "Modifying backend category logic",
-    "Altering other UI elements beyond category tags"
+    "Supporting additional media types beyond X posts, YouTube, and Twitch",
+    "Adding link previews for generic URLs without media content",
+    "Implementing link unfurling or metadata fetching for non-media links",
+    "Allowing multiple media embeds per single message"
   ],
   "imageRequirements": {
     "required": [],
