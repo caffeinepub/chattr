@@ -1,92 +1,58 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Enable inline link embedding in chat with preview",
+  "title": "Remove authentication and make all backend functions publicly accessible",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Remove separate X post and video input fields from MessageInput",
+      "summary": "Remove all Internet Identity authentication from the frontend application",
       "acceptanceCriteria": [
-        "The MessageInput component no longer displays separate input fields for X post URLs or YouTube/Twitch video URLs",
-        "Only the main chat text input and voice recording buttons remain visible"
+        "Internet Identity login UI is completely removed",
+        "No authentication provider wraps the application",
+        "Users can access all features without any login prompts"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/MessageInput.tsx",
+          "path": "frontend/src/hooks/useActor.ts",
           "operation": "modify",
-          "description": "Remove the separate input fields and UI controls for X post URLs and YouTube/Twitch video URLs. Retain only the main text input field, voice recording button, and basic send functionality. Remove state variables and handlers related to separate media URL inputs."
-        }
-      ]
-    },
-    {
-      "id": "REQ-2",
-      "summary": "Display inline preview of X post and video links in chat input",
-      "acceptanceCriteria": [
-        "When a user pastes an X post URL (x.com or twitter.com) into the chat input, a preview of the tweet content appears below the input field before sending",
-        "When a user pastes a YouTube or Twitch video URL into the chat input, a thumbnail preview of the video appears below the input field before sending",
-        "The preview updates dynamically as the user types or modifies the URL",
-        "The preview disappears if the user removes the URL from the input field",
-        "Multiple link types in one message are handled gracefully"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/hooks/useDetectLinksInText.ts",
-          "operation": "create",
-          "description": "Create a custom React hook that detects X post URLs (x.com, twitter.com) and video URLs (YouTube, Twitch) within a text string. Returns detected link type and extracted URL. Use URL detection logic from frontend/src/lib/videoUtils.ts to identify YouTube/Twitch URLs."
+          "description": "Remove Internet Identity authentication logic and create the backend actor directly without authentication. Remove the dependency on useInternetIdentity hook and eliminate any identity-based actor initialization. The actor should be instantiated immediately without waiting for authentication state."
         },
         {
-          "path": "frontend/src/components/MessageInputLinkPreview.tsx",
-          "operation": "create",
-          "description": "Create a component that renders inline preview below the chat input. For X post URLs, fetch and display the Twitter oEmbed preview using the existing frontend/src/lib/twitterOEmbedPreview.ts functionality. For YouTube/Twitch URLs, display a thumbnail preview using the existing video thumbnail generation logic from frontend/src/lib/videoUtils.ts. Handle loading states and errors gracefully. Support dynamic updates when the detected URL changes. Verify the component usage instructions for twitterOEmbedPreview.ts and videoUtils.ts before implementing."
+          "path": "frontend/src/main.tsx",
+          "operation": "modify",
+          "description": "Remove the InternetIdentityProvider wrapper from the application tree. Keep only QueryClientProvider and render the App component directly without authentication context."
         },
         {
-          "path": "frontend/src/components/MessageInput.tsx",
+          "path": "frontend/src/components/Header.tsx",
           "operation": "modify",
-          "description": "Integrate the useDetectLinksInText hook to monitor the main text input field for X post and video URLs. Render the MessageInputLinkPreview component below the input field when a URL is detected. Pass the detected URL and type to the preview component. Ensure the preview updates dynamically as the user types and disappears when the URL is removed."
+          "description": "Remove any login/logout buttons or authentication UI elements from the header. Keep only the logo, editable username field, avatar picker, and back-to-lobby navigation. Ensure the header works without any authentication state checks."
+        },
+        {
+          "path": "frontend/src/components/LoginPrompt.tsx",
+          "operation": "modify",
+          "description": "Confirm this component remains a no-op placeholder that renders nothing, as it already reflects the anonymous design."
+        },
+        {
+          "path": "frontend/src/hooks/useInternetIdentity.ts",
+          "operation": "modify",
+          "description": "Mark this file as deprecated or remove its implementation entirely, as Internet Identity authentication is no longer needed. If keeping for future use, ensure no active code paths reference it."
         }
       ]
     },
     {
       "id": "REQ-3",
-      "summary": "Render embedded content inline in sent messages",
+      "summary": "Display image upload and GIF picker inline in the message input area rather than in a dropdown menu",
       "acceptanceCriteria": [
-        "Sent messages containing X post URLs display the embedded tweet inline in the message bubble using the existing Twitter embed rendering",
-        "Sent messages containing YouTube URLs display the embedded video player inline in the message bubble",
-        "Sent messages containing Twitch URLs display the embedded Twitch player inline in the message bubble",
-        "The embedded content renders consistently with the existing media embed functionality in MessageBubble"
+        "Image upload button is visible directly in the message input area",
+        "GIF picker button is visible directly in the message input area",
+        "No paperclip dropdown menu or modal is required to access these features",
+        "Both options are always visible and accessible to users"
       ],
       "file_operations": [
-        {
-          "path": "frontend/src/components/MessageBubble.tsx",
-          "operation": "modify",
-          "description": "Verify that the existing embed rendering logic correctly handles messages where mediaType and mediaUrl are populated. Ensure that X post (mediaType='twitter'), YouTube (mediaType='youtube'), and Twitch (mediaType='twitch') embeds render consistently inline within the message bubble. No changes should be needed if the existing logic already supports these media types."
-        }
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "summary": "Extract and store detected URLs when sending messages",
-      "acceptanceCriteria": [
-        "When sending a message with an X post URL, the message is created with mediaType set to 'twitter' and mediaUrl containing the extracted X post URL",
-        "When sending a message with a YouTube URL, the message is created with mediaType set to 'youtube' and mediaUrl containing the extracted YouTube URL",
-        "When sending a message with a Twitch URL, the message is created with mediaType set to 'twitch' and mediaUrl containing the extracted Twitch URL",
-        "The URL detection logic correctly identifies x.com, twitter.com, youtube.com, youtu.be, and twitch.tv URLs"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/lib/urlExtractor.ts",
-          "operation": "create",
-          "description": "Create a utility function that extracts the first X post URL or video URL (YouTube/Twitch) from a text string. Returns an object containing the extracted URL and its type (twitter, youtube, or twitch), or null if no supported URL is found. Reuse URL detection and parsing logic from frontend/src/lib/videoUtils.ts. Handle x.com, twitter.com, youtube.com, youtu.be, and twitch.tv URLs."
-        },
         {
           "path": "frontend/src/components/MessageInput.tsx",
           "operation": "modify",
-          "description": "Update the message sending logic to call the urlExtractor utility when the user submits a message. If a supported URL is detected in the text, populate the mediaType and mediaUrl fields when calling the backend sendMessage function. Ensure the text content itself is preserved in the message. Remove any old logic that relied on separate media input fields."
-        },
-        {
-          "path": "frontend/src/hooks/useQueries.ts",
-          "operation": "modify",
-          "description": "Update the useSendMessage mutation to accept mediaType and mediaUrl parameters extracted from the message text. Ensure the mutation correctly passes these parameters to the backend sendMessage function."
+          "description": "Refactor the UI to display image upload and GIF picker buttons inline directly in the message input area, removing any dropdown/paperclip menu pattern. Place both buttons prominently next to the text input field, ensuring they are always visible without requiring user interaction to reveal them. Keep the existing functionality for both features while changing only their visibility and layout."
         }
       ]
     }

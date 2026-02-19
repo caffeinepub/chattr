@@ -5,7 +5,8 @@ import type {
   MessageWithReactions, 
   ChatroomWithLiveStatus,
   UserProfile,
-  ReplyPreview
+  ReplyPreview,
+  ExternalBlob
 } from '../backend';
 
 // Helper to get user ID from localStorage
@@ -219,12 +220,16 @@ export function useSendMessage() {
       mediaUrl,
       mediaType,
       replyToMessageId,
+      imageId,
+      giphyUrl,
     }: {
       content: string;
       chatroomId: bigint;
       mediaUrl?: string;
       mediaType?: string;
       replyToMessageId?: bigint;
+      imageId?: bigint;
+      giphyUrl?: string;
     }) => {
       if (!actor) throw new Error('Actor not available');
       
@@ -240,7 +245,9 @@ export function useSendMessage() {
         mediaType || null,
         avatarUrl,
         senderId,
-        replyToMessageId || null
+        replyToMessageId || null,
+        imageId !== undefined ? imageId : null,
+        giphyUrl || null
       );
     },
     onSuccess: (_, variables) => {
@@ -251,6 +258,21 @@ export function useSendMessage() {
         queryKey: ['chatroom', variables.chatroomId.toString()] 
       });
     },
+  });
+}
+
+// Image storage
+export function useGetImage(imageId: bigint | undefined | null) {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<ExternalBlob | null>({
+    queryKey: ['image', imageId?.toString()],
+    queryFn: async () => {
+      if (!actor || imageId === undefined || imageId === null) return null;
+      const image = await actor.getImage(imageId);
+      return image;
+    },
+    enabled: !!actor && !isFetching && imageId !== undefined && imageId !== null,
   });
 }
 

@@ -1,98 +1,76 @@
 {
   "kind": "build_request",
-  "title": "Enable inline link embedding in chat with preview",
-  "projectName": "Stream Chat",
+  "title": "Remove authentication and make all backend functions publicly accessible",
+  "projectName": "Anonymous Chat",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Remove the separate X post input field and video input field (YouTube/Twitch) from the MessageInput component",
+      "text": "Remove all Internet Identity authentication from the frontend application",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-user-clarification-3"
+          "msg-recent"
         ],
         "quotes": [
-          "removed"
+          "no login",
+          "Remove authentication completely"
         ]
       },
       "acceptanceCriteria": [
-        "The MessageInput component no longer displays separate input fields for X post URLs or YouTube/Twitch video URLs",
-        "Only the main chat text input and voice recording buttons remain visible"
+        "Internet Identity login UI is completely removed",
+        "No authentication provider wraps the application",
+        "Users can access all features without any login prompts"
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Detect X post links (x.com or twitter.com URLs) and YouTube/Twitch video links in the main chat input field and display an inline preview of the embedded content before the user sends the message",
-      "target": "frontend",
+      "text": "Remove all caller verification checks from backend canister methods to make them publicly accessible",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-user-clarification-1",
-          "msg-user-clarification-2"
+          "msg-recent"
         ],
         "quotes": [
-          "inline",
-          "preview"
+          "ignore all caller checks",
+          "all should be made publicly accessible"
         ]
       },
       "acceptanceCriteria": [
-        "When a user pastes an X post URL (x.com or twitter.com) into the chat input, a preview of the tweet content appears below the input field before sending",
-        "When a user pastes a YouTube or Twitch video URL into the chat input, a thumbnail preview of the video appears below the input field before sending",
-        "The preview updates dynamically as the user types or modifies the URL",
-        "The preview disappears if the user removes the URL from the input field",
-        "Multiple link types in one message are handled gracefully"
+        "All backend functions can be called without authentication",
+        "No Principal.isAnonymous() or caller identity checks remain",
+        "All methods are accessible to anonymous callers"
       ]
     },
     {
       "id": "REQ-3",
-      "text": "When a message containing X post links or YouTube/Twitch video links is sent, embed the content inline within the chat message feed using the existing MessageBubble embed rendering logic",
+      "text": "Display image upload and GIF picker inline in the message input area rather than in a dropdown menu",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-user-clarification-1"
+          "msg-recent"
         ],
         "quotes": [
-          "inline"
+          "the image upload and gif picker must be inline"
         ]
       },
       "acceptanceCriteria": [
-        "Sent messages containing X post URLs display the embedded tweet inline in the message bubble using the existing Twitter embed rendering",
-        "Sent messages containing YouTube URLs display the embedded video player inline in the message bubble",
-        "Sent messages containing Twitch URLs display the embedded Twitch player inline in the message bubble",
-        "The embedded content renders consistently with the existing media embed functionality in MessageBubble"
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "text": "Update the message sending logic to detect and extract X post URLs and YouTube/Twitch video URLs from the chat input text and store them in the appropriate mediaType and mediaUrl fields when creating a message",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-user-request"
-        ],
-        "quotes": [
-          "typing the links directly onto the chat input"
-        ]
-      },
-      "acceptanceCriteria": [
-        "When sending a message with an X post URL, the message is created with mediaType set to 'twitter' and mediaUrl containing the extracted X post URL",
-        "When sending a message with a YouTube URL, the message is created with mediaType set to 'youtube' and mediaUrl containing the extracted YouTube URL",
-        "When sending a message with a Twitch URL, the message is created with mediaType set to 'twitch' and mediaUrl containing the extracted Twitch URL",
-        "The URL detection logic correctly identifies x.com, twitter.com, youtube.com, youtu.be, and twitch.tv URLs"
+        "Image upload button is visible directly in the message input area",
+        "GIF picker button is visible directly in the message input area",
+        "No paperclip dropdown menu or modal is required to access these features",
+        "Both options are always visible and accessible to users"
       ]
     }
   ],
   "constraints": [
-    "Reuse the existing Twitter oEmbed preview functionality from frontend/src/lib/twitterOEmbedPreview.ts for X post previews",
-    "Reuse the existing video thumbnail generation logic from frontend/src/lib/videoUtils.ts for YouTube/Twitch previews",
-    "Maintain the existing MessageBubble embed rendering for consistency",
-    "Do not modify the backend message schema or storage logic"
+    "Maintain existing message display functionality with inline images and GIFs",
+    "Keep all existing backend data structures and storage mechanisms intact",
+    "Preserve the single-actor backend architecture"
   ],
   "nonGoals": [
-    "Supporting additional media types beyond X posts, YouTube, and Twitch",
-    "Adding link previews for generic URLs without media content",
-    "Implementing link unfurling or metadata fetching for non-media links",
-    "Allowing multiple media embeds per single message"
+    "Adding new authentication methods",
+    "Implementing user tracking or session management",
+    "Changing the visual design or styling beyond inline button placement"
   ],
   "imageRequirements": {
     "required": [],

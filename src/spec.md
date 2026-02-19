@@ -1,13 +1,11 @@
 # Specification
 
 ## Summary
-**Goal:** Enable inline link embedding in chat by detecting X post and YouTube/Twitch video URLs directly in the chat input field.
+**Goal:** Remove all authentication requirements and make the application fully anonymous with inline media controls.
 
 **Planned changes:**
-- Remove the separate X post and video input fields from MessageInput
-- Detect X post URLs (x.com/twitter.com) and YouTube/Twitch video URLs in the main chat input field
-- Display inline preview of embedded content below the chat input before sending
-- Extract and store detected URLs in appropriate mediaType and mediaUrl fields when sending messages
-- Render embedded content inline in sent messages using existing MessageBubble embed logic
+- Remove Internet Identity authentication from the frontend
+- Remove all caller verification checks from backend canister methods
+- Display image upload and GIF picker buttons inline in the message input area instead of in a dropdown menu
 
-**User-visible outcome:** Users can paste X post or YouTube/Twitch video links directly into the chat input, see a preview before sending, and view embedded content inline in the chat feed without using separate input fields.
+**User-visible outcome:** Users can access the chat application without any login, and media sharing controls (image upload and GIF picker) are directly visible in the message input area for easier access.
