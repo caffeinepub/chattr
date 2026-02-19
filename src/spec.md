@@ -1,11 +1,10 @@
 # Specification
 
 ## Summary
-**Goal:** Remove all authentication requirements and make the application fully anonymous with inline media controls.
+**Goal:** Remove authorization checks from user-facing backend functions to allow anonymous users to interact with the application while keeping admin functions protected.
 
 **Planned changes:**
-- Remove Internet Identity authentication from the frontend
-- Remove all caller verification checks from backend canister methods
-- Display image upload and GIF picker buttons inline in the message input area instead of in a dropdown menu
+- Remove AccessControl.isAuthorized() calls from all user-facing functions in backend/main.mo (createChatroom, sendMessage, addReaction, removeReaction, updateUsername, updateAvatar, addReply)
+- Preserve password-protected admin functions (deleteChatroom and other admin-only operations)
 
-**User-visible outcome:** Users can access the chat application without any login, and media sharing controls (image upload and GIF picker) are directly visible in the message input area for easier access.
+**User-visible outcome:** Anonymous users can create chatrooms, send messages, add reactions, update usernames/avatars, and add replies without encountering authorization errors. Admin functions remain password-protected.

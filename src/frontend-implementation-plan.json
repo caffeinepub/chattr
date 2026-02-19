@@ -1,60 +1,6 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Remove authentication and make all backend functions publicly accessible",
-  "requirements": [
-    {
-      "id": "REQ-1",
-      "summary": "Remove all Internet Identity authentication from the frontend application",
-      "acceptanceCriteria": [
-        "Internet Identity login UI is completely removed",
-        "No authentication provider wraps the application",
-        "Users can access all features without any login prompts"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/hooks/useActor.ts",
-          "operation": "modify",
-          "description": "Remove Internet Identity authentication logic and create the backend actor directly without authentication. Remove the dependency on useInternetIdentity hook and eliminate any identity-based actor initialization. The actor should be instantiated immediately without waiting for authentication state."
-        },
-        {
-          "path": "frontend/src/main.tsx",
-          "operation": "modify",
-          "description": "Remove the InternetIdentityProvider wrapper from the application tree. Keep only QueryClientProvider and render the App component directly without authentication context."
-        },
-        {
-          "path": "frontend/src/components/Header.tsx",
-          "operation": "modify",
-          "description": "Remove any login/logout buttons or authentication UI elements from the header. Keep only the logo, editable username field, avatar picker, and back-to-lobby navigation. Ensure the header works without any authentication state checks."
-        },
-        {
-          "path": "frontend/src/components/LoginPrompt.tsx",
-          "operation": "modify",
-          "description": "Confirm this component remains a no-op placeholder that renders nothing, as it already reflects the anonymous design."
-        },
-        {
-          "path": "frontend/src/hooks/useInternetIdentity.ts",
-          "operation": "modify",
-          "description": "Mark this file as deprecated or remove its implementation entirely, as Internet Identity authentication is no longer needed. If keeping for future use, ensure no active code paths reference it."
-        }
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "summary": "Display image upload and GIF picker inline in the message input area rather than in a dropdown menu",
-      "acceptanceCriteria": [
-        "Image upload button is visible directly in the message input area",
-        "GIF picker button is visible directly in the message input area",
-        "No paperclip dropdown menu or modal is required to access these features",
-        "Both options are always visible and accessible to users"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/MessageInput.tsx",
-          "operation": "modify",
-          "description": "Refactor the UI to display image upload and GIF picker buttons inline directly in the message input area, removing any dropdown/paperclip menu pattern. Place both buttons prominently next to the text input field, ensuring they are always visible without requiring user interaction to reveal them. Keep the existing functionality for both features while changing only their visibility and layout."
-        }
-      ]
-    }
-  ]
+  "title": "Remove all caller principal checks from user-facing backend functions",
+  "requirements": []
 }

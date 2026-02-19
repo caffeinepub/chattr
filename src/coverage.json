@@ -1,45 +1,28 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-19T00:49:27.213Z",
+  "generatedAt": "2026-02-19T01:15:37.329Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 3,
-    "implemented": 1,
+    "total": 2,
+    "implemented": 0,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Remove all Internet Identity authentication from the frontend application",
-        "status": "missing",
-        "plannedFiles": [
-          "frontend/src/hooks/useActor.ts",
-          "frontend/src/main.tsx",
-          "frontend/src/components/Header.tsx",
-          "frontend/src/components/LoginPrompt.tsx",
-          "frontend/src/hooks/useInternetIdentity.ts"
-        ],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-2",
-        "summary": "Remove all caller verification checks from backend canister methods to make them publicly accessible",
+        "summary": "Remove all AccessControl.isAuthorized() calls from user-facing functions in backend/main.mo including createChatroom, sendMessage, addReaction, removeReaction, updateUsername, updateAvatar, addReply, and any other functions that regular users need to access",
         "status": "unknown",
         "plannedFiles": [],
         "matchedFiles": []
       },
       {
-        "id": "REQ-3",
-        "summary": "Display image upload and GIF picker inline in the message input area rather than in a dropdown menu",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/MessageInput.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/MessageInput.tsx"
-        ]
+        "id": "REQ-2",
+        "summary": "Preserve admin password-protected functions (deleteChatroom and any other admin-only operations) so they remain protected",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
       }
     ]
   },
@@ -47,9 +30,11 @@
     "backend/main.mo",
     "build-request.json",
     "feature_evidence.json",
-    "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/components/MessageInput.tsx",
+    "frontend/src/backend.d.ts",
+    "frontend/src/backend.ts",
+    "frontend/src/declarations/backend.did.d.ts",
+    "frontend/src/declarations/backend.did.js",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

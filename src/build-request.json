@@ -1,76 +1,57 @@
 {
   "kind": "build_request",
-  "title": "Remove authentication and make all backend functions publicly accessible",
-  "projectName": "Anonymous Chat",
-  "priority": "normal",
+  "title": "Remove all caller principal checks from user-facing backend functions",
+  "priority": "high",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Remove all Internet Identity authentication from the frontend application",
-      "target": "frontend",
+      "text": "Remove all AccessControl.isAuthorized() calls from user-facing functions in backend/main.mo including createChatroom, sendMessage, addReaction, removeReaction, updateUsername, updateAvatar, addReply, and any other functions that regular users need to access",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-recent"
+          "msg-last"
         ],
         "quotes": [
-          "no login",
-          "Remove authentication completely"
+          "no actions are working because you added caller principal checks",
+          "remove all caller principal checks from main.mo"
         ]
       },
       "acceptanceCriteria": [
-        "Internet Identity login UI is completely removed",
-        "No authentication provider wraps the application",
-        "Users can access all features without any login prompts"
+        "Anonymous users can create chatrooms without authorization checks",
+        "Anonymous users can send messages without authorization checks",
+        "Anonymous users can add and remove reactions without authorization checks",
+        "Anonymous users can update their username and avatar without authorization checks",
+        "Anonymous users can add replies without authorization checks",
+        "All user-facing backend functions work without requiring caller principal verification"
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Remove all caller verification checks from backend canister methods to make them publicly accessible",
+      "text": "Preserve admin password-protected functions (deleteChatroom and any other admin-only operations) so they remain protected",
       "target": "backend",
       "source": {
         "messageIds": [
-          "msg-recent"
-        ],
-        "quotes": [
-          "ignore all caller checks",
-          "all should be made publicly accessible"
+          "msg-last"
         ]
       },
       "acceptanceCriteria": [
-        "All backend functions can be called without authentication",
-        "No Principal.isAnonymous() or caller identity checks remain",
-        "All methods are accessible to anonymous callers"
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "text": "Display image upload and GIF picker inline in the message input area rather than in a dropdown menu",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-recent"
-        ],
-        "quotes": [
-          "the image upload and gif picker must be inline"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Image upload button is visible directly in the message input area",
-        "GIF picker button is visible directly in the message input area",
-        "No paperclip dropdown menu or modal is required to access these features",
-        "Both options are always visible and accessible to users"
+        "Admin functions like deleteChatroom remain password-protected",
+        "Admin page continues to require password authentication"
       ]
     }
   ],
   "constraints": [
-    "Maintain existing message display functionality with inline images and GIFs",
-    "Keep all existing backend data structures and storage mechanisms intact",
-    "Preserve the single-actor backend architecture"
+    "Do not modify any frontend files",
+    "Keep admin password protection intact",
+    "Maintain existing session ID system in localStorage",
+    "Do not change the single-actor architecture"
   ],
   "nonGoals": [
-    "Adding new authentication methods",
-    "Implementing user tracking or session management",
-    "Changing the visual design or styling beyond inline button placement"
+    "Adding new features",
+    "Modifying frontend components",
+    "Changing the UI design",
+    "Adding any form of user authentication",
+    "Modifying the AccessControl module itself"
   ],
   "imageRequirements": {
     "required": [],
