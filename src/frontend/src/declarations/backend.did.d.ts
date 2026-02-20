@@ -24,16 +24,6 @@ export interface ChatroomWithLiveStatus {
   'category' : string,
   'pinnedVideoId' : [] | [bigint],
 }
-export interface GifData {
-  'id' : string,
-  'url' : string,
-  'title' : string,
-  'username' : string,
-  'bitly_url' : string,
-  'source' : string,
-  'embed_url' : string,
-  'rating' : string,
-}
 export type List = [] | [[string, List]];
 export type List_1 = [] | [[Reaction, List_1]];
 export interface LobbyChatroomCard {
@@ -50,14 +40,6 @@ export interface LobbyChatroomCard {
   'pinnedVideoId' : [] | [bigint],
   'presenceIndicator' : bigint,
 }
-export type MediaType = { 'gif' : null } |
-  { 'audio' : null } |
-  { 'twitch' : null } |
-  { 'twitter' : null } |
-  { 'video' : null } |
-  { 'youtube' : null } |
-  { 'image' : null } |
-  { 'unknown' : null };
 export interface Message {
   'id' : bigint,
   'content' : string,
@@ -66,9 +48,8 @@ export interface Message {
   'mediaUrl' : [] | [string],
   'avatarUrl' : [] | [string],
   'replyToMessageId' : [] | [bigint],
-  'gifData' : [] | [GifData],
   'timestamp' : bigint,
-  'mediaType' : [] | [MediaType],
+  'mediaType' : [] | [string],
   'senderId' : string,
 }
 export interface MessageWithReactions {
@@ -79,9 +60,8 @@ export interface MessageWithReactions {
   'mediaUrl' : [] | [string],
   'avatarUrl' : [] | [string],
   'replyToMessageId' : [] | [bigint],
-  'gifData' : [] | [GifData],
   'timestamp' : bigint,
-  'mediaType' : [] | [MediaType],
+  'mediaType' : [] | [string],
   'reactions' : List_1,
   'senderId' : string,
 }
@@ -193,7 +173,6 @@ export interface _SERVICE {
       [] | [string],
       string,
       [] | [bigint],
-      [] | [GifData],
     ],
     undefined
   >,

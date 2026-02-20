@@ -178,10 +178,7 @@ export default function MessageBubble({
     
     // Get media thumbnail if available
     let mediaThumbnail: string | undefined;
-    if (message.gifData) {
-      // Use GIF URL as thumbnail
-      mediaThumbnail = message.gifData.url;
-    } else if (message.mediaUrl && message.mediaType) {
+    if (message.mediaUrl && message.mediaType) {
       if (message.mediaType === 'image') {
         mediaThumbnail = message.mediaUrl;
       } else if (message.mediaType === 'youtube' && isYouTubeUrl(message.mediaUrl)) {
@@ -246,20 +243,6 @@ export default function MessageBubble({
     : null;
 
   const renderMedia = () => {
-    // Render GIF if gifData is present
-    if (message.gifData) {
-      return (
-        <div className="mt-2 w-full max-w-[400px]">
-          <img
-            src={message.gifData.url}
-            alt={message.gifData.title || 'GIF'}
-            className="w-full rounded-lg object-cover cursor-pointer hover:opacity-90 transition-opacity"
-            onClick={() => setIsExpanded(true)}
-          />
-        </div>
-      );
-    }
-
     if (!message.mediaUrl || !message.mediaType) return null;
 
     const mediaUrl = message.mediaUrl;
@@ -368,39 +351,9 @@ export default function MessageBubble({
   };
 
   const renderExpandedMedia = () => {
-    if (!isExpanded) return null;
+    if (!isExpanded || !message.mediaUrl || !message.mediaType) return null;
 
-    // Handle GIF expansion
-    if (message.gifData) {
-      return (
-        <div 
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
-          onClick={() => setIsExpanded(false)}
-        >
-          <button
-            className="absolute top-4 right-4 z-10 rounded-full bg-white/10 p-2 text-white hover:bg-white/20 transition-colors"
-            onClick={() => setIsExpanded(false)}
-            aria-label="Close"
-          >
-            <X className="h-6 w-6" />
-          </button>
-
-          <div 
-            className="relative max-h-[90vh] max-w-[90vw] w-full flex items-center justify-center"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <img
-              src={message.gifData.url}
-              alt={message.gifData.title || 'GIF'}
-              className="max-h-[90vh] max-w-full rounded-lg object-contain"
-            />
-          </div>
-        </div>
-      );
-    }
-
-    // Handle image expansion
-    if (!message.mediaUrl || message.mediaType !== 'image') return null;
+    if (message.mediaType !== 'image') return null;
 
     const mediaUrl = message.mediaUrl;
 
@@ -480,44 +433,37 @@ export default function MessageBubble({
                 }`}
               >
                 <div className="flex items-start gap-2">
-                  {(parentMessage.gifData || (parentMessage.mediaUrl && parentMessage.mediaType)) && (
+                  {parentMessage.mediaUrl && parentMessage.mediaType && (
                     <div className="flex-shrink-0">
-                      {parentMessage.gifData && (
-                        <img 
-                          src={parentMessage.gifData.url} 
-                          alt={parentMessage.gifData.title || 'GIF'} 
-                          className="h-10 w-10 rounded object-cover"
-                        />
-                      )}
-                      {!parentMessage.gifData && parentMessage.mediaType === 'image' && parentMessage.mediaUrl && (
+                      {parentMessage.mediaType === 'image' && (
                         <img 
                           src={parentMessage.mediaUrl} 
                           alt="Reply thumbnail" 
                           className="h-10 w-10 rounded object-cover"
                         />
                       )}
-                      {!parentMessage.gifData && parentMessage.mediaType === 'youtube' && parentMessage.mediaUrl && isYouTubeUrl(parentMessage.mediaUrl) && (
+                      {parentMessage.mediaType === 'youtube' && isYouTubeUrl(parentMessage.mediaUrl) && (
                         <img 
                           src={`https://img.youtube.com/vi/${getYouTubeVideoId(parentMessage.mediaUrl)}/default.jpg`}
                           alt="YouTube thumbnail" 
                           className="h-10 w-10 rounded object-cover"
                         />
                       )}
-                      {!parentMessage.gifData && parentMessage.mediaType === 'twitch' && (
+                      {parentMessage.mediaType === 'twitch' && (
                         <img 
                           src="/assets/generated/twitch-icon-transparent.dim_32x32.png"
                           alt="Twitch" 
                           className="h-10 w-10 rounded object-contain"
                         />
                       )}
-                      {!parentMessage.gifData && parentMessage.mediaType === 'twitter' && (
+                      {parentMessage.mediaType === 'twitter' && (
                         <img 
                           src="/assets/generated/twitter-icon-transparent.dim_32x32.png"
                           alt="Twitter" 
                           className="h-10 w-10 rounded object-contain"
                         />
                       )}
-                      {!parentMessage.gifData && parentMessage.mediaType === 'audio' && (
+                      {parentMessage.mediaType === 'audio' && (
                         <img 
                           src="/assets/generated/audio-waveform-icon-transparent.dim_24x24.png"
                           alt="Audio" 
@@ -569,40 +515,45 @@ export default function MessageBubble({
             </div>
           )}
 
-          {/* Action buttons */}
-          <div className="mt-1 flex items-center gap-1">
+          <div className="mt-1 flex items-center gap-2">
             <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
               <PopoverTrigger asChild>
-                <button
-                  className="rounded-full p-1 hover:bg-muted transition-colors"
-                  title="Add reaction"
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 px-2 text-xs"
                 >
-                  <Smile className="h-4 w-4 text-muted-foreground" />
-                </button>
+                  <Smile className="h-3 w-3 mr-1" />
+                  React
+                </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-2" align={isOwnMessage ? 'end' : 'start'}>
                 <div className="flex gap-1">
                   {COMMON_EMOJIS.map((emoji) => (
-                    <button
+                    <Button
                       key={emoji}
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 p-0 text-lg hover:scale-125 transition-transform"
                       onClick={() => handleReaction(emoji)}
-                      className="rounded p-1 hover:bg-muted transition-colors text-lg"
                     >
                       {emoji}
-                    </button>
+                    </Button>
                   ))}
                 </div>
               </PopoverContent>
             </Popover>
 
             {onReply && (
-              <button
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 px-2 text-xs"
                 onClick={handleReplyClick}
-                className="rounded-full p-1 hover:bg-muted transition-colors"
-                title="Reply"
               >
-                <Reply className="h-4 w-4 text-muted-foreground" />
-              </button>
+                <Reply className="h-3 w-3 mr-1" />
+                Reply
+              </Button>
             )}
           </div>
         </div>

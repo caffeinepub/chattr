@@ -1,87 +1,19 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 9,
-  "summary": "Chat application with category tag styling requirements",
+  "projectStateVersion": 3,
+  "summary": "Chat application with GIF integration (Giphy picker) that displays animated GIFs in messages",
   "architectural_notes": [
-    "Category tags should be displayed in lowercase across all views including chatrooms",
-    "Preserve all existing styles from version 261 when adding new functionality",
-    "Auto-detect URLs for X posts, YouTube, and Twitch videos when users paste them into chat",
-    "Avoid adding authentication/authorization caller checks in backend, or ensure they always pass if necessary"
+    "Giphy picker integration for selecting animated GIFs in chat",
+    "GIF data stored/retrieved in backend to display animated images instead of plain text names"
   ],
-  "known_issues": [
-    "GIFs selected from Giphy picker display as plain text (GIF name) instead of rendering as animated images in chat messages"
-  ],
+  "known_issues": [],
   "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-auto-detect-urls-for-x-posts-youtube-videos-and-twitch-videos-when-users-paste-them-into-the-chat-input-and-automatically-render-them-as-embedded-previews-in-chat-messages",
-      "title": "Auto-detect URLs for X posts, YouTube videos, and Twitch videos when users paste them into the chat input and automatically render them as embedded previews in chat messages",
-      "reqIds": [
-        "REQ-2"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-preserve-all-existing-styles-from-version-261-do-not-modify-any-css-tailwind-classes-or-layout-code-when-implementing-embed-functionality",
-      "title": "Preserve all existing styles from version 261 - do not modify any CSS, Tailwind classes, or layout code when implementing embed functionality",
+      "id": "feature-update-the-messageinput-component-to-pass-the-complete-gif-url-not-just-the-name-when-a-user-selects-a-gif-from-the-giphy-picker",
+      "title": "Update the MessageInput component to pass the complete GIF URL (not just the name) when a user selects a GIF from the Giphy picker",
       "reqIds": [
         "REQ-3"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-maintain-the-working-image-rendering-functionality-from-version-261-while-adding-the-embed-features",
-      "title": "Maintain the working image rendering functionality from version 261 while adding the embed features",
-      "reqIds": [
-        "REQ-4"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-add-a-new-giphy-tab-to-the-media-button-in-the-chat-input-area-that-includes-a-search-field-for-finding-gifs-by-keyword-and-displays-preloaded-popular-gifs-matching-the-implementation-pattern-from-avatarpickerdialog-tsx",
-      "title": "Add a new Giphy tab to the media button in the chat input area that includes a search field for finding GIFs by keyword and displays preloaded popular GIFs (matching the implementation pattern from AvatarPickerDialog.tsx)",
-      "reqIds": [
-        "REQ-5"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-remove-the-video-tab-from-the-add-media-button-in-the-chat-input-area-since-url-auto-embedding-now-handles-video-content",
-      "title": "Remove the video tab from the add media button in the chat input area since URL auto-embedding now handles video content",
-      "reqIds": [
-        "REQ-6"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-remove-the-x-posts-tab-from-the-add-media-button-in-the-chat-input-area-since-url-auto-embedding-now-handles-x-twitter-content",
-      "title": "Remove the X posts tab from the add media button in the chat input area since URL auto-embedding now handles X/Twitter content",
-      "reqIds": [
-        "REQ-7"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-do-not-add-any-caller-checks-or-authentication-permission-validation-for-the-giphy-functionality-skip-any-security-validations",
-      "title": "Do not add any caller checks or authentication/permission validation for the Giphy functionality - skip any security validations",
-      "reqIds": [
-        "REQ-8"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-update-the-message-rendering-logic-in-messagebubble-tsx-to-detect-when-a-message-contains-gif-data-from-giphy-and-render-it-as-an-animated-image-element-inline-in-the-chat-similar-to-how-regular-images-are-currently-displayed",
-      "title": "Update the message rendering logic in MessageBubble.tsx to detect when a message contains GIF data from Giphy and render it as an animated image element inline in the chat, similar to how regular images are currently displayed",
-      "reqIds": [
-        "REQ-9"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-ensure-the-gif-data-structure-from-the-giphy-picker-includes-the-necessary-url-information-to-render-the-animated-gif-and-verify-this-data-is-properly-stored-and-transmitted-with-the-message",
-      "title": "Ensure the GIF data structure from the Giphy picker includes the necessary URL information to render the animated GIF, and verify this data is properly stored and transmitted with the message",
-      "reqIds": [
-        "REQ-10"
       ],
       "version": 1
     }
@@ -89,38 +21,22 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Ensure category tags are lowercase in chatrooms",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-2",
-      "summary": "Convert category display text to lowercase in the ChatroomPage component where category tags are rendered",
+      "summary": "Modify the message sending logic to store the complete GIF URL from the Giphy picker instead of just the GIF name, ensuring the URL points to the animated GIF resource",
       "reqIds": [
         "REQ-1"
       ],
       "status": "pending"
     },
     {
-      "id": "AR-3",
-      "summary": "Add auto-detection and preview embeds for X posts, YouTube, and Twitch videos in chat messages",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-4",
-      "summary": "Add Giphy tab to media button with search and popular GIFs preloaded (like avatar modal)",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-5",
-      "summary": "Remove redundant video and X posts tabs from add media button since URL auto-embedding handles those",
-      "reqIds": [],
+      "id": "AR-2",
+      "summary": "Update the MessageBubble component to detect and render GIF URLs as animated img elements in the message display, similar to how other media types are currently embedded",
+      "reqIds": [
+        "REQ-2"
+      ],
       "status": "pending"
     }
   ],
-  "projectName": "Ensure category tags are lowercase in chatrooms",
+  "projectName": "Fix GIF display to show animated images instead of plain text",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

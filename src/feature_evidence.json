@@ -2,10 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-update-the-message-rendering-logic-in-messagebubble-tsx-to-detect-when-a-message-contains-gif-data-from-giphy-and-render-it-as-an-animated-image-element-inline-in-the-chat-similar-to-how-regular-images-are-currently-displayed",
-      "featureTitle": "Update the message rendering logic in MessageBubble.tsx to detect when a message contains GIF data from Giphy and render it as an animated image element inline in the chat, similar to how regular images are currently displayed",
+      "featureId": "feature-update-the-messageinput-component-to-pass-the-complete-gif-url-not-just-the-name-when-a-user-selects-a-gif-from-the-giphy-picker",
+      "featureTitle": "Update the MessageInput component to pass the complete GIF URL (not just the name) when a user selects a GIF from the Giphy picker",
       "files": [
-        "frontend/src/components/MessageBubble.tsx"
+        "frontend/src/components/MessageInput.tsx"
       ],
       "components": [
         "authorization@1.0.1",
@@ -18,29 +18,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-9"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-ensure-the-gif-data-structure-from-the-giphy-picker-includes-the-necessary-url-information-to-render-the-animated-gif-and-verify-this-data-is-properly-stored-and-transmitted-with-the-message",
-      "featureTitle": "Ensure the GIF data structure from the Giphy picker includes the necessary URL information to render the animated GIF, and verify this data is properly stored and transmitted with the message",
-      "files": [
-        "frontend/src/components/MessageInput.tsx",
-        "frontend/src/hooks/useQueries.ts"
-      ],
-      "components": [
-        "authorization@1.0.1",
-        "blob-storage@2.0.3",
-        "http-outcalls@1.1.1",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-10"
+        "REQ-3"
       ],
       "confidence": "high"
     }

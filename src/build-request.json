@@ -1,57 +1,71 @@
 {
   "kind": "build_request",
-  "title": "Fix GIF rendering in chat messages",
-  "priority": "high",
+  "title": "Fix GIF display to show animated images instead of plain text",
+  "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-9",
-      "text": "Update the message rendering logic in MessageBubble.tsx to detect when a message contains GIF data from Giphy and render it as an animated image element inline in the chat, similar to how regular images are currently displayed",
-      "target": "frontend",
+      "id": "REQ-1",
+      "text": "Modify the message sending logic to store the complete GIF URL from the Giphy picker instead of just the GIF name, ensuring the URL points to the animated GIF resource",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-user-gif-not-rendering"
+          "msg-17"
         ],
         "quotes": [
-          "gif selection works but its not rendering once posted, it just says the name of the gif in text",
-          "the gif name in plain text"
+          "When users select a GIF from the Giphy picker, only the GIF name appears as plain text in chat messages instead of showing the actual animated GIF"
         ]
       },
       "acceptanceCriteria": [
-        "GIFs selected from the Giphy picker display as animated images in chat messages",
-        "GIF rendering matches the visual style and behavior of existing image rendering",
-        "GIF URLs from Giphy are properly passed through from selection to display",
-        "No plain text GIF names appear in the chat - only rendered animated images"
+        "Backend stores the full GIF URL when a message with a GIF is created",
+        "No new caller checks or authentication validation is added to the backend"
       ]
     },
     {
-      "id": "REQ-10",
-      "text": "Ensure the GIF data structure from the Giphy picker includes the necessary URL information to render the animated GIF, and verify this data is properly stored and transmitted with the message",
-      "target": "both",
+      "id": "REQ-2",
+      "text": "Update the MessageBubble component to detect and render GIF URLs as animated img elements in the message display, similar to how other media types are currently embedded",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-user-gif-not-rendering"
+          "msg-17"
         ],
         "quotes": [
-          "its not rendering once posted, it just says the name of the gif in text"
+          "When users select a GIF from the Giphy picker, only the GIF name appears as plain text in chat messages instead of showing the actual animated GIF"
         ]
       },
       "acceptanceCriteria": [
-        "GIF selection from Giphy picker captures the GIF URL (not just the name)",
-        "Message payload includes the complete GIF URL when sending messages with GIFs",
-        "Backend stores and returns the GIF URL data correctly",
-        "Frontend receives the GIF URL data and can access it for rendering"
+        "Selected GIFs display as animated images in chat messages",
+        "GIF images are properly sized and styled within the message bubble",
+        "All existing styles remain unchanged across the application"
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Update the MessageInput component to pass the complete GIF URL (not just the name) when a user selects a GIF from the Giphy picker",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-17"
+        ],
+        "quotes": [
+          "When users select a GIF from the Giphy picker, only the GIF name appears as plain text in chat messages instead of showing the actual animated GIF"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Giphy picker selection extracts and passes the full animated GIF URL",
+        "No changes to existing component styling or layout"
       ]
     }
   ],
   "constraints": [
-    "Do not add any caller checks or authentication/permission validation for the GIF functionality",
-    "Do not modify existing image rendering functionality that is working correctly",
-    "Preserve all existing styles and layout code"
+    "Do not add any caller checks or authentication validation to the backend",
+    "Preserve all existing styles throughout the application - no CSS or Tailwind class modifications",
+    "Maintain all existing functionality for other media types (YouTube, Twitch, Twitter)"
   ],
   "nonGoals": [
-    "Changing how GIFs are selected from the Giphy picker",
-    "Modifying the Giphy search or trending GIF functionality",
-    "Adding new authentication or security validation"
+    "Adding new styling or visual changes to any components",
+    "Implementing authentication or permission checks",
+    "Modifying the Giphy picker UI or search functionality",
+    "Changes to other media embedding features"
   ],
   "imageRequirements": {
     "required": [],

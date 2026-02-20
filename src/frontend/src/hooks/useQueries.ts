@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
-import type { Message, ChatroomWithLiveStatus, UserProfile, MessageWithReactions, Reaction, GifData } from '../backend';
+import type { Message, ChatroomWithLiveStatus, UserProfile, MessageWithReactions, Reaction } from '../backend';
 import { toast } from 'sonner';
 import { compressImage } from '../lib/imageCompression';
 
@@ -400,14 +400,7 @@ export function useSendMessage() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (params: { 
-      content: string; 
-      chatroomId: bigint; 
-      mediaUrl?: string; 
-      mediaType?: string; 
-      replyToMessageId?: bigint;
-      gifData?: GifData;
-    }) => {
+    mutationFn: async (params: { content: string; chatroomId: bigint; mediaUrl?: string; mediaType?: string; replyToMessageId?: bigint }) => {
       if (!actor) throw new Error('Actor not available');
       const username = getUsername();
       const userId = getUserId();
@@ -419,7 +412,6 @@ export function useSendMessage() {
         hasMedia: !!params.mediaUrl,
         mediaType: params.mediaType,
         replyToMessageId: params.replyToMessageId?.toString(),
-        hasGifData: !!params.gifData,
       });
       
       await actor.sendMessage(
@@ -430,8 +422,7 @@ export function useSendMessage() {
         params.mediaType || null, 
         avatarUrl, 
         userId,
-        params.replyToMessageId || null,
-        params.gifData || null
+        params.replyToMessageId || null
       );
       
       return { userId, chatroomId: params.chatroomId };
@@ -570,11 +561,64 @@ export function useAddReaction() {
       await actor.addReaction(messageId, emoji, userId);
       return { messageId, chatroomId };
     },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['messages', data.chatroomId.toString()] });
+    onMutate: async ({ messageId, emoji, chatroomId }) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['messages', chatroomId.toString()] });
+
+      // Snapshot previous value
+      const previousMessages = queryClient.getQueryData<MessageWithReactions[]>(['messages', chatroomId.toString()]);
+
+      // Optimistically update
+      if (previousMessages) {
+        const userId = getUserId();
+        queryClient.setQueryData<MessageWithReactions[]>(['messages', chatroomId.toString()], (old) => {
+          if (!old) return old;
+          return old.map((msg) => {
+            if (msg.id === messageId) {
+              const reactions = listToArray<Reaction>(msg.reactions);
+              const existingReaction = reactions.find((r) => r.emoji === emoji);
+              
+              let updatedReactions: Reaction[];
+              if (existingReaction) {
+                const users = listToArray<string>(existingReaction.users);
+                if (!users.includes(userId)) {
+                  updatedReactions = reactions.map((r) =>
+                    r.emoji === emoji
+                      ? { ...r, count: r.count + 1n, users: [userId, r.users] as any }
+                      : r
+                  );
+                } else {
+                  updatedReactions = reactions;
+                }
+              } else {
+                updatedReactions = [...reactions, { emoji, count: 1n, users: [userId, null] as any }];
+              }
+              
+              // Convert back to List format
+              let reactionsList: any = null;
+              for (let i = updatedReactions.length - 1; i >= 0; i--) {
+                reactionsList = [updatedReactions[i], reactionsList];
+              }
+              
+              return { ...msg, reactions: reactionsList };
+            }
+            return msg;
+          });
+        });
+      }
+
+      return { previousMessages };
     },
-    onError: (error: Error) => {
-      console.error('[AddReaction] Error:', error);
+    onError: (err, variables, context) => {
+      // Rollback on error
+      if (context?.previousMessages) {
+        queryClient.setQueryData(['messages', variables.chatroomId.toString()], context.previousMessages);
+      }
+    },
+    onSettled: (data) => {
+      if (data) {
+        queryClient.invalidateQueries({ queryKey: ['messages', data.chatroomId.toString()] });
+      }
     },
   });
 }
@@ -593,13 +637,10 @@ export function useRemoveReaction() {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['messages', data.chatroomId.toString()] });
     },
-    onError: (error: Error) => {
-      console.error('[RemoveReaction] Error:', error);
-    },
   });
 }
 
-// Reply preview helper
+// Reply preview
 export function useGetReplyPreview(chatroomId: bigint, messageId: bigint | null) {
   const { actor, isFetching: actorFetching } = useActor();
 
@@ -609,7 +650,7 @@ export function useGetReplyPreview(chatroomId: bigint, messageId: bigint | null)
       if (!actor || !messageId) return null;
       return actor.getReplyPreview(chatroomId, messageId);
     },
-    enabled: !!actor && !actorFetching && !!messageId,
-    staleTime: 60000,
+    enabled: !!actor && !actorFetching && messageId !== null,
+    staleTime: 60000, // Reply previews don't change often
   });
 }

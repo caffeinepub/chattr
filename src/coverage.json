@@ -1,57 +1,51 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-20T22:35:03.287Z",
+  "generatedAt": "2026-02-20T22:47:34.711Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 2,
-    "implemented": 2,
+    "total": 3,
+    "implemented": 1,
     "items": [
       {
-        "id": "REQ-10",
-        "summary": "Ensure the GIF data structure from the Giphy picker includes the necessary URL information to render the animated GIF, and verify this data is properly stored and transmitted with the message",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/MessageInput.tsx",
-          "frontend/src/hooks/useQueries.ts"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/MessageInput.tsx",
-          "frontend/src/hooks/useQueries.ts"
-        ]
+        "id": "REQ-1",
+        "summary": "Modify the message sending logic to store the complete GIF URL from the Giphy picker instead of just the GIF name, ensuring the URL points to the animated GIF resource",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
       },
       {
-        "id": "REQ-9",
-        "summary": "Update the message rendering logic in MessageBubble.tsx to detect when a message contains GIF data from Giphy and render it as an animated image element inline in the chat, similar to how regular images are currently displayed",
-        "status": "implemented",
+        "id": "REQ-2",
+        "summary": "Update the MessageBubble component to detect and render GIF URLs as animated img elements in the message display, similar to how other media types are currently embedded",
+        "status": "missing",
         "plannedFiles": [
           "frontend/src/components/MessageBubble.tsx"
         ],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-3",
+        "summary": "Update the MessageInput component to pass the complete GIF URL (not just the name) when a user selects a GIF from the Giphy picker",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/MessageInput.tsx"
+        ],
         "matchedFiles": [
-          "frontend/src/components/MessageBubble.tsx"
+          "frontend/src/components/MessageInput.tsx"
         ]
       }
     ]
   },
   "changedFiles": [
     "backend/main.mo",
-    "backend/migration.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/backend.d.ts",
-    "frontend/src/backend.ts",
-    "frontend/src/components/ChatArea.tsx",
-    "frontend/src/components/MessageBubble.tsx",
     "frontend/src/components/MessageInput.tsx",
-    "frontend/src/declarations/backend.did.d.ts",
-    "frontend/src/declarations/backend.did.js",
-    "frontend/src/hooks/useQueries.ts",
-    "frontend/src/pages/ChatroomPage.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

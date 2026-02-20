@@ -7,12 +7,6 @@ export interface None {
     __kind__: "None";
 }
 export type Option<T> = Some<T> | None;
-export interface UserProfile {
-    name: string;
-    presetAvatar?: string;
-    anonId: string;
-    avatarUrl?: string;
-}
 export interface LobbyChatroomCard {
     id: bigint;
     topic: string;
@@ -26,6 +20,12 @@ export interface LobbyChatroomCard {
     category: string;
     pinnedVideoId?: bigint;
     presenceIndicator: bigint;
+}
+export interface UserProfile {
+    name: string;
+    presetAvatar?: string;
+    anonId: string;
+    avatarUrl?: string;
 }
 export interface TransformationOutput {
     status: bigint;
@@ -55,9 +55,8 @@ export interface MessageWithReactions {
     mediaUrl?: string;
     avatarUrl?: string;
     replyToMessageId?: bigint;
-    gifData?: GifData;
     timestamp: bigint;
-    mediaType?: MediaType;
+    mediaType?: string;
     reactions: List_1;
     senderId: string;
 }
@@ -74,22 +73,11 @@ export interface Message {
     mediaUrl?: string;
     avatarUrl?: string;
     replyToMessageId?: bigint;
-    gifData?: GifData;
     timestamp: bigint;
-    mediaType?: MediaType;
+    mediaType?: string;
     senderId: string;
 }
 export type List = [string, List] | null;
-export interface GifData {
-    id: string;
-    url: string;
-    title: string;
-    username: string;
-    bitly_url: string;
-    source: string;
-    embed_url: string;
-    rating: string;
-}
 export interface ChatroomWithLiveStatus {
     id: bigint;
     topic: string;
@@ -108,16 +96,6 @@ export interface Reaction {
     count: bigint;
     emoji: string;
     users: List;
-}
-export enum MediaType {
-    gif = "gif",
-    audio = "audio",
-    twitch = "twitch",
-    twitter = "twitter",
-    video = "video",
-    youtube = "youtube",
-    image = "image",
-    unknown_ = "unknown"
 }
 export enum UserRole {
     admin = "admin",
@@ -156,7 +134,7 @@ export interface backendInterface {
     removeReaction(messageId: bigint, emoji: string, userId: string): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     searchChatrooms(searchTerm: string): Promise<Array<ChatroomWithLiveStatus>>;
-    sendMessage(content: string, sender: string, chatroomId: bigint, mediaUrl: string | null, mediaType: string | null, avatarUrl: string | null, senderId: string, replyToMessageId: bigint | null, gifData: GifData | null): Promise<void>;
+    sendMessage(content: string, sender: string, chatroomId: bigint, mediaUrl: string | null, mediaType: string | null, avatarUrl: string | null, senderId: string, replyToMessageId: bigint | null): Promise<void>;
     transform(input: TransformationInput): Promise<TransformationOutput>;
     unpinVideo(chatroomId: bigint): Promise<void>;
     updateAvatarRetroactively(senderId: string, newAvatarUrl: string | null): Promise<void>;

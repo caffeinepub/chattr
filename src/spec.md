@@ -1,11 +1,11 @@
 # Specification
 
 ## Summary
-**Goal:** Fix GIF rendering in chat messages so that GIFs from Giphy display as animated images instead of plain text names.
+**Goal:** Fix GIF display to show animated images instead of plain text in chat messages.
 
 **Planned changes:**
-- Update MessageBubble.tsx to detect and render GIF data from Giphy as animated image elements
-- Ensure GIF data structure from Giphy picker includes the necessary URL information for rendering
-- Verify GIF URLs are properly stored, transmitted, and received through the message pipeline
+- Store the complete GIF URL (not just the name) when users select a GIF from the Giphy picker
+- Update MessageBubble component to detect and render GIF URLs as animated img elements
+- Modify MessageInput component to pass the full GIF URL when a GIF is selected
 
-**User-visible outcome:** When users select a GIF from the Giphy picker, it will display as an animated image in the chat instead of showing just the GIF name as text.
+**User-visible outcome:** When users select a GIF from the Giphy picker, the actual animated GIF displays in the chat message instead of showing only the GIF name as plain text.

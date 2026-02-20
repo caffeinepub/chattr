@@ -60,26 +60,6 @@ export const LobbyChatroomCard = IDL.Record({
   'pinnedVideoId' : IDL.Opt(IDL.Nat),
   'presenceIndicator' : IDL.Nat,
 });
-export const GifData = IDL.Record({
-  'id' : IDL.Text,
-  'url' : IDL.Text,
-  'title' : IDL.Text,
-  'username' : IDL.Text,
-  'bitly_url' : IDL.Text,
-  'source' : IDL.Text,
-  'embed_url' : IDL.Text,
-  'rating' : IDL.Text,
-});
-export const MediaType = IDL.Variant({
-  'gif' : IDL.Null,
-  'audio' : IDL.Null,
-  'twitch' : IDL.Null,
-  'twitter' : IDL.Null,
-  'video' : IDL.Null,
-  'youtube' : IDL.Null,
-  'image' : IDL.Null,
-  'unknown' : IDL.Null,
-});
 List.fill(IDL.Opt(IDL.Tuple(IDL.Text, List)));
 export const Reaction = IDL.Record({
   'count' : IDL.Nat,
@@ -95,9 +75,8 @@ export const MessageWithReactions = IDL.Record({
   'mediaUrl' : IDL.Opt(IDL.Text),
   'avatarUrl' : IDL.Opt(IDL.Text),
   'replyToMessageId' : IDL.Opt(IDL.Nat),
-  'gifData' : IDL.Opt(GifData),
   'timestamp' : IDL.Int,
-  'mediaType' : IDL.Opt(MediaType),
+  'mediaType' : IDL.Opt(IDL.Text),
   'reactions' : List_1,
   'senderId' : IDL.Text,
 });
@@ -109,9 +88,8 @@ export const Message = IDL.Record({
   'mediaUrl' : IDL.Opt(IDL.Text),
   'avatarUrl' : IDL.Opt(IDL.Text),
   'replyToMessageId' : IDL.Opt(IDL.Nat),
-  'gifData' : IDL.Opt(GifData),
   'timestamp' : IDL.Int,
-  'mediaType' : IDL.Opt(MediaType),
+  'mediaType' : IDL.Opt(IDL.Text),
   'senderId' : IDL.Text,
 });
 export const ReplyPreview = IDL.Record({
@@ -239,7 +217,6 @@ export const idlService = IDL.Service({
         IDL.Opt(IDL.Text),
         IDL.Text,
         IDL.Opt(IDL.Nat),
-        IDL.Opt(GifData),
       ],
       [],
       [],
@@ -309,26 +286,6 @@ export const idlFactory = ({ IDL }) => {
     'pinnedVideoId' : IDL.Opt(IDL.Nat),
     'presenceIndicator' : IDL.Nat,
   });
-  const GifData = IDL.Record({
-    'id' : IDL.Text,
-    'url' : IDL.Text,
-    'title' : IDL.Text,
-    'username' : IDL.Text,
-    'bitly_url' : IDL.Text,
-    'source' : IDL.Text,
-    'embed_url' : IDL.Text,
-    'rating' : IDL.Text,
-  });
-  const MediaType = IDL.Variant({
-    'gif' : IDL.Null,
-    'audio' : IDL.Null,
-    'twitch' : IDL.Null,
-    'twitter' : IDL.Null,
-    'video' : IDL.Null,
-    'youtube' : IDL.Null,
-    'image' : IDL.Null,
-    'unknown' : IDL.Null,
-  });
   List.fill(IDL.Opt(IDL.Tuple(IDL.Text, List)));
   const Reaction = IDL.Record({
     'count' : IDL.Nat,
@@ -344,9 +301,8 @@ export const idlFactory = ({ IDL }) => {
     'mediaUrl' : IDL.Opt(IDL.Text),
     'avatarUrl' : IDL.Opt(IDL.Text),
     'replyToMessageId' : IDL.Opt(IDL.Nat),
-    'gifData' : IDL.Opt(GifData),
     'timestamp' : IDL.Int,
-    'mediaType' : IDL.Opt(MediaType),
+    'mediaType' : IDL.Opt(IDL.Text),
     'reactions' : List_1,
     'senderId' : IDL.Text,
   });
@@ -358,9 +314,8 @@ export const idlFactory = ({ IDL }) => {
     'mediaUrl' : IDL.Opt(IDL.Text),
     'avatarUrl' : IDL.Opt(IDL.Text),
     'replyToMessageId' : IDL.Opt(IDL.Nat),
-    'gifData' : IDL.Opt(GifData),
     'timestamp' : IDL.Int,
-    'mediaType' : IDL.Opt(MediaType),
+    'mediaType' : IDL.Opt(IDL.Text),
     'senderId' : IDL.Text,
   });
   const ReplyPreview = IDL.Record({
@@ -485,7 +440,6 @@ export const idlFactory = ({ IDL }) => {
           IDL.Opt(IDL.Text),
           IDL.Text,
           IDL.Opt(IDL.Nat),
-          IDL.Opt(GifData),
         ],
         [],
         [],

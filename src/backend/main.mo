@@ -12,9 +12,7 @@ import MixinStorage "blob-storage/Mixin";
 import OutCall "http-outcalls/outcall";
 import Debug "mo:base/Debug";
 import AccessControl "authorization/access-control";
-import Migration "migration";
 
-(with migration = Migration.run)
 actor {
   let storage = Storage.new();
   include MixinStorage(storage);
@@ -38,28 +36,6 @@ actor {
     AccessControl.isAdmin(accessControlState, caller);
   };
 
-  public type GifData = {
-    id : Text;
-    url : Text;
-    title : Text;
-    rating : Text;
-    embed_url : Text;
-    username : Text;
-    source : Text;
-    bitly_url : Text;
-  };
-
-  public type MediaType = {
-    #image;
-    #gif;
-    #video;
-    #youtube;
-    #twitch;
-    #twitter;
-    #audio;
-    #unknown;
-  };
-
   public type Message = {
     id : Nat;
     content : Text;
@@ -67,11 +43,10 @@ actor {
     sender : Text;
     chatroomId : Nat;
     mediaUrl : ?Text;
-    mediaType : ?MediaType;
+    mediaType : ?Text;
     avatarUrl : ?Text;
     senderId : Text;
     replyToMessageId : ?Nat;
-    gifData : ?GifData;
   };
 
   public type Chatroom = {
@@ -142,12 +117,11 @@ actor {
     sender : Text;
     chatroomId : Nat;
     mediaUrl : ?Text;
-    mediaType : ?MediaType;
+    mediaType : ?Text;
     avatarUrl : ?Text;
     senderId : Text;
     reactions : List.List<Reaction>;
     replyToMessageId : ?Nat;
-    gifData : ?GifData;
   };
 
   public type ReplyPreview = {
@@ -250,11 +224,10 @@ actor {
       sender = "Creator";
       chatroomId = nextChatroomId;
       mediaUrl = if (Text.size(mediaUrl) > 0) { ?mediaUrl } else { null };
-      mediaType = ?#unknown;
+      mediaType = if (Text.size(mediaType) > 0) { ?mediaType } else { null };
       avatarUrl = null;
       senderId = "creator";
       replyToMessageId = null;
-      gifData = null;
     };
 
     messages := natMap.put(messages, nextChatroomId, List.push(firstMessage, List.nil<Message>()));
@@ -435,7 +408,7 @@ actor {
     };
   };
 
-  public shared ({ caller }) func sendMessage(content : Text, sender : Text, chatroomId : Nat, mediaUrl : ?Text, mediaType : ?Text, avatarUrl : ?Text, senderId : Text, replyToMessageId : ?Nat, gifData : ?GifData) : async () {
+  public shared ({ caller }) func sendMessage(content : Text, sender : Text, chatroomId : Nat, mediaUrl : ?Text, mediaType : ?Text, avatarUrl : ?Text, senderId : Text, replyToMessageId : ?Nat) : async () {
     if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
       Debug.trap("Unauthorized: Only users can send messages");
     };
@@ -447,20 +420,38 @@ actor {
     switch (natMap.get(chatrooms, chatroomId)) {
       case (null) { assert false };
       case (?chatroom) {
+        let processedMediaUrl = switch (mediaType) {
+          case (?mediaTypeVal) {
+            if (mediaTypeVal == "image") {
+              switch (mediaUrl) {
+                case (?url) {
+                  let lowerUrl = Text.toLowercase(url);
+                  if (Text.endsWith(lowerUrl, #text ".gif")) {
+                    ?url;
+                  } else {
+                    ?stripBase64FromUrl(url);
+                  };
+                };
+                case (null) { null };
+              };
+            } else {
+              mediaUrl;
+            };
+          };
+          case (null) { mediaUrl };
+        };
+
         let message : Message = {
           id = nextMessageId;
           content;
           timestamp = Time.now();
           sender;
           chatroomId;
-          mediaUrl;
-          mediaType = if (mediaType == ?"gif") { ?#gif } else {
-            ?#unknown;
-          };
+          mediaUrl = processedMediaUrl;
+          mediaType;
           avatarUrl;
           senderId;
           replyToMessageId;
-          gifData;
         };
 
         let chatroomMessages = switch (natMap.get(messages, chatroomId)) {
@@ -943,13 +934,14 @@ actor {
         Array.map<Message, MessageWithReactions>(
           sortedWithReactions,
           func(message) {
-            let messageReactions = natMap.get(reactions, message.id);
+            let messageReactions = switch (natMap.get(reactions, message.id)) {
+              case (null) { List.nil<Reaction>() };
+              case (?existingReactions) { existingReactions };
+            };
+
             {
               message with
-              reactions = switch (messageReactions) {
-                case (null) { List.nil<Reaction>() };
-                case (?r) { r };
-              };
+              reactions = messageReactions;
             };
           },
         );
@@ -1020,4 +1012,3 @@ actor {
     Text.fromArray(Array.tabulate(length, func(i : Nat) : Char { chars[i] }));
   };
 };
-

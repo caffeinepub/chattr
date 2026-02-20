@@ -9,10 +9,9 @@ import { uploadImage } from '../hooks/useQueries';
 import { isYouTubeUrl, isTwitchUrl, isTwitterUrl, getYouTubeVideoId } from '../lib/videoUtils';
 import { searchGiphy, fetchTrendingGiphy, GiphyGif } from '../lib/giphy';
 import { useDebouncedValue } from '../hooks/useDebouncedValue';
-import type { GifData } from '../backend';
 
 interface MessageInputProps {
-  onSendMessage: (content: string, mediaUrl?: string, mediaType?: string, gifData?: GifData) => void;
+  onSendMessage: (content: string, mediaUrl?: string, mediaType?: string) => void;
   disabled?: boolean;
   isSending?: boolean;
 }
@@ -151,20 +150,8 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
 
   const handleGifSelect = (gif: GiphyGif) => {
     const content = message.trim() || gif.title || 'GIF';
-    
-    // Create GifData object matching backend type with available data
-    const gifData: GifData = {
-      id: gif.id,
-      url: gif.originalUrl,
-      title: gif.title,
-      username: '',
-      bitly_url: '',
-      source: '',
-      embed_url: '',
-      rating: 'g',
-    };
-    
-    onSendMessage(content, gif.originalUrl, 'gif', gifData);
+    // Send GIF as 'image' type so it renders as an animated image
+    onSendMessage(content, gif.originalUrl, 'image');
     
     setMessage('');
     setShowMediaInput(false);
@@ -531,37 +518,37 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
               <Tabs value={mediaTab} onValueChange={(value) => setMediaTab(value as 'image' | 'giphy')}>
                 <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="image">Image</TabsTrigger>
-                  <TabsTrigger value="giphy">GIF</TabsTrigger>
+                  <TabsTrigger value="giphy">Giphy</TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="image" className="mt-4 space-y-3">
-                  <div>
-                    <Label htmlFor="image-upload" className="text-sm font-medium">
-                      Upload Image
-                    </Label>
+                <TabsContent value="image" className="mt-4 space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="image-upload">Upload Image</Label>
                     <Input
-                      ref={fileInputRef}
                       id="image-upload"
+                      ref={fileInputRef}
                       type="file"
                       accept="image/*"
                       onChange={handleFileChange}
-                      className="mt-2"
+                      disabled={isUploading}
                     />
                   </div>
 
                   {selectedFile && (
-                    <div className="rounded-lg border p-2">
-                      <p className="text-sm text-muted-foreground">
-                        Selected: {selectedFile.name}
-                      </p>
+                    <div className="space-y-2">
+                      <div className="rounded-lg border p-2">
+                        <p className="text-sm text-muted-foreground truncate">
+                          {selectedFile.name}
+                        </p>
+                      </div>
                     </div>
                   )}
 
                   {isUploading && (
                     <div className="space-y-2">
-                      <Progress value={uploadProgress} className="h-2" />
-                      <p className="text-xs text-center text-muted-foreground">
-                        Uploading... {Math.round(uploadProgress)}%
+                      <Progress value={uploadProgress} />
+                      <p className="text-xs text-muted-foreground text-center">
+                        Uploading... {uploadProgress}%
                       </p>
                     </div>
                   )}
@@ -573,18 +560,15 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
                   )}
                 </TabsContent>
 
-                <TabsContent value="giphy" className="mt-4 space-y-3">
-                  <div>
-                    <Label htmlFor="giphy-search" className="text-sm font-medium">
-                      Search GIFs
-                    </Label>
+                <TabsContent value="giphy" className="mt-4 space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="giphy-search">Search GIFs</Label>
                     <Input
                       id="giphy-search"
                       type="text"
                       placeholder="Search Giphy..."
                       value={giphySearch}
                       onChange={(e) => setGiphySearch(e.target.value)}
-                      className="mt-2"
                     />
                   </div>
 
@@ -628,7 +612,7 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
           )}
 
           <div className="flex items-end gap-2">
-            <div className="flex-1 space-y-1">
+            <div className="relative flex-1">
               <textarea
                 ref={textareaRef}
                 value={message}
@@ -636,20 +620,18 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
                 onKeyDown={handleKeyDown}
                 onFocus={() => setIsTextareaFocused(true)}
                 onBlur={() => setIsTextareaFocused(false)}
-                placeholder="Type a message..."
+                placeholder={isRecording ? 'Recording...' : 'Type a message...'}
                 disabled={disabled || isRecording}
                 maxLength={MAX_MESSAGE_LENGTH}
-                className="w-full resize-none rounded-2xl border border-input bg-background px-4 py-3 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                className="w-full resize-none rounded-2xl border border-input bg-background px-4 py-3 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 style={{ minHeight: '48px', maxHeight: '120px' }}
               />
               {isTextareaFocused && message.length > 0 && (
-                <div className="px-1">
-                  <div className="h-1 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
-                    <div
-                      className="h-full bg-primary transition-all duration-200"
-                      style={{ width: `${Math.min(messageProgressPercentage, 100)}%` }}
-                    />
-                  </div>
+                <div className="absolute -bottom-1 left-0 right-0 h-1 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-primary transition-all duration-200"
+                    style={{ width: `${Math.min(messageProgressPercentage, 100)}%` }}
+                  />
                 </div>
               )}
             </div>
@@ -682,11 +664,7 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
               className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-primary text-primary-foreground shadow hover:bg-primary/90 dark:bg-primary dark:text-primary-foreground dark:hover:bg-primary/90 size-9 h-12 w-12 shrink-0 rounded-full"
               title="Send message"
             >
-              {isSending ? (
-                <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
-              ) : (
-                <Send className="h-5 w-5" />
-              )}
+              <Send className="h-5 w-5" />
             </button>
           </div>
         </div>
