@@ -24,7 +24,16 @@ export interface ChatroomWithLiveStatus {
   'category' : string,
   'pinnedVideoId' : [] | [bigint],
 }
-export type ExternalBlob = Uint8Array;
+export interface GifData {
+  'id' : string,
+  'url' : string,
+  'title' : string,
+  'username' : string,
+  'bitly_url' : string,
+  'source' : string,
+  'embed_url' : string,
+  'rating' : string,
+}
 export type List = [] | [[string, List]];
 export type List_1 = [] | [[Reaction, List_1]];
 export interface LobbyChatroomCard {
@@ -41,18 +50,25 @@ export interface LobbyChatroomCard {
   'pinnedVideoId' : [] | [bigint],
   'presenceIndicator' : bigint,
 }
+export type MediaType = { 'gif' : null } |
+  { 'audio' : null } |
+  { 'twitch' : null } |
+  { 'twitter' : null } |
+  { 'video' : null } |
+  { 'youtube' : null } |
+  { 'image' : null } |
+  { 'unknown' : null };
 export interface Message {
   'id' : bigint,
-  'giphyUrl' : [] | [string],
   'content' : string,
   'chatroomId' : bigint,
   'sender' : string,
   'mediaUrl' : [] | [string],
   'avatarUrl' : [] | [string],
   'replyToMessageId' : [] | [bigint],
+  'gifData' : [] | [GifData],
   'timestamp' : bigint,
-  'mediaType' : [] | [string],
-  'imageId' : [] | [bigint],
+  'mediaType' : [] | [MediaType],
   'senderId' : string,
 }
 export interface MessageWithReactions {
@@ -63,8 +79,9 @@ export interface MessageWithReactions {
   'mediaUrl' : [] | [string],
   'avatarUrl' : [] | [string],
   'replyToMessageId' : [] | [bigint],
+  'gifData' : [] | [GifData],
   'timestamp' : bigint,
-  'mediaType' : [] | [string],
+  'mediaType' : [] | [MediaType],
   'reactions' : List_1,
   'senderId' : string,
 }
@@ -84,7 +101,12 @@ export interface TransformationOutput {
   'body' : Uint8Array,
   'headers' : Array<http_header>,
 }
-export interface UserProfile { 'name' : string, 'avatarUrl' : [] | [string] }
+export interface UserProfile {
+  'name' : string,
+  'presetAvatar' : [] | [string],
+  'anonId' : string,
+  'avatarUrl' : [] | [string],
+}
 export type UserRole = { 'admin' : null } |
   { 'user' : null } |
   { 'guest' : null };
@@ -129,6 +151,8 @@ export interface _SERVICE {
     bigint
   >,
   'deleteChatroomWithPassword' : ActorMethod<[bigint, string], undefined>,
+  'fetchGiphyResults' : ActorMethod<[string], string>,
+  'fetchTrendingGiphyGifs' : ActorMethod<[], string>,
   'fetchTwitchThumbnail' : ActorMethod<[string], string>,
   'fetchTwitterOEmbed' : ActorMethod<[string], string>,
   'fetchTwitterThumbnail' : ActorMethod<[string], string>,
@@ -141,7 +165,6 @@ export interface _SERVICE {
   'getCallerUserRole' : ActorMethod<[], UserRole>,
   'getChatroom' : ActorMethod<[bigint], [] | [ChatroomWithLiveStatus]>,
   'getChatrooms' : ActorMethod<[], Array<ChatroomWithLiveStatus>>,
-  'getImage' : ActorMethod<[bigint], [] | [ExternalBlob]>,
   'getLobbyChatroomCards' : ActorMethod<[], Array<LobbyChatroomCard>>,
   'getMessageWithReactionsAndReplies' : ActorMethod<
     [bigint],
@@ -170,12 +193,10 @@ export interface _SERVICE {
       [] | [string],
       string,
       [] | [bigint],
-      [] | [bigint],
-      [] | [string],
+      [] | [GifData],
     ],
     undefined
   >,
-  'storeImage' : ActorMethod<[ExternalBlob], bigint>,
   'transform' : ActorMethod<[TransformationInput], TransformationOutput>,
   'unpinVideo' : ActorMethod<[bigint], undefined>,
   'updateAvatarRetroactively' : ActorMethod<[string, [] | [string]], undefined>,

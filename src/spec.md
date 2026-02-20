@@ -1,11 +1,11 @@
 # Specification
 
 ## Summary
-**Goal:** Fix image rendering in chatroom messages so uploaded images display correctly.
+**Goal:** Fix GIF rendering in chat messages so that GIFs from Giphy display as animated images instead of plain text names.
 
 **Planned changes:**
-- Fix image display functionality in chatroom messages to properly render images with imageId
-- Ensure MessageBubble components correctly display images uploaded via MessageInput
-- Maintain all existing visual styles, layout, and anonymous access patterns
+- Update MessageBubble.tsx to detect and render GIF data from Giphy as animated image elements
+- Ensure GIF data structure from Giphy picker includes the necessary URL information for rendering
+- Verify GIF URLs are properly stored, transmitted, and received through the message pipeline
 
-**User-visible outcome:** Users can see images they upload in chatroom messages displayed correctly without any changes to the interface appearance.
+**User-visible outcome:** When users select a GIF from the Giphy picker, it will display as an animated image in the chat instead of showing just the GIF name as text.

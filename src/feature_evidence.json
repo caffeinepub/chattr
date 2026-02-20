@@ -2,8 +2,8 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-fix-image-display-functionality-in-chatroom-messages-so-that-images-with-imageid-are-properly-rendered-and-visible-to-users",
-      "featureTitle": "Fix image display functionality in chatroom messages so that images with imageId are properly rendered and visible to users",
+      "featureId": "feature-update-the-message-rendering-logic-in-messagebubble-tsx-to-detect-when-a-message-contains-gif-data-from-giphy-and-render-it-as-an-animated-image-element-inline-in-the-chat-similar-to-how-regular-images-are-currently-displayed",
+      "featureTitle": "Update the message rendering logic in MessageBubble.tsx to detect when a message contains GIF data from Giphy and render it as an animated image element inline in the chat, similar to how regular images are currently displayed",
       "files": [
         "frontend/src/components/MessageBubble.tsx"
       ],
@@ -18,15 +18,16 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-1"
+        "REQ-9"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-preserve-all-existing-visual-styles-and-layout-in-the-chatroom-interface-during-the-fix",
-      "featureTitle": "Preserve all existing visual styles and layout in the chatroom interface during the fix",
+      "featureId": "feature-ensure-the-gif-data-structure-from-the-giphy-picker-includes-the-necessary-url-information-to-render-the-animated-gif-and-verify-this-data-is-properly-stored-and-transmitted-with-the-message",
+      "featureTitle": "Ensure the GIF data structure from the Giphy picker includes the necessary URL information to render the animated GIF, and verify this data is properly stored and transmitted with the message",
       "files": [
-        "frontend/src/components/MessageBubble.tsx"
+        "frontend/src/components/MessageInput.tsx",
+        "frontend/src/hooks/useQueries.ts"
       ],
       "components": [
         "authorization@1.0.1",
@@ -39,7 +40,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-2"
+        "REQ-10"
       ],
       "confidence": "high"
     }

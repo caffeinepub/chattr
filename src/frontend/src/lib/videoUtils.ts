@@ -162,3 +162,13 @@ export function getTwitchEmbedUrl(url: string): string | null {
   
   return null;
 }
+
+/**
+ * Auto-detect media type from URL
+ */
+export function detectMediaType(url: string): 'youtube' | 'twitch' | 'twitter' | null {
+  if (isYouTubeUrl(url)) return 'youtube';
+  if (isTwitchUrl(url)) return 'twitch';
+  if (isTwitterUrl(url)) return 'twitter';
+  return null;
+}

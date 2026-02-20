@@ -1,30 +1,31 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-20T21:45:06.814Z",
+  "generatedAt": "2026-02-20T22:35:03.287Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 3,
+    "total": 2,
     "implemented": 2,
     "items": [
       {
-        "id": "REQ-1",
-        "summary": "Fix image display functionality in chatroom messages so that images with imageId are properly rendered and visible to users",
+        "id": "REQ-10",
+        "summary": "Ensure the GIF data structure from the Giphy picker includes the necessary URL information to render the animated GIF, and verify this data is properly stored and transmitted with the message",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/MessageBubble.tsx",
+          "frontend/src/components/MessageInput.tsx",
           "frontend/src/hooks/useQueries.ts"
         ],
         "matchedFiles": [
-          "frontend/src/components/MessageBubble.tsx"
+          "frontend/src/components/MessageInput.tsx",
+          "frontend/src/hooks/useQueries.ts"
         ]
       },
       {
-        "id": "REQ-2",
-        "summary": "Preserve all existing visual styles and layout in the chatroom interface during the fix",
+        "id": "REQ-9",
+        "summary": "Update the message rendering logic in MessageBubble.tsx to detect when a message contains GIF data from Giphy and render it as an animated image element inline in the chat, similar to how regular images are currently displayed",
         "status": "implemented",
         "plannedFiles": [
           "frontend/src/components/MessageBubble.tsx"
@@ -32,13 +33,6 @@
         "matchedFiles": [
           "frontend/src/components/MessageBubble.tsx"
         ]
-      },
-      {
-        "id": "REQ-3",
-        "summary": "Do not add any caller verification or authentication checks to backend methods",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
       }
     ]
   },
@@ -51,9 +45,13 @@
     "frontend-implementation-plan.json",
     "frontend/src/backend.d.ts",
     "frontend/src/backend.ts",
+    "frontend/src/components/ChatArea.tsx",
     "frontend/src/components/MessageBubble.tsx",
+    "frontend/src/components/MessageInput.tsx",
     "frontend/src/declarations/backend.did.d.ts",
     "frontend/src/declarations/backend.did.js",
+    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/pages/ChatroomPage.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

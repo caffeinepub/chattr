@@ -42,9 +42,10 @@ export const ChatroomWithLiveStatus = IDL.Record({
 });
 export const UserProfile = IDL.Record({
   'name' : IDL.Text,
+  'presetAvatar' : IDL.Opt(IDL.Text),
+  'anonId' : IDL.Text,
   'avatarUrl' : IDL.Opt(IDL.Text),
 });
-export const ExternalBlob = IDL.Vec(IDL.Nat8);
 export const LobbyChatroomCard = IDL.Record({
   'id' : IDL.Nat,
   'topic' : IDL.Text,
@@ -58,6 +59,26 @@ export const LobbyChatroomCard = IDL.Record({
   'category' : IDL.Text,
   'pinnedVideoId' : IDL.Opt(IDL.Nat),
   'presenceIndicator' : IDL.Nat,
+});
+export const GifData = IDL.Record({
+  'id' : IDL.Text,
+  'url' : IDL.Text,
+  'title' : IDL.Text,
+  'username' : IDL.Text,
+  'bitly_url' : IDL.Text,
+  'source' : IDL.Text,
+  'embed_url' : IDL.Text,
+  'rating' : IDL.Text,
+});
+export const MediaType = IDL.Variant({
+  'gif' : IDL.Null,
+  'audio' : IDL.Null,
+  'twitch' : IDL.Null,
+  'twitter' : IDL.Null,
+  'video' : IDL.Null,
+  'youtube' : IDL.Null,
+  'image' : IDL.Null,
+  'unknown' : IDL.Null,
 });
 List.fill(IDL.Opt(IDL.Tuple(IDL.Text, List)));
 export const Reaction = IDL.Record({
@@ -74,23 +95,23 @@ export const MessageWithReactions = IDL.Record({
   'mediaUrl' : IDL.Opt(IDL.Text),
   'avatarUrl' : IDL.Opt(IDL.Text),
   'replyToMessageId' : IDL.Opt(IDL.Nat),
+  'gifData' : IDL.Opt(GifData),
   'timestamp' : IDL.Int,
-  'mediaType' : IDL.Opt(IDL.Text),
+  'mediaType' : IDL.Opt(MediaType),
   'reactions' : List_1,
   'senderId' : IDL.Text,
 });
 export const Message = IDL.Record({
   'id' : IDL.Nat,
-  'giphyUrl' : IDL.Opt(IDL.Text),
   'content' : IDL.Text,
   'chatroomId' : IDL.Nat,
   'sender' : IDL.Text,
   'mediaUrl' : IDL.Opt(IDL.Text),
   'avatarUrl' : IDL.Opt(IDL.Text),
   'replyToMessageId' : IDL.Opt(IDL.Nat),
+  'gifData' : IDL.Opt(GifData),
   'timestamp' : IDL.Int,
-  'mediaType' : IDL.Opt(IDL.Text),
-  'imageId' : IDL.Opt(IDL.Nat),
+  'mediaType' : IDL.Opt(MediaType),
   'senderId' : IDL.Text,
 });
 export const ReplyPreview = IDL.Record({
@@ -154,6 +175,8 @@ export const idlService = IDL.Service({
       [],
     ),
   'deleteChatroomWithPassword' : IDL.Func([IDL.Nat, IDL.Text], [], []),
+  'fetchGiphyResults' : IDL.Func([IDL.Text], [IDL.Text], []),
+  'fetchTrendingGiphyGifs' : IDL.Func([], [IDL.Text], []),
   'fetchTwitchThumbnail' : IDL.Func([IDL.Text], [IDL.Text], []),
   'fetchTwitterOEmbed' : IDL.Func([IDL.Text], [IDL.Text], []),
   'fetchTwitterThumbnail' : IDL.Func([IDL.Text], [IDL.Text], []),
@@ -171,7 +194,6 @@ export const idlService = IDL.Service({
       ['query'],
     ),
   'getChatrooms' : IDL.Func([], [IDL.Vec(ChatroomWithLiveStatus)], ['query']),
-  'getImage' : IDL.Func([IDL.Nat], [IDL.Opt(ExternalBlob)], ['query']),
   'getLobbyChatroomCards' : IDL.Func(
       [],
       [IDL.Vec(LobbyChatroomCard)],
@@ -217,13 +239,11 @@ export const idlService = IDL.Service({
         IDL.Opt(IDL.Text),
         IDL.Text,
         IDL.Opt(IDL.Nat),
-        IDL.Opt(IDL.Nat),
-        IDL.Opt(IDL.Text),
+        IDL.Opt(GifData),
       ],
       [],
       [],
     ),
-  'storeImage' : IDL.Func([ExternalBlob], [IDL.Nat], []),
   'transform' : IDL.Func(
       [TransformationInput],
       [TransformationOutput],
@@ -271,9 +291,10 @@ export const idlFactory = ({ IDL }) => {
   });
   const UserProfile = IDL.Record({
     'name' : IDL.Text,
+    'presetAvatar' : IDL.Opt(IDL.Text),
+    'anonId' : IDL.Text,
     'avatarUrl' : IDL.Opt(IDL.Text),
   });
-  const ExternalBlob = IDL.Vec(IDL.Nat8);
   const LobbyChatroomCard = IDL.Record({
     'id' : IDL.Nat,
     'topic' : IDL.Text,
@@ -287,6 +308,26 @@ export const idlFactory = ({ IDL }) => {
     'category' : IDL.Text,
     'pinnedVideoId' : IDL.Opt(IDL.Nat),
     'presenceIndicator' : IDL.Nat,
+  });
+  const GifData = IDL.Record({
+    'id' : IDL.Text,
+    'url' : IDL.Text,
+    'title' : IDL.Text,
+    'username' : IDL.Text,
+    'bitly_url' : IDL.Text,
+    'source' : IDL.Text,
+    'embed_url' : IDL.Text,
+    'rating' : IDL.Text,
+  });
+  const MediaType = IDL.Variant({
+    'gif' : IDL.Null,
+    'audio' : IDL.Null,
+    'twitch' : IDL.Null,
+    'twitter' : IDL.Null,
+    'video' : IDL.Null,
+    'youtube' : IDL.Null,
+    'image' : IDL.Null,
+    'unknown' : IDL.Null,
   });
   List.fill(IDL.Opt(IDL.Tuple(IDL.Text, List)));
   const Reaction = IDL.Record({
@@ -303,23 +344,23 @@ export const idlFactory = ({ IDL }) => {
     'mediaUrl' : IDL.Opt(IDL.Text),
     'avatarUrl' : IDL.Opt(IDL.Text),
     'replyToMessageId' : IDL.Opt(IDL.Nat),
+    'gifData' : IDL.Opt(GifData),
     'timestamp' : IDL.Int,
-    'mediaType' : IDL.Opt(IDL.Text),
+    'mediaType' : IDL.Opt(MediaType),
     'reactions' : List_1,
     'senderId' : IDL.Text,
   });
   const Message = IDL.Record({
     'id' : IDL.Nat,
-    'giphyUrl' : IDL.Opt(IDL.Text),
     'content' : IDL.Text,
     'chatroomId' : IDL.Nat,
     'sender' : IDL.Text,
     'mediaUrl' : IDL.Opt(IDL.Text),
     'avatarUrl' : IDL.Opt(IDL.Text),
     'replyToMessageId' : IDL.Opt(IDL.Nat),
+    'gifData' : IDL.Opt(GifData),
     'timestamp' : IDL.Int,
-    'mediaType' : IDL.Opt(IDL.Text),
-    'imageId' : IDL.Opt(IDL.Nat),
+    'mediaType' : IDL.Opt(MediaType),
     'senderId' : IDL.Text,
   });
   const ReplyPreview = IDL.Record({
@@ -380,6 +421,8 @@ export const idlFactory = ({ IDL }) => {
         [],
       ),
     'deleteChatroomWithPassword' : IDL.Func([IDL.Nat, IDL.Text], [], []),
+    'fetchGiphyResults' : IDL.Func([IDL.Text], [IDL.Text], []),
+    'fetchTrendingGiphyGifs' : IDL.Func([], [IDL.Text], []),
     'fetchTwitchThumbnail' : IDL.Func([IDL.Text], [IDL.Text], []),
     'fetchTwitterOEmbed' : IDL.Func([IDL.Text], [IDL.Text], []),
     'fetchTwitterThumbnail' : IDL.Func([IDL.Text], [IDL.Text], []),
@@ -397,7 +440,6 @@ export const idlFactory = ({ IDL }) => {
         ['query'],
       ),
     'getChatrooms' : IDL.Func([], [IDL.Vec(ChatroomWithLiveStatus)], ['query']),
-    'getImage' : IDL.Func([IDL.Nat], [IDL.Opt(ExternalBlob)], ['query']),
     'getLobbyChatroomCards' : IDL.Func(
         [],
         [IDL.Vec(LobbyChatroomCard)],
@@ -443,13 +485,11 @@ export const idlFactory = ({ IDL }) => {
           IDL.Opt(IDL.Text),
           IDL.Text,
           IDL.Opt(IDL.Nat),
-          IDL.Opt(IDL.Nat),
-          IDL.Opt(IDL.Text),
+          IDL.Opt(GifData),
         ],
         [],
         [],
       ),
-    'storeImage' : IDL.Func([ExternalBlob], [IDL.Nat], []),
     'transform' : IDL.Func(
         [TransformationInput],
         [TransformationOutput],

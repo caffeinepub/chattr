@@ -7,12 +7,11 @@ export interface None {
     __kind__: "None";
 }
 export type Option<T> = Some<T> | None;
-export class ExternalBlob {
-    getBytes(): Promise<Uint8Array<ArrayBuffer>>;
-    getDirectURL(): string;
-    static fromURL(url: string): ExternalBlob;
-    static fromBytes(blob: Uint8Array<ArrayBuffer>): ExternalBlob;
-    withUploadProgress(onProgress: (percentage: number) => void): ExternalBlob;
+export interface UserProfile {
+    name: string;
+    presetAvatar?: string;
+    anonId: string;
+    avatarUrl?: string;
 }
 export interface LobbyChatroomCard {
     id: bigint;
@@ -27,10 +26,6 @@ export interface LobbyChatroomCard {
     category: string;
     pinnedVideoId?: bigint;
     presenceIndicator: bigint;
-}
-export interface UserProfile {
-    name: string;
-    avatarUrl?: string;
 }
 export interface TransformationOutput {
     status: bigint;
@@ -60,8 +55,9 @@ export interface MessageWithReactions {
     mediaUrl?: string;
     avatarUrl?: string;
     replyToMessageId?: bigint;
+    gifData?: GifData;
     timestamp: bigint;
-    mediaType?: string;
+    mediaType?: MediaType;
     reactions: List_1;
     senderId: string;
 }
@@ -72,19 +68,28 @@ export interface TransformationInput {
 export type List_1 = [Reaction, List_1] | null;
 export interface Message {
     id: bigint;
-    giphyUrl?: string;
     content: string;
     chatroomId: bigint;
     sender: string;
     mediaUrl?: string;
     avatarUrl?: string;
     replyToMessageId?: bigint;
+    gifData?: GifData;
     timestamp: bigint;
-    mediaType?: string;
-    imageId?: bigint;
+    mediaType?: MediaType;
     senderId: string;
 }
 export type List = [string, List] | null;
+export interface GifData {
+    id: string;
+    url: string;
+    title: string;
+    username: string;
+    bitly_url: string;
+    source: string;
+    embed_url: string;
+    rating: string;
+}
 export interface ChatroomWithLiveStatus {
     id: bigint;
     topic: string;
@@ -104,6 +109,16 @@ export interface Reaction {
     emoji: string;
     users: List;
 }
+export enum MediaType {
+    gif = "gif",
+    audio = "audio",
+    twitch = "twitch",
+    twitter = "twitter",
+    video = "video",
+    youtube = "youtube",
+    image = "image",
+    unknown_ = "unknown"
+}
 export enum UserRole {
     admin = "admin",
     user = "user",
@@ -115,6 +130,8 @@ export interface backendInterface {
     cleanupInactiveUsers(): Promise<void>;
     createChatroom(topic: string, description: string, mediaUrl: string, mediaType: string, category: string): Promise<bigint>;
     deleteChatroomWithPassword(chatroomId: bigint, password: string): Promise<void>;
+    fetchGiphyResults(searchTerm: string): Promise<string>;
+    fetchTrendingGiphyGifs(): Promise<string>;
     fetchTwitchThumbnail(channelName: string): Promise<string>;
     fetchTwitterOEmbed(tweetUrl: string): Promise<string>;
     fetchTwitterThumbnail(tweetUrl: string): Promise<string>;
@@ -124,7 +141,6 @@ export interface backendInterface {
     getCallerUserRole(): Promise<UserRole>;
     getChatroom(id: bigint): Promise<ChatroomWithLiveStatus | null>;
     getChatrooms(): Promise<Array<ChatroomWithLiveStatus>>;
-    getImage(imageId: bigint): Promise<ExternalBlob | null>;
     getLobbyChatroomCards(): Promise<Array<LobbyChatroomCard>>;
     getMessageWithReactionsAndReplies(chatroomId: bigint): Promise<Array<MessageWithReactions>>;
     getMessages(chatroomId: bigint): Promise<Array<Message>>;
@@ -140,8 +156,7 @@ export interface backendInterface {
     removeReaction(messageId: bigint, emoji: string, userId: string): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     searchChatrooms(searchTerm: string): Promise<Array<ChatroomWithLiveStatus>>;
-    sendMessage(content: string, sender: string, chatroomId: bigint, mediaUrl: string | null, mediaType: string | null, avatarUrl: string | null, senderId: string, replyToMessageId: bigint | null, imageId: bigint | null, giphyUrl: string | null): Promise<void>;
-    storeImage(blob: ExternalBlob): Promise<bigint>;
+    sendMessage(content: string, sender: string, chatroomId: bigint, mediaUrl: string | null, mediaType: string | null, avatarUrl: string | null, senderId: string, replyToMessageId: bigint | null, gifData: GifData | null): Promise<void>;
     transform(input: TransformationInput): Promise<TransformationOutput>;
     unpinVideo(chatroomId: bigint): Promise<void>;
     updateAvatarRetroactively(senderId: string, newAvatarUrl: string | null): Promise<void>;
