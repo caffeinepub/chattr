@@ -42,8 +42,6 @@ export const ChatroomWithLiveStatus = IDL.Record({
 });
 export const UserProfile = IDL.Record({
   'name' : IDL.Text,
-  'presetAvatar' : IDL.Opt(IDL.Text),
-  'anonId' : IDL.Text,
   'avatarUrl' : IDL.Opt(IDL.Text),
 });
 export const ExternalBlob = IDL.Vec(IDL.Nat8);
@@ -273,8 +271,6 @@ export const idlFactory = ({ IDL }) => {
   });
   const UserProfile = IDL.Record({
     'name' : IDL.Text,
-    'presetAvatar' : IDL.Opt(IDL.Text),
-    'anonId' : IDL.Text,
     'avatarUrl' : IDL.Opt(IDL.Text),
   });
   const ExternalBlob = IDL.Vec(IDL.Nat8);

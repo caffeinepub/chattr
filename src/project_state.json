@@ -1,36 +1,50 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Chat application with image and GIF display functionality being restored",
+  "summary": "Anonymous chatroom application with image rendering functionality",
   "architectural_notes": [
-    "MessageBubble.tsx handles image display via imageId field and useGetImage hook",
-    "Images render using blob.getDirectURL() method for direct URLs",
-    "GIFs display via giphyUrl field in message objects",
-    "Backend Motoko code remains unchanged for image functionality"
+    "Application is anonymous - no caller checks or authorization should be added",
+    "Image rendering needs to work in chatroom messages"
   ],
-  "known_issues": [],
+  "known_issues": [
+    "Images not displaying correctly in chatroom messages"
+  ],
   "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-update-messagebubble-tsx-to-restore-image-and-gif-display-functionality-using-the-working-approach-from-draft-version-261-ensuring-both-static-images-and-animated-gifs-render-correctly-in-chat-bubbles",
-      "title": "Update MessageBubble.tsx to restore image and GIF display functionality using the working approach from draft version 261, ensuring both static images and animated GIFs render correctly in chat bubbles",
+      "id": "feature-fix-image-display-functionality-in-chatroom-messages-so-that-images-with-imageid-are-properly-rendered-and-visible-to-users",
+      "title": "Fix image display functionality in chatroom messages so that images with imageId are properly rendered and visible to users",
       "reqIds": [
         "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-preserve-all-existing-visual-styles-and-layout-in-the-chatroom-interface-during-the-fix",
+      "title": "Preserve all existing visual styles and layout in the chatroom interface during the fix",
+      "reqIds": [
+        "REQ-2"
       ],
       "version": 1
     }
   ],
   "new_feature_requests": [
     {
-      "id": "AR-2",
-      "summary": "Update any frontend query hooks in useQueries.ts related to image fetching to ensure they properly support the image display functionality restored in MessageBubble.tsx",
+      "id": "AR-1",
+      "summary": "Fix image rendering in chatrooms without changing styles or adding caller checks",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-4",
+      "summary": "Do not add any caller verification or authentication checks to backend methods",
       "reqIds": [
-        "REQ-2"
+        "REQ-3"
       ],
       "status": "pending"
     }
   ],
-  "projectName": "Fix image and GIF display in chat message bubbles",
+  "projectName": "Fix image rendering in chatrooms",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

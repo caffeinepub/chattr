@@ -1,60 +1,73 @@
 {
   "kind": "build_request",
-  "title": "Fix image and GIF display in chat message bubbles",
-  "priority": "high",
+  "title": "Fix image rendering in chatrooms",
+  "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Update MessageBubble.tsx to restore image and GIF display functionality using the working approach from draft version 261, ensuring both static images and animated GIFs render correctly in chat bubbles",
+      "text": "Fix image display functionality in chatroom messages so that images with imageId are properly rendered and visible to users",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-5",
-          "msg-6",
-          "msg-7"
+          "msg-latest"
         ],
         "quotes": [
-          "images/gifs are not displaying in chat bubbles",
-          "I can see the old MessageBubble.tsx from version 261. This component handles image display through the `useGetImage` hook with the `imageId` field, and it renders uploaded images with `imageUrl` from the blob's `getDirectURL()` method"
+          "just fix image rendering in chatrooms"
         ]
       },
       "acceptanceCriteria": [
-        "Images with imageId load and display correctly in message bubbles using the useGetImage hook",
-        "Images with imageUrl load and display correctly in message bubbles using direct blob URLs",
-        "Animated GIFs display and animate properly in chat messages",
-        "All existing MessageBubble functionality (reactions, replies, media embeds, pinning) continues to work",
-        "Image loading errors are handled gracefully"
+        "Images uploaded via MessageInput are displayed correctly in MessageBubble components",
+        "Image rendering works for all message types that include imageId",
+        "No visual style changes are introduced to existing components"
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Update any frontend query hooks in useQueries.ts related to image fetching to ensure they properly support the image display functionality restored in MessageBubble.tsx",
+      "text": "Preserve all existing visual styles and layout in the chatroom interface during the fix",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-latest"
         ],
         "quotes": [
-          "do I need to update the backend Motoko code, the image upload logic, or any query hooks to support proper image loading?"
+          "while maintaining current styles"
         ]
       },
       "acceptanceCriteria": [
-        "useGetImage hook (if it exists) properly fetches images from the backend using imageId",
-        "Image query hooks handle loading states and errors appropriately",
-        "Query hooks integrate correctly with MessageBubble.tsx image rendering logic"
+        "No changes to CSS classes or inline styles",
+        "No modifications to component layout or structure beyond what's necessary for image rendering",
+        "Existing theme and design system remain unchanged"
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Do not add any caller verification or authentication checks to backend methods",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-latest"
+        ],
+        "quotes": [
+          "not adding caller checks to the backend"
+        ]
+      },
+      "acceptanceCriteria": [
+        "No new caller() checks are added to any backend functions",
+        "Anonymous access pattern is preserved across all backend methods",
+        "Existing backend logic remains unchanged except for what's strictly necessary to support image rendering"
       ]
     }
   ],
   "constraints": [
-    "Do not modify any backend Motoko code - backend is working correctly",
-    "Preserve all existing MessageBubble.tsx functionality including reactions, replies, media embeds, Twitter widgets, and pinning",
-    "Use the image loading approach from draft version 261 as the reference implementation"
+    "Do not modify any visual styles or CSS",
+    "Do not add caller checks or authentication logic to the backend",
+    "Maintain anonymous access pattern throughout the application"
   ],
   "nonGoals": [
-    "Backend changes or modifications to main.mo",
-    "Changes to image upload functionality",
-    "New image features beyond restoring existing display functionality",
-    "Modifications to other chat components beyond MessageBubble.tsx and related query hooks"
+    "Restoring code from version 261",
+    "Adding authentication or user verification",
+    "Redesigning the chat interface",
+    "Modifying security or access control patterns"
   ],
   "imageRequirements": {
     "required": [],

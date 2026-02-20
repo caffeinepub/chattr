@@ -1,63 +1,38 @@
 import OrderedMap "mo:base/OrderedMap";
-import Text "mo:base/Text";
-import Int "mo:base/Int";
-import Nat "mo:base/Nat";
+import Principal "mo:base/Principal";
 
 module {
-  public type OldChatroom = {
-    id : Nat;
-    topic : Text;
-    description : Text;
-    mediaUrl : Text;
-    mediaType : Text;
-    createdAt : Int;
-    messageCount : Nat;
-    viewCount : Nat;
-    pinnedVideoId : ?Nat;
-    category : Text;
+  type OldUserProfile = {
+    name : Text;
+    avatarUrl : ?Text;
+    anonId : Text;
+    presetAvatar : ?Text;
   };
 
-  type NewChatroom = {
-    id : Nat;
-    topic : Text;
-    description : Text;
-    mediaUrl : ?Text;
-    mediaType : ?Text;
-    createdAt : Int;
-    messageCount : Nat;
-    viewCount : Nat;
-    pinnedVideoId : ?Nat;
-    category : Text;
+  type OldActor = {
+    userProfiles : OrderedMap.Map<Principal, OldUserProfile>;
   };
 
-  public func run(oldSystem : { var chatrooms : OrderedMap.Map<Nat, OldChatroom> }) : { var chatrooms : OrderedMap.Map<Nat, NewChatroom> } {
-    let natMap = OrderedMap.Make<Nat>(Nat.compare);
+  type NewUserProfile = {
+    name : Text;
+    avatarUrl : ?Text;
+  };
 
-    let newChatrooms = natMap.map<OldChatroom, NewChatroom>(
-      oldSystem.chatrooms,
-      func(_id, oldChatroom) {
+  type NewActor = {
+    userProfiles : OrderedMap.Map<Principal, NewUserProfile>;
+  };
+
+  public func run(old : OldActor) : NewActor {
+    let principalMap = OrderedMap.Make<Principal>(Principal.compare);
+    let userProfiles = principalMap.map<OldUserProfile, NewUserProfile>(
+      old.userProfiles,
+      func(_p, oldProfile) {
         {
-          id = oldChatroom.id;
-          topic = oldChatroom.topic;
-          description = oldChatroom.description;
-          mediaUrl = if (Text.size(oldChatroom.mediaUrl) > 0) {
-            ?oldChatroom.mediaUrl;
-          } else { null };
-          mediaType = if (Text.size(oldChatroom.mediaType) > 0) {
-            ?oldChatroom.mediaType;
-          } else {
-            null;
-          };
-          createdAt = oldChatroom.createdAt;
-          messageCount = oldChatroom.messageCount;
-          viewCount = oldChatroom.viewCount;
-          pinnedVideoId = oldChatroom.pinnedVideoId;
-          category = oldChatroom.category;
+          name = oldProfile.name;
+          avatarUrl = oldProfile.avatarUrl;
         };
       },
     );
-
-    { var chatrooms = newChatrooms };
+    { userProfiles };
   };
 };
-

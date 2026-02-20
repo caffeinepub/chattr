@@ -84,12 +84,7 @@ export interface TransformationOutput {
   'body' : Uint8Array,
   'headers' : Array<http_header>,
 }
-export interface UserProfile {
-  'name' : string,
-  'presetAvatar' : [] | [string],
-  'anonId' : string,
-  'avatarUrl' : [] | [string],
-}
+export interface UserProfile { 'name' : string, 'avatarUrl' : [] | [string] }
 export type UserRole = { 'admin' : null } |
   { 'user' : null } |
   { 'guest' : null };

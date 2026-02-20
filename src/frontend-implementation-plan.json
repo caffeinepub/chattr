@@ -1,39 +1,42 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Fix image and GIF display in chat message bubbles",
+  "title": "Fix image rendering in chatrooms",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Restore image and GIF display functionality in MessageBubble.tsx using the working approach from draft version 261",
+      "summary": "Fix image display functionality in chatroom messages so that images with imageId are properly rendered and visible to users",
       "acceptanceCriteria": [
-        "Images with imageId load and display correctly in message bubbles using the useGetImage hook",
-        "Images with imageUrl load and display correctly in message bubbles using direct blob URLs",
-        "Animated GIFs display and animate properly in chat messages",
-        "All existing MessageBubble functionality (reactions, replies, media embeds, pinning) continues to work",
-        "Image loading errors are handled gracefully"
+        "Images uploaded via MessageInput are displayed correctly in MessageBubble components",
+        "Image rendering works for all message types that include imageId",
+        "No visual style changes are introduced to existing components"
       ],
       "file_operations": [
         {
           "path": "frontend/src/components/MessageBubble.tsx",
           "operation": "modify",
-          "description": "Restore image rendering logic to handle both imageId (using useGetImage hook to fetch from backend) and imageUrl (using direct blob URLs from getDirectURL()). Add proper image loading states and error handling. Ensure animated GIFs display correctly. Reference the blob-storage component's ExternalBlob.getDirectURL() method for imageUrl rendering. Preserve all existing functionality including reactions, replies, media embeds (YouTube/Twitch/Twitter), voice messages, pinning, and Twitter widget loading. Verify the blob-storage component's usage instructions before implementing."
+          "description": "Add image rendering logic for messages with imageId property. When a message contains imageId, fetch the image using the getImage backend method and render it using ExternalBlob's getDirectURL() method. Ensure the image is displayed within the existing message bubble structure without modifying any CSS classes or layout. The image should be rendered alongside other message content (text, embeds) as appropriate."
+        },
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Add a React Query hook useGetImage(imageId: bigint | null) that calls actor.getImage(imageId) when imageId is provided. This hook should return the ExternalBlob and handle loading/error states. Enable the query only when imageId is not null and actor is available. This will be used by MessageBubble to fetch images for display."
         }
       ]
     },
     {
       "id": "REQ-2",
-      "summary": "Update frontend query hooks to ensure proper image fetching support for MessageBubble.tsx",
+      "summary": "Preserve all existing visual styles and layout in the chatroom interface during the fix",
       "acceptanceCriteria": [
-        "useGetImage hook (if it exists) properly fetches images from the backend using imageId",
-        "Image query hooks handle loading states and errors appropriately",
-        "Query hooks integrate correctly with MessageBubble.tsx image rendering logic"
+        "No changes to CSS classes or inline styles",
+        "No modifications to component layout or structure beyond what's necessary for image rendering",
+        "Existing theme and design system remain unchanged"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/hooks/useQueries.ts",
+          "path": "frontend/src/components/MessageBubble.tsx",
           "operation": "modify",
-          "description": "Review and update image-related query hooks to ensure proper integration with MessageBubble.tsx. If useGetImage hook exists, verify it correctly calls actor.getImage(imageId) and returns ExternalBlob instances. If the hook is missing, add it with proper React Query configuration including queryKey, enabled state based on imageId presence, error handling, and loading states. Ensure the hook integrates with the blob-storage component's ExternalBlob type from the backend interface. Reference the blob-storage component's usage instructions for proper ExternalBlob handling."
+          "description": "Ensure image rendering implementation uses only existing CSS classes and styling patterns already present in MessageBubble. Do not add new CSS classes, modify existing classes, or introduce inline styles. The image element should integrate seamlessly with the current message bubble layout without altering spacing, padding, or positioning of other elements."
         }
       ]
     }

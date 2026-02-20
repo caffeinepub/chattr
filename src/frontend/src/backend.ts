@@ -105,8 +105,6 @@ export interface LobbyChatroomCard {
 }
 export interface UserProfile {
     name: string;
-    presetAvatar?: string;
-    anonId: string;
     avatarUrl?: string;
 }
 export interface TransformationOutput {
@@ -940,19 +938,13 @@ function from_candid_record_n12(_uploadFile: (file: ExternalBlob) => Promise<Uin
 }
 function from_candid_record_n16(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     name: string;
-    presetAvatar: [] | [string];
-    anonId: string;
     avatarUrl: [] | [string];
 }): {
     name: string;
-    presetAvatar?: string;
-    anonId: string;
     avatarUrl?: string;
 } {
     return {
         name: value.name,
-        presetAvatar: record_opt_to_undefined(from_candid_opt_n13(_uploadFile, _downloadFile, value.presetAvatar)),
-        anonId: value.anonId,
         avatarUrl: record_opt_to_undefined(from_candid_opt_n13(_uploadFile, _downloadFile, value.avatarUrl))
     };
 }
@@ -1192,19 +1184,13 @@ function to_candid_record_n3(_uploadFile: (file: ExternalBlob) => Promise<Uint8A
 }
 function to_candid_record_n44(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     name: string;
-    presetAvatar?: string;
-    anonId: string;
     avatarUrl?: string;
 }): {
     name: string;
-    presetAvatar: [] | [string];
-    anonId: string;
     avatarUrl: [] | [string];
 } {
     return {
         name: value.name,
-        presetAvatar: value.presetAvatar ? candid_some(value.presetAvatar) : candid_none(),
-        anonId: value.anonId,
         avatarUrl: value.avatarUrl ? candid_some(value.avatarUrl) : candid_none()
     };
 }

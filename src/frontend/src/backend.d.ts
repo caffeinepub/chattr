@@ -30,8 +30,6 @@ export interface LobbyChatroomCard {
 }
 export interface UserProfile {
     name: string;
-    presetAvatar?: string;
-    anonId: string;
     avatarUrl?: string;
 }
 export interface TransformationOutput {

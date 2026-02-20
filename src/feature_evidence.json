@@ -2,8 +2,8 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-update-messagebubble-tsx-to-restore-image-and-gif-display-functionality-using-the-working-approach-from-draft-version-261-ensuring-both-static-images-and-animated-gifs-render-correctly-in-chat-bubbles",
-      "featureTitle": "Update MessageBubble.tsx to restore image and GIF display functionality using the working approach from draft version 261, ensuring both static images and animated GIFs render correctly in chat bubbles",
+      "featureId": "feature-fix-image-display-functionality-in-chatroom-messages-so-that-images-with-imageid-are-properly-rendered-and-visible-to-users",
+      "featureTitle": "Fix image display functionality in chatroom messages so that images with imageId are properly rendered and visible to users",
       "files": [
         "frontend/src/components/MessageBubble.tsx"
       ],
@@ -19,6 +19,27 @@
       ],
       "testIds": [
         "REQ-1"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-preserve-all-existing-visual-styles-and-layout-in-the-chatroom-interface-during-the-fix",
+      "featureTitle": "Preserve all existing visual styles and layout in the chatroom interface during the fix",
+      "files": [
+        "frontend/src/components/MessageBubble.tsx"
+      ],
+      "components": [
+        "authorization@1.0.1",
+        "blob-storage@2.0.3",
+        "http-outcalls@1.1.1",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-2"
       ],
       "confidence": "high"
     }
