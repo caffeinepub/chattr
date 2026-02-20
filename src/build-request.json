@@ -1,71 +1,38 @@
 {
   "kind": "build_request",
-  "title": "Fix GIF display to show animated images instead of plain text",
-  "priority": "normal",
+  "title": "Remove all caller checks from backend to ensure complete anonymity",
+  "projectName": "Anonymous Chatroom",
+  "priority": "high",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Modify the message sending logic to store the complete GIF URL from the Giphy picker instead of just the GIF name, ensuring the URL points to the animated GIF resource",
+      "text": "Remove or nullify all caller authorization checks in backend/main.mo to ensure all functions execute without authentication validation",
       "target": "backend",
       "source": {
         "messageIds": [
-          "msg-17"
+          "msg-recent"
         ],
         "quotes": [
-          "When users select a GIF from the Giphy picker, only the GIF name appears as plain text in chat messages instead of showing the actual animated GIF"
+          "you dont have to rebuild it. just remove the caller checks from all functions in main.mo, if you cant remove them ignore them/nullify"
         ]
       },
       "acceptanceCriteria": [
-        "Backend stores the full GIF URL when a message with a GIF is created",
-        "No new caller checks or authentication validation is added to the backend"
-      ]
-    },
-    {
-      "id": "REQ-2",
-      "text": "Update the MessageBubble component to detect and render GIF URLs as animated img elements in the message display, similar to how other media types are currently embedded",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-17"
-        ],
-        "quotes": [
-          "When users select a GIF from the Giphy picker, only the GIF name appears as plain text in chat messages instead of showing the actual animated GIF"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Selected GIFs display as animated images in chat messages",
-        "GIF images are properly sized and styled within the message bubble",
-        "All existing styles remain unchanged across the application"
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "text": "Update the MessageInput component to pass the complete GIF URL (not just the name) when a user selects a GIF from the Giphy picker",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-17"
-        ],
-        "quotes": [
-          "When users select a GIF from the Giphy picker, only the GIF name appears as plain text in chat messages instead of showing the actual animated GIF"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Giphy picker selection extracts and passes the full animated GIF URL",
-        "No changes to existing component styling or layout"
+        "All functions in main.mo execute without performing caller identity checks",
+        "No authorization logic blocks anonymous users from any functionality",
+        "GIF display functionality remains intact",
+        "All chatroom and messaging operations work without authentication"
       ]
     }
   ],
   "constraints": [
-    "Do not add any caller checks or authentication validation to the backend",
-    "Preserve all existing styles throughout the application - no CSS or Tailwind class modifications",
-    "Maintain all existing functionality for other media types (YouTube, Twitch, Twitter)"
+    "Do not rebuild the entire application",
+    "Preserve existing GIF display functionality from Version 290",
+    "Maintain complete anonymity - no authentication required"
   ],
   "nonGoals": [
-    "Adding new styling or visual changes to any components",
-    "Implementing authentication or permission checks",
-    "Modifying the Giphy picker UI or search functionality",
-    "Changes to other media embedding features"
+    "Adding new features",
+    "Refactoring unrelated code",
+    "Changing frontend components"
   ],
   "imageRequirements": {
     "required": [],

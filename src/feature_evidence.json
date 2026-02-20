@@ -1,26 +1,4 @@
 {
   "kind": "feature_evidence_report",
-  "features": [
-    {
-      "featureId": "feature-update-the-messageinput-component-to-pass-the-complete-gif-url-not-just-the-name-when-a-user-selects-a-gif-from-the-giphy-picker",
-      "featureTitle": "Update the MessageInput component to pass the complete GIF URL (not just the name) when a user selects a GIF from the Giphy picker",
-      "files": [
-        "frontend/src/components/MessageInput.tsx"
-      ],
-      "components": [
-        "authorization@1.0.1",
-        "blob-storage@2.0.3",
-        "http-outcalls@1.1.1",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-3"
-      ],
-      "confidence": "high"
-    }
-  ]
+  "features": []
 }

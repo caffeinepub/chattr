@@ -1,38 +1,6 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Fix GIF display to show animated images instead of plain text",
-  "requirements": [
-    {
-      "id": "REQ-2",
-      "summary": "Update the MessageBubble component to detect and render GIF URLs as animated img elements in the message display",
-      "acceptanceCriteria": [
-        "Selected GIFs display as animated images in chat messages",
-        "GIF images are properly sized and styled within the message bubble",
-        "All existing styles remain unchanged across the application"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/MessageBubble.tsx",
-          "operation": "modify",
-          "description": "Add GIF URL detection and rendering logic to display animated GIF images when a message contains a Giphy URL. The component should check if the message content or mediaUrl contains a Giphy GIF URL pattern (e.g., media.giphy.com or giphy.com URLs ending in .gif), and if so, render an <img> element with the GIF URL as the src attribute. The GIF should be displayed inline within the message bubble with appropriate sizing (similar to how other media embeds are handled). Ensure this does not affect existing media embedding for YouTube, Twitch, or Twitter. All existing Tailwind classes and styling must remain unchanged."
-        }
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "summary": "Update the MessageInput component to pass the complete GIF URL when a user selects a GIF from the Giphy picker",
-      "acceptanceCriteria": [
-        "Giphy picker selection extracts and passes the full animated GIF URL",
-        "No changes to existing component styling or layout"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/MessageInput.tsx",
-          "operation": "modify",
-          "description": "Modify the GIF selection handler to extract and pass the complete animated GIF URL (not just the GIF name or title) when a user selects a GIF from the Giphy picker. The URL should point to the actual .gif file (e.g., from media.giphy.com). Update the message sending logic to include this full URL in either the content field or mediaUrl/mediaType fields so that it gets stored in the backend and can be rendered by MessageBubble. Ensure no changes are made to existing component styling, layout, or the Giphy picker UI itself."
-        }
-      ]
-    }
-  ]
+  "title": "Remove all caller checks from backend to ensure complete anonymity",
+  "requirements": []
 }

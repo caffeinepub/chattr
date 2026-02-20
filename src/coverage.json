@@ -1,41 +1,21 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-20T22:47:34.711Z",
+  "generatedAt": "2026-02-20T22:55:09.883Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 3,
-    "implemented": 1,
+    "total": 1,
+    "implemented": 0,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Modify the message sending logic to store the complete GIF URL from the Giphy picker instead of just the GIF name, ensuring the URL points to the animated GIF resource",
+        "summary": "Remove or nullify all caller authorization checks in backend/main.mo to ensure all functions execute without authentication validation",
         "status": "unknown",
         "plannedFiles": [],
         "matchedFiles": []
-      },
-      {
-        "id": "REQ-2",
-        "summary": "Update the MessageBubble component to detect and render GIF URLs as animated img elements in the message display, similar to how other media types are currently embedded",
-        "status": "missing",
-        "plannedFiles": [
-          "frontend/src/components/MessageBubble.tsx"
-        ],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-3",
-        "summary": "Update the MessageInput component to pass the complete GIF URL (not just the name) when a user selects a GIF from the Giphy picker",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/MessageInput.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/MessageInput.tsx"
-        ]
       }
     ]
   },
@@ -43,9 +23,11 @@
     "backend/main.mo",
     "build-request.json",
     "feature_evidence.json",
-    "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/components/MessageInput.tsx",
+    "frontend/src/backend.d.ts",
+    "frontend/src/backend.ts",
+    "frontend/src/declarations/backend.did.d.ts",
+    "frontend/src/declarations/backend.did.js",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

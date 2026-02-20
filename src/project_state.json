@@ -1,42 +1,26 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Chat application with GIF integration (Giphy picker) that displays animated GIFs in messages",
+  "summary": "Anonymous chat application with GIF support and no authentication/caller checks",
   "architectural_notes": [
-    "Giphy picker integration for selecting animated GIFs in chat",
-    "GIF data stored/retrieved in backend to display animated images instead of plain text names"
+    "Complete anonymity is the top priority - no authentication or caller validation allowed",
+    "All caller checks must be removed or nullified to return true/succeed automatically",
+    "GIF display functionality implemented in chat"
   ],
   "known_issues": [],
   "isFixRequest": true,
-  "existing_features": [
-    {
-      "id": "feature-update-the-messageinput-component-to-pass-the-complete-gif-url-not-just-the-name-when-a-user-selects-a-gif-from-the-giphy-picker",
-      "title": "Update the MessageInput component to pass the complete GIF URL (not just the name) when a user selects a GIF from the Giphy picker",
-      "reqIds": [
-        "REQ-3"
-      ],
-      "version": 1
-    }
-  ],
+  "existing_features": [],
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Modify the message sending logic to store the complete GIF URL from the Giphy picker instead of just the GIF name, ensuring the URL points to the animated GIF resource",
+      "summary": "Remove or nullify all caller authorization checks in backend/main.mo to ensure all functions execute without authentication validation",
       "reqIds": [
         "REQ-1"
       ],
       "status": "pending"
-    },
-    {
-      "id": "AR-2",
-      "summary": "Update the MessageBubble component to detect and render GIF URLs as animated img elements in the message display, similar to how other media types are currently embedded",
-      "reqIds": [
-        "REQ-2"
-      ],
-      "status": "pending"
     }
   ],
-  "projectName": "Fix GIF display to show animated images instead of plain text",
+  "projectName": "Anonymous Chatroom",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

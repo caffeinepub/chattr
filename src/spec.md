@@ -1,11 +1,11 @@
 # Specification
 
 ## Summary
-**Goal:** Fix GIF display to show animated images instead of plain text in chat messages.
+**Goal:** Remove all caller authorization checks from the backend to ensure complete anonymity for all users.
 
 **Planned changes:**
-- Store the complete GIF URL (not just the name) when users select a GIF from the Giphy picker
-- Update MessageBubble component to detect and render GIF URLs as animated img elements
-- Modify MessageInput component to pass the full GIF URL when a GIF is selected
+- Remove or nullify all caller identity checks in backend/main.mo
+- Ensure all functions execute without authentication validation
+- Preserve existing GIF display functionality
 
-**User-visible outcome:** When users select a GIF from the Giphy picker, the actual animated GIF displays in the chat message instead of showing only the GIF name as plain text.
+**User-visible outcome:** All users can access and use all chatroom features completely anonymously without any authentication or identity verification.
