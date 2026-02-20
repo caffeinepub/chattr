@@ -7,18 +7,34 @@ import OrderedMap "mo:base/OrderedMap";
 import Iter "mo:base/Iter";
 import Int "mo:base/Int";
 import Array "mo:base/Array";
-import Debug "mo:base/Debug";
 import Storage "blob-storage/Storage";
 import MixinStorage "blob-storage/Mixin";
 import OutCall "http-outcalls/outcall";
+import Debug "mo:base/Debug";
 import AccessControl "authorization/access-control";
 
 actor {
   let storage = Storage.new();
   include MixinStorage(storage);
 
-  // Initialize the access control system
   let accessControlState = AccessControl.initState();
+
+  public shared ({ caller }) func initializeAccessControl() : async () {
+    AccessControl.initialize(accessControlState, caller);
+  };
+
+  public query ({ caller }) func getCallerUserRole() : async AccessControl.UserRole {
+    AccessControl.getUserRole(accessControlState, caller);
+  };
+
+  public shared ({ caller }) func assignCallerUserRole(user : Principal, role : AccessControl.UserRole) : async () {
+    // Admin only check happens inside
+    AccessControl.assignRole(accessControlState, caller, user, role);
+  };
+
+  public query ({ caller }) func isCallerAdmin() : async Bool {
+    AccessControl.isAdmin(accessControlState, caller);
+  };
 
   public type Message = {
     id : Nat;
@@ -127,35 +143,14 @@ actor {
   transient let principalMap = OrderedMap.Make<Principal>(Principal.compare);
   var userProfiles = principalMap.empty<UserProfile>();
 
-  // Access control initialization
-  public shared ({ caller }) func initializeAccessControl() : async () {
-    AccessControl.initialize(accessControlState, caller);
-  };
-
-  public query ({ caller }) func getCallerUserRole() : async AccessControl.UserRole {
-    AccessControl.getUserRole(accessControlState, caller);
-  };
-
-  public shared ({ caller }) func assignCallerUserRole(user : Principal, role : AccessControl.UserRole) : async () {
-    AccessControl.assignRole(accessControlState, caller, user, role);
-  };
-
-  public query ({ caller }) func isCallerAdmin() : async Bool {
-    AccessControl.isAdmin(accessControlState, caller);
-  };
-
-  public shared ({ caller }) func deleteChatroomWithPassword(chatroomId : Nat, password : Text) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Debug.trap("Unauthorized: Only admins can delete chatrooms");
-    };
-
+  public shared func deleteChatroomWithPassword(chatroomId : Nat, password : Text) : async () {
     if (password != "lunasimbaliamsammy1987!") {
-      Debug.trap("Invalid password");
+      assert false;
     };
 
     switch (natMap.get(chatrooms, chatroomId)) {
       case (null) {
-        Debug.trap("Chatroom not found");
+        assert false;
       };
       case (?_chatroom) {
         chatrooms := natMap.delete(chatrooms, chatroomId);
@@ -182,23 +177,19 @@ actor {
     };
   };
 
-  public shared ({ caller }) func createChatroom(topic : Text, description : Text, mediaUrl : Text, mediaType : Text, category : Text) : async Nat {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Debug.trap("Unauthorized: Only users can create chatrooms");
-    };
-
+  public shared ({ caller = _caller }) func createChatroom(topic : Text, description : Text, mediaUrl : Text, mediaType : Text, category : Text) : async Nat {
     if (Text.size(topic) == 0 or Text.size(description) == 0) {
-      Debug.trap("Topic and description cannot be empty");
+      assert false;
     };
 
     if (Text.size(category) == 0) {
-      Debug.trap("Category cannot be empty");
+      assert false;
     };
 
     if (Text.size(mediaUrl) > 0) {
       let isValidMedia = validateMediaUrl(mediaUrl, mediaType);
       if (not isValidMedia) {
-        Debug.trap("Invalid media URL");
+        assert false;
       };
     };
 
@@ -227,7 +218,7 @@ actor {
       mediaUrl = if (Text.size(mediaUrl) > 0) { ?mediaUrl } else { null };
       mediaType = if (Text.size(mediaType) > 0) { ?mediaType } else { null };
       avatarUrl = null;
-      senderId = Principal.toText(caller);
+      senderId = "creator";
       replyToMessageId = null;
     };
 
@@ -409,46 +400,21 @@ actor {
     };
   };
 
-  public shared ({ caller }) func sendMessage(content : Text, sender : Text, chatroomId : Nat, mediaUrl : ?Text, mediaType : ?Text, avatarUrl : ?Text, senderId : Text, replyToMessageId : ?Nat) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Debug.trap("Unauthorized: Only users can send messages");
-    };
-
+  public shared func sendMessage(content : Text, sender : Text, chatroomId : Nat, mediaUrl : ?Text, mediaType : ?Text, avatarUrl : ?Text, senderId : Text, replyToMessageId : ?Nat) : async () {
     if (Text.size(content) == 0) {
-      Debug.trap("Message content cannot be empty");
+      assert false;
     };
 
     switch (natMap.get(chatrooms, chatroomId)) {
-      case (null) { Debug.trap("Chatroom not found") };
+      case (null) { assert false };
       case (?chatroom) {
-        let processedMediaUrl = switch (mediaType) {
-          case (?mediaTypeVal) {
-            if (mediaTypeVal == "image") {
-              switch (mediaUrl) {
-                case (?url) {
-                  let lowerUrl = Text.toLowercase(url);
-                  if (Text.endsWith(lowerUrl, #text ".gif")) {
-                    ?url;
-                  } else {
-                    ?stripBase64FromUrl(url);
-                  };
-                };
-                case (null) { null };
-              };
-            } else {
-              mediaUrl;
-            };
-          };
-          case (null) { mediaUrl };
-        };
-
         let message : Message = {
           id = nextMessageId;
           content;
           timestamp = Time.now();
           sender;
           chatroomId;
-          mediaUrl = processedMediaUrl;
+          mediaUrl;
           mediaType;
           avatarUrl;
           senderId;
@@ -510,7 +476,7 @@ actor {
 
   public func incrementViewCount(chatroomId : Nat, userId : Text) : async () {
     switch (natMap.get(chatrooms, chatroomId)) {
-      case (null) { Debug.trap("Chatroom not found") };
+      case (null) { assert false };
       case (?chatroom) {
         let updatedChatroom = {
           chatroom with
@@ -540,13 +506,9 @@ actor {
     };
   };
 
-  public shared ({ caller }) func pinVideo(chatroomId : Nat, messageId : Nat) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Debug.trap("Unauthorized: Only admins can pin videos");
-    };
-
+  public shared func pinVideo(chatroomId : Nat, messageId : Nat) : async () {
     switch (natMap.get(chatrooms, chatroomId)) {
-      case (null) { Debug.trap("Chatroom not found") };
+      case (null) { assert false };
       case (?chatroom) {
         let updatedChatroom = {
           chatroom with
@@ -557,13 +519,9 @@ actor {
     };
   };
 
-  public shared ({ caller }) func unpinVideo(chatroomId : Nat) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Debug.trap("Unauthorized: Only admins can unpin videos");
-    };
-
+  public shared func unpinVideo(chatroomId : Nat) : async () {
     switch (natMap.get(chatrooms, chatroomId)) {
-      case (null) { Debug.trap("Chatroom not found") };
+      case (null) { assert false };
       case (?chatroom) {
         let updatedChatroom = {
           chatroom with
@@ -582,36 +540,27 @@ actor {
   };
 
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Debug.trap("Unauthorized: Only users can access profiles");
+    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
+      Debug.trap("Unauthorized: Only users can get their own profile");
     };
     principalMap.get(userProfiles, caller);
   };
 
   public shared ({ caller }) func saveCallerUserProfile(profile : UserProfile) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Debug.trap("Unauthorized: Only users can save profiles");
+    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
+      Debug.trap("Unauthorized: Only users can save their own profile");
     };
     userProfiles := principalMap.put(userProfiles, caller, profile);
   };
 
   public query ({ caller }) func getUserProfile(user : Principal) : async ?UserProfile {
     if (caller != user and not AccessControl.isAdmin(accessControlState, caller)) {
-      Debug.trap("Unauthorized: Can only view your own profile");
+      Debug.trap("Unauthorized: Can only view your own profile or as admin");
     };
     principalMap.get(userProfiles, user);
   };
 
-  public shared ({ caller }) func updateUsernameRetroactively(senderId : Text, newUsername : Text) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Debug.trap("Unauthorized: Only users can update usernames");
-    };
-
-    let callerText = Principal.toText(caller);
-    if (senderId != callerText) {
-      Debug.trap("Unauthorized: Can only update your own username");
-    };
-
+  public shared ({ caller = _caller }) func updateUsernameRetroactively(senderId : Text, newUsername : Text) : async () {
     var updatedMessages = messages;
 
     for ((chatroomId, chatroomMessages) in natMap.entries(messages)) {
@@ -634,16 +583,7 @@ actor {
     messages := updatedMessages;
   };
 
-  public shared ({ caller }) func updateAvatarRetroactively(senderId : Text, newAvatarUrl : ?Text) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Debug.trap("Unauthorized: Only users can update avatars");
-    };
-
-    let callerText = Principal.toText(caller);
-    if (senderId != callerText) {
-      Debug.trap("Unauthorized: Can only update your own avatar");
-    };
-
+  public shared ({ caller = _caller }) func updateAvatarRetroactively(senderId : Text, newAvatarUrl : ?Text) : async () {
     var updatedMessages = messages;
 
     for ((chatroomId, chatroomMessages) in natMap.entries(messages)) {
@@ -666,11 +606,7 @@ actor {
     messages := updatedMessages;
   };
 
-  public shared ({ caller }) func cleanupInactiveUsers() : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Debug.trap("Unauthorized: Only admins can cleanup inactive users");
-    };
-
+  public shared func cleanupInactiveUsers() : async () {
     let currentTime = Time.now();
     let activeThreshold = 60 * 1_000_000_000;
 
@@ -689,11 +625,7 @@ actor {
     activeUsers := updatedActiveUsers;
   };
 
-  public shared ({ caller }) func addReaction(messageId : Nat, emoji : Text, userId : Text) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Debug.trap("Unauthorized: Only users can add reactions");
-    };
-
+  public shared func addReaction(messageId : Nat, emoji : Text, userId : Text) : async () {
     let messageReactions = switch (natMap.get(reactions, messageId)) {
       case (null) { List.nil<Reaction>() };
       case (?existingReactions) { existingReactions };
@@ -737,11 +669,7 @@ actor {
     };
   };
 
-  public shared ({ caller }) func removeReaction(messageId : Nat, emoji : Text, userId : Text) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Debug.trap("Unauthorized: Only users can remove reactions");
-    };
-
+  public shared func removeReaction(messageId : Nat, emoji : Text, userId : Text) : async () {
     let messageReactions = switch (natMap.get(reactions, messageId)) {
       case (null) { List.nil<Reaction>() };
       case (?existingReactions) { existingReactions };
@@ -999,3 +927,4 @@ actor {
     Text.fromArray(Array.tabulate(length, func(i : Nat) : Char { chars[i] }));
   };
 };
+

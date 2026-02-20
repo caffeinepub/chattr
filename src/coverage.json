@@ -1,21 +1,58 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-20T22:55:09.883Z",
+  "generatedAt": "2026-02-20T22:14:20.472Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 1,
-    "implemented": 0,
+    "total": 4,
+    "implemented": 4,
     "items": [
       {
-        "id": "REQ-1",
-        "summary": "Remove or nullify all caller authorization checks in backend/main.mo to ensure all functions execute without authentication validation",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
+        "id": "REQ-5",
+        "summary": "Add a new Giphy tab to the media button in the chat input area that includes a search field for finding GIFs by keyword and displays preloaded popular GIFs (matching the implementation pattern from AvatarPickerDialog.tsx)",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/MessageInput.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/MessageInput.tsx"
+        ]
+      },
+      {
+        "id": "REQ-6",
+        "summary": "Remove the video tab from the add media button in the chat input area since URL auto-embedding now handles video content",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/MessageInput.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/MessageInput.tsx"
+        ]
+      },
+      {
+        "id": "REQ-7",
+        "summary": "Remove the X posts tab from the add media button in the chat input area since URL auto-embedding now handles X/Twitter content",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/MessageInput.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/MessageInput.tsx"
+        ]
+      },
+      {
+        "id": "REQ-8",
+        "summary": "Do not add any caller checks or authentication/permission validation for the Giphy functionality - skip any security validations",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/MessageInput.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/MessageInput.tsx"
+        ]
       }
     ]
   },
@@ -23,9 +60,11 @@
     "backend/main.mo",
     "build-request.json",
     "feature_evidence.json",
+    "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
     "frontend/src/backend.d.ts",
     "frontend/src/backend.ts",
+    "frontend/src/components/MessageInput.tsx",
     "frontend/src/declarations/backend.did.d.ts",
     "frontend/src/declarations/backend.did.js",
     "project_state.json",

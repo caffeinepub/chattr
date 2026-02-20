@@ -1,38 +1,93 @@
 {
   "kind": "build_request",
-  "title": "Remove all caller checks from backend to ensure complete anonymity",
-  "projectName": "Anonymous Chatroom",
-  "priority": "high",
+  "title": "Add Giphy GIF support and reorganize media button tabs",
+  "projectName": "Global Chatroom",
+  "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-1",
-      "text": "Remove or nullify all caller authorization checks in backend/main.mo to ensure all functions execute without authentication validation",
-      "target": "backend",
+      "id": "REQ-5",
+      "text": "Add a new Giphy tab to the media button in the chat input area that includes a search field for finding GIFs by keyword and displays preloaded popular GIFs (matching the implementation pattern from AvatarPickerDialog.tsx)",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-recent"
+          "msg-user-giphy-request"
         ],
         "quotes": [
-          "you dont have to rebuild it. just remove the caller checks from all functions in main.mo, if you cant remove them ignore them/nullify"
+          "can we add gif (giphy) support for chat messages. can you add it as a tab in the add media button",
+          "yes and also the preloaded popular giphy gifs (just like in the avatar modal)"
         ]
       },
       "acceptanceCriteria": [
-        "All functions in main.mo execute without performing caller identity checks",
-        "No authorization logic blocks anonymous users from any functionality",
-        "GIF display functionality remains intact",
-        "All chatroom and messaging operations work without authentication"
+        "Media button in chat input area contains a new Giphy tab",
+        "Giphy tab displays preloaded popular GIFs on open",
+        "Giphy tab includes a search field that allows users to search for GIFs by keyword",
+        "Search functionality uses debounced input (matching AvatarPickerDialog pattern)",
+        "Selected GIFs are added to chat messages"
+      ]
+    },
+    {
+      "id": "REQ-6",
+      "text": "Remove the video tab from the add media button in the chat input area since URL auto-embedding now handles video content",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-user-giphy-request"
+        ],
+        "quotes": [
+          "remove the redundant video and x posts tabs from the add media button since you can use the chat to embed them now"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Video tab is completely removed from the media button component",
+        "Users can still embed videos by pasting URLs directly in chat"
+      ]
+    },
+    {
+      "id": "REQ-7",
+      "text": "Remove the X posts tab from the add media button in the chat input area since URL auto-embedding now handles X/Twitter content",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-user-giphy-request"
+        ],
+        "quotes": [
+          "remove the redundant video and x posts tabs from the add media button since you can use the chat to embed them now"
+        ]
+      },
+      "acceptanceCriteria": [
+        "X posts tab is completely removed from the media button component",
+        "Users can still embed X/Twitter posts by pasting URLs directly in chat"
+      ]
+    },
+    {
+      "id": "REQ-8",
+      "text": "Do not add any caller checks or authentication/permission validation for the Giphy functionality - skip any security validations",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-user-giphy-request"
+        ],
+        "quotes": [
+          "also dont add any caller checks, if you cant avoid it then just ignore them/nullify them"
+        ]
+      },
+      "acceptanceCriteria": [
+        "No caller checks are implemented for Giphy GIF selection or sending",
+        "No authentication gates are added to the Giphy tab functionality"
       ]
     }
   ],
   "constraints": [
-    "Do not rebuild the entire application",
-    "Preserve existing GIF display functionality from Version 290",
-    "Maintain complete anonymity - no authentication required"
+    "Preserve all existing functionality for image uploads and other existing media tabs",
+    "Maintain the current URL auto-detection and embedding system for YouTube, Twitch, and X posts",
+    "Do not modify the backend/main.mo file unless absolutely necessary",
+    "Reuse the Giphy integration patterns from AvatarPickerDialog.tsx (search, trending, debouncing)"
   ],
   "nonGoals": [
-    "Adding new features",
-    "Refactoring unrelated code",
-    "Changing frontend components"
+    "Modifying how URL auto-detection works for videos and X posts",
+    "Changing the styling or layout of the chat input area beyond adding/removing tabs",
+    "Adding authentication or permission checks for GIF functionality",
+    "Creating new backend endpoints for Giphy (use client-side API calls only)"
   ],
   "imageRequirements": {
     "required": [],
