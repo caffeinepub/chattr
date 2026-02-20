@@ -96,7 +96,7 @@ export default function ChatroomCard({ chatroom, onClick }: ChatroomCardProps) {
       if (videoId) {
         const thumbnailUrl = getYouTubeThumbnailUrl(videoId);
         return (
-          <div className="absolute inset-0 overflow-hidden rounded-lg flex items-center justify-center">
+          <div className="absolute inset-0 overflow-hidden rounded-lg flex items-center justify-center bg-black">
             <img
               src={thumbnailUrl}
               alt={chatroom.topic}
@@ -131,7 +131,7 @@ export default function ChatroomCard({ chatroom, onClick }: ChatroomCardProps) {
       // If we have a thumbnail, show it
       if (twitchThumbnail) {
         return (
-          <div className="absolute inset-0 overflow-hidden rounded-lg flex items-center justify-center">
+          <div className="absolute inset-0 overflow-hidden rounded-lg flex items-center justify-center bg-black">
             <img
               src={twitchThumbnail}
               alt={chatroom.topic}
@@ -272,13 +272,14 @@ export default function ChatroomCard({ chatroom, onClick }: ChatroomCardProps) {
       );
     }
 
-    // Image or other media
+    // Image or GIF - use bg-transparent to preserve PNG transparency and ensure GIFs animate
     return (
-      <div className="absolute inset-0 overflow-hidden rounded-lg flex items-center justify-center">
+      <div className="absolute inset-0 overflow-hidden rounded-lg flex items-center justify-center bg-transparent">
         <img
           src={chatroom.mediaUrl}
           alt={chatroom.topic}
           className="h-full w-full object-contain transition-transform group-hover:scale-105"
+          loading="lazy"
           onError={(e) => {
             e.currentTarget.src = '/assets/generated/default-chatroom-thumbnail.dim_200x150.png';
           }}
@@ -296,7 +297,7 @@ export default function ChatroomCard({ chatroom, onClick }: ChatroomCardProps) {
       className="group cursor-pointer transition-opacity hover:opacity-80"
       onClick={onClick}
     >
-      <div className="relative aspect-square w-full">
+      <div className="relative aspect-square w-full bg-muted/30">
         {renderThumbnail()}
         {chatroom.isLive && (
           <div className="absolute left-2 bottom-2 flex items-center gap-1.5 rounded-md bg-primary px-2 py-0.5 shadow-lg">

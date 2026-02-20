@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useGetMessages, useSendMessage, useCurrentUsername } from '../hooks/useQueries';
-import type { ChatroomWithLiveStatus, MessageWithReactions } from '../backend';
+import type { ChatroomWithLiveStatus, MessageWithReactions, Message } from '../backend';
 import MessageBubble from './MessageBubble';
 import MessageInput from './MessageInput';
 import { Loader2, MessageCircle, Users, X, ChevronDown, ChevronUp } from 'lucide-react';
@@ -37,11 +37,15 @@ export default function ChatArea({ chatroomId, chatroom }: ChatAreaProps) {
     messagesEndRef.current?.scrollIntoView({ behavior });
   };
 
-  // Filter out Creator messages that don't have media
+  // Filter out Creator messages that don't have any media (mediaUrl, imageId, or giphyUrl)
   const filteredMessages = messages?.filter((message) => {
-    // If it's a Creator message without media, hide it
-    if (message.sender === 'Creator' && !message.mediaUrl) {
-      return false;
+    // Cast to include Message fields
+    const fullMessage = message as MessageWithReactions & Pick<Message, 'imageId' | 'giphyUrl'>;
+    
+    // If it's a Creator message, only show it if it has media
+    if (message.sender === 'Creator') {
+      const hasMedia = message.mediaUrl || fullMessage.imageId !== undefined || fullMessage.giphyUrl;
+      return hasMedia;
     }
     return true;
   });

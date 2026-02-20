@@ -1,64 +1,60 @@
 {
   "kind": "build_request",
-  "title": "Add auto-embed for social media links and GIF support",
-  "priority": "normal",
+  "title": "Fix image and GIF display in chat message bubbles",
+  "priority": "high",
   "requirements": [
     {
-      "id": "REQ-2",
-      "text": "Implement automatic link detection and embedding in chat messages for YouTube, Twitch, X (Twitter), Instagram, TikTok, Rumble, and direct image URLs. When a user posts a message containing these links, the system should automatically detect and render rich previews/embeds inline within the message bubble.",
-      "target": "both",
-      "source": {
-        "messageIds": [
-          "msg-user-final"
-        ],
-        "quotes": [
-          "link detection should exist (it should show previews)",
-          "also allow instagram, and tiktok, rumble, as well as image urls"
-        ]
-      },
-      "acceptanceCriteria": [
-        "YouTube links display video embeds",
-        "Twitch links display stream/clip embeds",
-        "X (Twitter) links display post previews",
-        "Instagram links display post embeds",
-        "TikTok links display video embeds",
-        "Rumble links display video embeds",
-        "Direct image URLs display inline images",
-        "Link detection works when users paste URLs directly into the chat input and send the message",
-        "Multiple links in a single message are all detected and embedded"
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "text": "Modify the Add Media button functionality to exclusively support image uploads and add GIF selection via Giphy integration. Remove any video link input options from the Add Media dialog, as video links will now be posted directly into chat.",
+      "id": "REQ-1",
+      "text": "Update MessageBubble.tsx to restore image and GIF display functionality using the working approach from draft version 261, ensuring both static images and animated GIFs render correctly in chat bubbles",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-user-final"
+          "msg-5",
+          "msg-6",
+          "msg-7"
         ],
         "quotes": [
-          "the add media button already exists and should only be for images (add gif support -- giphy)"
+          "images/gifs are not displaying in chat bubbles",
+          "I can see the old MessageBubble.tsx from version 261. This component handles image display through the `useGetImage` hook with the `imageId` field, and it renders uploaded images with `imageUrl` from the blob's `getDirectURL()` method"
         ]
       },
       "acceptanceCriteria": [
-        "Add Media button opens a dialog with only image upload and GIF selection options",
-        "Giphy integration allows users to search and select GIFs",
-        "Video URL input fields are removed from the Add Media dialog",
-        "Image upload functionality remains unchanged",
-        "Selected GIFs post to chat as media attachments"
+        "Images with imageId load and display correctly in message bubbles using the useGetImage hook",
+        "Images with imageUrl load and display correctly in message bubbles using direct blob URLs",
+        "Animated GIFs display and animate properly in chat messages",
+        "All existing MessageBubble functionality (reactions, replies, media embeds, pinning) continues to work",
+        "Image loading errors are handled gracefully"
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "text": "Update any frontend query hooks in useQueries.ts related to image fetching to ensure they properly support the image display functionality restored in MessageBubble.tsx",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "do I need to update the backend Motoko code, the image upload logic, or any query hooks to support proper image loading?"
+        ]
+      },
+      "acceptanceCriteria": [
+        "useGetImage hook (if it exists) properly fetches images from the backend using imageId",
+        "Image query hooks handle loading states and errors appropriately",
+        "Query hooks integrate correctly with MessageBubble.tsx image rendering logic"
       ]
     }
   ],
   "constraints": [
-    "Do not change any component styles or visual appearance",
-    "Do not modify components unrelated to chat message handling and media input",
-    "Preserve all existing component functionality except where explicitly modified"
+    "Do not modify any backend Motoko code - backend is working correctly",
+    "Preserve all existing MessageBubble.tsx functionality including reactions, replies, media embeds, Twitter widgets, and pinning",
+    "Use the image loading approach from draft version 261 as the reference implementation"
   ],
   "nonGoals": [
-    "Styling or visual design changes",
-    "Modifications to header, footer, lobby, or admin components",
-    "Changes to authentication or user profile features",
-    "Refactoring of existing media handling for already-supported platforms"
+    "Backend changes or modifications to main.mo",
+    "Changes to image upload functionality",
+    "New image features beyond restoring existing display functionality",
+    "Modifications to other chat components beyond MessageBubble.tsx and related query hooks"
   ],
   "imageRequirements": {
     "required": [],

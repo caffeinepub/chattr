@@ -1,44 +1,52 @@
 import { useState, useRef, KeyboardEvent, useEffect } from 'react';
-import { Send, Image as ImageIcon, X, Mic, Square } from 'lucide-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
-import { Input } from './ui/input';
-import { Label } from './ui/label';
+import { Send, Mic, Square, X, Image as ImageIcon, Smile } from 'lucide-react';
 import { Progress } from './ui/progress';
-import { uploadImage } from '../hooks/useQueries';
+import { useActor } from '../hooks/useActor';
+import { compressImage } from '../lib/imageCompression';
+import { useDetectLinksInText } from '../hooks/useDetectLinksInText';
+import MessageInputLinkPreview from './MessageInputLinkPreview';
 import { searchGiphy, fetchTrendingGiphy, type GiphyGif } from '../lib/giphy';
 import { useDebouncedValue } from '../hooks/useDebouncedValue';
+import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
+import { Input } from './ui/input';
+import { ScrollArea } from './ui/scroll-area';
+import { ExternalBlob } from '../backend';
 
 interface MessageInputProps {
-  onSendMessage: (content: string, mediaUrl?: string, mediaType?: string) => void;
+  onSendMessage: (content: string, mediaUrl?: string, mediaType?: string, imageId?: bigint, giphyUrl?: string) => void;
   disabled?: boolean;
   isSending?: boolean;
 }
 
 export default function MessageInput({ onSendMessage, disabled, isSending }: MessageInputProps) {
   const [message, setMessage] = useState('');
-  const [showMediaInput, setShowMediaInput] = useState(false);
-  const [mediaTab, setMediaTab] = useState<'image' | 'gif'>('image');
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [isUploading, setIsUploading] = useState(false);
-  const [mediaError, setMediaError] = useState('');
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [recordingError, setRecordingError] = useState('');
   const [isTextareaFocused, setIsTextareaFocused] = useState(false);
-  const [gifSearchQuery, setGifSearchQuery] = useState('');
-  const [gifResults, setGifResults] = useState<GiphyGif[]>([]);
-  const [isLoadingGifs, setIsLoadingGifs] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [selectedImage, setSelectedImage] = useState<{ preview: string; imageId: bigint } | null>(null);
   const [selectedGif, setSelectedGif] = useState<string | null>(null);
+  const [giphySearchTerm, setGiphySearchTerm] = useState('');
+  const [giphyResults, setGiphyResults] = useState<GiphyGif[]>([]);
+  const [giphyLoading, setGiphyLoading] = useState(false);
+  const [showGiphyPicker, setShowGiphyPicker] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const { actor } = useActor();
 
   const MAX_MESSAGE_LENGTH = 2000;
-  const debouncedGifSearch = useDebouncedValue(gifSearchQuery, 500);
+
+  // Detect links in the message text
+  const detectedLink = useDetectLinksInText(message);
+
+  // Debounced Giphy search
+  const debouncedGiphySearch = useDebouncedValue(giphySearchTerm, 500);
 
   useEffect(() => {
     return () => {
@@ -54,78 +62,90 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
     };
   }, []);
 
-  // Load trending GIFs on mount
+  // Load trending GIFs when picker opens
   useEffect(() => {
-    if (mediaTab === 'gif' && gifResults.length === 0) {
-      setIsLoadingGifs(true);
-      fetchTrendingGiphy()
-        .then((result) => {
-          setGifResults(result.gifs);
-        })
-        .catch((error) => {
-          console.error('Error loading trending GIFs:', error);
-        })
-        .finally(() => {
-          setIsLoadingGifs(false);
-        });
+    if (showGiphyPicker && giphyResults.length === 0 && !giphySearchTerm) {
+      loadTrendingGifs();
     }
-  }, [mediaTab, gifResults.length]);
+  }, [showGiphyPicker]);
 
-  // Search GIFs when query changes
+  // Search GIFs when search term changes
   useEffect(() => {
-    if (debouncedGifSearch.trim()) {
-      setIsLoadingGifs(true);
-      searchGiphy(debouncedGifSearch)
-        .then((result) => {
-          setGifResults(result.gifs);
-        })
-        .catch((error) => {
-          console.error('Error searching GIFs:', error);
-        })
-        .finally(() => {
-          setIsLoadingGifs(false);
-        });
-    } else if (mediaTab === 'gif') {
-      // Load trending when search is cleared
-      setIsLoadingGifs(true);
-      fetchTrendingGiphy()
-        .then((result) => {
-          setGifResults(result.gifs);
-        })
-        .catch((error) => {
-          console.error('Error loading trending GIFs:', error);
-        })
-        .finally(() => {
-          setIsLoadingGifs(false);
-        });
+    if (debouncedGiphySearch.trim()) {
+      searchGifs(debouncedGiphySearch);
+    } else if (showGiphyPicker) {
+      loadTrendingGifs();
     }
-  }, [debouncedGifSearch, mediaTab]);
+  }, [debouncedGiphySearch]);
 
-  const validateImageFile = (file: File): boolean => {
-    if (!file.type.startsWith('image/')) {
-      setMediaError('Invalid file type. Must be an image file');
-      return false;
+  const loadTrendingGifs = async () => {
+    setGiphyLoading(true);
+    try {
+      const result = await fetchTrendingGiphy();
+      setGiphyResults(result.gifs);
+    } catch (error) {
+      console.error('Failed to load trending GIFs:', error);
+    } finally {
+      setGiphyLoading(false);
     }
-
-    if (file.size > 10 * 1024 * 1024) {
-      setMediaError('File size must be less than 10MB');
-      return false;
-    }
-
-    setMediaError('');
-    return true;
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const searchGifs = async (term: string) => {
+    setGiphyLoading(true);
+    try {
+      const result = await searchGiphy(term);
+      setGiphyResults(result.gifs);
+    } catch (error) {
+      console.error('Failed to search GIFs:', error);
+    } finally {
+      setGiphyLoading(false);
+    }
+  };
+
+  const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      if (validateImageFile(file)) {
-        setSelectedFile(file);
-        setMediaError('');
-      } else {
-        setSelectedFile(null);
+    if (!file || !actor) return;
+
+    try {
+      setIsUploading(true);
+      setUploadProgress(0);
+
+      // Compress the image
+      const compressedFile = await compressImage(file, {}, (progress) => {
+        setUploadProgress(progress * 0.5); // First 50% for compression
+      });
+
+      // Convert to bytes
+      const arrayBuffer = await compressedFile.arrayBuffer();
+      const bytes = new Uint8Array(arrayBuffer);
+
+      setUploadProgress(60);
+
+      // Create ExternalBlob and store
+      const blob = ExternalBlob.fromBytes(bytes);
+      const imageId = await actor.storeImage(blob);
+
+      setUploadProgress(100);
+
+      // Create preview URL
+      const previewUrl = URL.createObjectURL(compressedFile);
+      setSelectedImage({ preview: previewUrl, imageId });
+      setSelectedGif(null); // Clear GIF if image is selected
+    } catch (error) {
+      console.error('Failed to upload image:', error);
+      setRecordingError('Failed to upload image');
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
       }
     }
+  };
+
+  const handleGifSelect = (gif: GiphyGif) => {
+    setSelectedGif(gif.originalUrl);
+    setSelectedImage(null); // Clear image if GIF is selected
+    setShowGiphyPicker(false);
   };
 
   const uploadAudio = async (audioBlob: Blob): Promise<string> => {
@@ -284,59 +304,31 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
   const handleSend = async () => {
     if (disabled || isUploading || isSending || isRecording) return;
 
-    if (showMediaInput) {
-      if (mediaTab === 'image' && selectedFile) {
-        if (!validateImageFile(selectedFile)) return;
-        
-        try {
-          setIsUploading(true);
-          const mediaUrl = await uploadImage(selectedFile, (progress) => {
-            setUploadProgress(progress);
-          });
-          const content = message.trim() || 'Image';
-          onSendMessage(content, mediaUrl, 'image');
-          
-          setMessage('');
-          setSelectedFile(null);
-          setShowMediaInput(false);
-          setMediaError('');
-          setUploadProgress(0);
-          if (textareaRef.current) {
-            textareaRef.current.style.height = 'auto';
-          }
-          if (fileInputRef.current) {
-            fileInputRef.current.value = '';
-          }
-        } catch (error) {
-          setMediaError(error instanceof Error ? error.message : 'Failed to upload image');
-        } finally {
-          setIsUploading(false);
-        }
-        return;
-      } else if (mediaTab === 'gif' && selectedGif) {
-        const content = message.trim() || 'GIF';
-        onSendMessage(content, selectedGif, 'image');
-        
-        setMessage('');
-        setSelectedGif(null);
-        setShowMediaInput(false);
-        setMediaError('');
-        if (textareaRef.current) {
-          textareaRef.current.style.height = 'auto';
-        }
-        return;
-      } else {
-        setMediaError('Please select an image or GIF');
-        return;
-      }
+    const trimmedMessage = message.trim();
+    if (!trimmedMessage && !selectedImage && !selectedGif) return;
+
+    // Send with image
+    if (selectedImage) {
+      onSendMessage(trimmedMessage || 'Image', undefined, undefined, selectedImage.imageId, undefined);
+      setSelectedImage(null);
+    }
+    // Send with GIF
+    else if (selectedGif) {
+      onSendMessage(trimmedMessage || 'GIF', undefined, undefined, undefined, selectedGif);
+      setSelectedGif(null);
+    }
+    // Send with detected link
+    else if (detectedLink) {
+      onSendMessage(trimmedMessage, detectedLink.url, detectedLink.type);
+    }
+    // Send text only
+    else {
+      onSendMessage(trimmedMessage);
     }
 
-    if (message.trim()) {
-      onSendMessage(message);
-      setMessage('');
-      if (textareaRef.current) {
-        textareaRef.current.style.height = 'auto';
-      }
+    setMessage('');
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
     }
   };
 
@@ -353,14 +345,7 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
     e.target.style.height = `${Math.min(e.target.scrollHeight, 120)}px`;
   };
 
-  const handleImageButtonClick = () => {
-    if (isRecording) return;
-    setShowMediaInput(!showMediaInput);
-    setMediaTab('image');
-  };
-
   const handleMicButtonClick = () => {
-    if (showMediaInput) return;
     if (isRecording) {
       cancelRecording();
     } else {
@@ -407,140 +392,113 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
             </div>
           )}
 
-          {showMediaInput && (
-            <div className="rounded-lg border border-border bg-muted/30 p-4">
-              <div className="mb-3 flex items-center justify-between">
-                <h3 className="text-sm font-medium text-foreground">Add Media</h3>
+          {/* Image/GIF preview */}
+          {(selectedImage || selectedGif) && (
+            <div className="relative inline-block">
+              <img
+                src={selectedImage?.preview || selectedGif || ''}
+                alt="Preview"
+                className="h-20 w-20 rounded-lg object-cover"
+              />
+              <button
+                onClick={() => {
+                  setSelectedImage(null);
+                  setSelectedGif(null);
+                }}
+                className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-destructive text-destructive-foreground shadow-md hover:bg-destructive/90"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          )}
+
+          <div className="flex items-end gap-2">
+            <button
+              onClick={handleMicButtonClick}
+              disabled={disabled || isUploading}
+              className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 size-9 h-10 w-10 shrink-0 rounded-full"
+              title={isRecording ? 'Cancel recording' : 'Record voice message'}
+            >
+              {isRecording ? (
+                <X className="h-5 w-5 text-destructive" />
+              ) : (
+                <Mic className="h-5 w-5" />
+              )}
+            </button>
+
+            {/* Image upload button */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleImageSelect}
+              className="hidden"
+            />
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={disabled || isUploading || isRecording}
+              className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 size-9 h-10 w-10 shrink-0 rounded-full"
+              title="Upload image"
+            >
+              <ImageIcon className="h-5 w-5" />
+            </button>
+
+            {/* Giphy GIF picker */}
+            <Popover open={showGiphyPicker} onOpenChange={setShowGiphyPicker}>
+              <PopoverTrigger asChild>
                 <button
-                  onClick={() => {
-                    setShowMediaInput(false);
-                    setSelectedFile(null);
-                    setSelectedGif(null);
-                    setMediaError('');
-                    setGifSearchQuery('');
-                    if (fileInputRef.current) {
-                      fileInputRef.current.value = '';
-                    }
-                  }}
-                  className="rounded-full p-1 hover:bg-muted transition-colors"
+                  disabled={disabled || isUploading || isRecording}
+                  className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 size-9 h-10 w-10 shrink-0 rounded-full"
+                  title="Add GIF"
                 >
-                  <X className="h-4 w-4 text-muted-foreground" />
+                  <Smile className="h-5 w-5" />
                 </button>
-              </div>
-
-              <Tabs value={mediaTab} onValueChange={(value) => setMediaTab(value as 'image' | 'gif')}>
-                <TabsList className="grid w-full grid-cols-2 mb-3">
-                  <TabsTrigger value="image" className="flex items-center gap-1">
-                    <ImageIcon className="h-4 w-4" />
-                    <span className="hidden sm:inline">Image</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="gif" className="flex items-center gap-1">
-                    <span className="text-lg">GIF</span>
-                  </TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="image" className="space-y-3">
-                  <div>
-                    <Label htmlFor="image-upload" className="text-sm text-muted-foreground">
-                      Upload Image
-                    </Label>
+              </PopoverTrigger>
+              <PopoverContent className="w-80 p-0" align="start" side="top">
+                <div className="flex flex-col">
+                  <div className="border-b p-3">
                     <Input
-                      id="image-upload"
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*"
-                      onChange={handleFileChange}
-                      className="mt-1"
-                      style={{ fontSize: '16px' }}
+                      placeholder="Search GIFs..."
+                      value={giphySearchTerm}
+                      onChange={(e) => setGiphySearchTerm(e.target.value)}
+                      className="h-9"
                     />
                   </div>
-                  {selectedFile && (
-                    <div className="text-sm text-muted-foreground">
-                      Selected: {selectedFile.name}
-                    </div>
-                  )}
-                </TabsContent>
-
-                <TabsContent value="gif" className="space-y-3">
-                  <div>
-                    <Label htmlFor="gif-search" className="text-sm text-muted-foreground">
-                      Search GIFs
-                    </Label>
-                    <Input
-                      id="gif-search"
-                      type="text"
-                      value={gifSearchQuery}
-                      onChange={(e) => setGifSearchQuery(e.target.value)}
-                      placeholder="Search Giphy..."
-                      className="mt-1"
-                      style={{ fontSize: '16px' }}
-                    />
-                  </div>
-                  
-                  <div className="max-h-[300px] overflow-y-auto rounded-lg border border-border bg-background p-2">
-                    {isLoadingGifs ? (
-                      <div className="flex items-center justify-center py-8">
-                        <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                  <ScrollArea className="h-64">
+                    {giphyLoading ? (
+                      <div className="flex items-center justify-center p-8">
+                        <div className="text-sm text-muted-foreground">Loading GIFs...</div>
                       </div>
-                    ) : gifResults.length > 0 ? (
-                      <div className="grid grid-cols-2 gap-2">
-                        {gifResults.map((gif) => (
+                    ) : giphyResults.length > 0 ? (
+                      <div className="grid grid-cols-2 gap-2 p-2">
+                        {giphyResults.map((gif) => (
                           <button
                             key={gif.id}
-                            onClick={() => setSelectedGif(gif.originalUrl)}
-                            className={`relative aspect-square overflow-hidden rounded-lg border-2 transition-all ${
-                              selectedGif === gif.originalUrl
-                                ? 'border-primary scale-95'
-                                : 'border-transparent hover:border-primary/50'
-                            }`}
+                            onClick={() => handleGifSelect(gif)}
+                            className="overflow-hidden rounded-md transition-transform hover:scale-105"
                           >
                             <img
                               src={gif.previewUrl}
-                              alt={gif.title || 'GIF'}
+                              alt={gif.title}
                               className="h-full w-full object-cover"
                             />
                           </button>
                         ))}
                       </div>
                     ) : (
-                      <div className="py-8 text-center text-sm text-muted-foreground">
-                        No GIFs found
+                      <div className="flex items-center justify-center p-8">
+                        <div className="text-sm text-muted-foreground">
+                          {giphySearchTerm ? 'No GIFs found' : 'Search for GIFs'}
+                        </div>
                       </div>
                     )}
+                  </ScrollArea>
+                  <div className="border-t p-2 text-center text-xs text-muted-foreground">
+                    Powered by GIPHY
                   </div>
-                  
-                  {selectedGif && (
-                    <div className="text-sm text-muted-foreground">
-                      GIF selected
-                    </div>
-                  )}
-                </TabsContent>
-              </Tabs>
-
-              {mediaError && (
-                <div className="mt-2 text-sm text-destructive">{mediaError}</div>
-              )}
-
-              {isUploading && (
-                <div className="mt-3 space-y-1">
-                  <Progress value={uploadProgress} className="h-1" />
-                  <p className="text-xs text-muted-foreground text-center">
-                    Uploading... {uploadProgress}%
-                  </p>
                 </div>
-              )}
-            </div>
-          )}
-
-          <div className="flex items-end gap-2">
-            <button
-              onClick={handleImageButtonClick}
-              disabled={disabled || isRecording}
-              className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 size-9 h-10 w-10 shrink-0 rounded-full"
-              title="Add image or GIF"
-            >
-              <ImageIcon className="h-5 w-5" />
-            </button>
+              </PopoverContent>
+            </Popover>
 
             <div className="relative flex-1">
               <textarea
@@ -551,19 +509,19 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
                 onFocus={() => setIsTextareaFocused(true)}
                 onBlur={() => setIsTextareaFocused(false)}
                 placeholder="Type a message..."
-                disabled={disabled || isRecording}
+                disabled={disabled || isRecording || isUploading}
                 maxLength={MAX_MESSAGE_LENGTH}
-                className="w-full resize-none rounded-full border border-input bg-background px-4 py-2.5 text-sm outline-none transition-all placeholder:text-muted-foreground focus:border-ring focus:ring-[3px] focus:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-input/30"
-                style={{ 
-                  minHeight: '40px',
-                  maxHeight: '120px',
-                  fontSize: '16px'
-                }}
                 rows={1}
+                className="w-full resize-none rounded-full border border-input bg-background px-4 py-2.5 text-sm outline-none transition-all placeholder:text-muted-foreground focus:border-ring focus:ring-2 focus:ring-ring/20 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-input/30"
+                style={{ 
+                  fontSize: '16px',
+                  minHeight: '44px',
+                  maxHeight: '120px',
+                }}
               />
               {isTextareaFocused && message.length > 0 && (
-                <div className="absolute -bottom-1 left-0 right-0 h-0.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                  <div 
+                <div className="absolute -bottom-1 left-0 right-0 h-1 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
+                  <div
                     className="h-full bg-primary transition-all duration-200"
                     style={{ width: `${messageProgressPercentage}%` }}
                   />
@@ -572,27 +530,26 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
             </div>
 
             <button
-              onClick={handleMicButtonClick}
-              disabled={disabled || showMediaInput}
-              className={`inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border shadow-xs size-9 h-10 w-10 shrink-0 rounded-full ${
-                isRecording 
-                  ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90' 
-                  : 'bg-background hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50'
-              }`}
-              title={isRecording ? 'Cancel recording' : 'Record voice message'}
-            >
-              {isRecording ? <X className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
-            </button>
-
-            <button
               onClick={handleSend}
-              disabled={disabled || isUploading || isSending || isRecording || (!message.trim() && !selectedFile && !selectedGif)}
+              disabled={disabled || (!message.trim() && !selectedImage && !selectedGif) || isRecording || isUploading || isSending}
               className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground shadow-xs hover:bg-primary/90 size-9 h-10 w-10 shrink-0 rounded-full"
               title="Send message"
             >
               <Send className="h-5 w-5" />
             </button>
           </div>
+
+          {/* Link preview */}
+          {detectedLink && !selectedImage && !selectedGif && (
+            <MessageInputLinkPreview url={detectedLink.url} type={detectedLink.type} />
+          )}
+
+          {isUploading && (
+            <div className="space-y-1">
+              <div className="text-xs text-muted-foreground">Uploading...</div>
+              <Progress value={uploadProgress} className="h-1" />
+            </div>
+          )}
         </div>
       </div>
     </div>

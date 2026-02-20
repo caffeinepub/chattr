@@ -1,55 +1,39 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Add auto-embed for social media links and GIF support",
+  "title": "Fix image and GIF display in chat message bubbles",
   "requirements": [
     {
-      "id": "REQ-2",
-      "summary": "Implement automatic link detection and embedding in chat messages for YouTube, Twitch, X (Twitter), Instagram, TikTok, Rumble, and direct image URLs",
+      "id": "REQ-1",
+      "summary": "Restore image and GIF display functionality in MessageBubble.tsx using the working approach from draft version 261",
       "acceptanceCriteria": [
-        "YouTube links display video embeds",
-        "Twitch links display stream/clip embeds",
-        "X (Twitter) links display post previews",
-        "Instagram links display post embeds",
-        "TikTok links display video embeds",
-        "Rumble links display video embeds",
-        "Direct image URLs display inline images",
-        "Link detection works when users paste URLs directly into the chat input and send the message",
-        "Multiple links in a single message are all detected and embedded"
+        "Images with imageId load and display correctly in message bubbles using the useGetImage hook",
+        "Images with imageUrl load and display correctly in message bubbles using direct blob URLs",
+        "Animated GIFs display and animate properly in chat messages",
+        "All existing MessageBubble functionality (reactions, replies, media embeds, pinning) continues to work",
+        "Image loading errors are handled gracefully"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/lib/videoUtils.ts",
-          "operation": "modify",
-          "description": "Add URL detection and parsing functions for Instagram, TikTok, Rumble, and direct image URLs. Include functions to extract identifiers from Instagram posts (e.g., /p/[shortcode]/), TikTok videos (e.g., /video/[id]), and Rumble videos (e.g., /[slug]). Add a helper to detect direct image URLs by file extension (.jpg, .jpeg, .png, .gif, .webp). Add a general URL detection regex that can identify multiple URLs within message text."
-        },
-        {
           "path": "frontend/src/components/MessageBubble.tsx",
           "operation": "modify",
-          "description": "Extend the message rendering logic to automatically detect and embed Instagram, TikTok, and Rumble links found in message.content. Use the URL detection helpers from videoUtils.ts to parse multiple links within a single message. For Instagram posts, render an iframe embed using the Instagram oEmbed endpoint pattern. For TikTok videos, render an iframe embed using TikTok's embed URL format. For Rumble videos, render an iframe embed using Rumble's embed URL format. For direct image URLs detected in the message text, render inline <img> tags. Preserve existing YouTube, Twitch, and Twitter embed rendering. Ensure all embeds are styled consistently and positioned below the message text content."
-        },
-        {
-          "path": "frontend/src/components/MessageInput.tsx",
-          "operation": "modify",
-          "description": "Update the message sending logic to allow URLs pasted directly into the text input to be detected and embedded automatically when the message is sent. Remove any validation that prevents sending messages containing only URLs or that strips URLs from text content. Ensure that when a user pastes a YouTube, Twitch, Twitter, Instagram, TikTok, Rumble, or direct image URL into the text input and sends the message, it is transmitted as part of the message content and not treated as a media attachment."
+          "description": "Restore image rendering logic to handle both imageId (using useGetImage hook to fetch from backend) and imageUrl (using direct blob URLs from getDirectURL()). Add proper image loading states and error handling. Ensure animated GIFs display correctly. Reference the blob-storage component's ExternalBlob.getDirectURL() method for imageUrl rendering. Preserve all existing functionality including reactions, replies, media embeds (YouTube/Twitch/Twitter), voice messages, pinning, and Twitter widget loading. Verify the blob-storage component's usage instructions before implementing."
         }
       ]
     },
     {
-      "id": "REQ-3",
-      "summary": "Modify the Add Media button functionality to exclusively support image uploads and add GIF selection via Giphy integration",
+      "id": "REQ-2",
+      "summary": "Update frontend query hooks to ensure proper image fetching support for MessageBubble.tsx",
       "acceptanceCriteria": [
-        "Add Media button opens a dialog with only image upload and GIF selection options",
-        "Giphy integration allows users to search and select GIFs",
-        "Video URL input fields are removed from the Add Media dialog",
-        "Image upload functionality remains unchanged",
-        "Selected GIFs post to chat as media attachments"
+        "useGetImage hook (if it exists) properly fetches images from the backend using imageId",
+        "Image query hooks handle loading states and errors appropriately",
+        "Query hooks integrate correctly with MessageBubble.tsx image rendering logic"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/MessageInput.tsx",
+          "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Remove all video URL input fields and Twitter URL input fields from the Add Media dialog. Retain only the image upload functionality. Add a new GIF selection mode within the Add Media dialog that allows users to search and select GIFs using the existing Giphy integration (already present in AvatarPickerDialog.tsx). When a user selects a GIF, set it as the media attachment (mediaUrl and mediaType) for the message. Ensure the dialog UI clearly separates the image upload option from the GIF selection option (e.g., using tabs or toggle buttons). Preserve all existing image upload functionality including progress tracking and compression."
+          "description": "Review and update image-related query hooks to ensure proper integration with MessageBubble.tsx. If useGetImage hook exists, verify it correctly calls actor.getImage(imageId) and returns ExternalBlob instances. If the hook is missing, add it with proper React Query configuration including queryKey, enabled state based on imageId presence, error handling, and loading states. Ensure the hook integrates with the blob-storage component's ExternalBlob type from the backend interface. Reference the blob-storage component's usage instructions for proper ExternalBlob handling."
         }
       ]
     }
