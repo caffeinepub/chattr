@@ -17,6 +17,7 @@ export interface ChatroomWithLiveStatus {
   'createdAt' : bigint,
   'description' : string,
   'isLive' : boolean,
+  'isArchived' : boolean,
   'mediaUrl' : [] | [string],
   'viewCount' : bigint,
   'messageCount' : bigint,
@@ -130,17 +131,11 @@ export interface _SERVICE {
     [string, string, string, string, string],
     bigint
   >,
-  'deleteChatroomWithPassword' : ActorMethod<[bigint, string], undefined>,
-  'fetchGiphyResults' : ActorMethod<[string], string>,
-  'fetchTrendingGiphyGifs' : ActorMethod<[], string>,
-  'fetchTwitchThumbnail' : ActorMethod<[string], string>,
-  'fetchTwitterOEmbed' : ActorMethod<[string], string>,
-  'fetchTwitterThumbnail' : ActorMethod<[string], string>,
-  'fetchYouTubeThumbnail' : ActorMethod<[string], string>,
   'filterChatroomsByCategory' : ActorMethod<
     [string],
     Array<ChatroomWithLiveStatus>
   >,
+  'getArchivedChatrooms' : ActorMethod<[], Array<ChatroomWithLiveStatus>>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
   'getChatroom' : ActorMethod<[bigint], [] | [ChatroomWithLiveStatus]>,
@@ -163,19 +158,6 @@ export interface _SERVICE {
   'removeReaction' : ActorMethod<[bigint, string, string], undefined>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
   'searchChatrooms' : ActorMethod<[string], Array<ChatroomWithLiveStatus>>,
-  'sendMessage' : ActorMethod<
-    [
-      string,
-      string,
-      bigint,
-      [] | [string],
-      [] | [string],
-      [] | [string],
-      string,
-      [] | [bigint],
-    ],
-    undefined
-  >,
   'transform' : ActorMethod<[TransformationInput], TransformationOutput>,
   'unpinVideo' : ActorMethod<[bigint], undefined>,
   'updateAvatarRetroactively' : ActorMethod<[string, [] | [string]], undefined>,

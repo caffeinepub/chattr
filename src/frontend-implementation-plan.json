@@ -1,68 +1,21 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Add Giphy GIF support and reorganize media button tabs",
+  "title": "Remove all authentication and caller checks to enable full guest access",
   "requirements": [
     {
-      "id": "REQ-5",
-      "summary": "Add a new Giphy tab to the media button in the chat input area with search functionality and preloaded popular GIFs",
+      "id": "REQ-9",
+      "summary": "Remove any remaining authentication-related logic from frontend hooks (useActor.ts) that calls initAccessControl or depends on authentication state for authorization",
       "acceptanceCriteria": [
-        "Media button in chat input area contains a new Giphy tab",
-        "Giphy tab displays preloaded popular GIFs on open",
-        "Giphy tab includes a search field that allows users to search for GIFs by keyword",
-        "Search functionality uses debounced input (matching AvatarPickerDialog pattern)",
-        "Selected GIFs are added to chat messages"
+        "useActor.ts does not call initAccessControl when actor is ready",
+        "Frontend does not attempt to initialize or manage access control",
+        "All backend operations work without any authentication setup"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/MessageInput.tsx",
+          "path": "frontend/src/hooks/useActor.ts",
           "operation": "modify",
-          "description": "Add a new Giphy tab to the media button dialog. Implement a search input field with debounced search (using useDebouncedValue hook). Display trending GIFs on initial load using frontend/src/lib/giphy.ts functions (fetchTrendingGifs and searchGifs). Use the same pattern as AvatarPickerDialog.tsx for layout, search debouncing, and grid display. When a GIF is selected, populate the message content with the GIF URL and set mediaType to 'giphy'. Ensure the tab is added to the existing tab structure alongside the Image tab. Verify the component's usage instructions for frontend/src/lib/giphy.ts before implementing."
-        }
-      ]
-    },
-    {
-      "id": "REQ-6",
-      "summary": "Remove the video tab from the add media button since URL auto-embedding handles video content",
-      "acceptanceCriteria": [
-        "Video tab is completely removed from the media button component",
-        "Users can still embed videos by pasting URLs directly in chat"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/MessageInput.tsx",
-          "operation": "modify",
-          "description": "Remove the video tab and all associated video tab logic from the media button dialog. Preserve the auto-detection functionality that allows users to paste YouTube and Twitch URLs directly in the message input. Ensure the existing URL detection logic in the component remains intact."
-        }
-      ]
-    },
-    {
-      "id": "REQ-7",
-      "summary": "Remove the X posts tab from the add media button since URL auto-embedding handles X/Twitter content",
-      "acceptanceCriteria": [
-        "X posts tab is completely removed from the media button component",
-        "Users can still embed X/Twitter posts by pasting URLs directly in chat"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/MessageInput.tsx",
-          "operation": "modify",
-          "description": "Remove the X posts tab and all associated Twitter/X tab logic from the media button dialog. Preserve the auto-detection functionality that allows users to paste Twitter/X URLs directly in the message input. Ensure the existing URL detection logic in the component remains intact."
-        }
-      ]
-    },
-    {
-      "id": "REQ-8",
-      "summary": "Ensure no caller checks or authentication gates are added to the Giphy functionality",
-      "acceptanceCriteria": [
-        "No caller checks are implemented for Giphy GIF selection or sending",
-        "No authentication gates are added to the Giphy tab functionality"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/MessageInput.tsx",
-          "operation": "modify",
-          "description": "Ensure the Giphy tab implementation does not include any authentication checks, permission validation, or caller verification. The Giphy search and selection functionality should be accessible to all users without any login or identity requirements. Keep the implementation client-side only using the existing frontend/src/lib/giphy.ts functions."
+          "description": "Remove the initializeAccessControl call that occurs when the actor becomes ready. Currently the hook calls actor.initializeAccessControl() after the actor is created; this must be removed so that no access control initialization happens. The hook should still create and manage the actor instance, but without any authentication or authorization setup calls."
         }
       ]
     }

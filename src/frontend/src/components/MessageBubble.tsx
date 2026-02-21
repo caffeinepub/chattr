@@ -33,7 +33,6 @@ interface MessageBubbleProps {
 
 const COMMON_EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '🔥', '👏', '🎉'];
 
-// Declare Twitter widgets type
 declare global {
   interface Window {
     twttr?: {
@@ -55,7 +54,6 @@ declare global {
   }
 }
 
-// Load Twitter widgets script
 function loadTwitterScript(): Promise<void> {
   return new Promise((resolve, reject) => {
     if (window.twttr) {
@@ -73,7 +71,6 @@ function loadTwitterScript(): Promise<void> {
   });
 }
 
-// Convert List to array helper
 function listToArray<T>(list: any): T[] {
   const result: T[] = [];
   let current = list;
@@ -84,7 +81,6 @@ function listToArray<T>(list: any): T[] {
   return result;
 }
 
-// Get user ID from localStorage
 function getUserId(): string {
   let userId = localStorage.getItem('chatUserId');
   if (!userId) {
@@ -94,7 +90,6 @@ function getUserId(): string {
   return userId;
 }
 
-// Truncate text to specified length
 function truncateText(text: string, maxLength: number): string {
   if (text.length <= maxLength) return text;
   return text.substring(0, maxLength) + '...';
@@ -156,15 +151,12 @@ export default function MessageBubble({
     if (existingReaction) {
       const users = listToArray<string>(existingReaction.users);
       if (users.includes(userId)) {
-        // User already reacted, remove reaction
-        await removeReaction.mutateAsync({ messageId: message.id, emoji, chatroomId });
+        await removeReaction.mutateAsync({ messageId: message.id, emoji });
       } else {
-        // Add reaction
-        await addReaction.mutateAsync({ messageId: message.id, emoji, chatroomId });
+        await addReaction.mutateAsync({ messageId: message.id, emoji });
       }
     } else {
-      // Add new reaction
-      await addReaction.mutateAsync({ messageId: message.id, emoji, chatroomId });
+      await addReaction.mutateAsync({ messageId: message.id, emoji });
     }
     
     setShowEmojiPicker(false);
@@ -173,13 +165,13 @@ export default function MessageBubble({
   const handleReplyClick = () => {
     if (!onReply) return;
     
-    // Generate content snippet (first 100 characters)
     const contentSnippet = truncateText(message.content, 100);
     
-    // Get media thumbnail if available
     let mediaThumbnail: string | undefined;
     if (message.mediaUrl && message.mediaType) {
       if (message.mediaType === 'image') {
+        mediaThumbnail = message.mediaUrl;
+      } else if (message.mediaType === 'gif') {
         mediaThumbnail = message.mediaUrl;
       } else if (message.mediaType === 'youtube' && isYouTubeUrl(message.mediaUrl)) {
         const videoId = getYouTubeVideoId(message.mediaUrl);
@@ -187,13 +179,10 @@ export default function MessageBubble({
           mediaThumbnail = `https://img.youtube.com/vi/${videoId}/default.jpg`;
         }
       } else if (message.mediaType === 'twitch' && isTwitchUrl(message.mediaUrl)) {
-        // Use a generic Twitch icon for thumbnails
         mediaThumbnail = '/assets/generated/twitch-icon-transparent.dim_32x32.png';
       } else if (message.mediaType === 'twitter' && isTwitterUrl(message.mediaUrl)) {
-        // Use a generic Twitter icon for thumbnails
         mediaThumbnail = '/assets/generated/twitter-icon-transparent.dim_32x32.png';
       } else if (message.mediaType === 'audio') {
-        // Use audio waveform icon for audio thumbnails
         mediaThumbnail = '/assets/generated/audio-waveform-icon-transparent.dim_24x24.png';
       }
     }
@@ -201,7 +190,6 @@ export default function MessageBubble({
     onReply(message.id, message.sender, contentSnippet, mediaThumbnail);
   };
 
-  // Load Twitter embed when message contains Twitter URL
   useEffect(() => {
     if (message.mediaType === 'twitter' && message.mediaUrl && isTwitterUrl(message.mediaUrl)) {
       const tweetId = getTwitterPostId(message.mediaUrl);
@@ -211,7 +199,6 @@ export default function MessageBubble({
         loadTwitterScript()
           .then(() => {
             if (window.twttr && tweetContainerRef.current) {
-              // Detect theme from document
               const isDark = document.documentElement.classList.contains('dark');
               
               window.twttr.widgets.createTweet(
@@ -237,7 +224,6 @@ export default function MessageBubble({
     }
   }, [message.mediaType, message.mediaUrl]);
 
-  // Find the message this is replying to
   const parentMessage = message.replyToMessageId && allMessages
     ? allMessages.find((m) => m.id === message.replyToMessageId)
     : null;
@@ -246,6 +232,19 @@ export default function MessageBubble({
     if (!message.mediaUrl || !message.mediaType) return null;
 
     const mediaUrl = message.mediaUrl;
+
+    if (message.mediaType === 'gif') {
+      return (
+        <div className="mt-2 w-full max-w-[400px]">
+          <img
+            src={mediaUrl}
+            alt="GIF"
+            className="w-full rounded-lg object-cover cursor-pointer hover:opacity-90 transition-opacity"
+            onClick={() => setIsExpanded(true)}
+          />
+        </div>
+      );
+    }
 
     if (message.mediaType === 'youtube' && isYouTubeUrl(mediaUrl)) {
       const videoId = getYouTubeVideoId(mediaUrl);
@@ -353,7 +352,7 @@ export default function MessageBubble({
   const renderExpandedMedia = () => {
     if (!isExpanded || !message.mediaUrl || !message.mediaType) return null;
 
-    if (message.mediaType !== 'image') return null;
+    if (message.mediaType !== 'image' && message.mediaType !== 'gif') return null;
 
     const mediaUrl = message.mediaUrl;
 
@@ -424,7 +423,6 @@ export default function MessageBubble({
                 : 'rounded-tl-sm bg-card text-card-foreground border border-border'
             } ${hasVideo ? 'w-full' : ''}`}
           >
-            {/* Quoted reply block */}
             {parentMessage && onScrollToMessage && (
               <div 
                 onClick={() => onScrollToMessage(parentMessage.id)}
@@ -435,7 +433,7 @@ export default function MessageBubble({
                 <div className="flex items-start gap-2">
                   {parentMessage.mediaUrl && parentMessage.mediaType && (
                     <div className="flex-shrink-0">
-                      {parentMessage.mediaType === 'image' && (
+                      {(parentMessage.mediaType === 'image' || parentMessage.mediaType === 'gif') && (
                         <img 
                           src={parentMessage.mediaUrl} 
                           alt="Reply thumbnail" 
@@ -490,7 +488,6 @@ export default function MessageBubble({
             {renderMedia()}
           </div>
 
-          {/* Reactions display */}
           {reactions.length > 0 && (
             <div className="mt-1 flex flex-wrap gap-1">
               {reactions.map((reaction) => {
@@ -515,7 +512,7 @@ export default function MessageBubble({
             </div>
           )}
 
-          <div className="mt-1 flex items-center gap-2">
+          <div className="mt-1 flex items-center gap-1">
             <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
               <PopoverTrigger asChild>
                 <Button
@@ -523,22 +520,19 @@ export default function MessageBubble({
                   size="sm"
                   className="h-6 px-2 text-xs"
                 >
-                  <Smile className="h-3 w-3 mr-1" />
-                  React
+                  <Smile className="h-3 w-3" />
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-2" align={isOwnMessage ? 'end' : 'start'}>
                 <div className="flex gap-1">
                   {COMMON_EMOJIS.map((emoji) => (
-                    <Button
+                    <button
                       key={emoji}
-                      variant="ghost"
-                      size="sm"
-                      className="h-8 w-8 p-0 text-lg hover:scale-125 transition-transform"
                       onClick={() => handleReaction(emoji)}
+                      className="rounded p-1 text-lg hover:bg-muted transition-colors"
                     >
                       {emoji}
-                    </Button>
+                    </button>
                   ))}
                 </div>
               </PopoverContent>
@@ -548,11 +542,10 @@ export default function MessageBubble({
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-6 px-2 text-xs"
                 onClick={handleReplyClick}
+                className="h-6 px-2 text-xs"
               >
-                <Reply className="h-3 w-3 mr-1" />
-                Reply
+                <Reply className="h-3 w-3" />
               </Button>
             )}
           </div>

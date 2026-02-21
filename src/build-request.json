@@ -1,93 +1,70 @@
 {
   "kind": "build_request",
-  "title": "Add Giphy GIF support and reorganize media button tabs",
-  "projectName": "Global Chatroom",
-  "priority": "normal",
+  "title": "Remove all authentication and caller checks to enable full guest access",
+  "priority": "high",
   "requirements": [
     {
-      "id": "REQ-5",
-      "text": "Add a new Giphy tab to the media button in the chat input area that includes a search field for finding GIFs by keyword and displays preloaded popular GIFs (matching the implementation pattern from AvatarPickerDialog.tsx)",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-user-giphy-request"
-        ],
-        "quotes": [
-          "can we add gif (giphy) support for chat messages. can you add it as a tab in the add media button",
-          "yes and also the preloaded popular giphy gifs (just like in the avatar modal)"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Media button in chat input area contains a new Giphy tab",
-        "Giphy tab displays preloaded popular GIFs on open",
-        "Giphy tab includes a search field that allows users to search for GIFs by keyword",
-        "Search functionality uses debounced input (matching AvatarPickerDialog pattern)",
-        "Selected GIFs are added to chat messages"
-      ]
-    },
-    {
-      "id": "REQ-6",
-      "text": "Remove the video tab from the add media button in the chat input area since URL auto-embedding now handles video content",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-user-giphy-request"
-        ],
-        "quotes": [
-          "remove the redundant video and x posts tabs from the add media button since you can use the chat to embed them now"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Video tab is completely removed from the media button component",
-        "Users can still embed videos by pasting URLs directly in chat"
-      ]
-    },
-    {
       "id": "REQ-7",
-      "text": "Remove the X posts tab from the add media button in the chat input area since URL auto-embedding now handles X/Twitter content",
-      "target": "frontend",
+      "text": "Remove all msg.caller verification logic from every backend function in backend/main.mo so that all functions are publicly accessible without any authentication or authorization checks",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-user-giphy-request"
+          "msg-5",
+          "msg-6",
+          "msg-7"
         ],
         "quotes": [
-          "remove the redundant video and x posts tabs from the add media button since you can use the chat to embed them now"
+          "guests should have access to the whole site, no action should be restricted to guests",
+          "all backend functions to be publicly accessible with no caller checks or authentication requirements whatsoever"
         ]
       },
       "acceptanceCriteria": [
-        "X posts tab is completely removed from the media button component",
-        "Users can still embed X/Twitter posts by pasting URLs directly in chat"
+        "No function in backend/main.mo contains any msg.caller verification",
+        "No function throws unauthorized or authentication-related errors",
+        "All functions can be called by anonymous users without any restrictions",
+        "Guest users can perform all actions that previously required authentication"
       ]
     },
     {
       "id": "REQ-8",
-      "text": "Do not add any caller checks or authentication/permission validation for the Giphy functionality - skip any security validations",
-      "target": "both",
+      "text": "Remove the initAccessControl function call and any related access control initialization logic from the backend",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-user-giphy-request"
-        ],
-        "quotes": [
-          "also dont add any caller checks, if you cant avoid it then just ignore them/nullify them"
+          "msg-7"
         ]
       },
       "acceptanceCriteria": [
-        "No caller checks are implemented for Giphy GIF selection or sending",
-        "No authentication gates are added to the Giphy tab functionality"
+        "initAccessControl function is not called anywhere in the backend",
+        "No access control state is initialized or maintained",
+        "Backend does not track or verify user permissions"
+      ]
+    },
+    {
+      "id": "REQ-9",
+      "text": "Remove any remaining authentication-related logic from frontend hooks (useActor.ts) that calls initAccessControl or depends on authentication state for authorization",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-7"
+        ]
+      },
+      "acceptanceCriteria": [
+        "useActor.ts does not call initAccessControl when actor is ready",
+        "Frontend does not attempt to initialize or manage access control",
+        "All backend operations work without any authentication setup"
       ]
     }
   ],
   "constraints": [
-    "Preserve all existing functionality for image uploads and other existing media tabs",
-    "Maintain the current URL auto-detection and embedding system for YouTube, Twitch, and X posts",
-    "Do not modify the backend/main.mo file unless absolutely necessary",
-    "Reuse the Giphy integration patterns from AvatarPickerDialog.tsx (search, trending, debouncing)"
+    "Maintain all existing functionality - only remove authentication/authorization checks",
+    "Do not modify the overall application structure or data models",
+    "Preserve all existing features for message management, reactions, media handling, etc."
   ],
   "nonGoals": [
-    "Modifying how URL auto-detection works for videos and X posts",
-    "Changing the styling or layout of the chat input area beyond adding/removing tabs",
-    "Adding authentication or permission checks for GIF functionality",
-    "Creating new backend endpoints for Giphy (use client-side API calls only)"
+    "Adding new features or functionality",
+    "Modifying the frontend UI or user experience",
+    "Changing data structures or storage mechanisms"
   ],
   "imageRequirements": {
     "required": [],

@@ -1,13 +1,11 @@
 # Specification
 
 ## Summary
-**Goal:** Add Giphy GIF support to chat messages and streamline the media button by removing redundant video and X posts tabs.
+**Goal:** Remove all authentication and authorization checks to enable full guest access throughout the application.
 
 **Planned changes:**
-- Add a new Giphy tab to the media button with search functionality and preloaded popular GIFs
-- Remove the video tab from the media button (videos can still be embedded via URL)
-- Remove the X posts tab from the media button (X posts can still be embedded via URL)
-- Implement Giphy integration using the same pattern as AvatarPickerDialog.tsx (search with debouncing, trending GIFs)
-- Skip any caller checks or authentication validations for Giphy functionality
+- Remove all msg.caller verification logic from every backend function in backend/main.mo
+- Remove initAccessControl function call and access control initialization logic from backend
+- Remove authentication-related logic from frontend hooks (useActor.ts) that calls initAccessControl
 
-**User-visible outcome:** Users can search and send GIFs from Giphy directly in chat via the media button, while video and X post embedding continue to work through URL pasting.
+**User-visible outcome:** All users can access and use all features of the application without any authentication or login requirements. Guest users have unrestricted access to create rooms, post messages, add reactions, upload media, and perform all other actions.

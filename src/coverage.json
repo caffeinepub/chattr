@@ -1,58 +1,37 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-20T22:14:20.472Z",
+  "generatedAt": "2026-02-21T00:20:23.738Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 4,
-    "implemented": 4,
+    "total": 3,
+    "implemented": 0,
     "items": [
       {
-        "id": "REQ-5",
-        "summary": "Add a new Giphy tab to the media button in the chat input area that includes a search field for finding GIFs by keyword and displays preloaded popular GIFs (matching the implementation pattern from AvatarPickerDialog.tsx)",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/MessageInput.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/MessageInput.tsx"
-        ]
-      },
-      {
-        "id": "REQ-6",
-        "summary": "Remove the video tab from the add media button in the chat input area since URL auto-embedding now handles video content",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/MessageInput.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/MessageInput.tsx"
-        ]
-      },
-      {
         "id": "REQ-7",
-        "summary": "Remove the X posts tab from the add media button in the chat input area since URL auto-embedding now handles X/Twitter content",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/MessageInput.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/MessageInput.tsx"
-        ]
+        "summary": "Remove all msg.caller verification logic from every backend function in backend/main.mo so that all functions are publicly accessible without any authentication or authorization checks",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
       },
       {
         "id": "REQ-8",
-        "summary": "Do not add any caller checks or authentication/permission validation for the Giphy functionality - skip any security validations",
-        "status": "implemented",
+        "summary": "Remove the initAccessControl function call and any related access control initialization logic from the backend",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-9",
+        "summary": "Remove any remaining authentication-related logic from frontend hooks (useActor.ts) that calls initAccessControl or depends on authentication state for authorization",
+        "status": "missing",
         "plannedFiles": [
-          "frontend/src/components/MessageInput.tsx"
+          "frontend/src/hooks/useActor.ts"
         ],
-        "matchedFiles": [
-          "frontend/src/components/MessageInput.tsx"
-        ]
+        "matchedFiles": []
       }
     ]
   },
@@ -64,9 +43,10 @@
     "frontend-implementation-plan.json",
     "frontend/src/backend.d.ts",
     "frontend/src/backend.ts",
-    "frontend/src/components/MessageInput.tsx",
+    "frontend/src/components/MessageBubble.tsx",
     "frontend/src/declarations/backend.did.d.ts",
     "frontend/src/declarations/backend.did.js",
+    "frontend/src/hooks/useQueries.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

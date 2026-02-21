@@ -174,6 +174,7 @@ export interface ChatroomWithLiveStatus {
     createdAt: bigint;
     description: string;
     isLive: boolean;
+    isArchived: boolean;
     mediaUrl?: string;
     viewCount: bigint;
     messageCount: bigint;
@@ -206,14 +207,8 @@ export interface backendInterface {
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     cleanupInactiveUsers(): Promise<void>;
     createChatroom(topic: string, description: string, mediaUrl: string, mediaType: string, category: string): Promise<bigint>;
-    deleteChatroomWithPassword(chatroomId: bigint, password: string): Promise<void>;
-    fetchGiphyResults(searchTerm: string): Promise<string>;
-    fetchTrendingGiphyGifs(): Promise<string>;
-    fetchTwitchThumbnail(channelName: string): Promise<string>;
-    fetchTwitterOEmbed(tweetUrl: string): Promise<string>;
-    fetchTwitterThumbnail(tweetUrl: string): Promise<string>;
-    fetchYouTubeThumbnail(videoId: string): Promise<string>;
     filterChatroomsByCategory(category: string): Promise<Array<ChatroomWithLiveStatus>>;
+    getArchivedChatrooms(): Promise<Array<ChatroomWithLiveStatus>>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
     getChatroom(id: bigint): Promise<ChatroomWithLiveStatus | null>;
@@ -233,7 +228,6 @@ export interface backendInterface {
     removeReaction(messageId: bigint, emoji: string, userId: string): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     searchChatrooms(searchTerm: string): Promise<Array<ChatroomWithLiveStatus>>;
-    sendMessage(content: string, sender: string, chatroomId: bigint, mediaUrl: string | null, mediaType: string | null, avatarUrl: string | null, senderId: string, replyToMessageId: bigint | null): Promise<void>;
     transform(input: TransformationInput): Promise<TransformationOutput>;
     unpinVideo(chatroomId: bigint): Promise<void>;
     updateAvatarRetroactively(senderId: string, newAvatarUrl: string | null): Promise<void>;
@@ -382,104 +376,6 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async deleteChatroomWithPassword(arg0: bigint, arg1: string): Promise<void> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.deleteChatroomWithPassword(arg0, arg1);
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.deleteChatroomWithPassword(arg0, arg1);
-            return result;
-        }
-    }
-    async fetchGiphyResults(arg0: string): Promise<string> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.fetchGiphyResults(arg0);
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.fetchGiphyResults(arg0);
-            return result;
-        }
-    }
-    async fetchTrendingGiphyGifs(): Promise<string> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.fetchTrendingGiphyGifs();
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.fetchTrendingGiphyGifs();
-            return result;
-        }
-    }
-    async fetchTwitchThumbnail(arg0: string): Promise<string> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.fetchTwitchThumbnail(arg0);
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.fetchTwitchThumbnail(arg0);
-            return result;
-        }
-    }
-    async fetchTwitterOEmbed(arg0: string): Promise<string> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.fetchTwitterOEmbed(arg0);
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.fetchTwitterOEmbed(arg0);
-            return result;
-        }
-    }
-    async fetchTwitterThumbnail(arg0: string): Promise<string> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.fetchTwitterThumbnail(arg0);
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.fetchTwitterThumbnail(arg0);
-            return result;
-        }
-    }
-    async fetchYouTubeThumbnail(arg0: string): Promise<string> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.fetchYouTubeThumbnail(arg0);
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.fetchYouTubeThumbnail(arg0);
-            return result;
-        }
-    }
     async filterChatroomsByCategory(arg0: string): Promise<Array<ChatroomWithLiveStatus>> {
         if (this.processError) {
             try {
@@ -491,6 +387,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.filterChatroomsByCategory(arg0);
+            return from_candid_vec_n10(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async getArchivedChatrooms(): Promise<Array<ChatroomWithLiveStatus>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getArchivedChatrooms();
+                return from_candid_vec_n10(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getArchivedChatrooms();
             return from_candid_vec_n10(this._uploadFile, this._downloadFile, result);
         }
     }
@@ -760,20 +670,6 @@ export class Backend implements backendInterface {
             return from_candid_vec_n10(this._uploadFile, this._downloadFile, result);
         }
     }
-    async sendMessage(arg0: string, arg1: string, arg2: bigint, arg3: string | null, arg4: string | null, arg5: string | null, arg6: string, arg7: bigint | null): Promise<void> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.sendMessage(arg0, arg1, arg2, to_candid_opt_n43(this._uploadFile, this._downloadFile, arg3), to_candid_opt_n43(this._uploadFile, this._downloadFile, arg4), to_candid_opt_n43(this._uploadFile, this._downloadFile, arg5), arg6, to_candid_opt_n44(this._uploadFile, this._downloadFile, arg7));
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.sendMessage(arg0, arg1, arg2, to_candid_opt_n43(this._uploadFile, this._downloadFile, arg3), to_candid_opt_n43(this._uploadFile, this._downloadFile, arg4), to_candid_opt_n43(this._uploadFile, this._downloadFile, arg5), arg6, to_candid_opt_n44(this._uploadFile, this._downloadFile, arg7));
-            return result;
-        }
-    }
     async transform(arg0: TransformationInput): Promise<TransformationOutput> {
         if (this.processError) {
             try {
@@ -895,6 +791,7 @@ function from_candid_record_n12(_uploadFile: (file: ExternalBlob) => Promise<Uin
     createdAt: bigint;
     description: string;
     isLive: boolean;
+    isArchived: boolean;
     mediaUrl: [] | [string];
     viewCount: bigint;
     messageCount: bigint;
@@ -908,6 +805,7 @@ function from_candid_record_n12(_uploadFile: (file: ExternalBlob) => Promise<Uin
     createdAt: bigint;
     description: string;
     isLive: boolean;
+    isArchived: boolean;
     mediaUrl?: string;
     viewCount: bigint;
     messageCount: bigint;
@@ -922,6 +820,7 @@ function from_candid_record_n12(_uploadFile: (file: ExternalBlob) => Promise<Uin
         createdAt: value.createdAt,
         description: value.description,
         isLive: value.isLive,
+        isArchived: value.isArchived,
         mediaUrl: record_opt_to_undefined(from_candid_opt_n13(_uploadFile, _downloadFile, value.mediaUrl)),
         viewCount: value.viewCount,
         messageCount: value.messageCount,
@@ -1159,9 +1058,6 @@ function to_candid_opt_n1(_uploadFile: (file: ExternalBlob) => Promise<Uint8Arra
     return value === null ? candid_none() : candid_some(to_candid__CaffeineStorageRefillInformation_n2(_uploadFile, _downloadFile, value));
 }
 function to_candid_opt_n43(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: string | null): [] | [string] {
-    return value === null ? candid_none() : candid_some(value);
-}
-function to_candid_opt_n44(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: bigint | null): [] | [bigint] {
     return value === null ? candid_none() : candid_some(value);
 }
 function to_candid_record_n3(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
