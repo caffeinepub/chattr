@@ -1,11 +1,10 @@
 # Specification
 
 ## Summary
-**Goal:** Improve the microphone button animation color, reduce chat input padding, and restore button labels for better UX.
+**Goal:** Re-add text labels to the Reply and React buttons in message bubbles.
 
 **Planned changes:**
-- Change microphone button's rotating ring animation to use theme blue color (--color-primary)
-- Reduce vertical padding in the chat input area for a more compact appearance
-- Restore text labels for react and reply buttons on message bubbles
+- Add "Reply" text label to the reply button in the MessageBubble component
+- Add "React" text label to the react button in the MessageBubble component
 
-**User-visible outcome:** Users will see a blue-themed microphone animation matching the app's color scheme, a more compact chat input area, and clear "React" and "Reply" labels on message actions.
+**User-visible outcome:** Users will see "Reply" and "React" text labels alongside the icons on message bubble buttons, making the button purposes clearer.

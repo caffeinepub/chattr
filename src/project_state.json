@@ -7,51 +7,24 @@
   "isFixRequest": false,
   "existing_features": [
     {
-      "id": "feature-change-the-microphone-button-s-rotating-ring-animation-color-from-its-current-color-to-the-theme-blue-color-color-primary-from-the-theme",
-      "title": "Change the microphone button's rotating ring animation color from its current color to the theme blue color (--color-primary from the theme)",
+      "id": "feature-add-visible-reply-text-label-to-the-reply-button-in-the-messagebubble-component",
+      "title": "Add visible 'Reply' text label to the reply button in the MessageBubble component",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-reduce-the-vertical-padding-in-the-chat-input-area-messageinput-component-to-make-it-more-compact",
-      "title": "Reduce the vertical padding in the chat input area (MessageInput component) to make it more compact",
+      "id": "feature-add-visible-react-text-label-to-the-react-button-in-the-messagebubble-component",
+      "title": "Add visible 'React' text label to the react button in the MessageBubble component",
       "reqIds": [
         "REQ-2"
       ],
       "version": 1
-    },
-    {
-      "id": "feature-restore-the-text-labels-for-the-react-and-reply-buttons-that-appear-on-message-bubbles",
-      "title": "Restore the text labels for the react and reply buttons that appear on message bubbles",
-      "reqIds": [
-        "REQ-3"
-      ],
-      "version": 1
     }
   ],
-  "new_feature_requests": [
-    {
-      "id": "AR-1",
-      "summary": "Change microphone animation rotating ring to theme blue color",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-2",
-      "summary": "Reduce vertical padding in chat input area",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-3",
-      "summary": "Restore labels for react and reply buttons on messages",
-      "reqIds": [],
-      "status": "pending"
-    }
-  ],
-  "projectName": "Improve microphone animation, reduce input padding, restore button labels",
+  "new_feature_requests": [],
+  "projectName": "Re-add Reply and React button labels",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

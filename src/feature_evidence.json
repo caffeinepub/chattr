@@ -2,10 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-change-the-microphone-button-s-rotating-ring-animation-color-from-its-current-color-to-the-theme-blue-color-color-primary-from-the-theme",
-      "featureTitle": "Change the microphone button's rotating ring animation color from its current color to the theme blue color (--color-primary from the theme)",
+      "featureId": "feature-add-visible-reply-text-label-to-the-reply-button-in-the-messagebubble-component",
+      "featureTitle": "Add visible 'Reply' text label to the reply button in the MessageBubble component",
       "files": [
-        "frontend/src/components/MessageInput.tsx"
+        "frontend/src/components/MessageBubble.tsx"
       ],
       "components": [
         "authorization@1.0.1",
@@ -23,29 +23,8 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-reduce-the-vertical-padding-in-the-chat-input-area-messageinput-component-to-make-it-more-compact",
-      "featureTitle": "Reduce the vertical padding in the chat input area (MessageInput component) to make it more compact",
-      "files": [
-        "frontend/src/components/MessageInput.tsx"
-      ],
-      "components": [
-        "authorization@1.0.1",
-        "blob-storage@2.0.3",
-        "http-outcalls@1.1.1",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-2"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-restore-the-text-labels-for-the-react-and-reply-buttons-that-appear-on-message-bubbles",
-      "featureTitle": "Restore the text labels for the react and reply buttons that appear on message bubbles",
+      "featureId": "feature-add-visible-react-text-label-to-the-react-button-in-the-messagebubble-component",
+      "featureTitle": "Add visible 'React' text label to the react button in the MessageBubble component",
       "files": [
         "frontend/src/components/MessageBubble.tsx"
       ],
@@ -60,7 +39,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-3"
+        "REQ-2"
       ],
       "confidence": "high"
     }

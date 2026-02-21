@@ -1,66 +1,51 @@
 {
   "kind": "build_request",
-  "title": "Improve microphone animation, reduce input padding, restore button labels",
+  "title": "Re-add Reply and React button labels",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Change the microphone button's rotating ring animation color from its current color to the theme blue color (--color-primary from the theme)",
+      "text": "Add visible 'Reply' text label to the reply button in the MessageBubble component",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-final"
+          "msg-user-request"
         ],
         "quotes": [
-          "can you make it blue too (the current theme blue)"
+          "can you readd the reply and react labels to the react and reply buttons for the message bubbles"
         ]
       },
       "acceptanceCriteria": [
-        "The rotating border animation on the microphone button uses the theme's blue color",
-        "The animation color matches the primary theme color used throughout the app"
+        "The reply button displays 'Reply' text label alongside the reply icon",
+        "The label is visible and readable in the message bubble UI"
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Reduce the vertical padding in the chat input area (MessageInput component) to make it more compact",
+      "text": "Add visible 'React' text label to the react button in the MessageBubble component",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-final"
+          "msg-user-request"
         ],
         "quotes": [
-          "can you also remove some of the vertical padding for the chat input area"
+          "can you readd the reply and react labels to the react and reply buttons for the message bubbles"
         ]
       },
       "acceptanceCriteria": [
-        "The chat input area has less vertical padding than before",
-        "The input area appears more compact while remaining usable"
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "text": "Restore the text labels for the react and reply buttons that appear on message bubbles",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-final"
-        ],
-        "quotes": [
-          "can you also readd the labels for the react and reply buttons for messages"
-        ]
-      },
-      "acceptanceCriteria": [
-        "React button displays a visible text label",
-        "Reply button displays a visible text label",
-        "Labels are visible and readable on message bubbles"
+        "The react button displays 'React' text label alongside the reaction icon",
+        "The label is visible and readable in the message bubble UI"
       ]
     }
   ],
-  "constraints": [],
+  "constraints": [
+    "Only modify the MessageBubble component in frontend/src/components/MessageBubble.tsx",
+    "Maintain existing button functionality and icon placement"
+  ],
   "nonGoals": [
-    "Changing the microphone animation behavior or timing",
-    "Modifying the recording functionality",
-    "Changing button functionality beyond adding labels"
+    "Changing button icons or colors",
+    "Modifying other UI components",
+    "Altering backend message handling"
   ],
   "imageRequirements": {
     "required": [],

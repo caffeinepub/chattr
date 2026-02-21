@@ -503,12 +503,12 @@ export default function MessageBubble({
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
-                    <p className={`text-xs font-medium mb-0.5 ${isOwnMessage ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>
+                    <div className={`text-xs font-medium mb-0.5 ${isOwnMessage ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>
                       {parentMessage.sender}
-                    </p>
-                    <p className={`text-xs line-clamp-2 ${isOwnMessage ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
+                    </div>
+                    <div className={`text-xs line-clamp-2 ${isOwnMessage ? 'text-primary-foreground/70' : 'text-muted-foreground/80'}`}>
                       {parentMessage.content}
-                    </p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -521,29 +521,43 @@ export default function MessageBubble({
           {/* Reactions display */}
           {reactions.length > 0 && (
             <div className="mt-1 flex flex-wrap gap-1">
-              {reactions.map((reaction) => {
-                const users = listToArray<string>(reaction.users);
-                const hasReacted = users.includes(userId);
-                return (
-                  <button
-                    key={reaction.emoji}
-                    onClick={() => handleReaction(reaction.emoji)}
-                    className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs transition-colors ${
-                      hasReacted
-                        ? 'bg-primary/20 text-primary border border-primary/30'
-                        : 'bg-muted text-muted-foreground border border-border hover:bg-muted/80'
-                    }`}
-                  >
-                    <span>{reaction.emoji}</span>
-                    <span className="font-medium">{Number(reaction.count)}</span>
-                  </button>
-                );
-              })}
+              {reactions
+                .filter((r) => r.count > 0)
+                .map((reaction, index) => {
+                  const users = listToArray<string>(reaction.users);
+                  const hasReacted = users.includes(userId);
+                  return (
+                    <button
+                      key={index}
+                      onClick={() => handleReaction(reaction.emoji)}
+                      className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs transition-colors ${
+                        hasReacted
+                          ? 'bg-primary/20 text-primary border border-primary/30'
+                          : 'bg-muted hover:bg-muted/80 text-muted-foreground border border-border'
+                      }`}
+                    >
+                      <span>{reaction.emoji}</span>
+                      <span className="font-medium">{Number(reaction.count)}</span>
+                    </button>
+                  );
+                })}
             </div>
           )}
 
           {/* Action buttons */}
           <div className="mt-1 flex items-center gap-1">
+            {onReply && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleReplyClick}
+                className="h-7 gap-1 px-2 text-xs text-muted-foreground hover:text-foreground"
+              >
+                <Reply className="h-3 w-3" />
+                <span>Reply</span>
+              </Button>
+            )}
+
             <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
               <PopoverTrigger asChild>
                 <Button
@@ -569,18 +583,6 @@ export default function MessageBubble({
                 </div>
               </PopoverContent>
             </Popover>
-
-            {onReply && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleReplyClick}
-                className="h-7 gap-1 px-2 text-xs text-muted-foreground hover:text-foreground"
-              >
-                <Reply className="h-3 w-3" />
-                <span>Reply</span>
-              </Button>
-            )}
           </div>
         </div>
       </div>
