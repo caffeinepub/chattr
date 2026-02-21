@@ -1,70 +1,56 @@
 {
   "kind": "build_request",
-  "title": "Remove all authentication and caller checks to enable full guest access",
-  "priority": "high",
+  "title": "Update username display to 8-character alphanumeric format",
+  "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-7",
-      "text": "Remove all msg.caller verification logic from every backend function in backend/main.mo so that all functions are publicly accessible without any authentication or authorization checks",
+      "id": "REQ-1",
+      "text": "Update the username generation function in backend/main.mo to produce 8-character alphanumeric usernames using both uppercase and lowercase letters mixed with numbers (e.g., 'A3x7K9m2', 'B5n2M8k1'). Keep all existing username generation logic and behavior intact - only change the format/presentation of the output.",
       "target": "backend",
       "source": {
         "messageIds": [
-          "msg-5",
-          "msg-6",
-          "msg-7"
+          "msg-recent"
         ],
         "quotes": [
-          "guests should have access to the whole site, no action should be restricted to guests",
-          "all backend functions to be publicly accessible with no caller checks or authentication requirements whatsoever"
+          "usernames should continue to work as they do now. all that changes is the presentation. 8 characters alphanumeric both upper and lower"
         ]
       },
       "acceptanceCriteria": [
-        "No function in backend/main.mo contains any msg.caller verification",
-        "No function throws unauthorized or authentication-related errors",
-        "All functions can be called by anonymous users without any restrictions",
-        "Guest users can perform all actions that previously required authentication"
+        "Usernames are exactly 8 characters long",
+        "Usernames contain a mix of uppercase letters (A-Z), lowercase letters (a-z), and numbers (0-9)",
+        "All existing username generation logic and behavior remains unchanged",
+        "No 'Anon' prefix is added to usernames"
       ]
     },
     {
-      "id": "REQ-8",
-      "text": "Remove the initAccessControl function call and any related access control initialization logic from the backend",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-7"
-        ]
-      },
-      "acceptanceCriteria": [
-        "initAccessControl function is not called anywhere in the backend",
-        "No access control state is initialized or maintained",
-        "Backend does not track or verify user permissions"
-      ]
-    },
-    {
-      "id": "REQ-9",
-      "text": "Remove any remaining authentication-related logic from frontend hooks (useActor.ts) that calls initAccessControl or depends on authentication state for authorization",
+      "id": "REQ-2",
+      "text": "Update all frontend components that display usernames (MessageBubble, Header, etc.) to render the new 8-character alphanumeric format. Ensure the display matches the backend format without modification.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-7"
+          "msg-recent"
+        ],
+        "quotes": [
+          "8 characters alphanumeric both upper and lower"
         ]
       },
       "acceptanceCriteria": [
-        "useActor.ts does not call initAccessControl when actor is ready",
-        "Frontend does not attempt to initialize or manage access control",
-        "All backend operations work without any authentication setup"
+        "All username displays across the application show the 8-character format",
+        "Usernames are rendered exactly as received from the backend without client-side transformation",
+        "Username display is consistent across all UI components"
       ]
     }
   ],
   "constraints": [
-    "Maintain all existing functionality - only remove authentication/authorization checks",
-    "Do not modify the overall application structure or data models",
-    "Preserve all existing features for message management, reactions, media handling, etc."
+    "Do not add any caller checks or authentication - the site must remain fully anonymous",
+    "Do not change the existing username generation logic or behavior - only update the presentation format",
+    "Do not add any user identity verification or tracking mechanisms"
   ],
   "nonGoals": [
-    "Adding new features or functionality",
-    "Modifying the frontend UI or user experience",
-    "Changing data structures or storage mechanisms"
+    "Adding user authentication or login systems",
+    "Implementing caller checks or identity verification",
+    "Changing how usernames are generated or stored beyond the format",
+    "Adding username persistence or user accounts"
   ],
   "imageRequirements": {
     "required": [],

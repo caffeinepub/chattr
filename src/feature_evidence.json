@@ -1,4 +1,27 @@
 {
   "kind": "feature_evidence_report",
-  "features": []
+  "features": [
+    {
+      "featureId": "feature-update-all-frontend-components-that-display-usernames-messagebubble-header-etc-to-render-the-new-8-character-alphanumeric-format-ensure-the-display-matches-the-backend-format-without-modification",
+      "featureTitle": "Update all frontend components that display usernames (MessageBubble, Header, etc.) to render the new 8-character alphanumeric format. Ensure the display matches the backend format without modification.",
+      "files": [
+        "frontend/src/components/Header.tsx",
+        "frontend/src/hooks/useQueries.ts"
+      ],
+      "components": [
+        "authorization@1.0.1",
+        "blob-storage@2.0.3",
+        "http-outcalls@1.1.1",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-2"
+      ],
+      "confidence": "high"
+    }
+  ]
 }

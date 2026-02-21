@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useRouter, useRouterState } from '@tanstack/react-router';
 import { Button } from './ui/button';
-import { MessageCircle, Check, X, ArrowLeft, Archive } from 'lucide-react';
+import { MessageCircle, Check, X, ArrowLeft } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Input } from './ui/input';
 import { useCurrentUsername, useUpdateUsername, useCurrentAvatar } from '../hooks/useQueries';
@@ -19,7 +19,6 @@ export default function Header() {
   const [isUsernameFocused, setIsUsernameFocused] = useState(false);
 
   const isInChatroom = routerState.location.pathname.startsWith('/chatroom/');
-  const isInArchive = routerState.location.pathname === '/archive';
 
   const getInitials = (name: string) => {
     return name
@@ -61,11 +60,7 @@ export default function Header() {
     router.navigate({ to: '/' });
   };
 
-  const handleNavigateToArchive = () => {
-    router.navigate({ to: '/archive' });
-  };
-
-  const progressPercentage = (editValue.length / 15) * 100;
+  const progressPercentage = (editValue.length / 8) * 100;
 
   return (
     <>
@@ -91,18 +86,6 @@ export default function Header() {
           </div>
 
           <div className="flex items-center gap-3">
-            {!isInChatroom && !isInArchive && (
-              <Button
-                onClick={handleNavigateToArchive}
-                variant="outline"
-                size="sm"
-                className="gap-2"
-              >
-                <Archive className="h-4 w-4" />
-                <span className="hidden sm:inline">Archive</span>
-              </Button>
-            )}
-
             <button
               onClick={() => setIsAvatarPickerOpen(true)}
               className="transition-opacity hover:opacity-80"
@@ -117,19 +100,21 @@ export default function Header() {
 
             {isEditing ? (
               <div className="flex items-center gap-2">
-                <div className="relative">
+                <div className="space-y-1">
                   <Input
                     value={editValue}
                     onChange={(e) => setEditValue(e.target.value)}
                     onKeyDown={handleKeyDown}
                     onFocus={() => setIsUsernameFocused(true)}
                     onBlur={() => setIsUsernameFocused(false)}
-                    maxLength={15}
-                    className="w-32 sm:w-40"
+                    placeholder="Enter username"
+                    maxLength={8}
+                    className="h-9 w-40"
                     autoFocus
+                    style={{ fontSize: '16px' }}
                   />
-                  {isUsernameFocused && editValue.length > 0 && (
-                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                  {isUsernameFocused && (
+                    <div className="h-1 w-full bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                       <div 
                         className="h-full bg-primary transition-all duration-200"
                         style={{ width: `${progressPercentage}%` }}
@@ -141,7 +126,8 @@ export default function Header() {
                   onClick={handleSaveUsername}
                   size="icon"
                   variant="ghost"
-                  disabled={!editValue.trim() || updateUsername.isPending}
+                  className="h-9 w-9"
+                  disabled={!editValue.trim()}
                 >
                   <Check className="h-4 w-4" />
                 </Button>
@@ -149,7 +135,7 @@ export default function Header() {
                   onClick={handleCancelEdit}
                   size="icon"
                   variant="ghost"
-                  disabled={updateUsername.isPending}
+                  className="h-9 w-9"
                 >
                   <X className="h-4 w-4" />
                 </Button>
@@ -158,10 +144,9 @@ export default function Header() {
               <Button
                 onClick={handleStartEdit}
                 variant="outline"
-                size="sm"
-                className="hidden sm:inline-flex"
+                className="h-9 px-3"
               >
-                {currentUsername}
+                {currentUsername || 'Set Username'}
               </Button>
             )}
           </div>

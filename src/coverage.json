@@ -1,37 +1,36 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-21T00:20:23.738Z",
+  "generatedAt": "2026-02-21T00:47:20.906Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 3,
-    "implemented": 0,
+    "total": 2,
+    "implemented": 1,
     "items": [
       {
-        "id": "REQ-7",
-        "summary": "Remove all msg.caller verification logic from every backend function in backend/main.mo so that all functions are publicly accessible without any authentication or authorization checks",
+        "id": "REQ-1",
+        "summary": "Update the username generation function in backend/main.mo to produce 8-character alphanumeric usernames using both uppercase and lowercase letters mixed with numbers (e.g., 'A3x7K9m2', 'B5n2M8k1'). Keep all existing username generation logic and behavior intact - only change the format/presentation of the output.",
         "status": "unknown",
         "plannedFiles": [],
         "matchedFiles": []
       },
       {
-        "id": "REQ-8",
-        "summary": "Remove the initAccessControl function call and any related access control initialization logic from the backend",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-9",
-        "summary": "Remove any remaining authentication-related logic from frontend hooks (useActor.ts) that calls initAccessControl or depends on authentication state for authorization",
-        "status": "missing",
+        "id": "REQ-2",
+        "summary": "Update all frontend components that display usernames (MessageBubble, Header, etc.) to render the new 8-character alphanumeric format. Ensure the display matches the backend format without modification.",
+        "status": "implemented",
         "plannedFiles": [
-          "frontend/src/hooks/useActor.ts"
+          "frontend/src/components/MessageBubble.tsx",
+          "frontend/src/components/Header.tsx",
+          "frontend/src/components/ChatArea.tsx",
+          "frontend/src/hooks/useQueries.ts"
         ],
-        "matchedFiles": []
+        "matchedFiles": [
+          "frontend/src/components/Header.tsx",
+          "frontend/src/hooks/useQueries.ts"
+        ]
       }
     ]
   },
@@ -41,11 +40,7 @@
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/backend.d.ts",
-    "frontend/src/backend.ts",
-    "frontend/src/components/MessageBubble.tsx",
-    "frontend/src/declarations/backend.did.d.ts",
-    "frontend/src/declarations/backend.did.js",
+    "frontend/src/components/Header.tsx",
     "frontend/src/hooks/useQueries.ts",
     "project_state.json",
     "scratch/component-selection.json",

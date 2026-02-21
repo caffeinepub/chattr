@@ -1,21 +1,36 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Remove all authentication and caller checks to enable full guest access",
+  "title": "Update username display to 8-character alphanumeric format",
   "requirements": [
     {
-      "id": "REQ-9",
-      "summary": "Remove any remaining authentication-related logic from frontend hooks (useActor.ts) that calls initAccessControl or depends on authentication state for authorization",
+      "id": "REQ-2",
+      "summary": "Update all frontend components that display usernames to render the new 8-character alphanumeric format without modification",
       "acceptanceCriteria": [
-        "useActor.ts does not call initAccessControl when actor is ready",
-        "Frontend does not attempt to initialize or manage access control",
-        "All backend operations work without any authentication setup"
+        "All username displays across the application show the 8-character format",
+        "Usernames are rendered exactly as received from the backend without client-side transformation",
+        "Username display is consistent across all UI components"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/hooks/useActor.ts",
+          "path": "frontend/src/components/MessageBubble.tsx",
           "operation": "modify",
-          "description": "Remove the initializeAccessControl call that occurs when the actor becomes ready. Currently the hook calls actor.initializeAccessControl() after the actor is created; this must be removed so that no access control initialization happens. The hook should still create and manage the actor instance, but without any authentication or authorization setup calls."
+          "description": "Update the username display to render the 8-character alphanumeric format received from the backend without any client-side transformation or 'Anon' prefix. Ensure the sender prop is displayed exactly as provided."
+        },
+        {
+          "path": "frontend/src/components/Header.tsx",
+          "operation": "modify",
+          "description": "Update the username editing functionality to display and handle the new 8-character alphanumeric format. Remove any 'Anon' prefix logic and ensure the username is rendered exactly as received from the backend. Update any character limit validation if needed to accommodate the 8-character format."
+        },
+        {
+          "path": "frontend/src/components/ChatArea.tsx",
+          "operation": "modify",
+          "description": "Review and update any username display logic in the chat area component to ensure usernames are rendered in the 8-character alphanumeric format without modification. Verify that sender information passed to child components maintains the backend format."
+        },
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Review query hooks that fetch or manipulate username data to ensure no client-side transformation is applied. Verify that sender and username fields are passed through unchanged from the backend response."
         }
       ]
     }

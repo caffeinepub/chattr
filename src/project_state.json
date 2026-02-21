@@ -1,53 +1,39 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Web application with public backend API - all functions accessible without authentication",
+  "summary": "New project",
   "architectural_notes": [
-    "Backend API is fully public with no authentication or authorization checks",
-    "All functions callable by anonymous/guest users without restrictions"
+    "Site maintains full anonymity with no caller checks or user authentication"
   ],
   "known_issues": [],
-  "isFixRequest": true,
-  "existing_features": [],
+  "isFixRequest": false,
+  "existing_features": [
+    {
+      "id": "feature-update-all-frontend-components-that-display-usernames-messagebubble-header-etc-to-render-the-new-8-character-alphanumeric-format-ensure-the-display-matches-the-backend-format-without-modification",
+      "title": "Update all frontend components that display usernames (MessageBubble, Header, etc.) to render the new 8-character alphanumeric format. Ensure the display matches the backend format without modification.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "version": 1
+    }
+  ],
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Remove all caller checks and authentication requirements from backend",
+      "summary": "Change username display to 8-character alphanumeric format (uppercase and lowercase mix)",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-2",
-      "summary": "Enable full guest access to all site features and actions",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-3",
-      "summary": "Remove all msg.caller verification logic from every backend function in backend/main.mo so that all functions are publicly accessible without any authentication or authorization checks",
+      "summary": "Update the username generation function in backend/main.mo to produce 8-character alphanumeric usernames using both uppercase and lowercase letters mixed with numbers (e.g., 'A3x7K9m2', 'B5n2M8k1'). Keep all existing username generation logic and behavior intact - only change the format/presentation of the output.",
       "reqIds": [
-        "REQ-7"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": "AR-4",
-      "summary": "Remove the initAccessControl function call and any related access control initialization logic from the backend",
-      "reqIds": [
-        "REQ-8"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": "AR-5",
-      "summary": "Remove any remaining authentication-related logic from frontend hooks (useActor.ts) that calls initAccessControl or depends on authentication state for authorization",
-      "reqIds": [
-        "REQ-9"
+        "REQ-1"
       ],
       "status": "pending"
     }
   ],
-  "projectName": "Remove all authentication and caller checks to enable full guest access",
+  "projectName": "Update username display to 8-character alphanumeric format",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

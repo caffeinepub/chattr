@@ -33,6 +33,7 @@ interface MessageBubbleProps {
 
 const COMMON_EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '🔥', '👏', '🎉'];
 
+// Declare Twitter widgets type
 declare global {
   interface Window {
     twttr?: {
@@ -54,6 +55,7 @@ declare global {
   }
 }
 
+// Load Twitter widgets script
 function loadTwitterScript(): Promise<void> {
   return new Promise((resolve, reject) => {
     if (window.twttr) {
@@ -71,6 +73,7 @@ function loadTwitterScript(): Promise<void> {
   });
 }
 
+// Convert List to array helper
 function listToArray<T>(list: any): T[] {
   const result: T[] = [];
   let current = list;
@@ -81,6 +84,7 @@ function listToArray<T>(list: any): T[] {
   return result;
 }
 
+// Get user ID from localStorage
 function getUserId(): string {
   let userId = localStorage.getItem('chatUserId');
   if (!userId) {
@@ -90,9 +94,16 @@ function getUserId(): string {
   return userId;
 }
 
+// Truncate text to specified length
 function truncateText(text: string, maxLength: number): string {
   if (text.length <= maxLength) return text;
   return text.substring(0, maxLength) + '...';
+}
+
+// Check if URL is a Giphy GIF URL
+function isGiphyUrl(url: string): boolean {
+  const lowerUrl = url.toLowerCase();
+  return lowerUrl.includes('giphy.com') || lowerUrl.includes('media.giphy.com') || lowerUrl.includes('i.giphy.com');
 }
 
 export default function MessageBubble({ 
@@ -151,12 +162,15 @@ export default function MessageBubble({
     if (existingReaction) {
       const users = listToArray<string>(existingReaction.users);
       if (users.includes(userId)) {
-        await removeReaction.mutateAsync({ messageId: message.id, emoji });
+        // User already reacted, remove reaction
+        await removeReaction.mutateAsync({ messageId: message.id, emoji, chatroomId });
       } else {
-        await addReaction.mutateAsync({ messageId: message.id, emoji });
+        // Add reaction
+        await addReaction.mutateAsync({ messageId: message.id, emoji, chatroomId });
       }
     } else {
-      await addReaction.mutateAsync({ messageId: message.id, emoji });
+      // Add new reaction
+      await addReaction.mutateAsync({ messageId: message.id, emoji, chatroomId });
     }
     
     setShowEmojiPicker(false);
@@ -165,13 +179,15 @@ export default function MessageBubble({
   const handleReplyClick = () => {
     if (!onReply) return;
     
+    // Generate content snippet (first 100 characters)
     const contentSnippet = truncateText(message.content, 100);
     
+    // Get media thumbnail if available
     let mediaThumbnail: string | undefined;
     if (message.mediaUrl && message.mediaType) {
       if (message.mediaType === 'image') {
         mediaThumbnail = message.mediaUrl;
-      } else if (message.mediaType === 'gif') {
+      } else if (message.mediaType === 'giphy' && isGiphyUrl(message.mediaUrl)) {
         mediaThumbnail = message.mediaUrl;
       } else if (message.mediaType === 'youtube' && isYouTubeUrl(message.mediaUrl)) {
         const videoId = getYouTubeVideoId(message.mediaUrl);
@@ -179,10 +195,13 @@ export default function MessageBubble({
           mediaThumbnail = `https://img.youtube.com/vi/${videoId}/default.jpg`;
         }
       } else if (message.mediaType === 'twitch' && isTwitchUrl(message.mediaUrl)) {
+        // Use a generic Twitch icon for thumbnails
         mediaThumbnail = '/assets/generated/twitch-icon-transparent.dim_32x32.png';
       } else if (message.mediaType === 'twitter' && isTwitterUrl(message.mediaUrl)) {
+        // Use a generic Twitter icon for thumbnails
         mediaThumbnail = '/assets/generated/twitter-icon-transparent.dim_32x32.png';
       } else if (message.mediaType === 'audio') {
+        // Use audio waveform icon for audio thumbnails
         mediaThumbnail = '/assets/generated/audio-waveform-icon-transparent.dim_24x24.png';
       }
     }
@@ -190,6 +209,7 @@ export default function MessageBubble({
     onReply(message.id, message.sender, contentSnippet, mediaThumbnail);
   };
 
+  // Load Twitter embed when message contains Twitter URL
   useEffect(() => {
     if (message.mediaType === 'twitter' && message.mediaUrl && isTwitterUrl(message.mediaUrl)) {
       const tweetId = getTwitterPostId(message.mediaUrl);
@@ -199,6 +219,7 @@ export default function MessageBubble({
         loadTwitterScript()
           .then(() => {
             if (window.twttr && tweetContainerRef.current) {
+              // Detect theme from document
               const isDark = document.documentElement.classList.contains('dark');
               
               window.twttr.widgets.createTweet(
@@ -224,6 +245,7 @@ export default function MessageBubble({
     }
   }, [message.mediaType, message.mediaUrl]);
 
+  // Find the message this is replying to
   const parentMessage = message.replyToMessageId && allMessages
     ? allMessages.find((m) => m.id === message.replyToMessageId)
     : null;
@@ -233,7 +255,8 @@ export default function MessageBubble({
 
     const mediaUrl = message.mediaUrl;
 
-    if (message.mediaType === 'gif') {
+    // Render Giphy GIFs
+    if (message.mediaType === 'giphy' && isGiphyUrl(mediaUrl)) {
       return (
         <div className="mt-2 w-full max-w-[400px]">
           <img
@@ -352,7 +375,7 @@ export default function MessageBubble({
   const renderExpandedMedia = () => {
     if (!isExpanded || !message.mediaUrl || !message.mediaType) return null;
 
-    if (message.mediaType !== 'image' && message.mediaType !== 'gif') return null;
+    if (message.mediaType !== 'image' && message.mediaType !== 'giphy') return null;
 
     const mediaUrl = message.mediaUrl;
 
@@ -423,6 +446,7 @@ export default function MessageBubble({
                 : 'rounded-tl-sm bg-card text-card-foreground border border-border'
             } ${hasVideo ? 'w-full' : ''}`}
           >
+            {/* Quoted reply block */}
             {parentMessage && onScrollToMessage && (
               <div 
                 onClick={() => onScrollToMessage(parentMessage.id)}
@@ -433,10 +457,17 @@ export default function MessageBubble({
                 <div className="flex items-start gap-2">
                   {parentMessage.mediaUrl && parentMessage.mediaType && (
                     <div className="flex-shrink-0">
-                      {(parentMessage.mediaType === 'image' || parentMessage.mediaType === 'gif') && (
+                      {parentMessage.mediaType === 'image' && (
                         <img 
                           src={parentMessage.mediaUrl} 
                           alt="Reply thumbnail" 
+                          className="h-10 w-10 rounded object-cover"
+                        />
+                      )}
+                      {parentMessage.mediaType === 'giphy' && isGiphyUrl(parentMessage.mediaUrl) && (
+                        <img 
+                          src={parentMessage.mediaUrl} 
+                          alt="GIF thumbnail" 
                           className="h-10 w-10 rounded object-cover"
                         />
                       )}
@@ -488,6 +519,7 @@ export default function MessageBubble({
             {renderMedia()}
           </div>
 
+          {/* Reactions display */}
           {reactions.length > 0 && (
             <div className="mt-1 flex flex-wrap gap-1">
               {reactions.map((reaction) => {
@@ -500,28 +532,28 @@ export default function MessageBubble({
                     onClick={() => handleReaction(reaction.emoji)}
                     className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs transition-colors ${
                       hasReacted
-                        ? 'bg-primary/20 border border-primary'
-                        : 'bg-muted border border-border hover:bg-muted/80'
+                        ? 'bg-primary/20 text-primary border border-primary/30'
+                        : 'bg-muted hover:bg-muted/80 text-muted-foreground border border-border'
                     }`}
                   >
                     <span>{reaction.emoji}</span>
-                    <span className="text-xs font-medium">{Number(reaction.count)}</span>
+                    <span className="font-medium">{Number(reaction.count)}</span>
                   </button>
                 );
               })}
             </div>
           )}
 
+          {/* Action buttons */}
           <div className="mt-1 flex items-center gap-1">
             <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
               <PopoverTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-6 px-2 text-xs"
+                <button
+                  className="rounded-full p-1 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                  title="React"
                 >
-                  <Smile className="h-3 w-3" />
-                </Button>
+                  <Smile className="h-4 w-4" />
+                </button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-2" align={isOwnMessage ? 'end' : 'start'}>
                 <div className="flex gap-1">
@@ -529,7 +561,7 @@ export default function MessageBubble({
                     <button
                       key={emoji}
                       onClick={() => handleReaction(emoji)}
-                      className="rounded p-1 text-lg hover:bg-muted transition-colors"
+                      className="rounded p-1 text-xl hover:bg-muted transition-colors"
                     >
                       {emoji}
                     </button>
@@ -539,14 +571,13 @@ export default function MessageBubble({
             </Popover>
 
             {onReply && (
-              <Button
-                variant="ghost"
-                size="sm"
+              <button
                 onClick={handleReplyClick}
-                className="h-6 px-2 text-xs"
+                className="rounded-full p-1 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                title="Reply"
               >
-                <Reply className="h-3 w-3" />
-              </Button>
+                <Reply className="h-4 w-4" />
+              </button>
             )}
           </div>
         </div>

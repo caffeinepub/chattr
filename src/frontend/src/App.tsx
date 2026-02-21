@@ -3,7 +3,6 @@ import { Toaster } from './components/ui/sonner';
 import { ThemeProvider } from 'next-themes';
 import LobbyPage from './pages/LobbyPage';
 import ChatroomPage from './pages/ChatroomPage';
-import ArchivePage from './pages/ArchivePage';
 import AdminDeleteChatroomsPage from './pages/AdminDeleteChatroomsPage';
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -59,19 +58,13 @@ const chatroomRoute = createRoute({
   component: ChatroomPage,
 });
 
-const archiveRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/archive',
-  component: ArchivePage,
-});
-
 const adminRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/admin/delete-chatrooms',
   component: AdminDeleteChatroomsPage,
 });
 
-const routeTree = rootRoute.addChildren([lobbyRoute, chatroomRoute, archiveRoute, adminRoute]);
+const routeTree = rootRoute.addChildren([lobbyRoute, chatroomRoute, adminRoute]);
 
 const router = createRouter({ 
   routeTree,
