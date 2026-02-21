@@ -3,7 +3,7 @@ import { useGetMessages, useSendMessage, useCurrentUsername } from '../hooks/use
 import type { ChatroomWithLiveStatus, MessageWithReactions } from '../backend';
 import MessageBubble from './MessageBubble';
 import MessageInput from './MessageInput';
-import { Loader2, MessageCircle, Users, X, ChevronDown, ChevronUp, Archive } from 'lucide-react';
+import { Loader2, MessageCircle, Users, X, ChevronDown, ChevronUp } from 'lucide-react';
 import { Badge } from './ui/badge';
 import PinnedVideo from './PinnedVideo';
 import { formatCompactNumber } from '../lib/formatters';
@@ -139,17 +139,12 @@ export default function ChatArea({ chatroomId, chatroom }: ChatAreaProps) {
               <div className="md:text-center">
                 <div className="flex items-center gap-2 md:justify-center">
                   <h2 className="text-base font-semibold text-foreground">{chatroom.topic}</h2>
-                  {chatroom.archived && (
-                    <Badge variant="secondary" className="bg-gray-600 text-white px-2 py-0.5 text-xs font-semibold">
-                      ARCHIVED
-                    </Badge>
-                  )}
                   {chatroom.category && (
                     <Badge variant="secondary" className="px-2 py-0.5 text-xs">
                       {chatroom.category.toLowerCase()}
                     </Badge>
                   )}
-                  {chatroom.isLive && !chatroom.archived && (
+                  {chatroom.isLive && (
                     <div className="flex items-center gap-1.5 rounded-md bg-primary px-2 py-0.5">
                       <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" />
                       <span className="text-xs font-bold uppercase tracking-wide text-white">
@@ -187,12 +182,7 @@ export default function ChatArea({ chatroomId, chatroom }: ChatAreaProps) {
           <div className="flex items-center justify-between gap-2 px-4 py-2 md:justify-center">
             <div className="flex min-w-0 flex-1 items-center gap-2 md:flex-initial md:min-w-0">
               <h2 className="truncate text-base font-semibold text-foreground">{chatroom.topic}</h2>
-              {chatroom.archived && (
-                <Badge variant="secondary" className="bg-gray-600 text-white px-2 py-0.5 text-xs font-semibold">
-                  ARCHIVED
-                </Badge>
-              )}
-              {chatroom.isLive && !chatroom.archived && (
+              {chatroom.isLive && (
                 <div className="flex items-center gap-1.5 rounded-md bg-primary px-2 py-0.5">
                   <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" />
                   <span className="text-xs font-bold uppercase tracking-wide text-white">
@@ -259,7 +249,6 @@ export default function ChatArea({ chatroomId, chatroom }: ChatAreaProps) {
                   onScrollToMessage={handleScrollToMessage}
                   allMessages={filteredMessages}
                   isHighlighted={highlightedMessageId === message.id}
-                  isArchived={chatroom.archived}
                 />
               </div>
             ))
@@ -273,7 +262,7 @@ export default function ChatArea({ chatroomId, chatroom }: ChatAreaProps) {
       </div>
 
       {/* Reply Preview - Fixed above input */}
-      {replyingTo && !chatroom.archived && (
+      {replyingTo && (
         <div className="flex-shrink-0 border-t border-border bg-card/50 px-4 py-2">
           <div className="mx-auto flex max-w-3xl items-center justify-between gap-3">
             <div className="flex min-w-0 flex-1 items-center gap-3">
@@ -305,17 +294,10 @@ export default function ChatArea({ chatroomId, chatroom }: ChatAreaProps) {
         </div>
       )}
 
-      {/* Message Input - Fixed at bottom or read-only notice */}
+      {/* Message Input - Fixed at bottom */}
       <div className="flex-shrink-0 border-t border-border bg-card">
         <div className="mx-auto max-w-3xl px-4 py-3">
-          {chatroom.archived ? (
-            <div className="flex items-center justify-center gap-2 py-2 text-sm text-muted-foreground">
-              <Archive className="h-4 w-4" />
-              <span>This room is archived and read-only</span>
-            </div>
-          ) : (
-            <MessageInput onSendMessage={handleSendMessage} disabled={sendMessage.isPending} />
-          )}
+          <MessageInput onSendMessage={handleSendMessage} disabled={sendMessage.isPending} />
         </div>
       </div>
     </div>

@@ -1,143 +1,45 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-21T01:45:14.317Z",
+  "generatedAt": "2026-02-21T02:24:55.019Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 11,
-    "implemented": 5,
+    "total": 2,
+    "implemented": 2,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Implement a room sorting algorithm in the backend that ranks chatrooms based on activity score calculated from: creation date, message count, reaction count, and last message timestamp. Rooms with more recent activity should rank higher.",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-10",
-        "summary": "Disable the message input, reaction buttons, pin/unpin controls, and all write operations in the UI when viewing an archived chatroom.",
+        "summary": "Move the image upload button and microphone button to the left side of the text input field in the MessageInput component",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/ChatArea.tsx",
-          "frontend/src/components/MessageInput.tsx",
-          "frontend/src/components/MessageBubble.tsx",
-          "frontend/src/pages/ChatroomPage.tsx"
+          "frontend/src/components/MessageInput.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/ChatArea.tsx",
-          "frontend/src/components/MessageBubble.tsx"
-        ]
-      },
-      {
-        "id": "REQ-11",
-        "summary": "Add a navigation link in the Header or lobby page to access the /archive page.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/Header.tsx",
-          "frontend/src/pages/LobbyPage.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/Header.tsx",
-          "frontend/src/pages/LobbyPage.tsx"
+          "frontend/src/components/MessageInput.tsx"
         ]
       },
       {
         "id": "REQ-2",
-        "summary": "Add an 'archived' boolean field to the Chatroom type in backend/main.mo to track whether a room is archived or active.",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-3",
-        "summary": "Implement automatic archiving logic in the backend: when a new chatroom is created and the active room count exceeds 77, automatically set the 'archived' field to true for the least active rooms until the active count is 77 or below.",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-4",
-        "summary": "Update the getChatrooms backend query to return only non-archived rooms, sorted by the activity algorithm.",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-5",
-        "summary": "Create a new backend query getArchivedChatrooms that returns all archived rooms, sorted by activity score.",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-6",
-        "summary": "Prevent message creation, reactions, and any write operations in archived chatrooms. Users can only view messages and metadata in archived rooms.",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-7",
-        "summary": "Create a new frontend route /archive that displays archived chatrooms using a layout similar to the lobby page.",
+        "summary": "Ensure the text input field, image button, and microphone button all have matching heights and are perfectly aligned vertically in the MessageInput component",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/App.tsx",
-          "frontend/src/pages/ArchivePage.tsx"
+          "frontend/src/components/MessageInput.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/App.tsx",
-          "frontend/src/pages/ArchivePage.tsx"
-        ]
-      },
-      {
-        "id": "REQ-8",
-        "summary": "Add a useQuery hook in useQueries.ts to fetch archived chatrooms from the backend getArchivedChatrooms query.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/hooks/useQueries.ts"
-        ],
-        "matchedFiles": [
-          "frontend/src/hooks/useQueries.ts"
-        ]
-      },
-      {
-        "id": "REQ-9",
-        "summary": "Display a visual indicator (e.g., 'Archived' badge) on ChatroomCard and in the chatroom header when viewing an archived room.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/ChatroomCard.tsx",
-          "frontend/src/components/ChatArea.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/ChatroomCard.tsx",
-          "frontend/src/components/ChatArea.tsx"
+          "frontend/src/components/MessageInput.tsx"
         ]
       }
     ]
   },
   "changedFiles": [
-    "backend/main.mo",
-    "backend/migration.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/App.tsx",
-    "frontend/src/backend.d.ts",
-    "frontend/src/backend.ts",
-    "frontend/src/components/ChatArea.tsx",
-    "frontend/src/components/ChatroomCard.tsx",
-    "frontend/src/components/Header.tsx",
-    "frontend/src/components/MessageBubble.tsx",
-    "frontend/src/declarations/backend.did.d.ts",
-    "frontend/src/declarations/backend.did.js",
-    "frontend/src/hooks/useQueries.ts",
-    "frontend/src/pages/ArchivePage.tsx",
-    "frontend/src/pages/LobbyPage.tsx",
+    "frontend/src/components/MessageInput.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

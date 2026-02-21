@@ -29,7 +29,6 @@ export const UserRole = IDL.Variant({
 export const ChatroomWithLiveStatus = IDL.Record({
   'id' : IDL.Nat,
   'topic' : IDL.Text,
-  'lastMessageTimestamp' : IDL.Int,
   'activeUserCount' : IDL.Nat,
   'createdAt' : IDL.Int,
   'description' : IDL.Text,
@@ -40,7 +39,6 @@ export const ChatroomWithLiveStatus = IDL.Record({
   'mediaType' : IDL.Opt(IDL.Text),
   'category' : IDL.Text,
   'pinnedVideoId' : IDL.Opt(IDL.Nat),
-  'archived' : IDL.Bool,
 });
 export const UserProfile = IDL.Record({
   'name' : IDL.Text,
@@ -51,7 +49,6 @@ export const UserProfile = IDL.Record({
 export const LobbyChatroomCard = IDL.Record({
   'id' : IDL.Nat,
   'topic' : IDL.Text,
-  'lastMessageTimestamp' : IDL.Int,
   'activeUserCount' : IDL.Nat,
   'createdAt' : IDL.Int,
   'description' : IDL.Text,
@@ -62,7 +59,6 @@ export const LobbyChatroomCard = IDL.Record({
   'category' : IDL.Text,
   'pinnedVideoId' : IDL.Opt(IDL.Nat),
   'presenceIndicator' : IDL.Nat,
-  'archived' : IDL.Bool,
 });
 List.fill(IDL.Opt(IDL.Tuple(IDL.Text, List)));
 export const Reaction = IDL.Record({
@@ -168,11 +164,6 @@ export const idlService = IDL.Service({
       [IDL.Vec(ChatroomWithLiveStatus)],
       ['query'],
     ),
-  'getArchivedChatrooms' : IDL.Func(
-      [],
-      [IDL.Vec(ChatroomWithLiveStatus)],
-      ['query'],
-    ),
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
   'getChatroom' : IDL.Func(
@@ -264,7 +255,6 @@ export const idlFactory = ({ IDL }) => {
   const ChatroomWithLiveStatus = IDL.Record({
     'id' : IDL.Nat,
     'topic' : IDL.Text,
-    'lastMessageTimestamp' : IDL.Int,
     'activeUserCount' : IDL.Nat,
     'createdAt' : IDL.Int,
     'description' : IDL.Text,
@@ -275,7 +265,6 @@ export const idlFactory = ({ IDL }) => {
     'mediaType' : IDL.Opt(IDL.Text),
     'category' : IDL.Text,
     'pinnedVideoId' : IDL.Opt(IDL.Nat),
-    'archived' : IDL.Bool,
   });
   const UserProfile = IDL.Record({
     'name' : IDL.Text,
@@ -286,7 +275,6 @@ export const idlFactory = ({ IDL }) => {
   const LobbyChatroomCard = IDL.Record({
     'id' : IDL.Nat,
     'topic' : IDL.Text,
-    'lastMessageTimestamp' : IDL.Int,
     'activeUserCount' : IDL.Nat,
     'createdAt' : IDL.Int,
     'description' : IDL.Text,
@@ -297,7 +285,6 @@ export const idlFactory = ({ IDL }) => {
     'category' : IDL.Text,
     'pinnedVideoId' : IDL.Opt(IDL.Nat),
     'presenceIndicator' : IDL.Nat,
-    'archived' : IDL.Bool,
   });
   List.fill(IDL.Opt(IDL.Tuple(IDL.Text, List)));
   const Reaction = IDL.Record({
@@ -397,11 +384,6 @@ export const idlFactory = ({ IDL }) => {
     'fetchYouTubeThumbnail' : IDL.Func([IDL.Text], [IDL.Text], []),
     'filterChatroomsByCategory' : IDL.Func(
         [IDL.Text],
-        [IDL.Vec(ChatroomWithLiveStatus)],
-        ['query'],
-      ),
-    'getArchivedChatrooms' : IDL.Func(
-        [],
         [IDL.Vec(ChatroomWithLiveStatus)],
         ['query'],
       ),

@@ -13,7 +13,6 @@ import type { Principal } from '@icp-sdk/core/principal';
 export interface ChatroomWithLiveStatus {
   'id' : bigint,
   'topic' : string,
-  'lastMessageTimestamp' : bigint,
   'activeUserCount' : bigint,
   'createdAt' : bigint,
   'description' : string,
@@ -24,14 +23,12 @@ export interface ChatroomWithLiveStatus {
   'mediaType' : [] | [string],
   'category' : string,
   'pinnedVideoId' : [] | [bigint],
-  'archived' : boolean,
 }
 export type List = [] | [[string, List]];
 export type List_1 = [] | [[Reaction, List_1]];
 export interface LobbyChatroomCard {
   'id' : bigint,
   'topic' : string,
-  'lastMessageTimestamp' : bigint,
   'activeUserCount' : bigint,
   'createdAt' : bigint,
   'description' : string,
@@ -42,7 +39,6 @@ export interface LobbyChatroomCard {
   'category' : string,
   'pinnedVideoId' : [] | [bigint],
   'presenceIndicator' : bigint,
-  'archived' : boolean,
 }
 export interface Message {
   'id' : bigint,
@@ -145,7 +141,6 @@ export interface _SERVICE {
     [string],
     Array<ChatroomWithLiveStatus>
   >,
-  'getArchivedChatrooms' : ActorMethod<[], Array<ChatroomWithLiveStatus>>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
   'getChatroom' : ActorMethod<[bigint], [] | [ChatroomWithLiveStatus]>,

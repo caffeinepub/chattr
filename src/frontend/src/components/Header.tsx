@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useRouter, useRouterState } from '@tanstack/react-router';
 import { Button } from './ui/button';
-import { MessageCircle, Check, X, ArrowLeft, Archive } from 'lucide-react';
+import { MessageCircle, Check, X, ArrowLeft } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Input } from './ui/input';
 import { useCurrentUsername, useUpdateUsername, useCurrentAvatar } from '../hooks/useQueries';
@@ -19,7 +19,6 @@ export default function Header() {
   const [isUsernameFocused, setIsUsernameFocused] = useState(false);
 
   const isInChatroom = routerState.location.pathname.startsWith('/chatroom/');
-  const isInArchive = routerState.location.pathname === '/archive';
 
   const getInitials = (name: string) => {
     return name
@@ -78,10 +77,6 @@ export default function Header() {
     router.navigate({ to: '/' });
   };
 
-  const handleNavigateToArchive = () => {
-    router.navigate({ to: '/archive' });
-  };
-
   const progressPercentage = (editValue.length / 15) * 100;
 
   return (
@@ -89,7 +84,7 @@ export default function Header() {
       <header className="border-b border-border bg-card shadow-sm">
         <div className="mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3">
-            {(isInChatroom || isInArchive) && (
+            {isInChatroom && (
               <Button
                 onClick={handleBackToLobby}
                 variant="ghost"
@@ -108,18 +103,6 @@ export default function Header() {
           </div>
 
           <div className="flex items-center gap-3">
-            {!isInChatroom && !isInArchive && (
-              <Button
-                onClick={handleNavigateToArchive}
-                variant="outline"
-                size="sm"
-                className="hidden sm:flex items-center gap-2"
-              >
-                <Archive className="h-4 w-4" />
-                <span>Archive</span>
-              </Button>
-            )}
-
             <button
               onClick={() => setIsAvatarPickerOpen(true)}
               className="transition-opacity hover:opacity-80"

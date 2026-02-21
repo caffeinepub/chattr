@@ -1,118 +1,37 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Implement 4chan-style room bumping and archiving system - Frontend",
+  "title": "Reposition image and microphone buttons to left of chat input with aligned heights",
   "requirements": [
     {
-      "id": "REQ-7",
-      "summary": "Create a new frontend route /archive that displays archived chatrooms using a layout similar to the lobby page",
+      "id": "REQ-1",
+      "summary": "Move the image upload button and microphone button to the left side of the text input field in the MessageInput component",
       "acceptanceCriteria": [
-        "New route /archive exists in the router configuration",
-        "Archive page displays all archived chatrooms",
-        "Page layout is similar to the lobby page with search and filtering",
-        "Users can navigate to individual archived chatrooms"
+        "Image button appears on the far left",
+        "Microphone button appears between image button and text input",
+        "Text input field appears on the right side of both buttons"
       ],
       "file_operations": [
-        {
-          "path": "frontend/src/App.tsx",
-          "operation": "modify",
-          "description": "Add a new route for /archive in the router configuration that renders the ArchivePage component. Register the route alongside existing lobby, chatroom, and admin routes."
-        },
-        {
-          "path": "frontend/src/pages/ArchivePage.tsx",
-          "operation": "create",
-          "description": "Create ArchivePage component that displays archived chatrooms. Use the useGetArchivedChatrooms hook to fetch data. Implement client-side search and category filtering similar to LobbyPage. Include a header section explaining this is the archive. Display archived chatrooms using ChatroomCard components with navigation to individual archived rooms."
-        }
-      ]
-    },
-    {
-      "id": "REQ-8",
-      "summary": "Add a useQuery hook in useQueries.ts to fetch archived chatrooms from the backend getArchivedChatrooms query",
-      "acceptanceCriteria": [
-        "New React Query hook fetches archived chatrooms",
-        "Hook includes proper error handling and loading states",
-        "Data is cached appropriately"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/hooks/useQueries.ts",
-          "operation": "modify",
-          "description": "Add useGetArchivedChatrooms hook that calls actor.getArchivedChatrooms(). Follow the pattern of useGetChatrooms with proper queryKey, queryFn, enabled logic, staleTime, and refetchInterval. Return the query object with isLoading, error, and data properties."
-        }
-      ]
-    },
-    {
-      "id": "REQ-9",
-      "summary": "Display a visual indicator (e.g., 'Archived' badge) on ChatroomCard and in the chatroom header when viewing an archived room",
-      "acceptanceCriteria": [
-        "Archived rooms show a clear visual indicator",
-        "Indicator is visible on both the archive page and when viewing the room",
-        "Styling clearly distinguishes archived rooms from active rooms"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/ChatroomCard.tsx",
-          "operation": "modify",
-          "description": "Add conditional rendering to display an 'Archived' badge when chatroom.archived is true. Position the badge prominently near the top of the card (e.g., next to the live indicator or topic). Use distinct styling (e.g., gray background with white text) to clearly indicate archived status."
-        },
-        {
-          "path": "frontend/src/components/ChatArea.tsx",
-          "operation": "modify",
-          "description": "Add an 'Archived' badge or indicator in the chatroom header when the chatroom.archived property is true. Display it prominently near the topic or participant count. Use consistent styling with the badge in ChatroomCard."
-        }
-      ]
-    },
-    {
-      "id": "REQ-10",
-      "summary": "Disable the message input, reaction buttons, pin/unpin controls, and all write operations in the UI when viewing an archived chatroom",
-      "acceptanceCriteria": [
-        "MessageInput component is hidden or disabled in archived rooms",
-        "Reaction buttons are hidden or disabled in archived rooms",
-        "Pin/unpin buttons are hidden or disabled in archived rooms",
-        "Users can only view content in archived rooms",
-        "Clear visual feedback indicates the room is read-only"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/ChatArea.tsx",
-          "operation": "modify",
-          "description": "Accept the archived boolean from the chatroom prop. Conditionally render MessageInput only when archived is false. When archived is true, display a read-only notice (e.g., 'This room is archived and read-only') in place of the message input area. Pass the archived prop down to MessageBubble components."
-        },
         {
           "path": "frontend/src/components/MessageInput.tsx",
           "operation": "modify",
-          "description": "Add logic to handle the archived state if ChatArea passes it as a prop. If archived is true, return null or a disabled state message instead of rendering the input controls."
-        },
-        {
-          "path": "frontend/src/components/MessageBubble.tsx",
-          "operation": "modify",
-          "description": "Accept an isArchived prop from the parent component. Conditionally hide or disable reaction buttons (emoji picker, add reaction) when isArchived is true. Conditionally hide or disable pin/unpin buttons when isArchived is true. Keep message content, timestamps, and existing reactions visible but non-interactive."
-        },
-        {
-          "path": "frontend/src/pages/ChatroomPage.tsx",
-          "operation": "modify",
-          "description": "Pass the chatroom.archived property to the ChatArea component so it can control read-only behavior. Ensure the archived status is available in the chatroom data fetched from useGetChatroom."
+          "description": "Restructure the MessageInput component's button layout to position the image upload button and microphone button on the left side of the text input field. Update the flex layout so that buttons appear in the order: image button (far left), microphone button (center-left), text input (right). Preserve all existing functionality including voice recording state, image upload handlers, Giphy integration, and URL auto-detection features."
         }
       ]
     },
     {
-      "id": "REQ-11",
-      "summary": "Add a navigation link in the Header or lobby page to access the /archive page",
+      "id": "REQ-2",
+      "summary": "Ensure the text input field, image button, and microphone button all have matching heights and are perfectly aligned vertically in the MessageInput component",
       "acceptanceCriteria": [
-        "Users can easily navigate to the archive page from the main interface",
-        "Link is clearly labeled",
-        "Navigation is intuitive and accessible"
+        "All three elements (image button, microphone button, text input) have identical heights",
+        "Elements are perfectly aligned vertically with no misalignment",
+        "Layout maintains consistent spacing between elements"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/Header.tsx",
+          "path": "frontend/src/components/MessageInput.tsx",
           "operation": "modify",
-          "description": "Add a navigation link to /archive in the header. Position it near the back-to-lobby button or in a navigation menu area. Label it clearly as 'Archive' or 'Archived Rooms'. Style it consistently with other header navigation elements."
-        },
-        {
-          "path": "frontend/src/pages/LobbyPage.tsx",
-          "operation": "modify",
-          "description": "Add a secondary navigation link or button to access the /archive page. Place it in a logical location such as near the search/filter controls or in a navigation section. Label it clearly as 'View Archive' or 'Archived Rooms'. Style it to be discoverable but not overly prominent."
+          "description": "Apply consistent height styling to the image button, microphone button, and text input field to ensure they all have identical heights. Use Tailwind CSS utility classes or inline styles to enforce uniform height (e.g., h-12 or h-10) across all three elements. Ensure vertical alignment using flex items-center on the parent container. Add consistent spacing (e.g., gap-2) between elements to maintain visual harmony. Verify that button padding and text input padding are adjusted to match the unified height while preserving click/tap target sizes."
         }
       ]
     }

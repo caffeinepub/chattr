@@ -1,16 +1,10 @@
 # Specification
 
 ## Summary
-**Goal:** Implement a 4chan-style room bumping and archiving system with a 77-room active limit.
+**Goal:** Reposition message input controls for better layout alignment in the chatroom.
 
 **Planned changes:**
-- Add activity-based sorting algorithm that ranks chatrooms by creation date, message count, reaction count, and last message timestamp
-- Add 'archived' field to Chatroom type to track room status
-- Implement automatic archiving: when active rooms exceed 77, archive the least active rooms
-- Make archived rooms read-only (no messages, reactions, or write operations allowed)
-- Create /archive page to browse archived chatrooms
-- Add visual indicators for archived rooms throughout the UI
-- Disable all input controls when viewing archived rooms
-- Add navigation link to access the archive page
+- Move image upload button and microphone button to the left side of the text input field
+- Ensure all three elements (image button, microphone button, text input) have matching heights and perfect vertical alignment
 
-**User-visible outcome:** Users will see a lobby with up to 77 active chatrooms sorted by activity. Older, inactive rooms automatically move to a separate archive page where they can be viewed but not modified. The most active rooms stay visible in the main lobby.
+**User-visible outcome:** Users will see a reorganized message input area with the image and microphone buttons on the left side of the text field, all perfectly aligned at the same height.

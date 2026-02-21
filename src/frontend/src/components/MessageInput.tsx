@@ -511,175 +511,159 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
             </div>
           )}
 
-          {renderMediaPreview()}
+          {!isRecording && (
+            <>
+              {renderMediaPreview()}
 
-          {showMediaInput && (
-            <div className="rounded-lg border bg-card p-4">
-              <Tabs value={mediaTab} onValueChange={(value) => setMediaTab(value as 'image' | 'giphy')}>
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="image">Image</TabsTrigger>
-                  <TabsTrigger value="giphy">Giphy</TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="image" className="space-y-3 mt-3">
-                  <div className="space-y-2">
-                    <Label htmlFor="image-upload">Upload Image</Label>
-                    <Input
-                      id="image-upload"
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*"
-                      onChange={handleFileChange}
-                      disabled={isUploading}
-                    />
-                  </div>
-
-                  {selectedFile && (
-                    <div className="space-y-2">
-                      <div className="relative aspect-video w-full max-w-[300px] overflow-hidden rounded-lg border">
-                        <img
-                          src={URL.createObjectURL(selectedFile)}
-                          alt="Preview"
-                          className="h-full w-full object-cover"
+              {showMediaInput && (
+                <div className="rounded-lg border bg-card p-4">
+                  <Tabs value={mediaTab} onValueChange={(value) => setMediaTab(value as 'image' | 'giphy')}>
+                    <TabsList className="grid w-full grid-cols-2">
+                      <TabsTrigger value="image">Image</TabsTrigger>
+                      <TabsTrigger value="giphy">Giphy</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="image" className="space-y-3">
+                      <div className="space-y-2">
+                        <Label htmlFor="image-upload">Upload Image</Label>
+                        <Input
+                          id="image-upload"
+                          type="file"
+                          accept="image/*"
+                          onChange={handleFileChange}
+                          ref={fileInputRef}
+                          disabled={isUploading}
+                        />
+                        {selectedFile && (
+                          <p className="text-sm text-muted-foreground">
+                            Selected: {selectedFile.name}
+                          </p>
+                        )}
+                        {isUploading && (
+                          <div className="space-y-1">
+                            <Progress value={uploadProgress} />
+                            <p className="text-xs text-muted-foreground text-center">
+                              Uploading... {uploadProgress}%
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </TabsContent>
+                    <TabsContent value="giphy" className="space-y-3">
+                      <div className="space-y-2">
+                        <Label htmlFor="giphy-search">Search GIFs</Label>
+                        <Input
+                          id="giphy-search"
+                          type="text"
+                          placeholder="Search Giphy..."
+                          value={giphySearch}
+                          onChange={(e) => setGiphySearch(e.target.value)}
                         />
                       </div>
-                      <p className="text-xs text-muted-foreground">
-                        {selectedFile.name} ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
-                      </p>
+                      {isLoadingGiphy && (
+                        <div className="flex items-center justify-center py-8">
+                          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+                        </div>
+                      )}
+                      {giphyError && (
+                        <div className="rounded-md bg-destructive/10 p-2 text-sm text-destructive">
+                          {giphyError}
+                        </div>
+                      )}
+                      {!isLoadingGiphy && giphyGifs.length > 0 && (
+                        <ScrollArea className="h-[300px] w-full rounded-md border">
+                          <div className="grid grid-cols-2 gap-2 p-2">
+                            {giphyGifs.map((gif) => (
+                              <button
+                                key={gif.id}
+                                onClick={() => handleGifSelect(gif)}
+                                className="relative aspect-square overflow-hidden rounded-md border border-border hover:border-primary transition-colors"
+                              >
+                                <img
+                                  src={gif.previewUrl}
+                                  alt={gif.title}
+                                  className="h-full w-full object-cover"
+                                />
+                              </button>
+                            ))}
+                          </div>
+                        </ScrollArea>
+                      )}
+                    </TabsContent>
+                  </Tabs>
+                  {mediaError && (
+                    <div className="mt-2 rounded-md bg-destructive/10 p-2 text-sm text-destructive">
+                      {mediaError}
                     </div>
                   )}
-
-                  {isUploading && (
-                    <div className="space-y-2">
-                      <Progress value={uploadProgress} />
-                      <p className="text-xs text-muted-foreground text-center">
-                        Uploading... {uploadProgress}%
-                      </p>
-                    </div>
-                  )}
-                </TabsContent>
-
-                <TabsContent value="giphy" className="space-y-3 mt-3">
-                  <div className="space-y-2">
-                    <Label htmlFor="giphy-search">Search GIFs</Label>
-                    <Input
-                      id="giphy-search"
-                      type="text"
-                      placeholder="Search Giphy..."
-                      value={giphySearch}
-                      onChange={(e) => setGiphySearch(e.target.value)}
-                    />
-                  </div>
-
-                  {isLoadingGiphy && (
-                    <div className="flex items-center justify-center py-8">
-                      <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-                    </div>
-                  )}
-
-                  {giphyError && (
-                    <div className="rounded-md bg-destructive/10 p-2 text-sm text-destructive">
-                      {giphyError}
-                    </div>
-                  )}
-
-                  {!isLoadingGiphy && giphyGifs.length > 0 && (
-                    <ScrollArea className="h-[300px] w-full rounded-md border p-2">
-                      <div className="grid grid-cols-2 gap-2">
-                        {giphyGifs.map((gif) => (
-                          <button
-                            key={gif.id}
-                            onClick={() => handleGifSelect(gif)}
-                            className="relative aspect-square overflow-hidden rounded-lg border hover:border-primary transition-colors"
-                          >
-                            <img
-                              src={gif.previewUrl}
-                              alt={gif.title}
-                              className="h-full w-full object-cover"
-                            />
-                          </button>
-                        ))}
-                      </div>
-                    </ScrollArea>
-                  )}
-
-                  {!isLoadingGiphy && giphyGifs.length === 0 && !giphyError && (
-                    <div className="text-center py-8 text-sm text-muted-foreground">
-                      No GIFs found
-                    </div>
-                  )}
-                </TabsContent>
-              </Tabs>
-
-              {mediaError && (
-                <div className="mt-2 rounded-md bg-destructive/10 p-2 text-sm text-destructive">
-                  {mediaError}
                 </div>
               )}
-            </div>
+
+              <div className="flex items-end gap-2">
+                {/* Image button - far left */}
+                <button
+                  onClick={handleImageButtonClick}
+                  disabled={disabled || isUploading || isSending || isRecording}
+                  className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-10 w-10 shrink-0 rounded-full"
+                  title="Attach image"
+                >
+                  <ImageIcon className="h-5 w-5" />
+                </button>
+
+                {/* Microphone button - center-left */}
+                <button
+                  onClick={handleMicButtonClick}
+                  disabled={disabled || isUploading || isSending || showMediaInput}
+                  className={`inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border shadow-xs h-10 w-10 shrink-0 rounded-full ${
+                    isRecording
+                      ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90'
+                      : 'bg-background hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50'
+                  }`}
+                  title={isRecording ? 'Cancel recording' : 'Record voice message'}
+                >
+                  <Mic className="h-5 w-5" />
+                </button>
+
+                {/* Text input - right side, flex-1 to take remaining space */}
+                <div className="flex-1 relative">
+                  <textarea
+                    ref={textareaRef}
+                    value={message}
+                    onChange={handleInput}
+                    onKeyDown={handleKeyDown}
+                    onFocus={() => setIsTextareaFocused(true)}
+                    onBlur={() => setIsTextareaFocused(false)}
+                    placeholder="Type a message..."
+                    disabled={disabled || isUploading || isSending}
+                    maxLength={MAX_MESSAGE_LENGTH}
+                    className="flex min-h-[40px] h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm resize-none overflow-hidden"
+                    rows={1}
+                    style={{ 
+                      minHeight: '40px',
+                      maxHeight: '120px'
+                    }}
+                  />
+                  {isTextareaFocused && message.length > 0 && (
+                    <div className="absolute -bottom-1 left-0 right-0 h-1 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-primary transition-all duration-200"
+                        style={{ width: `${messageProgressPercentage}%` }}
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* Send button */}
+                <button
+                  onClick={handleSend}
+                  disabled={disabled || isUploading || isSending || (!message.trim() && !selectedFile && !detectedMedia)}
+                  className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-primary text-primary-foreground shadow hover:bg-primary/90 dark:bg-primary dark:text-primary-foreground dark:hover:bg-primary/90 h-10 w-10 shrink-0 rounded-full"
+                  title="Send message"
+                >
+                  <Send className="h-5 w-5" />
+                </button>
+              </div>
+            </>
           )}
-
-          <div className="flex items-end gap-2">
-            <div className="flex-1 space-y-1">
-              <textarea
-                ref={textareaRef}
-                value={message}
-                onChange={handleInput}
-                onKeyDown={handleKeyDown}
-                onFocus={() => setIsTextareaFocused(true)}
-                onBlur={() => setIsTextareaFocused(false)}
-                placeholder="Type a message..."
-                disabled={disabled || isUploading || isSending || isRecording}
-                maxLength={MAX_MESSAGE_LENGTH}
-                className="w-full resize-none rounded-2xl border border-input bg-background px-4 py-3 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                rows={1}
-                style={{ minHeight: '48px', maxHeight: '120px' }}
-              />
-              {isTextareaFocused && message.length > 0 && (
-                <div className="px-1">
-                  <div className="h-1 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
-                    <div
-                      className="h-full bg-primary transition-all duration-200"
-                      style={{ width: `${Math.min(messageProgressPercentage, 100)}%` }}
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="flex gap-2">
-              <button
-                onClick={handleImageButtonClick}
-                disabled={disabled || isUploading || isSending || isRecording}
-                className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 size-9 h-12 w-12 shrink-0 rounded-full"
-                title="Attach media"
-              >
-                <ImageIcon className="h-5 w-5" />
-              </button>
-
-              <button
-                onClick={handleMicButtonClick}
-                disabled={disabled || isUploading || isSending || showMediaInput}
-                className={`inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border shadow-xs size-9 h-12 w-12 shrink-0 rounded-full ${
-                  isRecording
-                    ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90'
-                    : 'bg-background hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50'
-                }`}
-                title={isRecording ? 'Cancel recording' : 'Record voice message'}
-              >
-                <Mic className="h-5 w-5" />
-              </button>
-
-              <button
-                onClick={handleSend}
-                disabled={disabled || isUploading || isSending || isRecording || (!message.trim() && !selectedFile && !detectedMedia)}
-                className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-primary text-primary-foreground shadow hover:bg-primary/90 dark:bg-primary dark:text-primary-foreground dark:hover:bg-primary/90 size-9 h-12 w-12 shrink-0 rounded-full"
-                title="Send message"
-              >
-                <Send className="h-5 w-5" />
-              </button>
-            </div>
-          </div>
         </div>
       </div>
     </div>
