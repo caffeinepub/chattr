@@ -1,39 +1,61 @@
-import { Archive as ArchiveIcon, AlertCircle, Loader2 } from 'lucide-react';
+import { useState, useMemo } from 'react';
 import { useRouter } from '@tanstack/react-router';
 import { useGetArchivedChatrooms } from '../hooks/useQueries';
 import ChatroomCard from '../components/ChatroomCard';
+import { Loader2, Search, Archive } from 'lucide-react';
+import { Input } from '../components/ui/input';
+import { Badge } from '../components/ui/badge';
+import { useDebouncedValue } from '../hooks/useDebouncedValue';
 
 export default function ArchivePage() {
   const router = useRouter();
-  const { data: archivedChatrooms, isLoading, error } = useGetArchivedChatrooms();
+  const { data: chatrooms, isLoading } = useGetArchivedChatrooms();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const debouncedSearchTerm = useDebouncedValue(searchTerm, 300);
+
+  const categories = useMemo(() => {
+    if (!chatrooms) return [];
+    const uniqueCategories = new Set(chatrooms.map((room) => room.category));
+    return Array.from(uniqueCategories).sort();
+  }, [chatrooms]);
+
+  const filteredChatrooms = useMemo(() => {
+    if (!chatrooms) return [];
+
+    let filtered = chatrooms;
+
+    if (debouncedSearchTerm.trim()) {
+      const lowerSearch = debouncedSearchTerm.toLowerCase();
+      filtered = filtered.filter(
+        (room) =>
+          room.topic.toLowerCase().includes(lowerSearch) ||
+          room.description.toLowerCase().includes(lowerSearch) ||
+          room.category.toLowerCase().includes(lowerSearch)
+      );
+    }
+
+    if (selectedCategory) {
+      filtered = filtered.filter((room) => room.category === selectedCategory);
+    }
+
+    return filtered;
+  }, [chatrooms, debouncedSearchTerm, selectedCategory]);
 
   const handleChatroomClick = (chatroomId: bigint) => {
-    router.navigate({ 
-      to: '/chatroom/$chatroomId', 
-      params: { chatroomId: chatroomId.toString() } 
-    });
+    router.navigate({ to: `/chatroom/${chatroomId}` });
+  };
+
+  const handleCategoryClick = (category: string) => {
+    setSelectedCategory(selectedCategory === category ? '' : category);
   };
 
   if (isLoading) {
     return (
       <div className="flex h-full items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-sm text-muted-foreground">Loading archived chatrooms...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex h-full items-center justify-center p-4">
         <div className="text-center">
-          <AlertCircle className="mx-auto h-12 w-12 text-destructive" />
-          <h2 className="mt-4 text-xl font-semibold">Error Loading Archive</h2>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Failed to load archived chatrooms. Please try again later.
-          </p>
+          <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
+          <p className="mt-2 text-sm text-muted-foreground">Loading archived rooms...</p>
         </div>
       </div>
     );
@@ -43,39 +65,68 @@ export default function ArchivePage() {
     <div className="flex h-full flex-col bg-background">
       <div className="border-b border-border bg-card px-4 py-6 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
-          <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-              <ArchiveIcon className="h-6 w-6 text-primary" />
-            </div>
+          <div className="flex items-center gap-3 mb-4">
+            <Archive className="h-8 w-8 text-muted-foreground" />
             <div>
-              <h1 className="text-2xl font-bold text-foreground">Archive</h1>
+              <h1 className="text-2xl font-bold text-foreground">Archived Rooms</h1>
               <p className="text-sm text-muted-foreground">
-                Chatrooms that have been bumped off the lobby
+                Browse rooms that have been archived due to inactivity
               </p>
             </div>
           </div>
+
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder="Search archived rooms..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+              style={{ fontSize: '16px' }}
+            />
+          </div>
+
+          {categories.length > 0 && (
+            <div className="mt-4 flex flex-wrap gap-2">
+              {categories.map((category) => (
+                <Badge
+                  key={category}
+                  variant={selectedCategory === category ? 'default' : 'outline'}
+                  className="cursor-pointer px-3 py-1 text-xs"
+                  onClick={() => handleCategoryClick(category)}
+                >
+                  {category.toLowerCase()}
+                </Badge>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto">
-        <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-          {!archivedChatrooms || archivedChatrooms.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12">
-              <ArchiveIcon className="h-16 w-16 text-muted-foreground/50" />
-              <h2 className="mt-4 text-xl font-semibold text-foreground">No Archived Chatrooms</h2>
-              <p className="mt-2 text-sm text-muted-foreground">
-                Archived chatrooms will appear here when they are bumped off the lobby.
-              </p>
-            </div>
-          ) : (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {archivedChatrooms.map((chatroom) => (
-                <ChatroomCard 
-                  key={chatroom.id.toString()} 
+      <div className="flex-1 overflow-y-auto px-4 py-6 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl">
+          {filteredChatrooms.length > 0 ? (
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {filteredChatrooms.map((chatroom) => (
+                <ChatroomCard
+                  key={chatroom.id.toString()}
                   chatroom={chatroom}
                   onClick={() => handleChatroomClick(chatroom.id)}
                 />
               ))}
+            </div>
+          ) : (
+            <div className="flex h-64 items-center justify-center">
+              <div className="text-center">
+                <Archive className="mx-auto h-12 w-12 text-muted-foreground" />
+                <p className="mt-4 text-lg font-medium text-foreground">No archived rooms found</p>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  {searchTerm || selectedCategory
+                    ? 'Try adjusting your search or filters'
+                    : 'Archived rooms will appear here'}
+                </p>
+              </div>
             </div>
           )}
         </div>

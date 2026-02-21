@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useRouter, useRouterState } from '@tanstack/react-router';
 import { Button } from './ui/button';
-import { MessageCircle, Check, X, ArrowLeft } from 'lucide-react';
+import { MessageCircle, Check, X, ArrowLeft, Archive } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Input } from './ui/input';
 import { useCurrentUsername, useUpdateUsername, useCurrentAvatar } from '../hooks/useQueries';
@@ -19,6 +19,7 @@ export default function Header() {
   const [isUsernameFocused, setIsUsernameFocused] = useState(false);
 
   const isInChatroom = routerState.location.pathname.startsWith('/chatroom/');
+  const isInArchive = routerState.location.pathname === '/archive';
 
   const getInitials = (name: string) => {
     return name
@@ -35,8 +36,16 @@ export default function Header() {
   };
 
   const handleSaveUsername = async () => {
-    if (editValue.trim()) {
-      await updateUsername.mutateAsync(editValue.trim());
+    const trimmedValue = editValue.trim();
+    
+    // Validate alphanumeric only
+    const alphanumericRegex = /^[A-Za-z0-9]+$/;
+    if (!alphanumericRegex.test(trimmedValue)) {
+      return; // Validation error will be shown by mutation
+    }
+    
+    if (trimmedValue && trimmedValue.length <= 15) {
+      await updateUsername.mutateAsync(trimmedValue);
       setIsEditing(false);
       setIsUsernameFocused(false);
     }
@@ -56,18 +65,31 @@ export default function Header() {
     }
   };
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // Only allow alphanumeric characters
+    const alphanumericRegex = /^[A-Za-z0-9]*$/;
+    if (alphanumericRegex.test(value)) {
+      setEditValue(value);
+    }
+  };
+
   const handleBackToLobby = () => {
     router.navigate({ to: '/' });
   };
 
-  const progressPercentage = (editValue.length / 8) * 100;
+  const handleNavigateToArchive = () => {
+    router.navigate({ to: '/archive' });
+  };
+
+  const progressPercentage = (editValue.length / 15) * 100;
 
   return (
     <>
       <header className="border-b border-border bg-card shadow-sm">
         <div className="mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3">
-            {isInChatroom && (
+            {(isInChatroom || isInArchive) && (
               <Button
                 onClick={handleBackToLobby}
                 variant="ghost"
@@ -86,6 +108,18 @@ export default function Header() {
           </div>
 
           <div className="flex items-center gap-3">
+            {!isInChatroom && !isInArchive && (
+              <Button
+                onClick={handleNavigateToArchive}
+                variant="outline"
+                size="sm"
+                className="hidden sm:flex items-center gap-2"
+              >
+                <Archive className="h-4 w-4" />
+                <span>Archive</span>
+              </Button>
+            )}
+
             <button
               onClick={() => setIsAvatarPickerOpen(true)}
               className="transition-opacity hover:opacity-80"
@@ -103,12 +137,12 @@ export default function Header() {
                 <div className="space-y-1">
                   <Input
                     value={editValue}
-                    onChange={(e) => setEditValue(e.target.value)}
+                    onChange={handleInputChange}
                     onKeyDown={handleKeyDown}
                     onFocus={() => setIsUsernameFocused(true)}
                     onBlur={() => setIsUsernameFocused(false)}
                     placeholder="Enter username"
-                    maxLength={8}
+                    maxLength={15}
                     className="h-9 w-40"
                     autoFocus
                     style={{ fontSize: '16px' }}
@@ -127,7 +161,7 @@ export default function Header() {
                   size="icon"
                   variant="ghost"
                   className="h-9 w-9"
-                  disabled={!editValue.trim()}
+                  disabled={!editValue.trim() || editValue.length > 15}
                 >
                   <Check className="h-4 w-4" />
                 </Button>

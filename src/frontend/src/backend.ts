@@ -92,6 +92,7 @@ export class ExternalBlob {
 export interface LobbyChatroomCard {
     id: bigint;
     topic: string;
+    lastMessageTimestamp: bigint;
     activeUserCount: bigint;
     createdAt: bigint;
     description: string;
@@ -102,6 +103,7 @@ export interface LobbyChatroomCard {
     category: string;
     pinnedVideoId?: bigint;
     presenceIndicator: bigint;
+    archived: boolean;
 }
 export interface UserProfile {
     name: string;
@@ -170,6 +172,7 @@ export type List = [string, List] | null;
 export interface ChatroomWithLiveStatus {
     id: bigint;
     topic: string;
+    lastMessageTimestamp: bigint;
     activeUserCount: bigint;
     createdAt: bigint;
     description: string;
@@ -180,6 +183,7 @@ export interface ChatroomWithLiveStatus {
     mediaType?: string;
     category: string;
     pinnedVideoId?: bigint;
+    archived: boolean;
 }
 export interface _CaffeineStorageRefillResult {
     success?: boolean;
@@ -214,6 +218,7 @@ export interface backendInterface {
     fetchTwitterThumbnail(tweetUrl: string): Promise<string>;
     fetchYouTubeThumbnail(videoId: string): Promise<string>;
     filterChatroomsByCategory(category: string): Promise<Array<ChatroomWithLiveStatus>>;
+    getArchivedChatrooms(): Promise<Array<ChatroomWithLiveStatus>>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
     getChatroom(id: bigint): Promise<ChatroomWithLiveStatus | null>;
@@ -491,6 +496,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.filterChatroomsByCategory(arg0);
+            return from_candid_vec_n10(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async getArchivedChatrooms(): Promise<Array<ChatroomWithLiveStatus>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getArchivedChatrooms();
+                return from_candid_vec_n10(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getArchivedChatrooms();
             return from_candid_vec_n10(this._uploadFile, this._downloadFile, result);
         }
     }
@@ -891,6 +910,7 @@ function from_candid_opt_n7(_uploadFile: (file: ExternalBlob) => Promise<Uint8Ar
 function from_candid_record_n12(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     id: bigint;
     topic: string;
+    lastMessageTimestamp: bigint;
     activeUserCount: bigint;
     createdAt: bigint;
     description: string;
@@ -901,9 +921,11 @@ function from_candid_record_n12(_uploadFile: (file: ExternalBlob) => Promise<Uin
     mediaType: [] | [string];
     category: string;
     pinnedVideoId: [] | [bigint];
+    archived: boolean;
 }): {
     id: bigint;
     topic: string;
+    lastMessageTimestamp: bigint;
     activeUserCount: bigint;
     createdAt: bigint;
     description: string;
@@ -914,10 +936,12 @@ function from_candid_record_n12(_uploadFile: (file: ExternalBlob) => Promise<Uin
     mediaType?: string;
     category: string;
     pinnedVideoId?: bigint;
+    archived: boolean;
 } {
     return {
         id: value.id,
         topic: value.topic,
+        lastMessageTimestamp: value.lastMessageTimestamp,
         activeUserCount: value.activeUserCount,
         createdAt: value.createdAt,
         description: value.description,
@@ -927,7 +951,8 @@ function from_candid_record_n12(_uploadFile: (file: ExternalBlob) => Promise<Uin
         messageCount: value.messageCount,
         mediaType: record_opt_to_undefined(from_candid_opt_n13(_uploadFile, _downloadFile, value.mediaType)),
         category: value.category,
-        pinnedVideoId: record_opt_to_undefined(from_candid_opt_n7(_uploadFile, _downloadFile, value.pinnedVideoId))
+        pinnedVideoId: record_opt_to_undefined(from_candid_opt_n7(_uploadFile, _downloadFile, value.pinnedVideoId)),
+        archived: value.archived
     };
 }
 function from_candid_record_n16(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
@@ -951,6 +976,7 @@ function from_candid_record_n16(_uploadFile: (file: ExternalBlob) => Promise<Uin
 function from_candid_record_n22(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     id: bigint;
     topic: string;
+    lastMessageTimestamp: bigint;
     activeUserCount: bigint;
     createdAt: bigint;
     description: string;
@@ -961,9 +987,11 @@ function from_candid_record_n22(_uploadFile: (file: ExternalBlob) => Promise<Uin
     category: string;
     pinnedVideoId: [] | [bigint];
     presenceIndicator: bigint;
+    archived: boolean;
 }): {
     id: bigint;
     topic: string;
+    lastMessageTimestamp: bigint;
     activeUserCount: bigint;
     createdAt: bigint;
     description: string;
@@ -974,10 +1002,12 @@ function from_candid_record_n22(_uploadFile: (file: ExternalBlob) => Promise<Uin
     category: string;
     pinnedVideoId?: bigint;
     presenceIndicator: bigint;
+    archived: boolean;
 } {
     return {
         id: value.id,
         topic: value.topic,
+        lastMessageTimestamp: value.lastMessageTimestamp,
         activeUserCount: value.activeUserCount,
         createdAt: value.createdAt,
         description: value.description,
@@ -987,7 +1017,8 @@ function from_candid_record_n22(_uploadFile: (file: ExternalBlob) => Promise<Uin
         mediaType: record_opt_to_undefined(from_candid_opt_n13(_uploadFile, _downloadFile, value.mediaType)),
         category: value.category,
         pinnedVideoId: record_opt_to_undefined(from_candid_opt_n7(_uploadFile, _downloadFile, value.pinnedVideoId)),
-        presenceIndicator: value.presenceIndicator
+        presenceIndicator: value.presenceIndicator,
+        archived: value.archived
     };
 }
 function from_candid_record_n25(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {

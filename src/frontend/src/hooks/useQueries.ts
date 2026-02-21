@@ -87,13 +87,42 @@ export function useGetChatrooms() {
       return chatrooms.sort((a, b) => Number(b.createdAt - a.createdAt));
     },
     enabled: !!actor && !actorFetching,
-    refetchOnMount: 'always', // Always refetch on mount to ensure fresh data
-    refetchOnWindowFocus: true, // Refetch when window regains focus
-    refetchOnReconnect: true, // Refetch when network reconnects
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
     refetchInterval: 5000,
     retry: 3,
     retryDelay: 1000,
-    placeholderData: (previousData) => previousData, // Keep previous data during refetch
+    placeholderData: (previousData) => previousData,
+  });
+}
+
+export function useGetArchivedChatrooms() {
+  const { actor, isFetching: actorFetching } = useActor();
+
+  return useQuery<ChatroomWithLiveStatus[]>({
+    queryKey: ['archivedChatrooms'],
+    queryFn: async () => {
+      if (!actor) {
+        console.warn('[useGetArchivedChatrooms] Actor not available');
+        throw new Error('Actor not available');
+      }
+      
+      console.log('[useGetArchivedChatrooms] Fetching archived chatrooms...');
+      const chatrooms = await actor.getArchivedChatrooms();
+      console.log('[useGetArchivedChatrooms] Fetched archived chatrooms:', chatrooms.length);
+      
+      return chatrooms;
+    },
+    enabled: !!actor && !actorFetching,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
+    refetchInterval: 10000,
+    retry: 3,
+    retryDelay: 1000,
+    staleTime: 30000,
+    placeholderData: (previousData) => previousData,
   });
 }
 
@@ -103,7 +132,6 @@ export function useSearchChatrooms(searchTerm: string) {
   const trimmedSearchTerm = searchTerm.trim();
   const queryKey = normalizeSearchQueryKey(searchTerm);
 
-  // If search term is empty, don't execute this query - let the base query handle it
   const shouldExecute = !!trimmedSearchTerm;
 
   return useQuery<ChatroomWithLiveStatus[]>({
@@ -114,7 +142,6 @@ export function useSearchChatrooms(searchTerm: string) {
         throw new Error('Actor not available');
       }
       
-      // This should never be called with empty search term due to enabled condition
       if (!trimmedSearchTerm) {
         console.warn('[useSearchChatrooms] Called with empty search term, returning empty array');
         return [];
@@ -137,7 +164,6 @@ export function useFilterChatroomsByCategory(category: string) {
   const trimmedCategory = category.trim();
   const queryKey = normalizeCategoryQueryKey(category);
 
-  // If category is empty, don't execute this query - let the base query handle it
   const shouldExecute = !!trimmedCategory;
 
   return useQuery<ChatroomWithLiveStatus[]>({
@@ -148,7 +174,6 @@ export function useFilterChatroomsByCategory(category: string) {
         throw new Error('Actor not available');
       }
       
-      // This should never be called with empty category due to enabled condition
       if (!trimmedCategory) {
         console.warn('[useFilterChatroomsByCategory] Called with empty category, returning empty array');
         return [];
@@ -210,14 +235,12 @@ export function useCreateChatroom() {
     onSuccess: async () => {
       console.log('[CreateChatroom] Success, invalidating and refetching chatrooms...');
       
-      // Invalidate entire chatrooms namespace (non-exact) to refresh all variants
       await queryClient.invalidateQueries({ queryKey: ['chatrooms'], exact: false });
       
-      // Explicitly refetch the base chatrooms query even if inactive/unobserved
       await queryClient.refetchQueries({ 
         queryKey: ['chatrooms'], 
         exact: true,
-        type: 'all' // Changed from 'active' to 'all' to refetch even when inactive
+        type: 'all'
       });
       
       toast.success('Chat created successfully');
@@ -246,14 +269,12 @@ export function useDeleteChatroom() {
     onSuccess: async () => {
       console.log('[DeleteChatroom] Success, invalidating and refetching chatrooms...');
       
-      // Invalidate entire chatrooms namespace (non-exact) to refresh all variants
       await queryClient.invalidateQueries({ queryKey: ['chatrooms'], exact: false });
       
-      // Explicitly refetch the base chatrooms query even if inactive/unobserved
       await queryClient.refetchQueries({ 
         queryKey: ['chatrooms'], 
         exact: true,
-        type: 'all' // Changed from 'active' to 'all' to refetch even when inactive
+        type: 'all'
       });
       
       toast.success('Chatroom deleted successfully');
@@ -275,7 +296,6 @@ export function useDeleteChatroom() {
   });
 }
 
-// Increment view count when chatroom is accessed
 export function useIncrementViewCount() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
@@ -289,7 +309,6 @@ export function useIncrementViewCount() {
     },
     onSuccess: (chatroomId) => {
       queryClient.invalidateQueries({ queryKey: ['chatroom', chatroomId.toString()] });
-      // Invalidate entire chatrooms namespace (non-exact) to refresh all variants
       queryClient.invalidateQueries({ queryKey: ['chatrooms'], exact: false });
     },
     onError: (error: Error) => {
@@ -298,15 +317,10 @@ export function useIncrementViewCount() {
   });
 }
 
-/**
- * Upload image file with compression and return a data URL that includes blob-storage identifier
- * This is the canonical image upload function used across the app
- */
 export async function uploadImage(file: File, onProgress?: (progress: number) => void): Promise<string> {
   try {
     console.log('[UploadImage] Starting upload for file:', file.name, 'size:', file.size, 'type:', file.type);
     
-    // Check file size (max 10MB before compression)
     if (file.size > 10 * 1024 * 1024) {
       throw new Error('File size must be less than 10MB');
     }
@@ -315,7 +329,6 @@ export async function uploadImage(file: File, onProgress?: (progress: number) =>
       onProgress(5);
     }
     
-    // Attempt compression
     let processedFile = file;
     try {
       console.log('[UploadImage] Attempting compression...');
@@ -324,7 +337,6 @@ export async function uploadImage(file: File, onProgress?: (progress: number) =>
         maxHeight: 1920,
         quality: 0.85,
       }, (compressionProgress) => {
-        // Map compression progress to 5-40% of total progress
         if (onProgress) {
           onProgress(5 + (compressionProgress * 0.35));
         }
@@ -332,7 +344,6 @@ export async function uploadImage(file: File, onProgress?: (progress: number) =>
       console.log('[UploadImage] Compression complete, using', processedFile === file ? 'original' : 'compressed', 'file');
     } catch (compressionError) {
       console.warn('[UploadImage] Compression failed, using original file:', compressionError);
-      // Continue with original file
     }
     
     if (onProgress) {
@@ -377,7 +388,6 @@ export async function uploadImage(file: File, onProgress?: (progress: number) =>
   }
 }
 
-// Message queries - now using MessageWithReactions
 export function useGetMessages(chatroomId: bigint) {
   const { actor, isFetching: actorFetching } = useActor();
 
@@ -439,16 +449,19 @@ export function useSendMessage() {
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['messages', variables.chatroomId.toString()] });
       queryClient.invalidateQueries({ queryKey: ['chatroom', variables.chatroomId.toString()] });
-      // Invalidate entire chatrooms namespace (non-exact) to refresh all variants
       queryClient.invalidateQueries({ queryKey: ['chatrooms'], exact: false });
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Failed to send message');
+      const errorMessage = error.message || 'Failed to send message';
+      if (errorMessage.includes('archived')) {
+        toast.error('This room is archived and read-only');
+      } else {
+        toast.error(errorMessage);
+      }
     },
   });
 }
 
-// Pin/unpin video
 export function usePinVideo() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
@@ -462,12 +475,16 @@ export function usePinVideo() {
     onSuccess: (chatroomId) => {
       queryClient.invalidateQueries({ queryKey: ['chatroom', chatroomId.toString()] });
       queryClient.invalidateQueries({ queryKey: ['messages', chatroomId.toString()] });
-      // Invalidate entire chatrooms namespace (non-exact) to refresh all variants
       queryClient.invalidateQueries({ queryKey: ['chatrooms'], exact: false });
-      toast.success('Video pinned');
+      toast.success('Video pinned successfully');
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Failed to pin video');
+      const errorMessage = error.message || 'Failed to pin video';
+      if (errorMessage.includes('archived')) {
+        toast.error('Cannot pin videos in archived rooms');
+      } else {
+        toast.error(errorMessage);
+      }
     },
   });
 }
@@ -485,17 +502,70 @@ export function useUnpinVideo() {
     onSuccess: (chatroomId) => {
       queryClient.invalidateQueries({ queryKey: ['chatroom', chatroomId.toString()] });
       queryClient.invalidateQueries({ queryKey: ['messages', chatroomId.toString()] });
-      // Invalidate entire chatrooms namespace (non-exact) to refresh all variants
       queryClient.invalidateQueries({ queryKey: ['chatrooms'], exact: false });
-      toast.success('Video unpinned');
+      toast.success('Video unpinned successfully');
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Failed to unpin video');
+      const errorMessage = error.message || 'Failed to unpin video';
+      if (errorMessage.includes('archived')) {
+        toast.error('Cannot unpin videos in archived rooms');
+      } else {
+        toast.error(errorMessage);
+      }
     },
   });
 }
 
-// Username and avatar hooks
+export function useAddReaction() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ messageId, emoji, chatroomId }: { messageId: bigint; emoji: string; chatroomId: string }) => {
+      if (!actor) throw new Error('Actor not available');
+      const userId = getUserId();
+      await actor.addReaction(messageId, emoji, userId);
+      return { messageId, chatroomId };
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['messages', data.chatroomId] });
+    },
+    onError: (error: Error) => {
+      const errorMessage = error.message || 'Failed to add reaction';
+      if (errorMessage.includes('archived')) {
+        toast.error('Cannot add reactions in archived rooms');
+      } else {
+        toast.error(errorMessage);
+      }
+    },
+  });
+}
+
+export function useRemoveReaction() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ messageId, emoji, chatroomId }: { messageId: bigint; emoji: string; chatroomId: string }) => {
+      if (!actor) throw new Error('Actor not available');
+      const userId = getUserId();
+      await actor.removeReaction(messageId, emoji, userId);
+      return { messageId, chatroomId };
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['messages', data.chatroomId] });
+    },
+    onError: (error: Error) => {
+      const errorMessage = error.message || 'Failed to remove reaction';
+      if (errorMessage.includes('archived')) {
+        toast.error('Cannot remove reactions in archived rooms');
+      } else {
+        toast.error(errorMessage);
+      }
+    },
+  });
+}
+
 export function useCurrentUsername() {
   return getUsername();
 }
@@ -511,17 +581,44 @@ export function useUpdateUsername() {
   return useMutation({
     mutationFn: async (newUsername: string) => {
       if (!actor) throw new Error('Actor not available');
+      
+      const trimmedUsername = newUsername.trim();
+      
+      if (trimmedUsername.length === 0) {
+        throw new Error('Username cannot be empty');
+      }
+      
+      if (trimmedUsername.length > 15) {
+        throw new Error('Username must be 15 characters or less');
+      }
+      
+      const alphanumericRegex = /^[A-Za-z0-9]+$/;
+      if (!alphanumericRegex.test(trimmedUsername)) {
+        throw new Error('Username must contain only letters and numbers');
+      }
+      
+      const oldUsername = getUsername();
       const userId = getUserId();
       
-      localStorage.setItem('chatUsername', newUsername);
+      localStorage.setItem('chatUsername', trimmedUsername);
       
-      await actor.updateUsernameRetroactively(userId, newUsername);
+      try {
+        await actor.updateUsernameRetroactively(userId, trimmedUsername);
+      } catch (error: any) {
+        localStorage.setItem('chatUsername', oldUsername);
+        
+        if (error.message && error.message.includes('already exists')) {
+          throw new Error('This username is already taken. Please choose another one.');
+        }
+        
+        throw error;
+      }
       
-      return newUsername;
+      return trimmedUsername;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['messages'] });
-      toast.success('Username updated');
+      queryClient.invalidateQueries({ queryKey: ['messages'], exact: false });
+      toast.success('Username updated successfully');
     },
     onError: (error: Error) => {
       toast.error(error.message || 'Failed to update username');
@@ -536,6 +633,7 @@ export function useUpdateAvatar() {
   return useMutation({
     mutationFn: async (newAvatarUrl: string | null) => {
       if (!actor) throw new Error('Actor not available');
+      
       const userId = getUserId();
       
       if (newAvatarUrl) {
@@ -549,67 +647,11 @@ export function useUpdateAvatar() {
       return newAvatarUrl;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['messages'] });
-      toast.success('Avatar updated');
+      queryClient.invalidateQueries({ queryKey: ['messages'], exact: false });
+      toast.success('Avatar updated successfully');
     },
     onError: (error: Error) => {
       toast.error(error.message || 'Failed to update avatar');
     },
-  });
-}
-
-// Reaction hooks
-export function useAddReaction() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({ messageId, emoji, chatroomId }: { messageId: bigint; emoji: string; chatroomId: bigint }) => {
-      if (!actor) throw new Error('Actor not available');
-      const userId = getUserId();
-      await actor.addReaction(messageId, emoji, userId);
-      return { messageId, chatroomId };
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['messages', data.chatroomId.toString()] });
-    },
-    onError: (error: Error) => {
-      console.error('[AddReaction] Error:', error);
-    },
-  });
-}
-
-export function useRemoveReaction() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({ messageId, emoji, chatroomId }: { messageId: bigint; emoji: string; chatroomId: bigint }) => {
-      if (!actor) throw new Error('Actor not available');
-      const userId = getUserId();
-      await actor.removeReaction(messageId, emoji, userId);
-      return { messageId, chatroomId };
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['messages', data.chatroomId.toString()] });
-    },
-    onError: (error: Error) => {
-      console.error('[RemoveReaction] Error:', error);
-    },
-  });
-}
-
-// Reply preview hook
-export function useGetReplyPreview(chatroomId: bigint, messageId: bigint | null) {
-  const { actor, isFetching: actorFetching } = useActor();
-
-  return useQuery({
-    queryKey: ['replyPreview', chatroomId.toString(), messageId?.toString()],
-    queryFn: async () => {
-      if (!actor || !messageId) return null;
-      return actor.getReplyPreview(chatroomId, messageId);
-    },
-    enabled: !!actor && !actorFetching && !!messageId,
-    staleTime: 60000, // Cache for 1 minute
   });
 }

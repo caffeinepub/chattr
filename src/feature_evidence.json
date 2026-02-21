@@ -2,10 +2,31 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-update-all-frontend-components-that-display-usernames-messagebubble-header-etc-to-render-the-new-8-character-alphanumeric-format-ensure-the-display-matches-the-backend-format-without-modification",
-      "featureTitle": "Update all frontend components that display usernames (MessageBubble, Header, etc.) to render the new 8-character alphanumeric format. Ensure the display matches the backend format without modification.",
+      "featureId": "feature-create-a-new-frontend-route-archive-that-displays-archived-chatrooms-using-a-layout-similar-to-the-lobby-page",
+      "featureTitle": "Create a new frontend route /archive that displays archived chatrooms using a layout similar to the lobby page.",
       "files": [
-        "frontend/src/components/Header.tsx",
+        "frontend/src/App.tsx",
+        "frontend/src/pages/ArchivePage.tsx"
+      ],
+      "components": [
+        "authorization@1.0.1",
+        "blob-storage@2.0.3",
+        "http-outcalls@1.1.1",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-7"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-a-usequery-hook-in-usequeries-ts-to-fetch-archived-chatrooms-from-the-backend-getarchivedchatrooms-query",
+      "featureTitle": "Add a useQuery hook in useQueries.ts to fetch archived chatrooms from the backend getArchivedChatrooms query.",
+      "files": [
         "frontend/src/hooks/useQueries.ts"
       ],
       "components": [
@@ -19,7 +40,73 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-2"
+        "REQ-8"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-display-a-visual-indicator-e-g-archived-badge-on-chatroomcard-and-in-the-chatroom-header-when-viewing-an-archived-room",
+      "featureTitle": "Display a visual indicator (e.g., 'Archived' badge) on ChatroomCard and in the chatroom header when viewing an archived room.",
+      "files": [
+        "frontend/src/components/ChatArea.tsx",
+        "frontend/src/components/ChatroomCard.tsx"
+      ],
+      "components": [
+        "authorization@1.0.1",
+        "blob-storage@2.0.3",
+        "http-outcalls@1.1.1",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-9"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-disable-the-message-input-reaction-buttons-pin-unpin-controls-and-all-write-operations-in-the-ui-when-viewing-an-archived-chatroom",
+      "featureTitle": "Disable the message input, reaction buttons, pin/unpin controls, and all write operations in the UI when viewing an archived chatroom.",
+      "files": [
+        "frontend/src/components/ChatArea.tsx",
+        "frontend/src/components/MessageBubble.tsx"
+      ],
+      "components": [
+        "authorization@1.0.1",
+        "blob-storage@2.0.3",
+        "http-outcalls@1.1.1",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-10"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-a-navigation-link-in-the-header-or-lobby-page-to-access-the-archive-page",
+      "featureTitle": "Add a navigation link in the Header or lobby page to access the /archive page.",
+      "files": [
+        "frontend/src/components/Header.tsx",
+        "frontend/src/pages/LobbyPage.tsx"
+      ],
+      "components": [
+        "authorization@1.0.1",
+        "blob-storage@2.0.3",
+        "http-outcalls@1.1.1",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-11"
       ],
       "confidence": "high"
     }

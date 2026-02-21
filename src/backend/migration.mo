@@ -1,38 +1,35 @@
-import List "mo:base/List";
 import OrderedMap "mo:base/OrderedMap";
 import Nat "mo:base/Nat";
-import Principal "mo:base/Principal";
+import List "mo:base/List";
 
 module {
-  type OldMessage = {
+  type OldChatroom = {
     id : Nat;
-    content : Text;
-    timestamp : Int;
-    sender : Text;
-    chatroomId : Nat;
+    topic : Text;
+    description : Text;
     mediaUrl : ?Text;
     mediaType : ?Text;
-    avatarUrl : ?Text;
-    senderId : Text;
-    replyToMessageId : ?Nat;
+    createdAt : Int;
+    messageCount : Nat;
+    viewCount : Nat;
+    pinnedVideoId : ?Nat;
+    category : Text;
   };
 
   type OldActor = {
-    nextMessageId : Nat;
-    nextChatroomId : Nat;
-    chatrooms : OrderedMap.Map<Nat, {
+    chatrooms : OrderedMap.Map<Nat, OldChatroom>;
+    messages : OrderedMap.Map<Nat, List.List<{
       id : Nat;
-      topic : Text;
-      description : Text;
+      content : Text;
+      timestamp : Int;
+      sender : Text;
+      chatroomId : Nat;
       mediaUrl : ?Text;
       mediaType : ?Text;
-      createdAt : Int;
-      messageCount : Nat;
-      viewCount : Nat;
-      pinnedVideoId : ?Nat;
-      category : Text;
-    }>;
-    messages : OrderedMap.Map<Nat, List.List<OldMessage>>;
+      avatarUrl : ?Text;
+      senderId : Text;
+      replyToMessageId : ?Nat;
+    }>>;
     activeUsers : OrderedMap.Map<Nat, List.List<{
       userId : Text;
       lastActive : Int;
@@ -48,60 +45,39 @@ module {
       anonId : Text;
       presetAvatar : ?Text;
     }>;
+    nextMessageId : Nat;
+    nextChatroomId : Nat;
   };
 
-  type GifData = {
-    id : Text;
-    url : Text;
-    title : Text;
-    rating : Text;
-    embed_url : Text;
-    username : Text;
-    source : Text;
-    bitly_url : Text;
-  };
-
-  type MediaType = {
-    #image;
-    #gif;
-    #video;
-    #youtube;
-    #twitch;
-    #twitter;
-    #audio;
-    #unknown;
-  };
-
-  type Message = {
+  type NewChatroom = {
     id : Nat;
-    content : Text;
-    timestamp : Int;
-    sender : Text;
-    chatroomId : Nat;
+    topic : Text;
+    description : Text;
     mediaUrl : ?Text;
-    mediaType : ?MediaType;
-    avatarUrl : ?Text;
-    senderId : Text;
-    replyToMessageId : ?Nat;
-    gifData : ?GifData;
+    mediaType : ?Text;
+    createdAt : Int;
+    messageCount : Nat;
+    viewCount : Nat;
+    pinnedVideoId : ?Nat;
+    category : Text;
+    archived : Bool;
+    lastMessageTimestamp : Int;
   };
 
   type NewActor = {
-    nextMessageId : Nat;
-    nextChatroomId : Nat;
-    chatrooms : OrderedMap.Map<Nat, {
+    chatrooms : OrderedMap.Map<Nat, NewChatroom>;
+    messages : OrderedMap.Map<Nat, List.List<{
       id : Nat;
-      topic : Text;
-      description : Text;
+      content : Text;
+      timestamp : Int;
+      sender : Text;
+      chatroomId : Nat;
       mediaUrl : ?Text;
       mediaType : ?Text;
-      createdAt : Int;
-      messageCount : Nat;
-      viewCount : Nat;
-      pinnedVideoId : ?Nat;
-      category : Text;
-    }>;
-    messages : OrderedMap.Map<Nat, List.List<Message>>;
+      avatarUrl : ?Text;
+      senderId : Text;
+      replyToMessageId : ?Nat;
+    }>>;
     activeUsers : OrderedMap.Map<Nat, List.List<{
       userId : Text;
       lastActive : Int;
@@ -117,35 +93,31 @@ module {
       anonId : Text;
       presetAvatar : ?Text;
     }>;
+    nextMessageId : Nat;
+    nextChatroomId : Nat;
   };
 
   public func run(old : OldActor) : NewActor {
     let natMap = OrderedMap.Make<Nat>(Nat.compare);
-
-    func migrateMessage(oldMessage : OldMessage) : Message {
-      {
-        oldMessage with
-        mediaType = null;
-        gifData = null;
-      };
-    };
-
-    let messages = natMap.map<List.List<OldMessage>, List.List<Message>>(
-      old.messages,
-      func(_id, oldMsgList) {
-        List.map<OldMessage, Message>(
-          oldMsgList,
-          func(oldMsg) {
-            migrateMessage(oldMsg);
-          },
-        );
+    let chatrooms = natMap.map<OldChatroom, NewChatroom>(
+      old.chatrooms,
+      func(_id, oldChatroom) {
+        {
+          oldChatroom with
+          archived = false;
+          lastMessageTimestamp = oldChatroom.createdAt;
+        };
       },
     );
 
     {
-      old with
-      messages;
+      chatrooms;
+      messages = old.messages;
+      activeUsers = old.activeUsers;
+      reactions = old.reactions;
+      userProfiles = old.userProfiles;
+      nextMessageId = old.nextMessageId;
+      nextChatroomId = old.nextChatroomId;
     };
   };
 };
-

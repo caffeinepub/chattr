@@ -1,11 +1,16 @@
 # Specification
 
 ## Summary
-**Goal:** Update username display format to 8-character alphanumeric format with mixed case.
+**Goal:** Implement a 4chan-style room bumping and archiving system with a 77-room active limit.
 
 **Planned changes:**
-- Modify backend username generation to produce 8-character alphanumeric usernames using uppercase letters, lowercase letters, and numbers (e.g., 'A3x7K9m2', 'B5n2M8k1')
-- Update all frontend components to display the new 8-character username format
-- Maintain all existing username generation logic and behavior - only change the output format
+- Add activity-based sorting algorithm that ranks chatrooms by creation date, message count, reaction count, and last message timestamp
+- Add 'archived' field to Chatroom type to track room status
+- Implement automatic archiving: when active rooms exceed 77, archive the least active rooms
+- Make archived rooms read-only (no messages, reactions, or write operations allowed)
+- Create /archive page to browse archived chatrooms
+- Add visual indicators for archived rooms throughout the UI
+- Disable all input controls when viewing archived rooms
+- Add navigation link to access the archive page
 
-**User-visible outcome:** Users will see 8-character alphanumeric usernames (mixing uppercase, lowercase, and numbers) throughout the application instead of the current format.
+**User-visible outcome:** Users will see a lobby with up to 77 active chatrooms sorted by activity. Older, inactive rooms automatically move to a separate archive page where they can be viewed but not modified. The most active rooms stay visible in the main lobby.

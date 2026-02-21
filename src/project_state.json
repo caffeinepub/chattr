@@ -1,18 +1,53 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "New project",
+  "summary": "Anonymous chatroom app with 4chan-style bumping system: 77-room lobby limit, automatic archiving to /archive page based on activity (creation date, messages, reactions, last message timestamp), read-only archived rooms",
   "architectural_notes": [
-    "Site maintains full anonymity with no caller checks or user authentication"
+    "Anonymous site - no caller checks or authentication required",
+    "Room bumping system: rooms with recent activity stay in active lobby longer",
+    "Automatic archiving: when 77-room limit exceeded, least active rooms move to archive",
+    "Archived rooms are read-only"
   ],
   "known_issues": [],
   "isFixRequest": false,
   "existing_features": [
     {
-      "id": "feature-update-all-frontend-components-that-display-usernames-messagebubble-header-etc-to-render-the-new-8-character-alphanumeric-format-ensure-the-display-matches-the-backend-format-without-modification",
-      "title": "Update all frontend components that display usernames (MessageBubble, Header, etc.) to render the new 8-character alphanumeric format. Ensure the display matches the backend format without modification.",
+      "id": "feature-create-a-new-frontend-route-archive-that-displays-archived-chatrooms-using-a-layout-similar-to-the-lobby-page",
+      "title": "Create a new frontend route /archive that displays archived chatrooms using a layout similar to the lobby page.",
       "reqIds": [
-        "REQ-2"
+        "REQ-7"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-usequery-hook-in-usequeries-ts-to-fetch-archived-chatrooms-from-the-backend-getarchivedchatrooms-query",
+      "title": "Add a useQuery hook in useQueries.ts to fetch archived chatrooms from the backend getArchivedChatrooms query.",
+      "reqIds": [
+        "REQ-8"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-display-a-visual-indicator-e-g-archived-badge-on-chatroomcard-and-in-the-chatroom-header-when-viewing-an-archived-room",
+      "title": "Display a visual indicator (e.g., 'Archived' badge) on ChatroomCard and in the chatroom header when viewing an archived room.",
+      "reqIds": [
+        "REQ-9"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-disable-the-message-input-reaction-buttons-pin-unpin-controls-and-all-write-operations-in-the-ui-when-viewing-an-archived-chatroom",
+      "title": "Disable the message input, reaction buttons, pin/unpin controls, and all write operations in the UI when viewing an archived chatroom.",
+      "reqIds": [
+        "REQ-10"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-navigation-link-in-the-header-or-lobby-page-to-access-the-archive-page",
+      "title": "Add a navigation link in the Header or lobby page to access the /archive page.",
+      "reqIds": [
+        "REQ-11"
       ],
       "version": 1
     }
@@ -20,20 +55,72 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Change username display to 8-character alphanumeric format (uppercase and lowercase mix)",
+      "summary": "Implement 77-room lobby limit with 4chan-style bumping and archiving",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-2",
-      "summary": "Update the username generation function in backend/main.mo to produce 8-character alphanumeric usernames using both uppercase and lowercase letters mixed with numbers (e.g., 'A3x7K9m2', 'B5n2M8k1'). Keep all existing username generation logic and behavior intact - only change the format/presentation of the output.",
+      "summary": "Create room sorting algorithm based on creation date, activity (messages, reactions), and last message timestamp",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Build /archive page with read-only archived rooms",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-4",
+      "summary": "Implement a room sorting algorithm in the backend that ranks chatrooms based on activity score calculated from: creation date, message count, reaction count, and last message timestamp. Rooms with more recent activity should rank higher.",
       "reqIds": [
         "REQ-1"
       ],
       "status": "pending"
+    },
+    {
+      "id": "AR-5",
+      "summary": "Add an 'archived' boolean field to the Chatroom type in backend/main.mo to track whether a room is archived or active.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-6",
+      "summary": "Implement automatic archiving logic in the backend: when a new chatroom is created and the active room count exceeds 77, automatically set the 'archived' field to true for the least active rooms until the active count is 77 or below.",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-7",
+      "summary": "Update the getChatrooms backend query to return only non-archived rooms, sorted by the activity algorithm.",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-8",
+      "summary": "Create a new backend query getArchivedChatrooms that returns all archived rooms, sorted by activity score.",
+      "reqIds": [
+        "REQ-5"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-9",
+      "summary": "Prevent message creation, reactions, and any write operations in archived chatrooms. Users can only view messages and metadata in archived rooms.",
+      "reqIds": [
+        "REQ-6"
+      ],
+      "status": "pending"
     }
   ],
-  "projectName": "Update username display to 8-character alphanumeric format",
+  "projectName": "Anonymous Chatroom",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

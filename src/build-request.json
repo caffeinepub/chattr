@@ -1,56 +1,214 @@
 {
   "kind": "build_request",
-  "title": "Update username display to 8-character alphanumeric format",
+  "title": "Implement 4chan-style room bumping and archiving system",
+  "projectName": "Anonymous Chatroom",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Update the username generation function in backend/main.mo to produce 8-character alphanumeric usernames using both uppercase and lowercase letters mixed with numbers (e.g., 'A3x7K9m2', 'B5n2M8k1'). Keep all existing username generation logic and behavior intact - only change the format/presentation of the output.",
+      "text": "Implement a room sorting algorithm in the backend that ranks chatrooms based on activity score calculated from: creation date, message count, reaction count, and last message timestamp. Rooms with more recent activity should rank higher.",
       "target": "backend",
       "source": {
         "messageIds": [
-          "msg-recent"
+          "msg-last"
         ],
         "quotes": [
-          "usernames should continue to work as they do now. all that changes is the presentation. 8 characters alphanumeric both upper and lower"
+          "if there isnt an existing algorithm, create one based on creation date, activity (messages, reactions), last message timestamp"
         ]
       },
       "acceptanceCriteria": [
-        "Usernames are exactly 8 characters long",
-        "Usernames contain a mix of uppercase letters (A-Z), lowercase letters (a-z), and numbers (0-9)",
-        "All existing username generation logic and behavior remains unchanged",
-        "No 'Anon' prefix is added to usernames"
+        "Backend provides a sorting mechanism that considers creation date, message count, reaction count, and last message timestamp",
+        "More recently active rooms (recent messages or reactions) rank higher than inactive rooms",
+        "The algorithm returns chatrooms in descending order of activity score"
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Update all frontend components that display usernames (MessageBubble, Header, etc.) to render the new 8-character alphanumeric format. Ensure the display matches the backend format without modification.",
-      "target": "frontend",
+      "text": "Add an 'archived' boolean field to the Chatroom type in backend/main.mo to track whether a room is archived or active.",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-recent"
+          "msg-last"
         ],
         "quotes": [
-          "8 characters alphanumeric both upper and lower"
+          "anything over that limit gets archived"
         ]
       },
       "acceptanceCriteria": [
-        "All username displays across the application show the 8-character format",
-        "Usernames are rendered exactly as received from the backend without client-side transformation",
-        "Username display is consistent across all UI components"
+        "Chatroom type includes an 'archived' field",
+        "New chatrooms default to archived=false",
+        "Backend queries can filter rooms by archived status"
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Implement automatic archiving logic in the backend: when a new chatroom is created and the active room count exceeds 77, automatically set the 'archived' field to true for the least active rooms until the active count is 77 or below.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-last"
+        ],
+        "quotes": [
+          "make the room limit 77 for the lobby. anything over that limit gets archived"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Creating a new chatroom triggers archiving logic if active room count exceeds 77",
+        "The least active rooms (lowest activity score) are archived first",
+        "Active lobby never contains more than 77 non-archived rooms",
+        "Archiving happens automatically without user intervention"
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "Update the getChatrooms backend query to return only non-archived rooms, sorted by the activity algorithm.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-last"
+        ]
+      },
+      "acceptanceCriteria": [
+        "getChatrooms only returns rooms where archived=false",
+        "Results are sorted by activity score in descending order",
+        "Archived rooms are not visible in the main lobby"
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "text": "Create a new backend query getArchivedChatrooms that returns all archived rooms, sorted by activity score.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-last"
+        ],
+        "quotes": [
+          "moved to a separate archived page"
+        ]
+      },
+      "acceptanceCriteria": [
+        "New backend query exists to fetch archived rooms",
+        "Only returns rooms where archived=true",
+        "Results are sorted by activity score in descending order"
+      ]
+    },
+    {
+      "id": "REQ-6",
+      "text": "Prevent message creation, reactions, and any write operations in archived chatrooms. Users can only view messages and metadata in archived rooms.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-last"
+        ],
+        "quotes": [
+          "be read only"
+        ]
+      },
+      "acceptanceCriteria": [
+        "sendMessage returns an error if the chatroom is archived",
+        "addReaction returns an error if the chatroom is archived",
+        "deleteMessage returns an error if the chatroom is archived",
+        "pinMessage returns an error if the chatroom is archived",
+        "All write operations are blocked for archived rooms"
+      ]
+    },
+    {
+      "id": "REQ-7",
+      "text": "Create a new frontend route /archive that displays archived chatrooms using a layout similar to the lobby page.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-last"
+        ],
+        "quotes": [
+          "Moved to a separate /archive page that users can browse"
+        ]
+      },
+      "acceptanceCriteria": [
+        "New route /archive exists in the router configuration",
+        "Archive page displays all archived chatrooms",
+        "Page layout is similar to the lobby page with search and filtering",
+        "Users can navigate to individual archived chatrooms"
+      ]
+    },
+    {
+      "id": "REQ-8",
+      "text": "Add a useQuery hook in useQueries.ts to fetch archived chatrooms from the backend getArchivedChatrooms query.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-last"
+        ]
+      },
+      "acceptanceCriteria": [
+        "New React Query hook fetches archived chatrooms",
+        "Hook includes proper error handling and loading states",
+        "Data is cached appropriately"
+      ]
+    },
+    {
+      "id": "REQ-9",
+      "text": "Display a visual indicator (e.g., 'Archived' badge) on ChatroomCard and in the chatroom header when viewing an archived room.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-last"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Archived rooms show a clear visual indicator",
+        "Indicator is visible on both the archive page and when viewing the room",
+        "Styling clearly distinguishes archived rooms from active rooms"
+      ]
+    },
+    {
+      "id": "REQ-10",
+      "text": "Disable the message input, reaction buttons, pin/unpin controls, and all write operations in the UI when viewing an archived chatroom.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-last"
+        ],
+        "quotes": [
+          "be read only"
+        ]
+      },
+      "acceptanceCriteria": [
+        "MessageInput component is hidden or disabled in archived rooms",
+        "Reaction buttons are hidden or disabled in archived rooms",
+        "Pin/unpin buttons are hidden or disabled in archived rooms",
+        "Users can only view content in archived rooms",
+        "Clear visual feedback indicates the room is read-only"
+      ]
+    },
+    {
+      "id": "REQ-11",
+      "text": "Add a navigation link in the Header or lobby page to access the /archive page.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-last"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Users can easily navigate to the archive page from the main interface",
+        "Link is clearly labeled",
+        "Navigation is intuitive and accessible"
       ]
     }
   ],
   "constraints": [
-    "Do not add any caller checks or authentication - the site must remain fully anonymous",
-    "Do not change the existing username generation logic or behavior - only update the presentation format",
-    "Do not add any user identity verification or tracking mechanisms"
+    "Maintain anonymous access - do not add caller checks or authentication requirements",
+    "Do not modify frontend/src/hooks/useInternetIdentity.ts or frontend/src/hooks/useActor.ts",
+    "Keep all backend logic in the single main actor file (backend/main.mo)",
+    "Do not change the core chatroom and message data structures beyond adding the archived field"
   ],
   "nonGoals": [
-    "Adding user authentication or login systems",
-    "Implementing caller checks or identity verification",
-    "Changing how usernames are generated or stored beyond the format",
-    "Adding username persistence or user accounts"
+    "Implementing pagination for archived rooms (can be added later if needed)",
+    "Adding admin controls to manually archive or unarchive rooms",
+    "Implementing auto-deletion of old archived rooms",
+    "Adding search functionality specifically for archived rooms (use existing search patterns)",
+    "Implementing different archiving criteria beyond activity score"
   ],
   "imageRequirements": {
     "required": [],
