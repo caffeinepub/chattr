@@ -503,12 +503,12 @@ export default function MessageBubble({
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
-                    <div className={`text-xs font-semibold ${isOwnMessage ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>
+                    <p className={`text-xs font-medium mb-0.5 ${isOwnMessage ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>
                       {parentMessage.sender}
-                    </div>
-                    <div className={`text-xs line-clamp-2 ${isOwnMessage ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
+                    </p>
+                    <p className={`text-xs line-clamp-2 ${isOwnMessage ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
                       {parentMessage.content}
-                    </div>
+                    </p>
                   </div>
                 </div>
               </div>
@@ -518,68 +518,69 @@ export default function MessageBubble({
             {renderMedia()}
           </div>
 
-          {/* Reactions and Reply button */}
-          <div className="mt-1 flex items-center gap-2">
-            {reactions.length > 0 && (
-              <div className="flex flex-wrap gap-1">
-                {reactions.map((reaction) => {
-                  const users = listToArray<string>(reaction.users);
-                  const hasReacted = users.includes(userId);
-                  return (
-                    <button
-                      key={reaction.emoji}
-                      onClick={() => handleReaction(reaction.emoji)}
-                      className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs transition-colors ${
-                        hasReacted
-                          ? 'bg-primary/20 text-primary'
-                          : 'bg-muted hover:bg-muted/80 text-muted-foreground'
-                      }`}
-                    >
-                      <span>{reaction.emoji}</span>
-                      <span className="font-medium">{Number(reaction.count)}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-
-            <div className="flex items-center gap-1">
-              <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
+          {/* Reactions display */}
+          {reactions.length > 0 && (
+            <div className="mt-1 flex flex-wrap gap-1">
+              {reactions.map((reaction) => {
+                const users = listToArray<string>(reaction.users);
+                const hasReacted = users.includes(userId);
+                return (
+                  <button
+                    key={reaction.emoji}
+                    onClick={() => handleReaction(reaction.emoji)}
+                    className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs transition-colors ${
+                      hasReacted
+                        ? 'bg-primary/20 text-primary border border-primary/30'
+                        : 'bg-muted text-muted-foreground border border-border hover:bg-muted/80'
+                    }`}
                   >
-                    <Smile className="h-3.5 w-3.5" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-2" align={isOwnMessage ? 'end' : 'start'}>
-                  <div className="grid grid-cols-4 gap-1">
-                    {COMMON_EMOJIS.map((emoji) => (
-                      <button
-                        key={emoji}
-                        onClick={() => handleReaction(emoji)}
-                        className="rounded p-2 text-2xl transition-colors hover:bg-muted"
-                      >
-                        {emoji}
-                      </button>
-                    ))}
-                  </div>
-                </PopoverContent>
-              </Popover>
+                    <span>{reaction.emoji}</span>
+                    <span className="font-medium">{Number(reaction.count)}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
 
-              {onReply && (
+          {/* Action buttons */}
+          <div className="mt-1 flex items-center gap-1">
+            <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
+              <PopoverTrigger asChild>
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={handleReplyClick}
-                  className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
+                  className="h-7 gap-1 px-2 text-xs text-muted-foreground hover:text-foreground"
                 >
-                  <Reply className="h-3.5 w-3.5" />
+                  <Smile className="h-3 w-3" />
+                  <span>React</span>
                 </Button>
-              )}
-            </div>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-2" align="start">
+                <div className="flex gap-1">
+                  {COMMON_EMOJIS.map((emoji) => (
+                    <button
+                      key={emoji}
+                      onClick={() => handleReaction(emoji)}
+                      className="rounded p-1 text-xl transition-colors hover:bg-muted"
+                    >
+                      {emoji}
+                    </button>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
+
+            {onReply && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleReplyClick}
+                className="h-7 gap-1 px-2 text-xs text-muted-foreground hover:text-foreground"
+              >
+                <Reply className="h-3 w-3" />
+                <span>Reply</span>
+              </Button>
+            )}
           </div>
         </div>
       </div>

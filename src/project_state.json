@@ -7,18 +7,26 @@
   "isFixRequest": false,
   "existing_features": [
     {
-      "id": "feature-move-the-image-upload-button-and-microphone-button-to-the-left-side-of-the-text-input-field-in-the-messageinput-component",
-      "title": "Move the image upload button and microphone button to the left side of the text input field in the MessageInput component",
+      "id": "feature-change-the-microphone-button-s-rotating-ring-animation-color-from-its-current-color-to-the-theme-blue-color-color-primary-from-the-theme",
+      "title": "Change the microphone button's rotating ring animation color from its current color to the theme blue color (--color-primary from the theme)",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-ensure-the-text-input-field-image-button-and-microphone-button-all-have-matching-heights-and-are-perfectly-aligned-vertically-in-the-messageinput-component",
-      "title": "Ensure the text input field, image button, and microphone button all have matching heights and are perfectly aligned vertically in the MessageInput component",
+      "id": "feature-reduce-the-vertical-padding-in-the-chat-input-area-messageinput-component-to-make-it-more-compact",
+      "title": "Reduce the vertical padding in the chat input area (MessageInput component) to make it more compact",
       "reqIds": [
         "REQ-2"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-restore-the-text-labels-for-the-react-and-reply-buttons-that-appear-on-message-bubbles",
+      "title": "Restore the text labels for the react and reply buttons that appear on message bubbles",
+      "reqIds": [
+        "REQ-3"
       ],
       "version": 1
     }
@@ -26,12 +34,24 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Reposition image and microphone buttons to left of chat input with aligned heights",
+      "summary": "Change microphone animation rotating ring to theme blue color",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Reduce vertical padding in chat input area",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Restore labels for react and reply buttons on messages",
       "reqIds": [],
       "status": "pending"
     }
   ],
-  "projectName": "Reposition image and microphone buttons to left of chat input with aligned heights",
+  "projectName": "Improve microphone animation, reduce input padding, restore button labels",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

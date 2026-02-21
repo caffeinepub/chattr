@@ -230,3 +230,17 @@
 .voice-message-range-other::-moz-range-thumb:hover {
     transform: scale(1.1);
 }
+
+/* Rotating ring animation for recording button */
+@keyframes spin-ring {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.animate-spin-ring {
+    animation: spin-ring 1.5s linear infinite;
+}

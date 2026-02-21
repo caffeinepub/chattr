@@ -1,37 +1,51 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Reposition image and microphone buttons to left of chat input with aligned heights",
+  "title": "Improve microphone animation, reduce input padding, restore button labels",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Move the image upload button and microphone button to the left side of the text input field in the MessageInput component",
+      "summary": "Change the microphone button's rotating ring animation color to theme blue (--color-primary)",
       "acceptanceCriteria": [
-        "Image button appears on the far left",
-        "Microphone button appears between image button and text input",
-        "Text input field appears on the right side of both buttons"
+        "The rotating border animation on the microphone button uses the theme's blue color",
+        "The animation color matches the primary theme color used throughout the app"
       ],
       "file_operations": [
         {
           "path": "frontend/src/components/MessageInput.tsx",
           "operation": "modify",
-          "description": "Restructure the MessageInput component's button layout to position the image upload button and microphone button on the left side of the text input field. Update the flex layout so that buttons appear in the order: image button (far left), microphone button (center-left), text input (right). Preserve all existing functionality including voice recording state, image upload handlers, Giphy integration, and URL auto-detection features."
+          "description": "Update the microphone button's rotating ring animation to use the theme's primary blue color (--color-primary). Locate the recording state UI where the rotating border animation is rendered (likely using CSS classes or inline styles with animation properties) and change the border or animation color to reference the CSS custom property var(--color-primary) from the theme system defined in frontend/src/index.css."
         }
       ]
     },
     {
       "id": "REQ-2",
-      "summary": "Ensure the text input field, image button, and microphone button all have matching heights and are perfectly aligned vertically in the MessageInput component",
+      "summary": "Reduce vertical padding in the MessageInput component to make it more compact",
       "acceptanceCriteria": [
-        "All three elements (image button, microphone button, text input) have identical heights",
-        "Elements are perfectly aligned vertically with no misalignment",
-        "Layout maintains consistent spacing between elements"
+        "The chat input area has less vertical padding than before",
+        "The input area appears more compact while remaining usable"
       ],
       "file_operations": [
         {
           "path": "frontend/src/components/MessageInput.tsx",
           "operation": "modify",
-          "description": "Apply consistent height styling to the image button, microphone button, and text input field to ensure they all have identical heights. Use Tailwind CSS utility classes or inline styles to enforce uniform height (e.g., h-12 or h-10) across all three elements. Ensure vertical alignment using flex items-center on the parent container. Add consistent spacing (e.g., gap-2) between elements to maintain visual harmony. Verify that button padding and text input padding are adjusted to match the unified height while preserving click/tap target sizes."
+          "description": "Reduce the vertical padding (py-* classes or padding styles) on the MessageInput component's container or wrapper elements. Look for padding applied to the main input area container and decrease the values to make the component more compact while preserving usability and touch targets for mobile users."
+        }
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "summary": "Restore text labels for the react and reply buttons on message bubbles",
+      "acceptanceCriteria": [
+        "React button displays a visible text label",
+        "Reply button displays a visible text label",
+        "Labels are visible and readable on message bubbles"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/MessageBubble.tsx",
+          "operation": "modify",
+          "description": "Add text labels to the react and reply buttons that appear on message bubbles. Locate the button elements for reactions and replies (likely icon-only buttons currently) and add visible text labels such as 'React' and 'Reply' alongside or near the icons. Ensure the labels are styled appropriately for readability and don't disrupt the existing layout."
         }
       ]
     }

@@ -2,8 +2,8 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-move-the-image-upload-button-and-microphone-button-to-the-left-side-of-the-text-input-field-in-the-messageinput-component",
-      "featureTitle": "Move the image upload button and microphone button to the left side of the text input field in the MessageInput component",
+      "featureId": "feature-change-the-microphone-button-s-rotating-ring-animation-color-from-its-current-color-to-the-theme-blue-color-color-primary-from-the-theme",
+      "featureTitle": "Change the microphone button's rotating ring animation color from its current color to the theme blue color (--color-primary from the theme)",
       "files": [
         "frontend/src/components/MessageInput.tsx"
       ],
@@ -23,8 +23,8 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-ensure-the-text-input-field-image-button-and-microphone-button-all-have-matching-heights-and-are-perfectly-aligned-vertically-in-the-messageinput-component",
-      "featureTitle": "Ensure the text input field, image button, and microphone button all have matching heights and are perfectly aligned vertically in the MessageInput component",
+      "featureId": "feature-reduce-the-vertical-padding-in-the-chat-input-area-messageinput-component-to-make-it-more-compact",
+      "featureTitle": "Reduce the vertical padding in the chat input area (MessageInput component) to make it more compact",
       "files": [
         "frontend/src/components/MessageInput.tsx"
       ],
@@ -40,6 +40,27 @@
       ],
       "testIds": [
         "REQ-2"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-restore-the-text-labels-for-the-react-and-reply-buttons-that-appear-on-message-bubbles",
+      "featureTitle": "Restore the text labels for the react and reply buttons that appear on message bubbles",
+      "files": [
+        "frontend/src/components/MessageBubble.tsx"
+      ],
+      "components": [
+        "authorization@1.0.1",
+        "blob-storage@2.0.3",
+        "http-outcalls@1.1.1",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-3"
       ],
       "confidence": "high"
     }
