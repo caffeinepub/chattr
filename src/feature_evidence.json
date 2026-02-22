@@ -2,8 +2,8 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-add-css-styling-to-prevent-twitter-x-embed-content-from-overflowing-its-container-in-messagebubble-component-ensuring-embeds-respect-their-parent-container-s-width-constraints",
-      "featureTitle": "Add CSS styling to prevent Twitter/X embed content from overflowing its container in MessageBubble component, ensuring embeds respect their parent container's width constraints",
+      "featureId": "feature-in-the-messagebubble-component-replace-all-x-post-urls-in-message-text-with-the-plain-text-x-post-non-clickable-while-preserving-the-embedded-x-post-previews-below-the-message-text",
+      "featureTitle": "In the MessageBubble component, replace all X post URLs in message text with the plain text 'X Post' (non-clickable) while preserving the embedded X post previews below the message text",
       "files": [
         "frontend/src/components/MessageBubble.tsx"
       ],

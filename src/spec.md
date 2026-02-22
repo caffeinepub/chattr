@@ -1,10 +1,11 @@
 # Specification
 
 ## Summary
-**Goal:** Fix X/Twitter embed overflow in chat messages to prevent content from breaking container boundaries.
+**Goal:** Replace X post URLs in message text with plain "X Post" label while keeping embeds visible.
 
 **Planned changes:**
-- Add CSS styling to MessageBubble component to constrain Twitter/X embed width within container
-- Ensure embeds maintain proper aspect ratio and responsiveness across all viewport sizes
+- Replace X post URLs in MessageBubble message text with non-clickable plain text "X Post"
+- Preserve embedded X post previews below message text
+- Apply to all existing messages containing X post URLs
 
-**User-visible outcome:** Twitter/X embeds in chat messages display correctly without horizontal overflow, staying within message boundaries on both mobile and desktop.
+**User-visible outcome:** Users will see "X Post" text instead of clickable X URLs in messages, while the embedded X post previews remain visible and functional below the message.

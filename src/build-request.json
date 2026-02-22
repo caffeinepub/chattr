@@ -1,37 +1,43 @@
 {
   "kind": "build_request",
-  "title": "Fix X/Twitter embed overflow in chat messages",
+  "title": "Replace X post URLs with plain text while preserving embeds",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Add CSS styling to prevent Twitter/X embed content from overflowing its container in MessageBubble component, ensuring embeds respect their parent container's width constraints",
+      "text": "In the MessageBubble component, replace all X post URLs in message text with the plain text 'X Post' (non-clickable) while preserving the embedded X post previews below the message text",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-5"
+          "msg-1",
+          "msg-3",
+          "msg-5",
+          "msg-7"
         ],
         "quotes": [
-          "can you retry the last update",
-          "X/Twitter embed overflow fix"
+          "Can you just remove the x post links and just add text that says 'X Post'",
+          "1. Plain text 2. Yes 3. All existing messages",
+          "Don't remove the actual x post embed though"
         ]
       },
       "acceptanceCriteria": [
-        "Twitter/X embeds render within their container boundaries without horizontal overflow",
-        "Embeds maintain proper aspect ratio and responsiveness",
-        "No layout breaking on mobile or desktop viewports"
+        "X post URLs in message text are replaced with the plain text 'X Post'",
+        "The text 'X Post' is not clickable or linked",
+        "Embedded X post previews continue to display below the message",
+        "Change applies to all existing messages containing X post URLs",
+        "Twitter widget rendering functionality remains intact"
       ]
     }
   ],
   "constraints": [
-    "Only modify CSS styling for Twitter embeds",
-    "Do not change any other functionality in MessageBubble component",
-    "Maintain existing embed loading behavior"
+    "Do not modify the Twitter embed rendering logic",
+    "Do not change backend message storage or data structures",
+    "Preserve all other message formatting and link handling"
   ],
   "nonGoals": [
-    "Changing how Twitter embeds are loaded or rendered",
-    "Modifying other media embed types (YouTube, Twitch, Giphy)",
-    "Updating backend logic"
+    "Changing how X post embeds are rendered",
+    "Modifying URL detection or validation logic",
+    "Applying this change to YouTube or Twitch links"
   ],
   "imageRequirements": {
     "required": [],

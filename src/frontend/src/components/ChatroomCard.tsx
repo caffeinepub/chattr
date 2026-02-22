@@ -83,8 +83,8 @@ export default function ChatroomCard({ chatroom, onClick }: ChatroomCardProps) {
     if (!chatroom.mediaUrl) {
       return (
         <div className="absolute inset-0 overflow-hidden rounded-lg">
-          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">
-            <MessageCircle className="h-12 w-12 text-primary/40" />
+          <div className="flex h-full w-full items-center justify-center bg-primary">
+            <MessageCircle className="h-12 w-12 text-white" />
           </div>
         </div>
       );

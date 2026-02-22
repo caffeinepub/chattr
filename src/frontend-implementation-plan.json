@@ -1,21 +1,23 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Fix X/Twitter embed overflow in chat messages",
+  "title": "Replace X post URLs with plain text while preserving embeds",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Add CSS styling to prevent Twitter/X embed content from overflowing its container in MessageBubble component",
+      "summary": "Replace X post URLs in message text with plain text 'X Post' while preserving embedded previews",
       "acceptanceCriteria": [
-        "Twitter/X embeds render within their container boundaries without horizontal overflow",
-        "Embeds maintain proper aspect ratio and responsiveness",
-        "No layout breaking on mobile or desktop viewports"
+        "X post URLs in message text are replaced with the plain text 'X Post'",
+        "The text 'X Post' is not clickable or linked",
+        "Embedded X post previews continue to display below the message",
+        "Change applies to all existing messages containing X post URLs",
+        "Twitter widget rendering functionality remains intact"
       ],
       "file_operations": [
         {
           "path": "frontend/src/components/MessageBubble.tsx",
           "operation": "modify",
-          "description": "Add CSS constraints to the Twitter embed container div to prevent overflow. Apply max-width: 100%, overflow: hidden, and ensure the twitter-tweet class elements respect their parent container width. Add inline styles or className props to the div wrapping the Twitter embed (dangerouslySetInnerHTML section) to enforce width constraints and prevent horizontal scrolling."
+          "description": "Add text processing logic to detect X/Twitter post URLs in message content and replace them with the plain text 'X Post' (non-clickable). Preserve the existing Twitter embed rendering below the message text by ensuring the mediaUrl and mediaType fields remain unchanged. Apply the URL replacement only to the displayed message text without modifying the underlying data structure or the embed preview rendering logic."
         }
       ]
     }

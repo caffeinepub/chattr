@@ -106,6 +106,13 @@ function isGiphyUrl(url: string): boolean {
   return lowerUrl.includes('giphy.com') || lowerUrl.includes('media.giphy.com') || lowerUrl.includes('i.giphy.com');
 }
 
+// Replace X/Twitter URLs in text with plain text "X Post"
+function replaceTwitterUrlsWithText(text: string): string {
+  // Match Twitter/X URLs
+  const twitterUrlPattern = /https?:\/\/(www\.)?(twitter\.com|x\.com)\/[^\s]+/gi;
+  return text.replace(twitterUrlPattern, 'X Post');
+}
+
 export default function MessageBubble({ 
   message, 
   isOwnMessage, 
@@ -414,6 +421,9 @@ export default function MessageBubble({
   const reactions = listToArray<Reaction>(message.reactions);
   const userId = getUserId();
 
+  // Process message content to replace X/Twitter URLs with plain text
+  const displayContent = replaceTwitterUrlsWithText(message.content);
+
   return (
     <>
       <div 
@@ -510,15 +520,15 @@ export default function MessageBubble({
                     <div className={`text-xs font-medium ${isOwnMessage ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>
                       {parentMessage.sender}
                     </div>
-                    <div className={`text-xs ${isOwnMessage ? 'text-primary-foreground/70' : 'text-muted-foreground/80'} truncate`}>
-                      {truncateText(parentMessage.content, 50)}
+                    <div className={`text-sm line-clamp-2 ${isOwnMessage ? 'text-primary-foreground/90' : 'text-foreground/90'}`}>
+                      {truncateText(parentMessage.content, 100)}
                     </div>
                   </div>
                 </div>
               </div>
             )}
 
-            <p className="whitespace-pre-wrap break-words text-sm">{message.content}</p>
+            <p className="whitespace-pre-wrap break-words text-sm">{displayContent}</p>
             {renderMedia()}
           </div>
 
@@ -537,7 +547,7 @@ export default function MessageBubble({
                       className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs transition-colors ${
                         hasReacted
                           ? 'bg-primary/20 text-primary ring-1 ring-primary/30'
-                          : 'bg-muted hover:bg-muted/80 text-muted-foreground'
+                          : 'bg-muted hover:bg-muted/80'
                       }`}
                     >
                       <span>{reaction.emoji}</span>
@@ -555,7 +565,7 @@ export default function MessageBubble({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-7 gap-1 px-2 text-xs text-muted-foreground hover:text-foreground"
+                  className="h-7 gap-1 px-2 text-xs"
                 >
                   <Smile className="h-3 w-3" />
                   <span>React</span>
@@ -581,7 +591,7 @@ export default function MessageBubble({
                 variant="ghost"
                 size="sm"
                 onClick={handleReplyClick}
-                className="h-7 gap-1 px-2 text-xs text-muted-foreground hover:text-foreground"
+                className="h-7 gap-1 px-2 text-xs"
               >
                 <Reply className="h-3 w-3" />
                 <span>Reply</span>
