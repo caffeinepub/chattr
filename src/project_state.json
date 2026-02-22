@@ -7,24 +7,16 @@
   "isFixRequest": false,
   "existing_features": [
     {
-      "id": "feature-add-visible-reply-text-label-to-the-reply-button-in-the-messagebubble-component",
-      "title": "Add visible 'Reply' text label to the reply button in the MessageBubble component",
+      "id": "feature-add-css-styling-to-prevent-twitter-x-embed-content-from-overflowing-its-container-in-messagebubble-component-ensuring-embeds-respect-their-parent-container-s-width-constraints",
+      "title": "Add CSS styling to prevent Twitter/X embed content from overflowing its container in MessageBubble component, ensuring embeds respect their parent container's width constraints",
       "reqIds": [
         "REQ-1"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-add-visible-react-text-label-to-the-react-button-in-the-messagebubble-component",
-      "title": "Add visible 'React' text label to the react button in the MessageBubble component",
-      "reqIds": [
-        "REQ-2"
       ],
       "version": 1
     }
   ],
   "new_feature_requests": [],
-  "projectName": "Re-add Reply and React button labels",
+  "projectName": "Fix X/Twitter embed overflow in chat messages",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

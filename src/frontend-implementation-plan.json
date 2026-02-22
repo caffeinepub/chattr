@@ -1,35 +1,21 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Re-add Reply and React button labels",
+  "title": "Fix X/Twitter embed overflow in chat messages",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Add visible 'Reply' text label to the reply button in the MessageBubble component",
+      "summary": "Add CSS styling to prevent Twitter/X embed content from overflowing its container in MessageBubble component",
       "acceptanceCriteria": [
-        "The reply button displays 'Reply' text label alongside the reply icon",
-        "The label is visible and readable in the message bubble UI"
+        "Twitter/X embeds render within their container boundaries without horizontal overflow",
+        "Embeds maintain proper aspect ratio and responsiveness",
+        "No layout breaking on mobile or desktop viewports"
       ],
       "file_operations": [
         {
           "path": "frontend/src/components/MessageBubble.tsx",
           "operation": "modify",
-          "description": "Add 'Reply' text label to the reply button element. Locate the reply button JSX (which currently renders a reply icon) and add a text span element containing 'Reply' adjacent to the icon. Ensure the label is styled to be visible and maintains the existing button functionality and layout. The icon should remain in place with the text label appearing next to it."
-        }
-      ]
-    },
-    {
-      "id": "REQ-2",
-      "summary": "Add visible 'React' text label to the react button in the MessageBubble component",
-      "acceptanceCriteria": [
-        "The react button displays 'React' text label alongside the reaction icon",
-        "The label is visible and readable in the message bubble UI"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/MessageBubble.tsx",
-          "operation": "modify",
-          "description": "Add 'React' text label to the react button element. Locate the react/emoji button JSX (which currently renders a reaction icon) and add a text span element containing 'React' adjacent to the icon. Ensure the label is styled to be visible and maintains the existing button functionality and layout. The icon should remain in place with the text label appearing next to it."
+          "description": "Add CSS constraints to the Twitter embed container div to prevent overflow. Apply max-width: 100%, overflow: hidden, and ensure the twitter-tweet class elements respect their parent container width. Add inline styles or className props to the div wrapping the Twitter embed (dangerouslySetInnerHTML section) to enforce width constraints and prevent horizontal scrolling."
         }
       ]
     }

@@ -1,10 +1,10 @@
 # Specification
 
 ## Summary
-**Goal:** Re-add text labels to the Reply and React buttons in message bubbles.
+**Goal:** Fix X/Twitter embed overflow in chat messages to prevent content from breaking container boundaries.
 
 **Planned changes:**
-- Add "Reply" text label to the reply button in the MessageBubble component
-- Add "React" text label to the react button in the MessageBubble component
+- Add CSS styling to MessageBubble component to constrain Twitter/X embed width within container
+- Ensure embeds maintain proper aspect ratio and responsiveness across all viewport sizes
 
-**User-visible outcome:** Users will see "Reply" and "React" text labels alongside the icons on message bubble buttons, making the button purposes clearer.
+**User-visible outcome:** Twitter/X embeds in chat messages display correctly without horizontal overflow, staying within message boundaries on both mobile and desktop.

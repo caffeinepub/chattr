@@ -338,7 +338,11 @@ export default function MessageBubble({
           <div className="mt-2 w-full max-w-[550px]">
             <div 
               ref={tweetContainerRef}
-              className="rounded-lg overflow-hidden"
+              className="rounded-lg overflow-hidden max-w-full"
+              style={{
+                maxWidth: '100%',
+                overflow: 'hidden'
+              }}
             />
             {tweetLoading && (
               <div className="rounded-lg border border-border bg-card p-4">
@@ -503,11 +507,11 @@ export default function MessageBubble({
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
-                    <div className={`text-xs font-medium mb-0.5 ${isOwnMessage ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>
+                    <div className={`text-xs font-medium ${isOwnMessage ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>
                       {parentMessage.sender}
                     </div>
-                    <div className={`text-xs line-clamp-2 ${isOwnMessage ? 'text-primary-foreground/70' : 'text-muted-foreground/80'}`}>
-                      {parentMessage.content}
+                    <div className={`text-xs ${isOwnMessage ? 'text-primary-foreground/70' : 'text-muted-foreground/80'} truncate`}>
+                      {truncateText(parentMessage.content, 50)}
                     </div>
                   </div>
                 </div>
@@ -523,17 +527,17 @@ export default function MessageBubble({
             <div className="mt-1 flex flex-wrap gap-1">
               {reactions
                 .filter((r) => r.count > 0)
-                .map((reaction, index) => {
+                .map((reaction) => {
                   const users = listToArray<string>(reaction.users);
                   const hasReacted = users.includes(userId);
                   return (
                     <button
-                      key={index}
+                      key={reaction.emoji}
                       onClick={() => handleReaction(reaction.emoji)}
                       className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs transition-colors ${
                         hasReacted
-                          ? 'bg-primary/20 text-primary border border-primary/30'
-                          : 'bg-muted hover:bg-muted/80 text-muted-foreground border border-border'
+                          ? 'bg-primary/20 text-primary ring-1 ring-primary/30'
+                          : 'bg-muted hover:bg-muted/80 text-muted-foreground'
                       }`}
                     >
                       <span>{reaction.emoji}</span>
@@ -546,18 +550,6 @@ export default function MessageBubble({
 
           {/* Action buttons */}
           <div className="mt-1 flex items-center gap-1">
-            {onReply && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleReplyClick}
-                className="h-7 gap-1 px-2 text-xs text-muted-foreground hover:text-foreground"
-              >
-                <Reply className="h-3 w-3" />
-                <span>Reply</span>
-              </Button>
-            )}
-
             <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
               <PopoverTrigger asChild>
                 <Button
@@ -569,7 +561,7 @@ export default function MessageBubble({
                   <span>React</span>
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-2" align="start">
+              <PopoverContent className="w-auto p-2" align={isOwnMessage ? 'end' : 'start'}>
                 <div className="flex gap-1">
                   {COMMON_EMOJIS.map((emoji) => (
                     <button
@@ -583,6 +575,18 @@ export default function MessageBubble({
                 </div>
               </PopoverContent>
             </Popover>
+
+            {onReply && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleReplyClick}
+                className="h-7 gap-1 px-2 text-xs text-muted-foreground hover:text-foreground"
+              >
+                <Reply className="h-3 w-3" />
+                <span>Reply</span>
+              </Button>
+            )}
           </div>
         </div>
       </div>

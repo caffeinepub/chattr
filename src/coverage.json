@@ -1,29 +1,18 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-21T03:33:16.785Z",
+  "generatedAt": "2026-02-22T01:36:42.450Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 2,
-    "implemented": 2,
+    "total": 1,
+    "implemented": 1,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Add visible 'Reply' text label to the reply button in the MessageBubble component",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/MessageBubble.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/MessageBubble.tsx"
-        ]
-      },
-      {
-        "id": "REQ-2",
-        "summary": "Add visible 'React' text label to the react button in the MessageBubble component",
+        "summary": "Add CSS styling to prevent Twitter/X embed content from overflowing its container in MessageBubble component, ensuring embeds respect their parent container's width constraints",
         "status": "implemented",
         "plannedFiles": [
           "frontend/src/components/MessageBubble.tsx"
