@@ -1,4 +1,4 @@
-import type { MessageWithReactions } from '../hooks/useQueries';
+import type { MessageWithReactions } from '../backend';
 import { X } from 'lucide-react';
 import { Button } from './ui/button';
 import { useUnpinVideo } from '../hooks/useQueries';
@@ -85,3 +85,4 @@ export default function PinnedVideo({ message, chatroomId }: PinnedVideoProps) {
     </div>
   );
 }
+

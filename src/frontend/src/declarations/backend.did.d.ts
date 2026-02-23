@@ -148,7 +148,6 @@ export interface _SERVICE {
   'getChatroom' : ActorMethod<[bigint], [] | [ChatroomWithLiveStatus]>,
   'getChatrooms' : ActorMethod<[], Array<ChatroomWithLiveStatus>>,
   'getLobbyChatroomCards' : ActorMethod<[], Array<LobbyChatroomCard>>,
-  'getMaxRooms' : ActorMethod<[], bigint>,
   'getMessageWithReactionsAndReplies' : ActorMethod<
     [bigint],
     Array<MessageWithReactions>

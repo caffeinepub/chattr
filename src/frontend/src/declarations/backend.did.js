@@ -179,7 +179,6 @@ export const idlService = IDL.Service({
       [IDL.Vec(LobbyChatroomCard)],
       ['query'],
     ),
-  'getMaxRooms' : IDL.Func([], [IDL.Nat], []),
   'getMessageWithReactionsAndReplies' : IDL.Func(
       [IDL.Nat],
       [IDL.Vec(MessageWithReactions)],
@@ -405,7 +404,6 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Vec(LobbyChatroomCard)],
         ['query'],
       ),
-    'getMaxRooms' : IDL.Func([], [IDL.Nat], []),
     'getMessageWithReactionsAndReplies' : IDL.Func(
         [IDL.Nat],
         [IDL.Vec(MessageWithReactions)],

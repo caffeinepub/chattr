@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { useGetMessages, useSendMessage, useUsername, type MessageWithReactions } from '../hooks/useQueries';
-import type { ChatroomWithLiveStatus } from '../backend';
+import { useGetMessages, useSendMessage, useCurrentUsername } from '../hooks/useQueries';
+import type { ChatroomWithLiveStatus, MessageWithReactions } from '../backend';
 import MessageBubble from './MessageBubble';
 import MessageInput from './MessageInput';
 import { Loader2, MessageCircle, Users, X, ChevronDown, ChevronUp } from 'lucide-react';
@@ -23,7 +23,7 @@ interface ReplyContext {
 
 export default function ChatArea({ chatroomId, chatroom }: ChatAreaProps) {
   const { data: messages, isLoading } = useGetMessages(chatroomId);
-  const currentUsername = useUsername();
+  const currentUsername = useCurrentUsername();
   const sendMessage = useSendMessage();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);

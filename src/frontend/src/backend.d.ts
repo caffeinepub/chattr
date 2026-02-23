@@ -122,7 +122,6 @@ export interface backendInterface {
     getChatroom(id: bigint): Promise<ChatroomWithLiveStatus | null>;
     getChatrooms(): Promise<Array<ChatroomWithLiveStatus>>;
     getLobbyChatroomCards(): Promise<Array<LobbyChatroomCard>>;
-    getMaxRooms(): Promise<bigint>;
     getMessageWithReactionsAndReplies(chatroomId: bigint): Promise<Array<MessageWithReactions>>;
     getMessages(chatroomId: bigint): Promise<Array<Message>>;
     getPinnedVideo(chatroomId: bigint): Promise<bigint | null>;

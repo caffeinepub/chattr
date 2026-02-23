@@ -27,6 +27,25 @@ const CATEGORIES = [
   'Other',
 ];
 
+// Algorithmic sorting function for chatrooms
+function sortChatroomsAlgorithmically(chatrooms: ChatroomWithLiveStatus[]): ChatroomWithLiveStatus[] {
+  return [...chatrooms].sort((a, b) => {
+    // 1. Live rooms first (rooms with activeUsers > 0)
+    const aIsLive = Number(a.activeUserCount) > 0;
+    const bIsLive = Number(b.activeUserCount) > 0;
+    
+    if (aIsLive && !bIsLive) return -1;
+    if (!aIsLive && bIsLive) return 1;
+    
+    // 2. Within each group, sort by viewCount descending (most viewed first)
+    const viewCountDiff = Number(b.viewCount) - Number(a.viewCount);
+    if (viewCountDiff !== 0) return viewCountDiff;
+    
+    // 3. If viewCount is identical, sort by createdAt descending (newest first)
+    return Number(b.createdAt) - Number(a.createdAt);
+  });
+}
+
 export default function LobbyPage() {
   const { actor, isFetching: actorFetching } = useActor();
   const [searchTerm, setSearchTerm] = useState('');
@@ -87,7 +106,8 @@ export default function LobbyPage() {
       );
     }
 
-    return filtered;
+    // Apply algorithmic sorting
+    return sortChatroomsAlgorithmically(filtered);
   })();
 
   const handleChatroomClick = (chatroomId: bigint) => {

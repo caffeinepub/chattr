@@ -1,6 +1,22 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Remove all caller and principal authentication checks",
-  "requirements": []
+  "title": "Update lobby card timestamp to track message and reaction activity",
+  "requirements": [
+    {
+      "id": "REQ-2",
+      "summary": "Update the lobby card UI to display the last modified timestamp (most recent message or reaction activity) instead of the current timestamp",
+      "acceptanceCriteria": [
+        "Lobby cards show a timestamp that reflects when the last message was posted OR when the last reaction was added, whichever is more recent",
+        "The timestamp format remains consistent with the current display style"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/ChatroomCard.tsx",
+          "operation": "modify",
+          "description": "Update the timestamp display to use the lastActivity field from LobbyChatroomCard instead of createdAt. The backend now tracks the most recent activity time from either new messages or new reactions in this field. Change the timestamp rendering to use card.lastActivity, maintaining the existing formatDistanceToNow format for consistency."
+        }
+      ]
+    }
+  ]
 }

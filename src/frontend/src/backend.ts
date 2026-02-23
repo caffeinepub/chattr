@@ -221,7 +221,6 @@ export interface backendInterface {
     getChatroom(id: bigint): Promise<ChatroomWithLiveStatus | null>;
     getChatrooms(): Promise<Array<ChatroomWithLiveStatus>>;
     getLobbyChatroomCards(): Promise<Array<LobbyChatroomCard>>;
-    getMaxRooms(): Promise<bigint>;
     getMessageWithReactionsAndReplies(chatroomId: bigint): Promise<Array<MessageWithReactions>>;
     getMessages(chatroomId: bigint): Promise<Array<Message>>;
     getPinnedVideo(chatroomId: bigint): Promise<bigint | null>;
@@ -565,20 +564,6 @@ export class Backend implements backendInterface {
         } else {
             const result = await this.actor.getLobbyChatroomCards();
             return from_candid_vec_n20(this._uploadFile, this._downloadFile, result);
-        }
-    }
-    async getMaxRooms(): Promise<bigint> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.getMaxRooms();
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.getMaxRooms();
-            return result;
         }
     }
     async getMessageWithReactionsAndReplies(arg0: bigint): Promise<Array<MessageWithReactions>> {

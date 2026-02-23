@@ -1,41 +1,53 @@
 {
   "kind": "build_request",
-  "title": "Remove all caller and principal authentication checks",
-  "priority": "high",
+  "title": "Update lobby card timestamp to track message and reaction activity",
+  "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Remove all caller and Principal-based authorization checks from backend/main.mo, making all public canister methods accessible without authentication verification",
+      "text": "Update the backend Chatroom type to track the most recent activity time from either new messages or new reactions, and expose this timestamp for lobby sorting",
       "target": "backend",
       "source": {
         "messageIds": [
-          "msg-5",
-          "msg-6",
-          "msg-7"
+          "msg-final"
         ],
         "quotes": [
-          "Can you remove all caller and principal checks now",
-          "remove all caller and principal checks from the backend code, making all canister methods publicly accessible without any authorization restrictions"
+          "for the lobby card timestamp, can you do last time modified (new message, new reaction)"
         ]
       },
       "acceptanceCriteria": [
-        "All methods in backend/main.mo that previously checked msg.caller or used Principal-based authorization now execute without these checks",
-        "Methods like createChatroom, deleteMessage, pinMessage, and updateUserProfile are callable by any principal",
-        "No assertion failures or authorization errors occur when any principal calls backend methods",
-        "The application continues to function correctly without any caller-based restrictions"
+        "Chatroom records store a timestamp that updates when a new message is posted",
+        "Chatroom timestamp also updates when a reaction is added to any message in that room",
+        "The timestamp reflects the most recent of these two activity types"
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "text": "Update the lobby card UI to display the last modified timestamp (most recent message or reaction activity) instead of the current timestamp",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-final"
+        ],
+        "quotes": [
+          "for the lobby card timestamp, can you do last time modified (new message, new reaction)"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Lobby cards show a timestamp that reflects when the last message was posted OR when the last reaction was added, whichever is more recent",
+        "The timestamp format remains consistent with the current display style"
       ]
     }
   ],
   "constraints": [
-    "Preserve all existing functionality except authorization checks",
-    "Do not modify frontend code or any other backend files",
-    "Keep all data structures and method signatures intact"
+    "Do not add caller/authorization checks during this build",
+    "Do not make any additional changes beyond updating the timestamp tracking and display"
   ],
   "nonGoals": [
-    "Adding alternative authentication mechanisms",
-    "Modifying the frontend authentication flow",
-    "Changing the Internet Identity integration",
-    "Reverting to version 314 (this is a separate concern)"
+    "Changing the sorting algorithm or order of lobby cards",
+    "Modifying any other UI elements on lobby cards",
+    "Adding authentication or authorization logic",
+    "Changing how reactions or messages are created"
   ],
   "imageRequirements": {
     "required": [],

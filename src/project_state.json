@@ -1,34 +1,40 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Room booking/scheduling application with public access (no authentication)",
+  "summary": "Realtime chat lobby application with rooms displaying live user counts, view counts, and activity timestamps (updated by messages and reactions)",
   "architectural_notes": [
-    "All backend methods are publicly accessible without authentication",
-    "Room limit set to 154 rooms",
-    "Room sorting uses bump-based mechanism"
+    "Lobby rooms sorted algorithmically: live rooms first, then by most recent activity (messages or replies), view count as tiebreaker",
+    "Room activity tracking includes both messages and reactions for timestamp updates"
   ],
-  "known_issues": [
-    "Version 315 deployment caused significant site issues, reverted functionality"
+  "known_issues": [],
+  "isFixRequest": false,
+  "existing_features": [
+    {
+      "id": "feature-update-the-lobby-card-ui-to-display-the-last-modified-timestamp-most-recent-message-or-reaction-activity-instead-of-the-current-timestamp",
+      "title": "Update the lobby card UI to display the last modified timestamp (most recent message or reaction activity) instead of the current timestamp",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "version": 1
+    }
   ],
-  "isFixRequest": true,
-  "existing_features": [],
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Remove all caller and principal authentication checks from backend",
+      "summary": "Update lobby card timestamp to show last modified time (new message or new reaction)",
       "reqIds": [],
-      "status": "in_progress"
+      "status": "pending"
     },
     {
       "id": "AR-2",
-      "summary": "Remove all caller and Principal-based authorization checks from backend/main.mo, making all public canister methods accessible without authentication verification",
+      "summary": "Update the backend Chatroom type to track the most recent activity time from either new messages or new reactions, and expose this timestamp for lobby sorting",
       "reqIds": [
         "REQ-1"
       ],
       "status": "pending"
     }
   ],
-  "projectName": "Remove all caller and principal authentication checks",
+  "projectName": "Update lobby card timestamp to track message and reaction activity",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

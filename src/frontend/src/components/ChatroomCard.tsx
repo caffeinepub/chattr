@@ -335,7 +335,7 @@ export default function ChatroomCard({ chatroom, onClick }: ChatroomCardProps) {
             <span>{Number(displayCount)}</span>
           </div>
           <span>•</span>
-          <span>{formatTimestamp(chatroom.createdAt)}</span>
+          <span>{formatTimestamp(chatroom.lastActivity)}</span>
         </div>
       </div>
     </div>

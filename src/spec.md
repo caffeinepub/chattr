@@ -1,11 +1,11 @@
 # Specification
 
 ## Summary
-**Goal:** Remove all caller and Principal-based authentication checks from the backend to make all canister methods publicly accessible.
+**Goal:** Update lobby card timestamps to reflect the most recent activity from either new messages or new reactions.
 
 **Planned changes:**
-- Remove all msg.caller and Principal-based authorization checks from backend/main.mo
-- Make methods like createChatroom, deleteMessage, pinMessage, and updateUserProfile callable by any principal without authentication verification
-- Ensure no assertion failures or authorization errors occur when methods are called without authentication
+- Update backend Chatroom type to track and store the timestamp of the most recent activity (new message or new reaction)
+- Update the backend to refresh this timestamp whenever a message is posted or a reaction is added
+- Update lobby card UI to display this last modified timestamp instead of the current timestamp
 
-**User-visible outcome:** All backend functionality becomes publicly accessible without requiring authentication or authorization checks.
+**User-visible outcome:** Users will see lobby cards with timestamps that accurately reflect the most recent activity in each chatroom, whether from a new message or a new reaction.

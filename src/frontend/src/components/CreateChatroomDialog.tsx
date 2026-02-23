@@ -293,37 +293,29 @@ export default function CreateChatroomDialog({ open, onOpenChange }: CreateChatr
       mediaType,
     });
 
-    try {
-      await createChatroom.mutateAsync({
-        topic: topic.trim(),
-        description: description.trim(),
-        mediaUrl: finalMediaUrl,
-        mediaType: mediaType,
-        category,
-      });
+    await createChatroom.mutateAsync({
+      topic: topic.trim(),
+      description: description.trim(),
+      mediaUrl: finalMediaUrl,
+      mediaType: mediaType,
+      category,
+    });
 
-      // Reset form
-      setTopic('');
-      setDescription('');
-      setCategory('');
-      setMediaUrl('');
-      setSelectedFile(null);
-      setMediaError('');
-      setUploadProgress(0);
-      setTweetLoading(false);
-      setIsTopicFocused(false);
-      setIsDescriptionFocused(false);
-      if (tweetPreviewRef.current) {
-        tweetPreviewRef.current.innerHTML = '';
-      }
-      onOpenChange(false);
-    } catch (error) {
-      // Error is already handled by the mutation's onError
-      // Check if it's a room limit error and display inline
-      if (error instanceof Error && error.message.includes('Room limit reached')) {
-        setMediaError('Room limit reached. Maximum of 154 rooms allowed. Please try again later.');
-      }
+    // Reset form
+    setTopic('');
+    setDescription('');
+    setCategory('');
+    setMediaUrl('');
+    setSelectedFile(null);
+    setMediaError('');
+    setUploadProgress(0);
+    setTweetLoading(false);
+    setIsTopicFocused(false);
+    setIsDescriptionFocused(false);
+    if (tweetPreviewRef.current) {
+      tweetPreviewRef.current.innerHTML = '';
     }
+    onOpenChange(false);
   };
 
   const handleCancel = () => {

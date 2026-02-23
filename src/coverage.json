@@ -1,31 +1,45 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-23T02:53:30.660Z",
+  "generatedAt": "2026-02-23T20:44:43.155Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 1,
-    "implemented": 0,
+    "total": 2,
+    "implemented": 1,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Remove all caller and Principal-based authorization checks from backend/main.mo, making all public canister methods accessible without authentication verification",
+        "summary": "Update the backend Chatroom type to track the most recent activity time from either new messages or new reactions, and expose this timestamp for lobby sorting",
         "status": "unknown",
         "plannedFiles": [],
         "matchedFiles": []
+      },
+      {
+        "id": "REQ-2",
+        "summary": "Update the lobby card UI to display the last modified timestamp (most recent message or reaction activity) instead of the current timestamp",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/ChatroomCard.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/ChatroomCard.tsx"
+        ]
       }
     ]
   },
   "changedFiles": [
     "backend/main.mo",
+    "backend/migration.mo",
     "build-request.json",
     "feature_evidence.json",
+    "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
     "frontend/src/backend.d.ts",
     "frontend/src/backend.ts",
+    "frontend/src/components/ChatroomCard.tsx",
     "frontend/src/declarations/backend.did.d.ts",
     "frontend/src/declarations/backend.did.js",
     "project_state.json",
