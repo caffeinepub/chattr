@@ -1,13 +1,11 @@
 # Specification
 
 ## Summary
-**Goal:** Implement a 154-room limit and bump-based sorting to keep active chatrooms at the top of the list.
+**Goal:** Remove all caller and Principal-based authentication checks from the backend to make all canister methods publicly accessible.
 
 **Planned changes:**
-- Enforce a maximum of 154 chatrooms in the backend, preventing new room creation when limit is reached
-- Add lastActivity timestamp tracking to chatrooms that updates when messages are posted
-- Sort chatrooms by most recent activity (bump-based sorting) with active rooms appearing first
-- Display room limit error in the create chatroom dialog when the 154-room maximum is exceeded
-- Update frontend to display rooms in bump-order received from backend
+- Remove all msg.caller and Principal-based authorization checks from backend/main.mo
+- Make methods like createChatroom, deleteMessage, pinMessage, and updateUserProfile callable by any principal without authentication verification
+- Ensure no assertion failures or authorization errors occur when methods are called without authentication
 
-**User-visible outcome:** Users will see the most active chatrooms at the top of the lobby list. When trying to create a room after 154 rooms exist, they'll receive a clear error message explaining the limit has been reached.
+**User-visible outcome:** All backend functionality becomes publicly accessible without requiring authentication or authorization checks.

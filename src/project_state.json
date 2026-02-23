@@ -1,81 +1,34 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Anonymous board application with room management system: 154-room limit with bump-based sorting, position-based archiving (rooms below #154), and archive page with read-only view",
+  "summary": "Room booking/scheduling application with public access (no authentication)",
   "architectural_notes": [
-    "Room capacity limited to 154 rooms maximum",
-    "Bump-based sorting algorithm: rooms with recent activity move to top of list",
-    "Position-based archiving: rooms that drop below position 154 are automatically archived",
-    "Archive page displays read-only full content of expired rooms",
-    "Phased implementation approach: room limit → archiving → archive UI → remove authentication"
+    "All backend methods are publicly accessible without authentication",
+    "Room limit set to 154 rooms",
+    "Room sorting uses bump-based mechanism"
   ],
-  "known_issues": [],
-  "isFixRequest": false,
-  "existing_features": [
-    {
-      "id": "feature-update-the-frontend-chatroom-list-to-display-rooms-in-the-order-returned-by-the-backend-sorted-by-most-recent-activity-remove-any-client-side-sorting-that-conflicts-with-bump-based-ordering",
-      "title": "Update the frontend chatroom list to display rooms in the order returned by the backend (sorted by most recent activity). Remove any client-side sorting that conflicts with bump-based ordering.",
-      "reqIds": [
-        "REQ-3"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-display-the-room-limit-error-to-users-in-the-createchatroomdialog-when-they-attempt-to-create-a-room-and-the-154-room-limit-has-been-reached-show-a-clear-user-friendly-error-message",
-      "title": "Display the room limit error to users in the CreateChatroomDialog when they attempt to create a room and the 154-room limit has been reached. Show a clear, user-friendly error message.",
-      "reqIds": [
-        "REQ-4"
-      ],
-      "version": 1
-    }
+  "known_issues": [
+    "Version 315 deployment caused significant site issues, reverted functionality"
   ],
+  "isFixRequest": true,
+  "existing_features": [],
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Implement 154-room limit with bump-based sorting",
+      "summary": "Remove all caller and principal authentication checks from backend",
       "reqIds": [],
       "status": "in_progress"
     },
     {
       "id": "AR-2",
-      "summary": "Add archive system for rooms below position 154",
-      "reqIds": [
-        "AR-1"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": "AR-3",
-      "summary": "Create archive page with read-only view and footer link",
-      "reqIds": [
-        "AR-2"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": "AR-4",
-      "summary": "Remove all caller principal checks (make publicly accessible)",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-5",
-      "summary": "Modify the backend to enforce a maximum of 154 chatrooms. When a new chatroom is created and the limit is exceeded, prevent creation and return an error indicating the room limit has been reached.",
+      "summary": "Remove all caller and Principal-based authorization checks from backend/main.mo, making all public canister methods accessible without authentication verification",
       "reqIds": [
         "REQ-1"
       ],
       "status": "pending"
-    },
-    {
-      "id": "AR-6",
-      "summary": "Implement bump-based sorting where chatrooms are automatically reordered by most recent activity. When a new message is posted to a room, that room should move to the top of the list. Store and update a lastActivity timestamp for each chatroom.",
-      "reqIds": [
-        "REQ-2"
-      ],
-      "status": "pending"
     }
   ],
-  "projectName": "Anonymous Board",
+  "projectName": "Remove all caller and principal authentication checks",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

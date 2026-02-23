@@ -1,96 +1,41 @@
 {
   "kind": "build_request",
-  "title": "Implement 154-room limit with bump-based sorting",
-  "projectName": "Anonymous Board",
-  "priority": "normal",
+  "title": "Remove all caller and principal authentication checks",
+  "priority": "high",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Modify the backend to enforce a maximum of 154 chatrooms. When a new chatroom is created and the limit is exceeded, prevent creation and return an error indicating the room limit has been reached.",
+      "text": "Remove all caller and Principal-based authorization checks from backend/main.mo, making all public canister methods accessible without authentication verification",
       "target": "backend",
       "source": {
         "messageIds": [
-          "msg-recent"
+          "msg-5",
+          "msg-6",
+          "msg-7"
         ],
         "quotes": [
-          "154-room limit",
-          "Maximum of 154 rooms allowed"
+          "Can you remove all caller and principal checks now",
+          "remove all caller and principal checks from the backend code, making all canister methods publicly accessible without any authorization restrictions"
         ]
       },
       "acceptanceCriteria": [
-        "Backend rejects chatroom creation attempts when 154 rooms already exist",
-        "Error message clearly indicates the room limit has been reached",
-        "Existing rooms remain unaffected by the limit enforcement"
-      ]
-    },
-    {
-      "id": "REQ-2",
-      "text": "Implement bump-based sorting where chatrooms are automatically reordered by most recent activity. When a new message is posted to a room, that room should move to the top of the list. Store and update a lastActivity timestamp for each chatroom.",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-recent"
-        ],
-        "quotes": [
-          "Bump-based sorting: Rooms with recent activity move to the top",
-          "bump-based sorting"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Each chatroom has a lastActivity timestamp that updates when messages are posted",
-        "Chatrooms are returned sorted by lastActivity in descending order (most recent first)",
-        "Posting a message to any room immediately bumps it to position 1"
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "text": "Update the frontend chatroom list to display rooms in the order returned by the backend (sorted by most recent activity). Remove any client-side sorting that conflicts with bump-based ordering.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-recent"
-        ],
-        "quotes": [
-          "Bump-based sorting: Rooms with recent activity move to the top"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Lobby displays chatrooms in bump-order from the backend",
-        "Most recently active rooms appear at the top of the list",
-        "Room order updates in real-time when messages are posted"
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "text": "Display the room limit error to users in the CreateChatroomDialog when they attempt to create a room and the 154-room limit has been reached. Show a clear, user-friendly error message.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-recent"
-        ],
-        "quotes": [
-          "154-room limit"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Error message appears in the create chatroom dialog when limit is reached",
-        "Message clearly explains that the maximum number of rooms (154) has been reached",
-        "User can dismiss the error and the dialog remains functional"
+        "All methods in backend/main.mo that previously checked msg.caller or used Principal-based authorization now execute without these checks",
+        "Methods like createChatroom, deleteMessage, pinMessage, and updateUserProfile are callable by any principal",
+        "No assertion failures or authorization errors occur when any principal calls backend methods",
+        "The application continues to function correctly without any caller-based restrictions"
       ]
     }
   ],
   "constraints": [
-    "Do not change any existing UI styling or visual design",
-    "Keep all current authentication and caller principal checks in place",
-    "Do not implement archiving functionality (reserved for step 2)",
-    "Do not create an archive page (reserved for step 3)"
+    "Preserve all existing functionality except authorization checks",
+    "Do not modify frontend code or any other backend files",
+    "Keep all data structures and method signatures intact"
   ],
   "nonGoals": [
-    "Removing authentication or caller principal checks",
-    "Implementing archive system for rooms below position 154",
-    "Creating an archive page or footer link",
-    "Time-based room expiration",
-    "Changing UI components, colors, or layout"
+    "Adding alternative authentication mechanisms",
+    "Modifying the frontend authentication flow",
+    "Changing the Internet Identity integration",
+    "Reverting to version 314 (this is a separate concern)"
   ],
   "imageRequirements": {
     "required": [],
