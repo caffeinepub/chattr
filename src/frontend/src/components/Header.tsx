@@ -4,14 +4,14 @@ import { Button } from './ui/button';
 import { MessageCircle, Check, X, ArrowLeft } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Input } from './ui/input';
-import { useCurrentUsername, useUpdateUsername, useCurrentAvatar } from '../hooks/useQueries';
+import { useUsername, useUpdateUsername, useAvatarUrl } from '../hooks/useQueries';
 import AvatarPickerDialog from './AvatarPickerDialog';
 
 export default function Header() {
   const router = useRouter();
   const routerState = useRouterState();
-  const currentUsername = useCurrentUsername();
-  const currentAvatar = useCurrentAvatar();
+  const currentUsername = useUsername();
+  const currentAvatar = useAvatarUrl();
   const updateUsername = useUpdateUsername();
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState('');

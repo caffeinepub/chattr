@@ -14,6 +14,7 @@ export interface ChatroomWithLiveStatus {
   'id' : bigint,
   'topic' : string,
   'activeUserCount' : bigint,
+  'lastActivity' : bigint,
   'createdAt' : bigint,
   'description' : string,
   'isLive' : boolean,
@@ -30,6 +31,7 @@ export interface LobbyChatroomCard {
   'id' : bigint,
   'topic' : string,
   'activeUserCount' : bigint,
+  'lastActivity' : bigint,
   'createdAt' : bigint,
   'description' : string,
   'isLive' : boolean,
@@ -146,6 +148,7 @@ export interface _SERVICE {
   'getChatroom' : ActorMethod<[bigint], [] | [ChatroomWithLiveStatus]>,
   'getChatrooms' : ActorMethod<[], Array<ChatroomWithLiveStatus>>,
   'getLobbyChatroomCards' : ActorMethod<[], Array<LobbyChatroomCard>>,
+  'getMaxRooms' : ActorMethod<[], bigint>,
   'getMessageWithReactionsAndReplies' : ActorMethod<
     [bigint],
     Array<MessageWithReactions>

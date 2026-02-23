@@ -1,34 +1,74 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-22T04:31:42.112Z",
+  "generatedAt": "2026-02-23T02:32:54.667Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 1,
-    "implemented": 1,
+    "total": 4,
+    "implemented": 2,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "In the MessageBubble component, replace all X post URLs in message text with the plain text 'X Post' (non-clickable) while preserving the embedded X post previews below the message text",
+        "summary": "Modify the backend to enforce a maximum of 154 chatrooms. When a new chatroom is created and the limit is exceeded, prevent creation and return an error indicating the room limit has been reached.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-2",
+        "summary": "Implement bump-based sorting where chatrooms are automatically reordered by most recent activity. When a new message is posted to a room, that room should move to the top of the list. Store and update a lastActivity timestamp for each chatroom.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-3",
+        "summary": "Update the frontend chatroom list to display rooms in the order returned by the backend (sorted by most recent activity). Remove any client-side sorting that conflicts with bump-based ordering.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/MessageBubble.tsx"
+          "frontend/src/pages/LobbyPage.tsx",
+          "frontend/src/hooks/useQueries.ts"
         ],
         "matchedFiles": [
-          "frontend/src/components/MessageBubble.tsx"
+          "frontend/src/hooks/useQueries.ts"
+        ]
+      },
+      {
+        "id": "REQ-4",
+        "summary": "Display the room limit error to users in the CreateChatroomDialog when they attempt to create a room and the 154-room limit has been reached. Show a clear, user-friendly error message.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/CreateChatroomDialog.tsx",
+          "frontend/src/hooks/useQueries.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/CreateChatroomDialog.tsx",
+          "frontend/src/hooks/useQueries.ts"
         ]
       }
     ]
   },
   "changedFiles": [
+    "backend/main.mo",
+    "backend/migration.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
+    "frontend/src/backend.d.ts",
+    "frontend/src/backend.ts",
+    "frontend/src/components/AvatarPickerDialog.tsx",
+    "frontend/src/components/ChatArea.tsx",
+    "frontend/src/components/CreateChatroomDialog.tsx",
+    "frontend/src/components/Header.tsx",
     "frontend/src/components/MessageBubble.tsx",
+    "frontend/src/components/PinnedVideo.tsx",
+    "frontend/src/declarations/backend.did.d.ts",
+    "frontend/src/declarations/backend.did.js",
+    "frontend/src/hooks/useQueries.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

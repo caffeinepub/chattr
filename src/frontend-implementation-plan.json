@@ -1,23 +1,47 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Replace X post URLs with plain text while preserving embeds",
+  "title": "Implement 154-room limit with bump-based sorting",
   "requirements": [
     {
-      "id": "REQ-1",
-      "summary": "Replace X post URLs in message text with plain text 'X Post' while preserving embedded previews",
+      "id": "REQ-3",
+      "summary": "Display chatrooms in bump-based order from backend without client-side sorting",
       "acceptanceCriteria": [
-        "X post URLs in message text are replaced with the plain text 'X Post'",
-        "The text 'X Post' is not clickable or linked",
-        "Embedded X post previews continue to display below the message",
-        "Change applies to all existing messages containing X post URLs",
-        "Twitter widget rendering functionality remains intact"
+        "Lobby displays chatrooms in bump-order from the backend",
+        "Most recently active rooms appear at the top of the list",
+        "Room order updates in real-time when messages are posted"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/MessageBubble.tsx",
+          "path": "frontend/src/pages/LobbyPage.tsx",
           "operation": "modify",
-          "description": "Add text processing logic to detect X/Twitter post URLs in message content and replace them with the plain text 'X Post' (non-clickable). Preserve the existing Twitter embed rendering below the message text by ensuring the mediaUrl and mediaType fields remain unchanged. Apply the URL replacement only to the displayed message text without modifying the underlying data structure or the embed preview rendering logic."
+          "description": "Remove any client-side sorting logic that conflicts with bump-based ordering. Display chatrooms in the exact order returned by the backend's getChatrooms() and getLobbyChatroomCards() methods. Ensure the lastActivity timestamp from the backend drives the display order. The backend now returns rooms sorted by most recent activity (descending), so the frontend must preserve this ordering without re-sorting by createdAt or any other field."
+        },
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Update the useChatrooms and useLobbyChatroomCards query hooks to ensure they do not apply any client-side sorting transformations to the data returned from the backend. Remove any sorting by createdAt, messageCount, or other fields. The backend's getChatrooms() and getLobbyChatroomCards() methods now return rooms sorted by lastActivity in descending order (bump-based), and the frontend must preserve this order."
+        }
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "summary": "Display room limit error when 154-room limit is reached during chatroom creation",
+      "acceptanceCriteria": [
+        "Error message appears in the create chatroom dialog when limit is reached",
+        "Message clearly explains that the maximum number of rooms (154) has been reached",
+        "User can dismiss the error and the dialog remains functional"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/CreateChatroomDialog.tsx",
+          "operation": "modify",
+          "description": "Add error handling for the 154-room limit. When the createChatroom mutation fails due to the room limit being reached, display a user-friendly error message in the dialog explaining that the maximum of 154 rooms has been reached. Use a toast notification or inline error message within the dialog. The error should be dismissible and not close the dialog automatically, allowing the user to read the message and close the dialog manually. Handle the backend error response that indicates the room limit has been exceeded."
+        },
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Update the useCreateChatroom mutation to properly handle and expose room limit errors from the backend. When the backend's createChatroom method traps with a room limit error, ensure the mutation's error state is accessible to the CreateChatroomDialog component. Add error handling logic that distinguishes room limit errors from other creation failures."
         }
       ]
     }

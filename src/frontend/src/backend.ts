@@ -93,6 +93,7 @@ export interface LobbyChatroomCard {
     id: bigint;
     topic: string;
     activeUserCount: bigint;
+    lastActivity: bigint;
     createdAt: bigint;
     description: string;
     isLive: boolean;
@@ -171,6 +172,7 @@ export interface ChatroomWithLiveStatus {
     id: bigint;
     topic: string;
     activeUserCount: bigint;
+    lastActivity: bigint;
     createdAt: bigint;
     description: string;
     isLive: boolean;
@@ -219,6 +221,7 @@ export interface backendInterface {
     getChatroom(id: bigint): Promise<ChatroomWithLiveStatus | null>;
     getChatrooms(): Promise<Array<ChatroomWithLiveStatus>>;
     getLobbyChatroomCards(): Promise<Array<LobbyChatroomCard>>;
+    getMaxRooms(): Promise<bigint>;
     getMessageWithReactionsAndReplies(chatroomId: bigint): Promise<Array<MessageWithReactions>>;
     getMessages(chatroomId: bigint): Promise<Array<Message>>;
     getPinnedVideo(chatroomId: bigint): Promise<bigint | null>;
@@ -564,6 +567,20 @@ export class Backend implements backendInterface {
             return from_candid_vec_n20(this._uploadFile, this._downloadFile, result);
         }
     }
+    async getMaxRooms(): Promise<bigint> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getMaxRooms();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getMaxRooms();
+            return result;
+        }
+    }
     async getMessageWithReactionsAndReplies(arg0: bigint): Promise<Array<MessageWithReactions>> {
         if (this.processError) {
             try {
@@ -892,6 +909,7 @@ function from_candid_record_n12(_uploadFile: (file: ExternalBlob) => Promise<Uin
     id: bigint;
     topic: string;
     activeUserCount: bigint;
+    lastActivity: bigint;
     createdAt: bigint;
     description: string;
     isLive: boolean;
@@ -905,6 +923,7 @@ function from_candid_record_n12(_uploadFile: (file: ExternalBlob) => Promise<Uin
     id: bigint;
     topic: string;
     activeUserCount: bigint;
+    lastActivity: bigint;
     createdAt: bigint;
     description: string;
     isLive: boolean;
@@ -919,6 +938,7 @@ function from_candid_record_n12(_uploadFile: (file: ExternalBlob) => Promise<Uin
         id: value.id,
         topic: value.topic,
         activeUserCount: value.activeUserCount,
+        lastActivity: value.lastActivity,
         createdAt: value.createdAt,
         description: value.description,
         isLive: value.isLive,
@@ -952,6 +972,7 @@ function from_candid_record_n22(_uploadFile: (file: ExternalBlob) => Promise<Uin
     id: bigint;
     topic: string;
     activeUserCount: bigint;
+    lastActivity: bigint;
     createdAt: bigint;
     description: string;
     isLive: boolean;
@@ -965,6 +986,7 @@ function from_candid_record_n22(_uploadFile: (file: ExternalBlob) => Promise<Uin
     id: bigint;
     topic: string;
     activeUserCount: bigint;
+    lastActivity: bigint;
     createdAt: bigint;
     description: string;
     isLive: boolean;
@@ -979,6 +1001,7 @@ function from_candid_record_n22(_uploadFile: (file: ExternalBlob) => Promise<Uin
         id: value.id,
         topic: value.topic,
         activeUserCount: value.activeUserCount,
+        lastActivity: value.lastActivity,
         createdAt: value.createdAt,
         description: value.description,
         isLive: value.isLive,

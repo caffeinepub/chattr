@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import type { MessageWithReactions, Reaction } from '../backend';
+import type { MessageWithReactions, Reaction } from '../hooks/useQueries';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { formatDistanceToNow } from 'date-fns';
 import { X, Pin, Smile, Reply } from 'lucide-react';
@@ -71,17 +71,6 @@ function loadTwitterScript(): Promise<void> {
     script.onerror = () => reject(new Error('Failed to load Twitter widgets script'));
     document.body.appendChild(script);
   });
-}
-
-// Convert List to array helper
-function listToArray<T>(list: any): T[] {
-  const result: T[] = [];
-  let current = list;
-  while (current !== null && Array.isArray(current) && current.length === 2) {
-    result.push(current[0]);
-    current = current[1];
-  }
-  return result;
 }
 
 // Get user ID from localStorage
@@ -163,12 +152,12 @@ export default function MessageBubble({
 
   const handleReaction = async (emoji: string) => {
     const userId = getUserId();
-    const reactions = listToArray<Reaction>(message.reactions);
+    const reactions = message.reactions;
     const existingReaction = reactions.find((r) => r.emoji === emoji);
     const chatroomIdStr = chatroomId.toString();
     
     if (existingReaction) {
-      const users = listToArray<string>(existingReaction.users);
+      const users = existingReaction.users;
       if (users.includes(userId)) {
         // User already reacted, remove reaction
         await removeReaction.mutateAsync({ messageId: message.id, emoji, chatroomId: chatroomIdStr });
@@ -418,7 +407,7 @@ export default function MessageBubble({
     );
   };
 
-  const reactions = listToArray<Reaction>(message.reactions);
+  const reactions = message.reactions;
   const userId = getUserId();
 
   // Process message content to replace X/Twitter URLs with plain text
@@ -516,13 +505,13 @@ export default function MessageBubble({
                       )}
                     </div>
                   )}
-                  <div className="flex-1 min-w-0">
-                    <div className={`text-xs font-medium ${isOwnMessage ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>
+                  <div className="min-w-0 flex-1">
+                    <p className={`text-xs font-medium ${isOwnMessage ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
                       {parentMessage.sender}
-                    </div>
-                    <div className={`text-sm line-clamp-2 ${isOwnMessage ? 'text-primary-foreground/90' : 'text-foreground/90'}`}>
-                      {truncateText(parentMessage.content, 100)}
-                    </div>
+                    </p>
+                    <p className={`truncate text-sm ${isOwnMessage ? 'text-primary-foreground/90' : 'text-foreground'}`}>
+                      {truncateText(parentMessage.content, 50)}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -532,29 +521,26 @@ export default function MessageBubble({
             {renderMedia()}
           </div>
 
-          {/* Reactions display */}
+          {/* Reactions */}
           {reactions.length > 0 && (
             <div className="mt-1 flex flex-wrap gap-1">
-              {reactions
-                .filter((r) => r.count > 0)
-                .map((reaction) => {
-                  const users = listToArray<string>(reaction.users);
-                  const hasReacted = users.includes(userId);
-                  return (
-                    <button
-                      key={reaction.emoji}
-                      onClick={() => handleReaction(reaction.emoji)}
-                      className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs transition-colors ${
-                        hasReacted
-                          ? 'bg-primary/20 text-primary ring-1 ring-primary/30'
-                          : 'bg-muted hover:bg-muted/80'
-                      }`}
-                    >
-                      <span>{reaction.emoji}</span>
-                      <span className="font-medium">{Number(reaction.count)}</span>
-                    </button>
-                  );
-                })}
+              {reactions.map((reaction) => {
+                const hasReacted = reaction.users.includes(userId);
+                return (
+                  <button
+                    key={reaction.emoji}
+                    onClick={() => handleReaction(reaction.emoji)}
+                    className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs transition-colors ${
+                      hasReacted
+                        ? 'bg-primary/20 text-primary'
+                        : 'bg-muted hover:bg-muted/80 text-muted-foreground'
+                    }`}
+                  >
+                    <span>{reaction.emoji}</span>
+                    <span className="font-medium">{Number(reaction.count)}</span>
+                  </button>
+                );
+              })}
             </div>
           )}
 
@@ -568,16 +554,16 @@ export default function MessageBubble({
                   className="h-7 gap-1 px-2 text-xs"
                 >
                   <Smile className="h-3 w-3" />
-                  <span>React</span>
+                  React
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-2" align={isOwnMessage ? 'end' : 'start'}>
+              <PopoverContent className="w-auto p-2" align="start">
                 <div className="flex gap-1">
                   {COMMON_EMOJIS.map((emoji) => (
                     <button
                       key={emoji}
                       onClick={() => handleReaction(emoji)}
-                      className="rounded p-1 text-xl transition-colors hover:bg-muted"
+                      className="rounded p-1 text-lg hover:bg-muted transition-colors"
                     >
                       {emoji}
                     </button>
@@ -594,7 +580,7 @@ export default function MessageBubble({
                 className="h-7 gap-1 px-2 text-xs"
               >
                 <Reply className="h-3 w-3" />
-                <span>Reply</span>
+                Reply
               </Button>
             )}
           </div>

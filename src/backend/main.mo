@@ -13,8 +13,8 @@ import OutCall "http-outcalls/outcall";
 import Debug "mo:base/Debug";
 import AccessControl "authorization/access-control";
 
-
-
+import Migration "migration";
+(with migration = Migration.run) // Specify the data migration function in with-clause
 actor {
   let storage = Storage.new();
   include MixinStorage(storage);
@@ -62,6 +62,7 @@ actor {
     viewCount : Nat;
     pinnedVideoId : ?Nat;
     category : Text;
+    lastActivity : Int; // New field for tracking last activity
   };
 
   public type UserProfile = {
@@ -89,6 +90,7 @@ actor {
     isLive : Bool;
     activeUserCount : Nat;
     category : Text;
+    lastActivity : Int;
   };
 
   public type LobbyChatroomCard = {
@@ -104,6 +106,7 @@ actor {
     isLive : Bool;
     activeUserCount : Nat;
     category : Text;
+    lastActivity : Int;
   };
 
   public type Reaction = {
@@ -131,6 +134,10 @@ actor {
     sender : Text;
     contentSnippet : Text;
     mediaThumbnail : ?Text;
+  };
+
+  public func getMaxRooms() : async Nat {
+    154;
   };
 
   var nextMessageId = 0;
@@ -179,7 +186,11 @@ actor {
     };
   };
 
-  public shared func createChatroom(topic : Text, description : Text, mediaUrl : Text, mediaType : Text, category : Text) : async Nat {
+  public shared ({ caller }) func createChatroom(topic : Text, description : Text, mediaUrl : Text, mediaType : Text, category : Text) : async Nat {
+    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
+      Debug.trap("Unauthorized: Only users can create chatrooms");
+    };
+
     if (Text.size(topic) == 0 or Text.size(description) == 0) {
       assert false;
     };
@@ -195,6 +206,10 @@ actor {
       };
     };
 
+    if (natMap.size(chatrooms) >= 154) {
+      Debug.trap("Room limit reached. Only 154 rooms allowed.");
+    };
+
     let chatroom : Chatroom = {
       id = nextChatroomId;
       topic;
@@ -206,6 +221,7 @@ actor {
       viewCount = 0;
       pinnedVideoId = null;
       category;
+      lastActivity = Time.now();
     };
 
     chatrooms := natMap.put(chatrooms, nextChatroomId, chatroom);
@@ -323,7 +339,16 @@ actor {
       },
     );
 
-    Iter.toArray(lobbyCards);
+    let sortedCards = Array.sort<LobbyChatroomCard>(
+      Iter.toArray(lobbyCards),
+      func(a : LobbyChatroomCard, b : LobbyChatroomCard) : { #less; #equal; #greater } {
+        if (a.lastActivity > b.lastActivity) { #less } else if (a.lastActivity == b.lastActivity) {
+          #equal;
+        } else { #greater };
+      },
+    );
+
+    sortedCards;
   };
 
   public query func getChatrooms() : async [ChatroomWithLiveStatus] {
@@ -359,7 +384,16 @@ actor {
       },
     );
 
-    Iter.toArray(chatroomsWithLiveStatus);
+    let sortedRooms = Array.sort<ChatroomWithLiveStatus>(
+      Iter.toArray(chatroomsWithLiveStatus),
+      func(a : ChatroomWithLiveStatus, b : ChatroomWithLiveStatus) : { #less; #equal; #greater } {
+        if (a.lastActivity > b.lastActivity) { #less } else if (a.lastActivity == b.lastActivity) {
+          #equal;
+        } else { #greater };
+      },
+    );
+
+    sortedRooms;
   };
 
   func stripBase64FromUrl(url : Text) : Text {
@@ -402,7 +436,11 @@ actor {
     };
   };
 
-  public shared func sendMessage(content : Text, sender : Text, chatroomId : Nat, mediaUrl : ?Text, mediaType : ?Text, avatarUrl : ?Text, senderId : Text, replyToMessageId : ?Nat) : async () {
+  public shared ({ caller }) func sendMessage(content : Text, sender : Text, chatroomId : Nat, mediaUrl : ?Text, mediaType : ?Text, avatarUrl : ?Text, senderId : Text, replyToMessageId : ?Nat) : async () {
+    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
+      Debug.trap("Unauthorized: Only users can send messages");
+    };
+
     if (Text.size(content) == 0) {
       assert false;
     };
@@ -433,7 +471,8 @@ actor {
 
         let updatedChatroom = {
           chatroom with
-          messageCount = chatroom.messageCount + 1
+          messageCount = chatroom.messageCount + 1;
+          lastActivity = Time.now();
         };
         chatrooms := natMap.put(chatrooms, chatroomId, updatedChatroom);
 
@@ -550,10 +589,16 @@ actor {
   };
 
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
+    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
+      Debug.trap("Unauthorized: Only users can view profiles");
+    };
     principalMap.get(userProfiles, caller);
   };
 
   public shared ({ caller }) func saveCallerUserProfile(profile : UserProfile) : async () {
+    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
+      Debug.trap("Unauthorized: Only users can save profiles");
+    };
     userProfiles := principalMap.put(userProfiles, caller, profile);
   };
 
@@ -641,7 +686,11 @@ actor {
     activeUsers := updatedActiveUsers;
   };
 
-  public shared func addReaction(messageId : Nat, emoji : Text, userId : Text) : async () {
+  public shared ({ caller }) func addReaction(messageId : Nat, emoji : Text, userId : Text) : async () {
+    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
+      Debug.trap("Unauthorized: Only users can add reactions");
+    };
+
     let messageReactions = switch (natMap.get(reactions, messageId)) {
       case (null) { List.nil<Reaction>() };
       case (?existingReactions) { existingReactions };
@@ -685,7 +734,11 @@ actor {
     };
   };
 
-  public shared func removeReaction(messageId : Nat, emoji : Text, userId : Text) : async () {
+  public shared ({ caller }) func removeReaction(messageId : Nat, emoji : Text, userId : Text) : async () {
+    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
+      Debug.trap("Unauthorized: Only users can remove reactions");
+    };
+
     let messageReactions = switch (natMap.get(reactions, messageId)) {
       case (null) { List.nil<Reaction>() };
       case (?existingReactions) { existingReactions };
@@ -765,7 +818,16 @@ actor {
       },
     );
 
-    Iter.toArray(filteredChatrooms);
+    let sortedRooms = Array.sort<ChatroomWithLiveStatus>(
+      Iter.toArray(filteredChatrooms),
+      func(a : ChatroomWithLiveStatus, b : ChatroomWithLiveStatus) : { #less; #equal; #greater } {
+        if (a.lastActivity > b.lastActivity) { #less } else if (a.lastActivity == b.lastActivity) {
+          #equal;
+        } else { #greater };
+      },
+    );
+
+    sortedRooms;
   };
 
   public query func filterChatroomsByCategory(category : Text) : async [ChatroomWithLiveStatus] {
@@ -810,7 +872,16 @@ actor {
       },
     );
 
-    Iter.toArray(filteredChatrooms);
+    let sortedRooms = Array.sort<ChatroomWithLiveStatus>(
+      Iter.toArray(filteredChatrooms),
+      func(a : ChatroomWithLiveStatus, b : ChatroomWithLiveStatus) : { #less; #equal; #greater } {
+        if (a.lastActivity > b.lastActivity) { #less } else if (a.lastActivity == b.lastActivity) {
+          #equal;
+        } else { #greater };
+      },
+    );
+
+    sortedRooms;
   };
 
   public query func transform(input : OutCall.TransformationInput) : async OutCall.TransformationOutput {

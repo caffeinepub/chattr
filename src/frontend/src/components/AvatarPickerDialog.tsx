@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from './ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 import { Upload, Trash2, Search } from 'lucide-react';
-import { useCurrentAvatar, useUpdateAvatar, uploadImage } from '../hooks/useQueries';
+import { useAvatarUrl, useUpdateAvatar, uploadImage } from '../hooks/useQueries';
 import { toast } from 'sonner';
 import { Input } from './ui/input';
 import { useDebouncedValue } from '../hooks/useDebouncedValue';
@@ -28,7 +28,7 @@ function getUserInitials(): string {
 }
 
 export default function AvatarPickerDialog({ open, onOpenChange }: AvatarPickerDialogProps) {
-  const currentAvatar = useCurrentAvatar();
+  const currentAvatar = useAvatarUrl();
   const updateAvatar = useUpdateAvatar();
   const [isUploading, setIsUploading] = useState(false);
   const [giphySearchTerm, setGiphySearchTerm] = useState('');

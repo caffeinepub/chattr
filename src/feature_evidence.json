@@ -2,10 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-in-the-messagebubble-component-replace-all-x-post-urls-in-message-text-with-the-plain-text-x-post-non-clickable-while-preserving-the-embedded-x-post-previews-below-the-message-text",
-      "featureTitle": "In the MessageBubble component, replace all X post URLs in message text with the plain text 'X Post' (non-clickable) while preserving the embedded X post previews below the message text",
+      "featureId": "feature-update-the-frontend-chatroom-list-to-display-rooms-in-the-order-returned-by-the-backend-sorted-by-most-recent-activity-remove-any-client-side-sorting-that-conflicts-with-bump-based-ordering",
+      "featureTitle": "Update the frontend chatroom list to display rooms in the order returned by the backend (sorted by most recent activity). Remove any client-side sorting that conflicts with bump-based ordering.",
       "files": [
-        "frontend/src/components/MessageBubble.tsx"
+        "frontend/src/hooks/useQueries.ts"
       ],
       "components": [
         "authorization@1.0.1",
@@ -18,7 +18,29 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-1"
+        "REQ-3"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-display-the-room-limit-error-to-users-in-the-createchatroomdialog-when-they-attempt-to-create-a-room-and-the-154-room-limit-has-been-reached-show-a-clear-user-friendly-error-message",
+      "featureTitle": "Display the room limit error to users in the CreateChatroomDialog when they attempt to create a room and the 154-room limit has been reached. Show a clear, user-friendly error message.",
+      "files": [
+        "frontend/src/components/CreateChatroomDialog.tsx",
+        "frontend/src/hooks/useQueries.ts"
+      ],
+      "components": [
+        "authorization@1.0.1",
+        "blob-storage@2.0.3",
+        "http-outcalls@1.1.1",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-4"
       ],
       "confidence": "high"
     }

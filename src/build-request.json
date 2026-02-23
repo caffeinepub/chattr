@@ -1,43 +1,96 @@
 {
   "kind": "build_request",
-  "title": "Replace X post URLs with plain text while preserving embeds",
+  "title": "Implement 154-room limit with bump-based sorting",
+  "projectName": "Anonymous Board",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "In the MessageBubble component, replace all X post URLs in message text with the plain text 'X Post' (non-clickable) while preserving the embedded X post previews below the message text",
-      "target": "frontend",
+      "text": "Modify the backend to enforce a maximum of 154 chatrooms. When a new chatroom is created and the limit is exceeded, prevent creation and return an error indicating the room limit has been reached.",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-1",
-          "msg-3",
-          "msg-5",
-          "msg-7"
+          "msg-recent"
         ],
         "quotes": [
-          "Can you just remove the x post links and just add text that says 'X Post'",
-          "1. Plain text 2. Yes 3. All existing messages",
-          "Don't remove the actual x post embed though"
+          "154-room limit",
+          "Maximum of 154 rooms allowed"
         ]
       },
       "acceptanceCriteria": [
-        "X post URLs in message text are replaced with the plain text 'X Post'",
-        "The text 'X Post' is not clickable or linked",
-        "Embedded X post previews continue to display below the message",
-        "Change applies to all existing messages containing X post URLs",
-        "Twitter widget rendering functionality remains intact"
+        "Backend rejects chatroom creation attempts when 154 rooms already exist",
+        "Error message clearly indicates the room limit has been reached",
+        "Existing rooms remain unaffected by the limit enforcement"
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "text": "Implement bump-based sorting where chatrooms are automatically reordered by most recent activity. When a new message is posted to a room, that room should move to the top of the list. Store and update a lastActivity timestamp for each chatroom.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-recent"
+        ],
+        "quotes": [
+          "Bump-based sorting: Rooms with recent activity move to the top",
+          "bump-based sorting"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Each chatroom has a lastActivity timestamp that updates when messages are posted",
+        "Chatrooms are returned sorted by lastActivity in descending order (most recent first)",
+        "Posting a message to any room immediately bumps it to position 1"
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Update the frontend chatroom list to display rooms in the order returned by the backend (sorted by most recent activity). Remove any client-side sorting that conflicts with bump-based ordering.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-recent"
+        ],
+        "quotes": [
+          "Bump-based sorting: Rooms with recent activity move to the top"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Lobby displays chatrooms in bump-order from the backend",
+        "Most recently active rooms appear at the top of the list",
+        "Room order updates in real-time when messages are posted"
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "Display the room limit error to users in the CreateChatroomDialog when they attempt to create a room and the 154-room limit has been reached. Show a clear, user-friendly error message.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-recent"
+        ],
+        "quotes": [
+          "154-room limit"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Error message appears in the create chatroom dialog when limit is reached",
+        "Message clearly explains that the maximum number of rooms (154) has been reached",
+        "User can dismiss the error and the dialog remains functional"
       ]
     }
   ],
   "constraints": [
-    "Do not modify the Twitter embed rendering logic",
-    "Do not change backend message storage or data structures",
-    "Preserve all other message formatting and link handling"
+    "Do not change any existing UI styling or visual design",
+    "Keep all current authentication and caller principal checks in place",
+    "Do not implement archiving functionality (reserved for step 2)",
+    "Do not create an archive page (reserved for step 3)"
   ],
   "nonGoals": [
-    "Changing how X post embeds are rendered",
-    "Modifying URL detection or validation logic",
-    "Applying this change to YouTube or Twitch links"
+    "Removing authentication or caller principal checks",
+    "Implementing archive system for rooms below position 154",
+    "Creating an archive page or footer link",
+    "Time-based room expiration",
+    "Changing UI components, colors, or layout"
   ],
   "imageRequirements": {
     "required": [],

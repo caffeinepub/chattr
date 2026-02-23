@@ -1,8 +1,29 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
-import type { Message, ChatroomWithLiveStatus, UserProfile, MessageWithReactions, Reaction } from '../backend';
+import type { Message, ChatroomWithLiveStatus, UserProfile, MessageWithReactions as BackendMessageWithReactions, Reaction as BackendReaction, List_1, List } from '../backend';
 import { toast } from 'sonner';
 import { compressImage } from '../lib/imageCompression';
+
+// Frontend-friendly types with arrays instead of linked lists
+export interface Reaction {
+  emoji: string;
+  count: bigint;
+  users: string[];
+}
+
+export interface MessageWithReactions {
+  id: bigint;
+  content: string;
+  timestamp: bigint;
+  sender: string;
+  chatroomId: bigint;
+  mediaUrl?: string;
+  mediaType?: string;
+  avatarUrl?: string;
+  senderId: string;
+  reactions: Reaction[];
+  replyToMessageId?: bigint;
+}
 
 // Generate 8-character alphanumeric username (uppercase + lowercase + numbers)
 function generateUsername(): string {
@@ -39,12 +60,23 @@ function getAvatarUrl(): string | null {
   return localStorage.getItem('chatAvatarUrl');
 }
 
-// Convert List to array helper
-function listToArray<T>(list: any): T[] {
-  const result: T[] = [];
+// Convert List_1 (Reaction list) to array helper
+function reactionListToArray(list: List_1 | null): BackendReaction[] {
+  const result: BackendReaction[] = [];
   let current = list;
   while (current !== null && Array.isArray(current) && current.length === 2) {
-    result.push(current[0]);
+    result.push(current[0] as BackendReaction);
+    current = current[1];
+  }
+  return result;
+}
+
+// Convert List (string list) to array helper
+function stringListToArray(list: List | null): string[] {
+  const result: string[] = [];
+  let current = list;
+  while (current !== null && Array.isArray(current) && current.length === 2) {
+    result.push(current[0] as string);
     current = current[1];
   }
   return result;
@@ -84,7 +116,8 @@ export function useGetChatrooms() {
       const chatrooms = await actor.getChatrooms();
       console.log('[useGetChatrooms] Fetched chatrooms:', chatrooms.length);
       
-      return chatrooms.sort((a, b) => Number(b.createdAt - a.createdAt));
+      // Backend returns rooms sorted by lastActivity (bump-based), preserve that order
+      return chatrooms;
     },
     enabled: !!actor && !actorFetching,
     refetchOnMount: 'always',
@@ -120,7 +153,8 @@ export function useSearchChatrooms(searchTerm: string) {
       
       const chatrooms = await actor.searchChatrooms(trimmedSearchTerm);
       
-      return chatrooms.sort((a, b) => Number(b.createdAt - a.createdAt));
+      // Backend returns rooms sorted by lastActivity (bump-based), preserve that order
+      return chatrooms;
     },
     enabled: !!actor && !actorFetching && shouldExecute,
     retry: 3,
@@ -152,7 +186,8 @@ export function useFilterChatroomsByCategory(category: string) {
       
       const chatrooms = await actor.filterChatroomsByCategory(trimmedCategory);
       
-      return chatrooms.sort((a, b) => Number(b.createdAt - a.createdAt));
+      // Backend returns rooms sorted by lastActivity (bump-based), preserve that order
+      return chatrooms;
     },
     enabled: !!actor && !actorFetching && shouldExecute,
     retry: 3,
@@ -218,7 +253,13 @@ export function useCreateChatroom() {
     },
     onError: (error: Error) => {
       console.error('[CreateChatroom] Error:', error);
-      toast.error(error.message || 'Failed to create chat');
+      
+      // Check if error is room limit error
+      if (error.message && error.message.includes('Room limit reached')) {
+        toast.error('Room limit reached. Maximum of 154 rooms allowed.');
+      } else {
+        toast.error(error.message || 'Failed to create chat');
+      }
     },
   });
 }
@@ -248,21 +289,114 @@ export function useDeleteChatroom() {
         type: 'all'
       });
       
-      toast.success('Chatroom deleted successfully');
+      toast.success('Chat deleted successfully');
     },
     onError: (error: Error) => {
       console.error('[DeleteChatroom] Error:', error);
-      const errorMessage = error.message || 'Failed to delete chatroom';
+      toast.error(error.message || 'Failed to delete chat');
+    },
+  });
+}
+
+// Message queries
+export function useGetMessages(chatroomId: bigint) {
+  const { actor, isFetching: actorFetching } = useActor();
+
+  return useQuery<MessageWithReactions[]>({
+    queryKey: ['messages', chatroomId.toString()],
+    queryFn: async () => {
+      if (!actor) throw new Error('Actor not available');
+      const messages = await actor.getMessageWithReactionsAndReplies(chatroomId);
       
-      if (errorMessage.includes('Incorrect password')) {
-        toast.error('Authentication failed');
-      } else if (errorMessage.includes('does not exist')) {
-        toast.error('Chatroom not found');
-      } else if (errorMessage.includes('Unauthorized')) {
-        toast.error('You do not have permission to delete chatrooms');
-      } else {
-        toast.error(errorMessage);
-      }
+      // Convert backend format to frontend format
+      return messages.map(msg => ({
+        ...msg,
+        reactions: reactionListToArray(msg.reactions).map(reaction => ({
+          emoji: reaction.emoji,
+          count: reaction.count,
+          users: stringListToArray(reaction.users),
+        })),
+      }));
+    },
+    enabled: !!actor && !actorFetching,
+    refetchInterval: 2000,
+    retry: 3,
+    retryDelay: 1000,
+  });
+}
+
+export function useGetMessagesWithReactions(chatroomId: bigint) {
+  const { actor, isFetching: actorFetching } = useActor();
+
+  return useQuery<MessageWithReactions[]>({
+    queryKey: ['messagesWithReactions', chatroomId.toString()],
+    queryFn: async () => {
+      if (!actor) throw new Error('Actor not available');
+      const messages = await actor.getMessageWithReactionsAndReplies(chatroomId);
+      
+      // Convert backend format to frontend format
+      return messages.map(msg => ({
+        ...msg,
+        reactions: reactionListToArray(msg.reactions).map(reaction => ({
+          emoji: reaction.emoji,
+          count: reaction.count,
+          users: stringListToArray(reaction.users),
+        })),
+      }));
+    },
+    enabled: !!actor && !actorFetching,
+    refetchInterval: 2000,
+    retry: 3,
+    retryDelay: 1000,
+  });
+}
+
+export function useSendMessage() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (params: {
+      content: string;
+      chatroomId: bigint;
+      mediaUrl?: string | null;
+      mediaType?: string | null;
+      replyToMessageId?: bigint | null;
+    }) => {
+      if (!actor) throw new Error('Actor not available');
+      
+      const username = getUsername();
+      const userId = getUserId();
+      const avatarUrl = getAvatarUrl();
+      
+      return actor.sendMessage(
+        params.content,
+        username,
+        params.chatroomId,
+        params.mediaUrl || null,
+        params.mediaType || null,
+        avatarUrl,
+        userId,
+        params.replyToMessageId || null
+      );
+    },
+    onSuccess: async (_, variables) => {
+      await queryClient.invalidateQueries({ 
+        queryKey: ['messagesWithReactions', variables.chatroomId.toString()] 
+      });
+      await queryClient.invalidateQueries({ 
+        queryKey: ['messages', variables.chatroomId.toString()] 
+      });
+      await queryClient.invalidateQueries({ 
+        queryKey: ['chatroom', variables.chatroomId.toString()] 
+      });
+      await queryClient.invalidateQueries({ 
+        queryKey: ['chatrooms'] 
+      });
+    },
+    onError: (error: Error) => {
+      console.error('[SendMessage] Error:', error);
+      toast.error(error.message || 'Failed to send message');
     },
   });
 }
@@ -274,177 +408,39 @@ export function useIncrementViewCount() {
   return useMutation({
     mutationFn: async (chatroomId: bigint) => {
       if (!actor) throw new Error('Actor not available');
+      
       const userId = getUserId();
-      await actor.incrementViewCount(chatroomId, userId);
-      return chatroomId;
+      return actor.incrementViewCount(chatroomId, userId);
     },
-    onSuccess: (chatroomId) => {
-      queryClient.invalidateQueries({ queryKey: ['chatroom', chatroomId.toString()] });
-      queryClient.invalidateQueries({ queryKey: ['chatrooms'], exact: false });
-    },
-    onError: (error: Error) => {
-      console.error('[IncrementViewCount] Error:', error);
-    },
-  });
-}
-
-export async function uploadImage(file: File, onProgress?: (progress: number) => void): Promise<string> {
-  try {
-    console.log('[UploadImage] Starting upload for file:', file.name, 'size:', file.size, 'type:', file.type);
-    
-    if (file.size > 10 * 1024 * 1024) {
-      throw new Error('File size must be less than 10MB');
-    }
-    
-    if (onProgress) {
-      onProgress(5);
-    }
-    
-    let processedFile = file;
-    try {
-      console.log('[UploadImage] Attempting compression...');
-      processedFile = await compressImage(file, {
-        maxWidth: 1920,
-        maxHeight: 1920,
-        quality: 0.85,
-      }, (compressionProgress) => {
-        if (onProgress) {
-          onProgress(5 + (compressionProgress * 0.35));
-        }
+    onSuccess: async (_, chatroomId) => {
+      await queryClient.invalidateQueries({ 
+        queryKey: ['chatroom', chatroomId.toString()] 
       });
-      console.log('[UploadImage] Compression complete, using', processedFile === file ? 'original' : 'compressed', 'file');
-    } catch (compressionError) {
-      console.warn('[UploadImage] Compression failed, using original file:', compressionError);
-    }
-    
-    if (onProgress) {
-      onProgress(40);
-    }
-    
-    const dataUrl = await new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = reject;
-      reader.readAsDataURL(processedFile);
-    });
-    
-    console.log('[UploadImage] File read as data URL, length:', dataUrl.length);
-    
-    if (onProgress) {
-      onProgress(70);
-    }
-    
-    const imageId = `blob-storage-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    const storageKey = `image_${imageId}`;
-    
-    try {
-      localStorage.setItem(storageKey, dataUrl);
-      console.log('[UploadImage] Image stored in localStorage with key:', storageKey);
-    } catch (e) {
-      console.warn('[UploadImage] localStorage full, using data URL directly');
-    }
-    
-    if (onProgress) {
-      onProgress(100);
-    }
-    
-    const blobStorageUrl = `data:${processedFile.type};blob-storage-id=${imageId};base64,${dataUrl.split(',')[1]}`;
-    
-    console.log('[UploadImage] Upload complete, blob-storage URL created');
-    
-    return blobStorageUrl;
-  } catch (error) {
-    console.error('[UploadImage] Error processing image:', error);
-    throw error instanceof Error ? error : new Error('Failed to upload image');
-  }
-}
-
-export function useGetMessages(chatroomId: bigint) {
-  const { actor, isFetching: actorFetching } = useActor();
-
-  return useQuery<MessageWithReactions[]>({
-    queryKey: ['messages', chatroomId.toString()],
-    queryFn: async () => {
-      if (!actor) {
-        console.warn('[useGetMessages] Actor not available');
-        return [];
-      }
-      
-      try {
-        const messages = await actor.getMessageWithReactionsAndReplies(chatroomId);
-        const sortedMessages = messages.sort((a, b) => Number(a.timestamp - b.timestamp));
-        return sortedMessages;
-      } catch (error) {
-        console.error('[useGetMessages] Error fetching messages:', error);
-        return [];
-      }
-    },
-    enabled: !!actor && !actorFetching,
-    refetchInterval: 3000,
-    retry: 3,
-  });
-}
-
-export function useSendMessage() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (params: { content: string; chatroomId: bigint; mediaUrl?: string; mediaType?: string; replyToMessageId?: bigint }) => {
-      if (!actor) throw new Error('Actor not available');
-      const username = getUsername();
-      const userId = getUserId();
-      const avatarUrl = getAvatarUrl();
-      
-      console.log('[SendMessage] Sending message:', {
-        content: params.content,
-        chatroomId: params.chatroomId.toString(),
-        hasMedia: !!params.mediaUrl,
-        mediaType: params.mediaType,
-        replyToMessageId: params.replyToMessageId?.toString(),
+      await queryClient.invalidateQueries({ 
+        queryKey: ['chatrooms'] 
       });
-      
-      await actor.sendMessage(
-        params.content, 
-        username, 
-        params.chatroomId, 
-        params.mediaUrl || null, 
-        params.mediaType || null, 
-        avatarUrl, 
-        userId,
-        params.replyToMessageId || null
-      );
-      
-      return { userId, chatroomId: params.chatroomId };
-    },
-    onSuccess: (data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['messages', variables.chatroomId.toString()] });
-      queryClient.invalidateQueries({ queryKey: ['chatroom', variables.chatroomId.toString()] });
-      queryClient.invalidateQueries({ queryKey: ['chatrooms'], exact: false });
-    },
-    onError: (error: Error) => {
-      toast.error(error.message || 'Failed to send message');
     },
   });
 }
 
+// Pinned video mutations
 export function usePinVideo() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ chatroomId, messageId }: { chatroomId: bigint; messageId: bigint }) => {
+    mutationFn: async (params: { chatroomId: bigint; messageId: bigint }) => {
       if (!actor) throw new Error('Actor not available');
-      await actor.pinVideo(chatroomId, messageId);
-      return chatroomId;
+      return actor.pinVideo(params.chatroomId, params.messageId);
     },
-    onSuccess: (chatroomId) => {
-      queryClient.invalidateQueries({ queryKey: ['chatroom', chatroomId.toString()] });
-      queryClient.invalidateQueries({ queryKey: ['messages', chatroomId.toString()] });
-      queryClient.invalidateQueries({ queryKey: ['chatrooms'], exact: false });
-      toast.success('Video pinned');
+    onSuccess: async (_, variables) => {
+      await queryClient.invalidateQueries({ 
+        queryKey: ['chatroom', variables.chatroomId.toString()] 
+      });
+      toast.success('Video pinned successfully');
     },
     onError: (error: Error) => {
+      console.error('[PinVideo] Error:', error);
       toast.error(error.message || 'Failed to pin video');
     },
   });
@@ -457,26 +453,45 @@ export function useUnpinVideo() {
   return useMutation({
     mutationFn: async (chatroomId: bigint) => {
       if (!actor) throw new Error('Actor not available');
-      await actor.unpinVideo(chatroomId);
-      return chatroomId;
+      return actor.unpinVideo(chatroomId);
     },
-    onSuccess: (chatroomId) => {
-      queryClient.invalidateQueries({ queryKey: ['chatroom', chatroomId.toString()] });
-      queryClient.invalidateQueries({ queryKey: ['messages', chatroomId.toString()] });
-      queryClient.invalidateQueries({ queryKey: ['chatrooms'], exact: false });
-      toast.success('Video unpinned');
+    onSuccess: async (_, chatroomId) => {
+      await queryClient.invalidateQueries({ 
+        queryKey: ['chatroom', chatroomId.toString()] 
+      });
+      toast.success('Video unpinned successfully');
     },
     onError: (error: Error) => {
+      console.error('[UnpinVideo] Error:', error);
       toast.error(error.message || 'Failed to unpin video');
     },
   });
 }
 
-export function useCurrentUsername() {
+export function useGetPinnedVideo(chatroomId: bigint) {
+  const { actor, isFetching: actorFetching } = useActor();
+
+  return useQuery<bigint | null>({
+    queryKey: ['pinnedVideo', chatroomId.toString()],
+    queryFn: async () => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.getPinnedVideo(chatroomId);
+    },
+    enabled: !!actor && !actorFetching,
+    refetchInterval: 5000,
+  });
+}
+
+// Username and avatar hooks
+export function useUsername() {
   return getUsername();
 }
 
-export function useCurrentAvatar() {
+export function useUserId() {
+  return getUserId();
+}
+
+export function useAvatarUrl() {
   return getAvatarUrl();
 }
 
@@ -488,46 +503,33 @@ export function useUpdateUsername() {
     mutationFn: async (newUsername: string) => {
       if (!actor) throw new Error('Actor not available');
       
-      // Validate alphanumeric only (A-Z, a-z, 0-9)
-      const alphanumericRegex = /^[A-Za-z0-9]+$/;
-      if (!alphanumericRegex.test(newUsername)) {
+      // Validate username: alphanumeric only, max 15 characters
+      if (!/^[a-zA-Z0-9]+$/.test(newUsername)) {
         throw new Error('Username must contain only letters and numbers');
       }
       
-      // Validate length (max 15 characters)
       if (newUsername.length > 15) {
         throw new Error('Username must be 15 characters or less');
       }
       
-      if (newUsername.length === 0) {
-        throw new Error('Username cannot be empty');
-      }
-      
       const userId = getUserId();
-      
-      localStorage.setItem('chatUsername', newUsername);
       
       await actor.updateUsernameRetroactively(userId, newUsername);
       
-      queryClient.invalidateQueries({ queryKey: ['messages'] });
-      
-      return newUsername;
+      localStorage.setItem('chatUsername', newUsername);
     },
-    onSuccess: (newUsername) => {
-      toast.success(`Username updated to ${newUsername}`);
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['messages'] });
+      await queryClient.invalidateQueries({ queryKey: ['messagesWithReactions'] });
+      toast.success('Username updated successfully');
     },
     onError: (error: Error) => {
-      const errorMessage = error.message || 'Failed to update username';
+      console.error('[UpdateUsername] Error:', error);
       
-      // Handle username already exists error from backend
-      if (errorMessage.includes('already exists') || errorMessage.includes('already taken') || errorMessage.includes('not available')) {
-        toast.error('This username is already taken. Please choose another one.');
-      } else if (errorMessage.includes('alphanumeric') || errorMessage.includes('letters and numbers')) {
-        toast.error('Username must contain only letters and numbers');
-      } else if (errorMessage.includes('15 characters')) {
-        toast.error('Username must be 15 characters or less');
+      if (error.message.includes('already exists')) {
+        toast.error('Username already taken. Please choose another.');
       } else {
-        toast.error(errorMessage);
+        toast.error(error.message || 'Failed to update username');
       }
     },
   });
@@ -540,99 +542,101 @@ export function useUpdateAvatar() {
   return useMutation({
     mutationFn: async (newAvatarUrl: string | null) => {
       if (!actor) throw new Error('Actor not available');
+      
       const userId = getUserId();
+      
+      await actor.updateAvatarRetroactively(userId, newAvatarUrl);
       
       if (newAvatarUrl) {
         localStorage.setItem('chatAvatarUrl', newAvatarUrl);
       } else {
         localStorage.removeItem('chatAvatarUrl');
       }
-      
-      await actor.updateAvatarRetroactively(userId, newAvatarUrl);
-      
-      queryClient.invalidateQueries({ queryKey: ['messages'] });
-      
-      return newAvatarUrl;
     },
-    onSuccess: () => {
-      toast.success('Avatar updated');
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['messages'] });
+      await queryClient.invalidateQueries({ queryKey: ['messagesWithReactions'] });
+      toast.success('Avatar updated successfully');
     },
     onError: (error: Error) => {
+      console.error('[UpdateAvatar] Error:', error);
       toast.error(error.message || 'Failed to update avatar');
     },
   });
 }
 
+// Reaction mutations
 export function useAddReaction() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ messageId, emoji, chatroomId }: { messageId: bigint; emoji: string; chatroomId: string }) => {
+    mutationFn: async (params: { messageId: bigint; emoji: string; chatroomId: string }) => {
       if (!actor) throw new Error('Actor not available');
+      
       const userId = getUserId();
-      await actor.addReaction(messageId, emoji, userId);
-      return { messageId, emoji, userId, chatroomId };
+      return actor.addReaction(params.messageId, params.emoji, userId);
     },
     onMutate: async ({ messageId, emoji, chatroomId }) => {
-      const userId = getUserId();
-      
-      const queryKey = ['messages', chatroomId];
-      await queryClient.cancelQueries({ queryKey });
-      
-      const previousMessages = queryClient.getQueryData<MessageWithReactions[]>(queryKey);
-      
+      await queryClient.cancelQueries({ 
+        queryKey: ['messages', chatroomId] 
+      });
+
+      const previousMessages = queryClient.getQueryData<MessageWithReactions[]>([
+        'messages',
+        chatroomId,
+      ]);
+
       if (previousMessages) {
-        queryClient.setQueryData<MessageWithReactions[]>(queryKey, (old) => {
-          if (!old) return old;
-          return old.map((msg) => {
+        const userId = getUserId();
+        queryClient.setQueryData<MessageWithReactions[]>(
+          ['messages', chatroomId],
+          previousMessages.map((msg) => {
             if (msg.id === messageId) {
-              const reactions = listToArray<Reaction>(msg.reactions);
-              const existingReaction = reactions.find((r) => r.emoji === emoji);
-              
+              const existingReaction = msg.reactions.find((r) => r.emoji === emoji);
               if (existingReaction) {
-                const users = listToArray<string>(existingReaction.users);
-                if (!users.includes(userId)) {
-                  const updatedReaction: Reaction = {
-                    ...existingReaction,
-                    count: existingReaction.count + BigInt(1),
-                    users: [userId, existingReaction.users] as any,
-                  };
-                  const updatedReactions = reactions.map((r) =>
-                    r.emoji === emoji ? updatedReaction : r
-                  );
-                  return {
-                    ...msg,
-                    reactions: arrayToList(updatedReactions),
-                  };
-                }
-              } else {
-                const newReaction: Reaction = {
-                  emoji,
-                  count: BigInt(1),
-                  users: [userId, null] as any,
-                };
                 return {
                   ...msg,
-                  reactions: arrayToList([...reactions, newReaction]),
+                  reactions: msg.reactions.map((r) =>
+                    r.emoji === emoji
+                      ? {
+                          ...r,
+                          count: r.count + 1n,
+                          users: [...r.users, userId],
+                        }
+                      : r
+                  ),
+                };
+              } else {
+                return {
+                  ...msg,
+                  reactions: [
+                    ...msg.reactions,
+                    { emoji, count: 1n, users: [userId] },
+                  ],
                 };
               }
             }
             return msg;
-          });
-        });
+          })
+        );
       }
-      
-      return { previousMessages, chatroomId };
+
+      return { previousMessages };
     },
     onError: (err, variables, context) => {
-      if (context?.previousMessages && context?.chatroomId) {
-        queryClient.setQueryData(['messages', context.chatroomId], context.previousMessages);
+      if (context?.previousMessages) {
+        queryClient.setQueryData(
+          ['messages', variables.chatroomId],
+          context.previousMessages
+        );
       }
       toast.error('Failed to add reaction');
     },
-    onSettled: (data, error, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['messages', variables.chatroomId] });
+    onSettled: async (_, __, variables) => {
+      await queryClient.invalidateQueries({ 
+        queryKey: ['messages', variables.chatroomId] 
+      });
     },
   });
 }
@@ -642,80 +646,102 @@ export function useRemoveReaction() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ messageId, emoji, chatroomId }: { messageId: bigint; emoji: string; chatroomId: string }) => {
+    mutationFn: async (params: { messageId: bigint; emoji: string; chatroomId: string }) => {
       if (!actor) throw new Error('Actor not available');
+      
       const userId = getUserId();
-      await actor.removeReaction(messageId, emoji, userId);
-      return { messageId, emoji, userId, chatroomId };
+      return actor.removeReaction(params.messageId, params.emoji, userId);
     },
     onMutate: async ({ messageId, emoji, chatroomId }) => {
-      const userId = getUserId();
-      
-      const queryKey = ['messages', chatroomId];
-      await queryClient.cancelQueries({ queryKey });
-      
-      const previousMessages = queryClient.getQueryData<MessageWithReactions[]>(queryKey);
-      
+      await queryClient.cancelQueries({ 
+        queryKey: ['messages', chatroomId] 
+      });
+
+      const previousMessages = queryClient.getQueryData<MessageWithReactions[]>([
+        'messages',
+        chatroomId,
+      ]);
+
       if (previousMessages) {
-        queryClient.setQueryData<MessageWithReactions[]>(queryKey, (old) => {
-          if (!old) return old;
-          return old.map((msg) => {
+        const userId = getUserId();
+        queryClient.setQueryData<MessageWithReactions[]>(
+          ['messages', chatroomId],
+          previousMessages.map((msg) => {
             if (msg.id === messageId) {
-              const reactions = listToArray<Reaction>(msg.reactions);
-              const updatedReactions = reactions
-                .map((r) => {
-                  if (r.emoji === emoji) {
-                    const users = listToArray<string>(r.users);
-                    const filteredUsers = users.filter((u) => u !== userId);
-                    return {
-                      ...r,
-                      count: r.count > BigInt(0) ? r.count - BigInt(1) : BigInt(0),
-                      users: arrayToList(filteredUsers),
-                    };
-                  }
-                  return r;
-                })
-                .filter((r) => r.count > BigInt(0));
-              
               return {
                 ...msg,
-                reactions: arrayToList(updatedReactions),
+                reactions: msg.reactions
+                  .map((r) =>
+                    r.emoji === emoji
+                      ? {
+                          ...r,
+                          count: r.count > 0n ? r.count - 1n : 0n,
+                          users: r.users.filter((u) => u !== userId),
+                        }
+                      : r
+                  )
+                  .filter((r) => r.count > 0n),
               };
             }
             return msg;
-          });
-        });
+          })
+        );
       }
-      
-      return { previousMessages, chatroomId };
+
+      return { previousMessages };
     },
     onError: (err, variables, context) => {
-      if (context?.previousMessages && context?.chatroomId) {
-        queryClient.setQueryData(['messages', context.chatroomId], context.previousMessages);
+      if (context?.previousMessages) {
+        queryClient.setQueryData(
+          ['messages', variables.chatroomId],
+          context.previousMessages
+        );
       }
       toast.error('Failed to remove reaction');
     },
-    onSettled: (data, error, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['messages', variables.chatroomId] });
+    onSettled: async (_, __, variables) => {
+      await queryClient.invalidateQueries({ 
+        queryKey: ['messages', variables.chatroomId] 
+      });
     },
   });
 }
 
-function arrayToList<T>(arr: T[]): any {
-  if (arr.length === 0) return null;
-  return arr.reduceRight((acc, item) => [item, acc], null as any);
-}
-
-export function useGetReplyPreview(chatroomId: bigint, messageId: bigint | null) {
-  const { actor, isFetching: actorFetching } = useActor();
-
-  return useQuery({
-    queryKey: ['replyPreview', chatroomId.toString(), messageId?.toString()],
-    queryFn: async () => {
-      if (!actor || !messageId) return null;
-      return actor.getReplyPreview(chatroomId, messageId);
-    },
-    enabled: !!actor && !actorFetching && messageId !== null,
-    staleTime: 60000,
-  });
+// File upload helper
+export async function uploadImage(file: File, onProgress?: (progress: number) => void): Promise<string> {
+  try {
+    console.log('[uploadImage] Starting upload for file:', file.name, 'size:', file.size);
+    
+    // Compress image before upload
+    const compressedFile = await compressImage(file);
+    console.log('[uploadImage] Compressed file size:', compressedFile.size);
+    
+    const arrayBuffer = await compressedFile.arrayBuffer();
+    const uint8Array = new Uint8Array(arrayBuffer);
+    
+    // Import the entire module and access ExternalBlob
+    const icpSdkCore = await import('@icp-sdk/core');
+    const ExternalBlob = (icpSdkCore as any).ExternalBlob;
+    
+    if (!ExternalBlob) {
+      throw new Error('ExternalBlob not found in @icp-sdk/core');
+    }
+    
+    let blob = ExternalBlob.fromBytes(uint8Array);
+    
+    if (onProgress) {
+      blob = blob.withUploadProgress((percentage: number) => {
+        console.log('[uploadImage] Upload progress:', percentage);
+        onProgress(percentage);
+      });
+    }
+    
+    const url = blob.getDirectURL();
+    console.log('[uploadImage] Upload complete, URL:', url);
+    
+    return url;
+  } catch (error) {
+    console.error('[uploadImage] Upload failed:', error);
+    throw error;
+  }
 }
