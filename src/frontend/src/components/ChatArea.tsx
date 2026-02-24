@@ -12,26 +12,28 @@ import { Button } from './ui/button';
 interface ChatAreaProps {
   chatroomId: bigint;
   chatroom: ChatroomWithLiveStatus;
+  targetMessageId?: string;
 }
 
 interface ReplyContext {
-  messageId: bigint;
+  messageId: string;
   sender: string;
   contentSnippet: string;
   mediaThumbnail?: string;
 }
 
-export default function ChatArea({ chatroomId, chatroom }: ChatAreaProps) {
+export default function ChatArea({ chatroomId, chatroom, targetMessageId }: ChatAreaProps) {
   const { data: messages, isLoading } = useGetMessages(chatroomId);
   const currentUsername = useCurrentUsername();
   const sendMessage = useSendMessage();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [replyingTo, setReplyingTo] = useState<ReplyContext | null>(null);
-  const [highlightedMessageId, setHighlightedMessageId] = useState<bigint | null>(null);
+  const [highlightedMessageId, setHighlightedMessageId] = useState<string | null>(null);
   const messageRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const previousMessageCountRef = useRef<number>(0);
   const [isHeaderExpanded, setIsHeaderExpanded] = useState(true);
+  const hasScrolledToTarget = useRef(false);
 
   const scrollToBottom = (behavior: ScrollBehavior = 'smooth') => {
     messagesEndRef.current?.scrollIntoView({ behavior });
@@ -46,9 +48,9 @@ export default function ChatArea({ chatroomId, chatroom }: ChatAreaProps) {
     return true;
   });
 
-  // Auto-scroll to bottom when new messages arrive
+  // Auto-scroll to bottom when new messages arrive (only if no target message)
   useEffect(() => {
-    if (filteredMessages) {
+    if (filteredMessages && !targetMessageId) {
       const currentMessageCount = filteredMessages.length;
       const previousMessageCount = previousMessageCountRef.current;
       
@@ -59,7 +61,28 @@ export default function ChatArea({ chatroomId, chatroom }: ChatAreaProps) {
       
       previousMessageCountRef.current = currentMessageCount;
     }
-  }, [filteredMessages]);
+  }, [filteredMessages, targetMessageId]);
+
+  // Scroll to target message when messages load
+  useEffect(() => {
+    if (targetMessageId && filteredMessages && filteredMessages.length > 0 && !hasScrolledToTarget.current) {
+      const messageElement = messageRefs.current.get(targetMessageId);
+      if (messageElement && scrollContainerRef.current) {
+        // Wait a bit for rendering to complete
+        setTimeout(() => {
+          messageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          setHighlightedMessageId(targetMessageId);
+          
+          // Remove highlight after 3 seconds
+          setTimeout(() => {
+            setHighlightedMessageId(null);
+          }, 3000);
+        }, 100);
+        
+        hasScrolledToTarget.current = true;
+      }
+    }
+  }, [targetMessageId, filteredMessages]);
 
   const handleSendMessage = async (content: string, mediaUrl?: string, mediaType?: string) => {
     if (!content.trim() && !mediaUrl) return;
@@ -84,7 +107,7 @@ export default function ChatArea({ chatroomId, chatroom }: ChatAreaProps) {
     setReplyingTo(null);
   };
 
-  const handleReply = (messageId: bigint, sender: string, contentSnippet: string, mediaThumbnail?: string) => {
+  const handleReply = (messageId: string, sender: string, contentSnippet: string, mediaThumbnail?: string) => {
     setReplyingTo({ messageId, sender, contentSnippet, mediaThumbnail });
   };
 
@@ -92,8 +115,8 @@ export default function ChatArea({ chatroomId, chatroom }: ChatAreaProps) {
     setReplyingTo(null);
   };
 
-  const handleScrollToMessage = (messageId: bigint) => {
-    const messageElement = messageRefs.current.get(messageId.toString());
+  const handleScrollToMessage = (messageId: string) => {
+    const messageElement = messageRefs.current.get(messageId);
     if (messageElement && scrollContainerRef.current) {
       // Scroll to message
       messageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -231,12 +254,12 @@ export default function ChatArea({ chatroomId, chatroom }: ChatAreaProps) {
           {filteredMessages && filteredMessages.length > 0 ? (
             filteredMessages.map((message) => (
               <div
-                key={message.id.toString()}
+                key={message.id}
                 ref={(el) => {
                   if (el) {
-                    messageRefs.current.set(message.id.toString(), el);
+                    messageRefs.current.set(message.id, el);
                   } else {
-                    messageRefs.current.delete(message.id.toString());
+                    messageRefs.current.delete(message.id);
                   }
                 }}
               >

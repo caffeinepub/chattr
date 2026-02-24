@@ -23,7 +23,7 @@ export interface ChatroomWithLiveStatus {
   'messageCount' : bigint,
   'mediaType' : [] | [string],
   'category' : string,
-  'pinnedVideoId' : [] | [bigint],
+  'pinnedVideoId' : [] | [string],
 }
 export type List = [] | [[string, List]];
 export type List_1 = [] | [[Reaction, List_1]];
@@ -39,29 +39,29 @@ export interface LobbyChatroomCard {
   'messageCount' : bigint,
   'mediaType' : [] | [string],
   'category' : string,
-  'pinnedVideoId' : [] | [bigint],
+  'pinnedVideoId' : [] | [string],
   'presenceIndicator' : bigint,
 }
 export interface Message {
-  'id' : bigint,
+  'id' : string,
   'content' : string,
   'chatroomId' : bigint,
   'sender' : string,
   'mediaUrl' : [] | [string],
   'avatarUrl' : [] | [string],
-  'replyToMessageId' : [] | [bigint],
+  'replyToMessageId' : [] | [string],
   'timestamp' : bigint,
   'mediaType' : [] | [string],
   'senderId' : string,
 }
 export interface MessageWithReactions {
-  'id' : bigint,
+  'id' : string,
   'content' : string,
   'chatroomId' : bigint,
   'sender' : string,
   'mediaUrl' : [] | [string],
   'avatarUrl' : [] | [string],
-  'replyToMessageId' : [] | [bigint],
+  'replyToMessageId' : [] | [string],
   'timestamp' : bigint,
   'mediaType' : [] | [string],
   'reactions' : List_1,
@@ -69,7 +69,7 @@ export interface MessageWithReactions {
 }
 export interface Reaction { 'count' : bigint, 'emoji' : string, 'users' : List }
 export interface ReplyPreview {
-  'messageId' : bigint,
+  'messageId' : string,
   'sender' : string,
   'mediaThumbnail' : [] | [string],
   'contentSnippet' : string,
@@ -125,7 +125,7 @@ export interface _SERVICE {
     _CaffeineStorageRefillResult
   >,
   '_caffeineStorageUpdateGatewayPrincipals' : ActorMethod<[], undefined>,
-  'addReaction' : ActorMethod<[bigint, string, string], undefined>,
+  'addReaction' : ActorMethod<[string, string, string], undefined>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
   'cleanupInactiveUsers' : ActorMethod<[], undefined>,
   'createChatroom' : ActorMethod<
@@ -153,16 +153,16 @@ export interface _SERVICE {
     Array<MessageWithReactions>
   >,
   'getMessages' : ActorMethod<[bigint], Array<Message>>,
-  'getPinnedVideo' : ActorMethod<[bigint], [] | [bigint]>,
-  'getReactions' : ActorMethod<[bigint], Array<Reaction>>,
-  'getReplies' : ActorMethod<[bigint, bigint], Array<Message>>,
-  'getReplyPreview' : ActorMethod<[bigint, bigint], [] | [ReplyPreview]>,
+  'getPinnedVideo' : ActorMethod<[bigint], [] | [string]>,
+  'getReactions' : ActorMethod<[string], Array<Reaction>>,
+  'getReplies' : ActorMethod<[bigint, string], Array<Message>>,
+  'getReplyPreview' : ActorMethod<[bigint, string], [] | [ReplyPreview]>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'incrementViewCount' : ActorMethod<[bigint, string], undefined>,
   'initializeAccessControl' : ActorMethod<[], undefined>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
-  'pinVideo' : ActorMethod<[bigint, bigint], undefined>,
-  'removeReaction' : ActorMethod<[bigint, string, string], undefined>,
+  'pinVideo' : ActorMethod<[bigint, string], undefined>,
+  'removeReaction' : ActorMethod<[string, string, string], undefined>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
   'searchChatrooms' : ActorMethod<[string], Array<ChatroomWithLiveStatus>>,
   'sendMessage' : ActorMethod<
@@ -174,7 +174,7 @@ export interface _SERVICE {
       [] | [string],
       [] | [string],
       string,
-      [] | [bigint],
+      [] | [string],
     ],
     undefined
   >,

@@ -1,11 +1,13 @@
 # Specification
 
 ## Summary
-**Goal:** Update lobby card timestamps to reflect the most recent activity from either new messages or new reactions.
+**Goal:** Add sequential message IDs to all messages across the entire application.
 
 **Planned changes:**
-- Update backend Chatroom type to track and store the timestamp of the most recent activity (new message or new reaction)
-- Update the backend to refresh this timestamp whenever a message is posted or a reaction is added
-- Update lobby card UI to display this last modified timestamp instead of the current timestamp
+- Add a global message ID counter in the backend that increments sequentially for every message created
+- Add an id field to the Message type to store formatted message IDs
+- Format message IDs as zero-padded 9-digit strings (e.g., '000000001'), automatically expanding to 10+ digits when exceeding 999999999
+- Display the message ID in the MessageBubble component for all messages, styled to match 4chan's post numbering system appearance
+- No authorization checks or caller verification for message ID assignment
 
-**User-visible outcome:** Users will see lobby cards with timestamps that accurately reflect the most recent activity in each chatroom, whether from a new message or a new reaction.
+**User-visible outcome:** Users will see a unique sequential ID displayed with each message (like 4chan post numbers), making it easy to reference specific messages across all chatrooms.

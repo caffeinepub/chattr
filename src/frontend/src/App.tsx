@@ -56,6 +56,11 @@ const chatroomRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/chatroom/$chatroomId',
   component: ChatroomPage,
+  validateSearch: (search: Record<string, unknown>): { messageId?: string } => {
+    return {
+      messageId: typeof search.messageId === 'string' ? search.messageId : undefined,
+    };
+  },
 });
 
 const adminRoute = createRoute({

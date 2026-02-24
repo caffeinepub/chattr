@@ -1,20 +1,21 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Update lobby card timestamp to track message and reaction activity",
+  "title": "Re-add sequential message IDs to all messages",
   "requirements": [
     {
-      "id": "REQ-2",
-      "summary": "Update the lobby card UI to display the last modified timestamp (most recent message or reaction activity) instead of the current timestamp",
+      "id": "REQ-4",
+      "summary": "Display the message ID in the MessageBubble component for all messages, styled to match 4chan's post numbering system appearance",
       "acceptanceCriteria": [
-        "Lobby cards show a timestamp that reflects when the last message was posted OR when the last reaction was added, whichever is more recent",
-        "The timestamp format remains consistent with the current display style"
+        "The message ID is visible in every message bubble",
+        "The ID is displayed near the timestamp or username",
+        "The styling is consistent with the rest of the message header"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/ChatroomCard.tsx",
+          "path": "frontend/src/components/MessageBubble.tsx",
           "operation": "modify",
-          "description": "Update the timestamp display to use the lastActivity field from LobbyChatroomCard instead of createdAt. The backend now tracks the most recent activity time from either new messages or new reactions in this field. Change the timestamp rendering to use card.lastActivity, maintaining the existing formatDistanceToNow format for consistency."
+          "description": "Add message ID display to the MessageBubble component header, positioned near the timestamp. The ID should be rendered in a monospace font (font-mono) with muted styling similar to the timestamp. Display format: 'No. {message.id}' positioned between the username and timestamp in the message header. Ensure the ID is visible for all message types including creator posts, regular messages, and replies."
         }
       ]
     }

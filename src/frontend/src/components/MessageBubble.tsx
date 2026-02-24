@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import type { MessageWithReactions, Reaction } from '../backend';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { formatDistanceToNow } from 'date-fns';
-import { X, Pin, Smile, Reply } from 'lucide-react';
+import { X, Pin, Smile, Reply, Share2 } from 'lucide-react';
 import { Button } from './ui/button';
 import { usePinVideo, useUnpinVideo, useAddReaction, useRemoveReaction } from '../hooks/useQueries';
 import {
@@ -19,14 +19,15 @@ import {
   isTwitterUrl 
 } from '../lib/videoUtils';
 import VoiceMessagePlayer from './VoiceMessagePlayer';
+import { toast } from 'sonner';
 
 interface MessageBubbleProps {
   message: MessageWithReactions;
   isOwnMessage: boolean;
   chatroomId: bigint;
   isPinned: boolean;
-  onReply?: (messageId: bigint, sender: string, contentSnippet: string, mediaThumbnail?: string) => void;
-  onScrollToMessage?: (messageId: bigint) => void;
+  onReply?: (messageId: string, sender: string, contentSnippet: string, mediaThumbnail?: string) => void;
+  onScrollToMessage?: (messageId: string) => void;
   allMessages?: MessageWithReactions[];
   isHighlighted?: boolean;
 }
@@ -215,6 +216,18 @@ export default function MessageBubble({
     }
     
     onReply(message.id, message.sender, contentSnippet, mediaThumbnail);
+  };
+
+  const handleShareClick = async () => {
+    const url = `${window.location.origin}/chatroom/${chatroomId}?messageId=${message.id}`;
+    
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success('Link copied to clipboard!');
+    } catch (error) {
+      console.error('Failed to copy link:', error);
+      toast.error('Failed to copy link');
+    }
   };
 
   // Load Twitter embed when message contains Twitter URL
@@ -449,6 +462,9 @@ export default function MessageBubble({
         <div className={`flex flex-col ${isOwnMessage ? 'items-end' : 'items-start'} ${hasVideo ? 'w-full max-w-[600px]' : 'max-w-[70%]'}`}>
           <div className="mb-1 flex items-center gap-2">
             <span className="text-xs font-medium text-foreground">{message.sender}</span>
+            <span className="font-mono text-xs text-muted-foreground">
+              No. {message.id}
+            </span>
             <span className="text-xs text-muted-foreground">
               {formatTimestamp(message.timestamp)}
             </span>
@@ -496,32 +512,32 @@ export default function MessageBubble({
                       {parentMessage.mediaType === 'twitch' && (
                         <img 
                           src="/assets/generated/twitch-icon-transparent.dim_32x32.png"
-                          alt="Twitch" 
-                          className="h-10 w-10 rounded object-contain"
+                          alt="Twitch thumbnail" 
+                          className="h-10 w-10 rounded object-cover"
                         />
                       )}
                       {parentMessage.mediaType === 'twitter' && (
                         <img 
                           src="/assets/generated/twitter-icon-transparent.dim_32x32.png"
-                          alt="Twitter" 
-                          className="h-10 w-10 rounded object-contain"
+                          alt="Twitter thumbnail" 
+                          className="h-10 w-10 rounded object-cover"
                         />
                       )}
                       {parentMessage.mediaType === 'audio' && (
                         <img 
                           src="/assets/generated/audio-waveform-icon-transparent.dim_24x24.png"
-                          alt="Audio" 
-                          className="h-10 w-10 rounded object-contain"
+                          alt="Audio thumbnail" 
+                          className="h-10 w-10 rounded object-cover"
                         />
                       )}
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
-                    <div className={`text-xs font-medium ${isOwnMessage ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>
+                    <div className="text-xs font-medium text-muted-foreground">
                       {parentMessage.sender}
                     </div>
-                    <div className={`text-sm line-clamp-2 ${isOwnMessage ? 'text-primary-foreground/90' : 'text-foreground/90'}`}>
-                      {truncateText(parentMessage.content, 100)}
+                    <div className="text-xs text-muted-foreground line-clamp-2">
+                      {replaceTwitterUrlsWithText(parentMessage.content)}
                     </div>
                   </div>
                 </div>
@@ -532,34 +548,42 @@ export default function MessageBubble({
             {renderMedia()}
           </div>
 
-          {/* Reactions display */}
+          {/* Reactions */}
           {reactions.length > 0 && (
             <div className="mt-1 flex flex-wrap gap-1">
-              {reactions
-                .filter((r) => r.count > 0)
-                .map((reaction) => {
-                  const users = listToArray<string>(reaction.users);
-                  const hasReacted = users.includes(userId);
-                  return (
-                    <button
-                      key={reaction.emoji}
-                      onClick={() => handleReaction(reaction.emoji)}
-                      className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs transition-colors ${
-                        hasReacted
-                          ? 'bg-primary/20 text-primary ring-1 ring-primary/30'
-                          : 'bg-muted hover:bg-muted/80'
-                      }`}
-                    >
-                      <span>{reaction.emoji}</span>
-                      <span className="font-medium">{Number(reaction.count)}</span>
-                    </button>
-                  );
-                })}
+              {reactions.map((reaction) => {
+                const users = listToArray<string>(reaction.users);
+                const hasReacted = users.includes(userId);
+                return (
+                  <button
+                    key={reaction.emoji}
+                    onClick={() => handleReaction(reaction.emoji)}
+                    className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs transition-colors ${
+                      hasReacted
+                        ? 'bg-primary/20 text-primary'
+                        : 'bg-muted hover:bg-muted/80'
+                    }`}
+                  >
+                    <span>{reaction.emoji}</span>
+                    <span className="font-medium">{Number(reaction.count)}</span>
+                  </button>
+                );
+              })}
             </div>
           )}
 
           {/* Action buttons */}
           <div className="mt-1 flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleReplyClick}
+              className="h-7 gap-1 px-2 text-xs"
+            >
+              <Reply className="h-3 w-3" />
+              <span>Reply</span>
+            </Button>
+
             <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
               <PopoverTrigger asChild>
                 <Button
@@ -571,7 +595,7 @@ export default function MessageBubble({
                   <span>React</span>
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-2" align={isOwnMessage ? 'end' : 'start'}>
+              <PopoverContent className="w-auto p-2" align="start">
                 <div className="flex gap-1">
                   {COMMON_EMOJIS.map((emoji) => (
                     <button
@@ -586,17 +610,15 @@ export default function MessageBubble({
               </PopoverContent>
             </Popover>
 
-            {onReply && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleReplyClick}
-                className="h-7 gap-1 px-2 text-xs"
-              >
-                <Reply className="h-3 w-3" />
-                <span>Reply</span>
-              </Button>
-            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleShareClick}
+              className="h-7 gap-1 px-2 text-xs"
+            >
+              <Share2 className="h-3 w-3" />
+              <span>Share</span>
+            </Button>
           </div>
         </div>
       </div>

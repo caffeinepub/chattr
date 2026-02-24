@@ -1,32 +1,53 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-23T20:44:43.155Z",
+  "generatedAt": "2026-02-24T00:57:39.973Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 2,
+    "total": 5,
     "implemented": 1,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Update the backend Chatroom type to track the most recent activity time from either new messages or new reactions, and expose this timestamp for lobby sorting",
+        "summary": "Add a global message ID counter in the backend that starts at 1 and increments sequentially for every message created (including creator posts and all replies across all chatrooms)",
         "status": "unknown",
         "plannedFiles": [],
         "matchedFiles": []
       },
       {
         "id": "REQ-2",
-        "summary": "Update the lobby card UI to display the last modified timestamp (most recent message or reaction activity) instead of the current timestamp",
+        "summary": "Add an id field of type Text to the Message type in the backend that stores the formatted message ID",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-3",
+        "summary": "Format message IDs as zero-padded 9-digit strings (e.g., '000000001', '000000042'), automatically expanding to 10+ digits when the counter exceeds 999999999",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-4",
+        "summary": "Display the message ID in the MessageBubble component for all messages, styled to match 4chan's post numbering system appearance",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/ChatroomCard.tsx"
+          "frontend/src/components/MessageBubble.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/ChatroomCard.tsx"
+          "frontend/src/components/MessageBubble.tsx"
         ]
+      },
+      {
+        "id": "REQ-5",
+        "summary": "Do not add any authorization checks or caller verification for message ID assignment",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
       }
     ]
   },
@@ -39,9 +60,15 @@
     "frontend-implementation-plan.json",
     "frontend/src/backend.d.ts",
     "frontend/src/backend.ts",
-    "frontend/src/components/ChatroomCard.tsx",
+    "frontend/src/components/AvatarPickerDialog.tsx",
+    "frontend/src/components/ChatArea.tsx",
+    "frontend/src/components/Header.tsx",
+    "frontend/src/components/MessageBubble.tsx",
     "frontend/src/declarations/backend.did.d.ts",
     "frontend/src/declarations/backend.did.js",
+    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/pages/AdminDeleteChatroomsPage.tsx",
+    "frontend/src/pages/ChatroomPage.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",
