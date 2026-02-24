@@ -39,7 +39,7 @@ export const ChatroomWithLiveStatus = IDL.Record({
   'messageCount' : IDL.Nat,
   'mediaType' : IDL.Opt(IDL.Text),
   'category' : IDL.Text,
-  'pinnedVideoId' : IDL.Opt(IDL.Text),
+  'pinnedVideoId' : IDL.Opt(IDL.Nat),
 });
 export const UserProfile = IDL.Record({
   'name' : IDL.Text,
@@ -59,7 +59,7 @@ export const LobbyChatroomCard = IDL.Record({
   'messageCount' : IDL.Nat,
   'mediaType' : IDL.Opt(IDL.Text),
   'category' : IDL.Text,
-  'pinnedVideoId' : IDL.Opt(IDL.Text),
+  'pinnedVideoId' : IDL.Opt(IDL.Nat),
   'presenceIndicator' : IDL.Nat,
 });
 List.fill(IDL.Opt(IDL.Tuple(IDL.Text, List)));
@@ -70,32 +70,32 @@ export const Reaction = IDL.Record({
 });
 List_1.fill(IDL.Opt(IDL.Tuple(Reaction, List_1)));
 export const MessageWithReactions = IDL.Record({
-  'id' : IDL.Text,
+  'id' : IDL.Nat,
   'content' : IDL.Text,
   'chatroomId' : IDL.Nat,
   'sender' : IDL.Text,
   'mediaUrl' : IDL.Opt(IDL.Text),
   'avatarUrl' : IDL.Opt(IDL.Text),
-  'replyToMessageId' : IDL.Opt(IDL.Text),
+  'replyToMessageId' : IDL.Opt(IDL.Nat),
   'timestamp' : IDL.Int,
   'mediaType' : IDL.Opt(IDL.Text),
   'reactions' : List_1,
   'senderId' : IDL.Text,
 });
 export const Message = IDL.Record({
-  'id' : IDL.Text,
+  'id' : IDL.Nat,
   'content' : IDL.Text,
   'chatroomId' : IDL.Nat,
   'sender' : IDL.Text,
   'mediaUrl' : IDL.Opt(IDL.Text),
   'avatarUrl' : IDL.Opt(IDL.Text),
-  'replyToMessageId' : IDL.Opt(IDL.Text),
+  'replyToMessageId' : IDL.Opt(IDL.Nat),
   'timestamp' : IDL.Int,
   'mediaType' : IDL.Opt(IDL.Text),
   'senderId' : IDL.Text,
 });
 export const ReplyPreview = IDL.Record({
-  'messageId' : IDL.Text,
+  'messageId' : IDL.Nat,
   'sender' : IDL.Text,
   'mediaThumbnail' : IDL.Opt(IDL.Text),
   'contentSnippet' : IDL.Text,
@@ -146,7 +146,7 @@ export const idlService = IDL.Service({
       [],
     ),
   '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
-  'addReaction' : IDL.Func([IDL.Text, IDL.Text, IDL.Text], [], []),
+  'addReaction' : IDL.Func([IDL.Nat, IDL.Text, IDL.Text], [], []),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
   'cleanupInactiveUsers' : IDL.Func([], [], []),
   'createChatroom' : IDL.Func(
@@ -185,11 +185,11 @@ export const idlService = IDL.Service({
       ['query'],
     ),
   'getMessages' : IDL.Func([IDL.Nat], [IDL.Vec(Message)], ['query']),
-  'getPinnedVideo' : IDL.Func([IDL.Nat], [IDL.Opt(IDL.Text)], ['query']),
-  'getReactions' : IDL.Func([IDL.Text], [IDL.Vec(Reaction)], ['query']),
-  'getReplies' : IDL.Func([IDL.Nat, IDL.Text], [IDL.Vec(Message)], ['query']),
+  'getPinnedVideo' : IDL.Func([IDL.Nat], [IDL.Opt(IDL.Nat)], ['query']),
+  'getReactions' : IDL.Func([IDL.Nat], [IDL.Vec(Reaction)], ['query']),
+  'getReplies' : IDL.Func([IDL.Nat, IDL.Nat], [IDL.Vec(Message)], ['query']),
   'getReplyPreview' : IDL.Func(
-      [IDL.Nat, IDL.Text],
+      [IDL.Nat, IDL.Nat],
       [IDL.Opt(ReplyPreview)],
       ['query'],
     ),
@@ -201,8 +201,8 @@ export const idlService = IDL.Service({
   'incrementViewCount' : IDL.Func([IDL.Nat, IDL.Text], [], []),
   'initializeAccessControl' : IDL.Func([], [], []),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
-  'pinVideo' : IDL.Func([IDL.Nat, IDL.Text], [], []),
-  'removeReaction' : IDL.Func([IDL.Text, IDL.Text, IDL.Text], [], []),
+  'pinVideo' : IDL.Func([IDL.Nat, IDL.Nat], [], []),
+  'removeReaction' : IDL.Func([IDL.Nat, IDL.Text, IDL.Text], [], []),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
   'searchChatrooms' : IDL.Func(
       [IDL.Text],
@@ -218,7 +218,7 @@ export const idlService = IDL.Service({
         IDL.Opt(IDL.Text),
         IDL.Opt(IDL.Text),
         IDL.Text,
-        IDL.Opt(IDL.Text),
+        IDL.Opt(IDL.Nat),
       ],
       [],
       [],
@@ -267,7 +267,7 @@ export const idlFactory = ({ IDL }) => {
     'messageCount' : IDL.Nat,
     'mediaType' : IDL.Opt(IDL.Text),
     'category' : IDL.Text,
-    'pinnedVideoId' : IDL.Opt(IDL.Text),
+    'pinnedVideoId' : IDL.Opt(IDL.Nat),
   });
   const UserProfile = IDL.Record({
     'name' : IDL.Text,
@@ -287,7 +287,7 @@ export const idlFactory = ({ IDL }) => {
     'messageCount' : IDL.Nat,
     'mediaType' : IDL.Opt(IDL.Text),
     'category' : IDL.Text,
-    'pinnedVideoId' : IDL.Opt(IDL.Text),
+    'pinnedVideoId' : IDL.Opt(IDL.Nat),
     'presenceIndicator' : IDL.Nat,
   });
   List.fill(IDL.Opt(IDL.Tuple(IDL.Text, List)));
@@ -298,32 +298,32 @@ export const idlFactory = ({ IDL }) => {
   });
   List_1.fill(IDL.Opt(IDL.Tuple(Reaction, List_1)));
   const MessageWithReactions = IDL.Record({
-    'id' : IDL.Text,
+    'id' : IDL.Nat,
     'content' : IDL.Text,
     'chatroomId' : IDL.Nat,
     'sender' : IDL.Text,
     'mediaUrl' : IDL.Opt(IDL.Text),
     'avatarUrl' : IDL.Opt(IDL.Text),
-    'replyToMessageId' : IDL.Opt(IDL.Text),
+    'replyToMessageId' : IDL.Opt(IDL.Nat),
     'timestamp' : IDL.Int,
     'mediaType' : IDL.Opt(IDL.Text),
     'reactions' : List_1,
     'senderId' : IDL.Text,
   });
   const Message = IDL.Record({
-    'id' : IDL.Text,
+    'id' : IDL.Nat,
     'content' : IDL.Text,
     'chatroomId' : IDL.Nat,
     'sender' : IDL.Text,
     'mediaUrl' : IDL.Opt(IDL.Text),
     'avatarUrl' : IDL.Opt(IDL.Text),
-    'replyToMessageId' : IDL.Opt(IDL.Text),
+    'replyToMessageId' : IDL.Opt(IDL.Nat),
     'timestamp' : IDL.Int,
     'mediaType' : IDL.Opt(IDL.Text),
     'senderId' : IDL.Text,
   });
   const ReplyPreview = IDL.Record({
-    'messageId' : IDL.Text,
+    'messageId' : IDL.Nat,
     'sender' : IDL.Text,
     'mediaThumbnail' : IDL.Opt(IDL.Text),
     'contentSnippet' : IDL.Text,
@@ -371,7 +371,7 @@ export const idlFactory = ({ IDL }) => {
         [],
       ),
     '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
-    'addReaction' : IDL.Func([IDL.Text, IDL.Text, IDL.Text], [], []),
+    'addReaction' : IDL.Func([IDL.Nat, IDL.Text, IDL.Text], [], []),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
     'cleanupInactiveUsers' : IDL.Func([], [], []),
     'createChatroom' : IDL.Func(
@@ -410,11 +410,11 @@ export const idlFactory = ({ IDL }) => {
         ['query'],
       ),
     'getMessages' : IDL.Func([IDL.Nat], [IDL.Vec(Message)], ['query']),
-    'getPinnedVideo' : IDL.Func([IDL.Nat], [IDL.Opt(IDL.Text)], ['query']),
-    'getReactions' : IDL.Func([IDL.Text], [IDL.Vec(Reaction)], ['query']),
-    'getReplies' : IDL.Func([IDL.Nat, IDL.Text], [IDL.Vec(Message)], ['query']),
+    'getPinnedVideo' : IDL.Func([IDL.Nat], [IDL.Opt(IDL.Nat)], ['query']),
+    'getReactions' : IDL.Func([IDL.Nat], [IDL.Vec(Reaction)], ['query']),
+    'getReplies' : IDL.Func([IDL.Nat, IDL.Nat], [IDL.Vec(Message)], ['query']),
     'getReplyPreview' : IDL.Func(
-        [IDL.Nat, IDL.Text],
+        [IDL.Nat, IDL.Nat],
         [IDL.Opt(ReplyPreview)],
         ['query'],
       ),
@@ -426,8 +426,8 @@ export const idlFactory = ({ IDL }) => {
     'incrementViewCount' : IDL.Func([IDL.Nat, IDL.Text], [], []),
     'initializeAccessControl' : IDL.Func([], [], []),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
-    'pinVideo' : IDL.Func([IDL.Nat, IDL.Text], [], []),
-    'removeReaction' : IDL.Func([IDL.Text, IDL.Text, IDL.Text], [], []),
+    'pinVideo' : IDL.Func([IDL.Nat, IDL.Nat], [], []),
+    'removeReaction' : IDL.Func([IDL.Nat, IDL.Text, IDL.Text], [], []),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
     'searchChatrooms' : IDL.Func(
         [IDL.Text],
@@ -443,7 +443,7 @@ export const idlFactory = ({ IDL }) => {
           IDL.Opt(IDL.Text),
           IDL.Opt(IDL.Text),
           IDL.Text,
-          IDL.Opt(IDL.Text),
+          IDL.Opt(IDL.Nat),
         ],
         [],
         [],

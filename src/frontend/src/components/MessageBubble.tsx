@@ -26,8 +26,8 @@ interface MessageBubbleProps {
   isOwnMessage: boolean;
   chatroomId: bigint;
   isPinned: boolean;
-  onReply?: (messageId: string, sender: string, contentSnippet: string, mediaThumbnail?: string) => void;
-  onScrollToMessage?: (messageId: string) => void;
+  onReply?: (messageId: bigint, sender: string, contentSnippet: string, mediaThumbnail?: string) => void;
+  onScrollToMessage?: (messageId: bigint) => void;
   allMessages?: MessageWithReactions[];
   isHighlighted?: boolean;
 }
@@ -279,7 +279,7 @@ export default function MessageBubble({
     // Render Giphy GIFs
     if (message.mediaType === 'giphy' && isGiphyUrl(mediaUrl)) {
       return (
-        <div className="mt-2 w-full max-w-[400px]">
+        <div className="mt-2 w-full max-w-[300px]">
           <img
             src={mediaUrl}
             alt="GIF"
@@ -383,7 +383,7 @@ export default function MessageBubble({
 
     if (message.mediaType === 'image') {
       return (
-        <div className="mt-2 w-full max-w-[400px]">
+        <div className="mt-2 w-full max-w-[300px]">
           <img
             src={mediaUrl}
             alt="Uploaded media"
@@ -462,9 +462,6 @@ export default function MessageBubble({
         <div className={`flex flex-col ${isOwnMessage ? 'items-end' : 'items-start'} ${hasVideo ? 'w-full max-w-[600px]' : 'max-w-[70%]'}`}>
           <div className="mb-1 flex items-center gap-2">
             <span className="text-xs font-medium text-foreground">{message.sender}</span>
-            <span className="font-mono text-xs text-muted-foreground">
-              No. {message.id}
-            </span>
             <span className="text-xs text-muted-foreground">
               {formatTimestamp(message.timestamp)}
             </span>
@@ -527,17 +524,17 @@ export default function MessageBubble({
                         <img 
                           src="/assets/generated/audio-waveform-icon-transparent.dim_24x24.png"
                           alt="Audio thumbnail" 
-                          className="h-10 w-10 rounded object-cover"
+                          className="h-10 w-10 rounded object-cover p-2"
                         />
                       )}
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
-                    <div className="text-xs font-medium text-muted-foreground">
+                    <div className={`text-xs font-medium ${isOwnMessage ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>
                       {parentMessage.sender}
                     </div>
-                    <div className="text-xs text-muted-foreground line-clamp-2">
-                      {replaceTwitterUrlsWithText(parentMessage.content)}
+                    <div className={`text-xs line-clamp-2 ${isOwnMessage ? 'text-primary-foreground/70' : 'text-muted-foreground/80'}`}>
+                      {truncateText(parentMessage.content, 100)}
                     </div>
                   </div>
                 </div>
@@ -560,8 +557,8 @@ export default function MessageBubble({
                     onClick={() => handleReaction(reaction.emoji)}
                     className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs transition-colors ${
                       hasReacted
-                        ? 'bg-primary/20 text-primary'
-                        : 'bg-muted hover:bg-muted/80'
+                        ? 'bg-primary/20 text-primary ring-1 ring-primary/30'
+                        : 'bg-muted text-muted-foreground hover:bg-muted/80'
                     }`}
                   >
                     <span>{reaction.emoji}</span>
@@ -578,7 +575,7 @@ export default function MessageBubble({
               variant="ghost"
               size="sm"
               onClick={handleReplyClick}
-              className="h-7 gap-1 px-2 text-xs"
+              className="h-7 gap-1 px-2 text-xs text-muted-foreground hover:text-foreground"
             >
               <Reply className="h-3 w-3" />
               <span>Reply</span>
@@ -589,7 +586,7 @@ export default function MessageBubble({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-7 gap-1 px-2 text-xs"
+                  className="h-7 gap-1 px-2 text-xs text-muted-foreground hover:text-foreground"
                 >
                   <Smile className="h-3 w-3" />
                   <span>React</span>
@@ -614,7 +611,7 @@ export default function MessageBubble({
               variant="ghost"
               size="sm"
               onClick={handleShareClick}
-              className="h-7 gap-1 px-2 text-xs"
+              className="h-7 gap-1 px-2 text-xs text-muted-foreground hover:text-foreground"
             >
               <Share2 className="h-3 w-3" />
               <span>Share</span>

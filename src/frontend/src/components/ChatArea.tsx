@@ -12,11 +12,11 @@ import { Button } from './ui/button';
 interface ChatAreaProps {
   chatroomId: bigint;
   chatroom: ChatroomWithLiveStatus;
-  targetMessageId?: string;
+  targetMessageId?: bigint;
 }
 
 interface ReplyContext {
-  messageId: string;
+  messageId: bigint;
   sender: string;
   contentSnippet: string;
   mediaThumbnail?: string;
@@ -29,7 +29,7 @@ export default function ChatArea({ chatroomId, chatroom, targetMessageId }: Chat
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [replyingTo, setReplyingTo] = useState<ReplyContext | null>(null);
-  const [highlightedMessageId, setHighlightedMessageId] = useState<string | null>(null);
+  const [highlightedMessageId, setHighlightedMessageId] = useState<bigint | null>(null);
   const messageRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const previousMessageCountRef = useRef<number>(0);
   const [isHeaderExpanded, setIsHeaderExpanded] = useState(true);
@@ -66,7 +66,7 @@ export default function ChatArea({ chatroomId, chatroom, targetMessageId }: Chat
   // Scroll to target message when messages load
   useEffect(() => {
     if (targetMessageId && filteredMessages && filteredMessages.length > 0 && !hasScrolledToTarget.current) {
-      const messageElement = messageRefs.current.get(targetMessageId);
+      const messageElement = messageRefs.current.get(targetMessageId.toString());
       if (messageElement && scrollContainerRef.current) {
         // Wait a bit for rendering to complete
         setTimeout(() => {
@@ -107,7 +107,7 @@ export default function ChatArea({ chatroomId, chatroom, targetMessageId }: Chat
     setReplyingTo(null);
   };
 
-  const handleReply = (messageId: string, sender: string, contentSnippet: string, mediaThumbnail?: string) => {
+  const handleReply = (messageId: bigint, sender: string, contentSnippet: string, mediaThumbnail?: string) => {
     setReplyingTo({ messageId, sender, contentSnippet, mediaThumbnail });
   };
 
@@ -115,8 +115,8 @@ export default function ChatArea({ chatroomId, chatroom, targetMessageId }: Chat
     setReplyingTo(null);
   };
 
-  const handleScrollToMessage = (messageId: string) => {
-    const messageElement = messageRefs.current.get(messageId);
+  const handleScrollToMessage = (messageId: bigint) => {
+    const messageElement = messageRefs.current.get(messageId.toString());
     if (messageElement && scrollContainerRef.current) {
       // Scroll to message
       messageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -254,12 +254,12 @@ export default function ChatArea({ chatroomId, chatroom, targetMessageId }: Chat
           {filteredMessages && filteredMessages.length > 0 ? (
             filteredMessages.map((message) => (
               <div
-                key={message.id}
+                key={message.id.toString()}
                 ref={(el) => {
                   if (el) {
-                    messageRefs.current.set(message.id, el);
+                    messageRefs.current.set(message.id.toString(), el);
                   } else {
-                    messageRefs.current.delete(message.id);
+                    messageRefs.current.delete(message.id.toString());
                   }
                 }}
               >

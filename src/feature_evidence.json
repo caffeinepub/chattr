@@ -2,8 +2,8 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-display-the-message-id-in-the-messagebubble-component-for-all-messages-styled-to-match-4chan-s-post-numbering-system-appearance",
-      "featureTitle": "Display the message ID in the MessageBubble component for all messages, styled to match 4chan's post numbering system appearance",
+      "featureId": "feature-set-max-width-to-300px-for-inline-images-and-gifs-in-their-non-expanded-state-in-the-messagebubble-component-without-changing-any-other-styles-or-functionality",
+      "featureTitle": "Set max-width to 300px for inline images and GIFs in their non-expanded state in the MessageBubble component without changing any other styles or functionality",
       "files": [
         "frontend/src/components/MessageBubble.tsx"
       ],
@@ -18,7 +18,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-4"
+        "REQ-1"
       ],
       "confidence": "high"
     }

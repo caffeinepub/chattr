@@ -1,21 +1,22 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Re-add sequential message IDs to all messages",
+  "title": "Set max-width to 300px for inline images and GIFs",
   "requirements": [
     {
-      "id": "REQ-4",
-      "summary": "Display the message ID in the MessageBubble component for all messages, styled to match 4chan's post numbering system appearance",
+      "id": "REQ-1",
+      "summary": "Set max-width to 300px for inline images and GIFs in their non-expanded state in the MessageBubble component",
       "acceptanceCriteria": [
-        "The message ID is visible in every message bubble",
-        "The ID is displayed near the timestamp or username",
-        "The styling is consistent with the rest of the message header"
+        "Inline images in messages display with a maximum width of 300px when not expanded",
+        "Inline GIFs in messages display with a maximum width of 300px when not expanded",
+        "No other styles or functionality are modified",
+        "Expanded view behavior remains unchanged"
       ],
       "file_operations": [
         {
           "path": "frontend/src/components/MessageBubble.tsx",
           "operation": "modify",
-          "description": "Add message ID display to the MessageBubble component header, positioned near the timestamp. The ID should be rendered in a monospace font (font-mono) with muted styling similar to the timestamp. Display format: 'No. {message.id}' positioned between the username and timestamp in the message header. Ensure the ID is visible for all message types including creator posts, regular messages, and replies."
+          "description": "Update the max-width style for inline images and GIFs to 300px in their non-expanded state. Locate the image and GIF rendering logic and modify only the max-width property on the img or container element that displays the collapsed/non-expanded media. Ensure the expanded state (if using a modal or full-size view) remains unchanged. Do not modify any other styles, functionality, reactions, embeds, or layout logic."
         }
       ]
     }

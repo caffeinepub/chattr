@@ -2,64 +2,21 @@
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
   "summary": "New project",
-  "architectural_notes": [
-    "Message IDs use a global counter starting at 000000001, incrementing sequentially across all threads and messages",
-    "Message ID format auto-expands beyond 9 digits if needed (10, 11, etc.)",
-    "Message IDs stored in backend and displayed with each message (4chan-style post numbering)"
-  ],
+  "architectural_notes": [],
   "known_issues": [],
   "isFixRequest": false,
   "existing_features": [
     {
-      "id": "feature-display-the-message-id-in-the-messagebubble-component-for-all-messages-styled-to-match-4chan-s-post-numbering-system-appearance",
-      "title": "Display the message ID in the MessageBubble component for all messages, styled to match 4chan's post numbering system appearance",
+      "id": "feature-set-max-width-to-300px-for-inline-images-and-gifs-in-their-non-expanded-state-in-the-messagebubble-component-without-changing-any-other-styles-or-functionality",
+      "title": "Set max-width to 300px for inline images and GIFs in their non-expanded state in the MessageBubble component without changing any other styles or functionality",
       "reqIds": [
-        "REQ-4"
+        "REQ-1"
       ],
       "version": 1
     }
   ],
-  "new_feature_requests": [
-    {
-      "id": "AR-1",
-      "summary": "Re-add message IDs to all messages (9-digit sequential format, global counter)",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-2",
-      "summary": "Add a global message ID counter in the backend that starts at 1 and increments sequentially for every message created (including creator posts and all replies across all chatrooms)",
-      "reqIds": [
-        "REQ-1"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": "AR-3",
-      "summary": "Add an id field of type Text to the Message type in the backend that stores the formatted message ID",
-      "reqIds": [
-        "REQ-2"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": "AR-4",
-      "summary": "Format message IDs as zero-padded 9-digit strings (e.g., '000000001', '000000042'), automatically expanding to 10+ digits when the counter exceeds 999999999",
-      "reqIds": [
-        "REQ-3"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": "AR-6",
-      "summary": "Do not add any authorization checks or caller verification for message ID assignment",
-      "reqIds": [
-        "REQ-5"
-      ],
-      "status": "pending"
-    }
-  ],
-  "projectName": "Re-add sequential message IDs to all messages",
+  "new_feature_requests": [],
+  "projectName": "Set max-width to 300px for inline images and GIFs",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }
