@@ -1,0 +1,39 @@
+{
+  "kind": "spec_vs_diff_report",
+  "version": "1.0",
+  "generatedAt": "2026-02-24T19:46:13.615Z",
+  "summary": "The diff implements both REQ-1 and REQ-2 with minor discrepancies. REQ-1 is fully implemented: URL detection via regex in MessageBubble, clickable links rendered with ExternalLink icon. REQ-2 is mostly implemented: modal intercepts link clicks, shows correct disclaimer text, has Cancel button, and has a button to open the link in a new tab. However, the Confirm button is labeled 'Continue' instead of 'Confirm' as specified.",
+  "missing_requirements": [
+    {
+      "id": "REQ-2",
+      "requirement": "The modal must have a Confirm button (opens the link in a new tab) and a Cancel button (closes the modal without navigating).",
+      "reason": "The modal's confirm button is labeled 'Continue' instead of 'Confirm' as explicitly required by the spec.",
+      "evidence": [
+        "frontend/src/components/ExternalLinkDisclaimerModal.tsx"
+      ]
+    }
+  ],
+  "hallucinated_features": [
+    {
+      "description": "The disclaimer modal displays the target URL in a styled preview box below the description text.",
+      "reason": "The spec only requires the disclaimer text, a Confirm button, and a Cancel button. Displaying the target URL in a separate styled element was not requested.",
+      "evidence": [
+        "frontend/src/components/ExternalLinkDisclaimerModal.tsx"
+      ]
+    },
+    {
+      "description": "The disclaimer modal title includes an ExternalLink icon alongside a 'Leaving Chattr' heading.",
+      "reason": "The spec does not mention a modal title or icon in the modal header; only the disclaimer text and two buttons are specified.",
+      "evidence": [
+        "frontend/src/components/ExternalLinkDisclaimerModal.tsx"
+      ]
+    }
+  ],
+  "confidence": 0.85,
+  "changed_files": [
+    "frontend-file-summaries.txt",
+    "frontend/src/components/ExternalLinkDisclaimerModal.tsx",
+    "frontend/src/components/MessageBubble.tsx",
+    "project_state.json"
+  ]
+}

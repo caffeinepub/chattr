@@ -1,0 +1,38 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectStateVersion": 3,
+  "summary": "Chat app called Chattr with link detection, ExternalLink Lucide icon, and disclaimer modal before navigating away from the app.",
+  "architectural_notes": [],
+  "known_issues": [],
+  "isFixRequest": false,
+  "existing_features": [
+    {
+      "id": "feature-in-the-messagebubble-component-detect-urls-in-message-text-and-render-them-as-clickable-links-each-detected-link-must-display-a-lucide-externallink-icon-immediately-before-the-link-text-do-not-change-any-existing-layout-styles-spacing-colors-or-other-ui-elements",
+      "title": "In the MessageBubble component, detect URLs in message text and render them as clickable links. Each detected link must display a Lucide `ExternalLink` icon immediately before the link text. Do not change any existing layout styles, spacing, colors, or other UI elements.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-when-a-user-clicks-a-detected-link-in-a-chat-message-intercept-the-navigation-and-display-a-modal-disclaimer-with-the-text-you-are-about-to-leave-chattr-external-links-may-be-unsafe-proceed-with-caution-the-modal-must-have-a-confirm-button-opens-the-link-in-a-new-tab-and-a-cancel-button-closes-the-modal-without-navigating-do-not-change-any-existing-layout-styles-or-other-ui-elements",
+      "title": "When a user clicks a detected link in a chat message, intercept the navigation and display a modal disclaimer with the text: 'You are about to leave Chattr. External links may be unsafe — proceed with caution.' The modal must have a Confirm button (opens the link in a new tab) and a Cancel button (closes the modal without navigating). Do not change any existing layout styles or other UI elements.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "version": 1
+    }
+  ],
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Detect links in chat messages, make them clickable with an ExternalLink Lucide icon, and show a disclaimer modal ('You are about to leave Chattr. External links may be unsafe — proceed with caution.') before navigating away",
+      "reqIds": [],
+      "status": "pending"
+    }
+  ],
+  "gameProjectType": "none",
+  "projectName": "Chattr",
+  "clarification_mode": "instant",
+  "clarification_rounds": 0
+}

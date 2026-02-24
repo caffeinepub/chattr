@@ -1,0 +1,47 @@
+{
+  "kind": "implementation_plan",
+  "version": "1.0",
+  "title": "Add link detection with ExternalLink icon and disclaimer modal in chat messages",
+  "requirements": [
+    {
+      "id": "REQ-1",
+      "summary": "Detect URLs in message text and render them as clickable links with ExternalLink icon",
+      "acceptanceCriteria": [
+        "URLs in chat message text are auto-detected and rendered as clickable anchor elements",
+        "A Lucide `ExternalLink` icon appears immediately before each detected link",
+        "Non-link text in messages remains visually unchanged",
+        "No existing layout styles, colors, spacing, or other UI elements are altered"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/MessageBubble.tsx",
+          "operation": "modify",
+          "description": "Add URL detection logic to identify URLs in message content using a regex pattern. Replace detected URLs with clickable anchor elements that include the Lucide ExternalLink icon immediately before the link text. Wrap the detection and rendering in a helper function that preserves non-link text exactly as-is. Ensure the link elements use inline styles matching the existing message text color and no additional spacing or layout changes are introduced. The ExternalLink icon should be imported from lucide-react and rendered inline with appropriate size (e.g., 14px or 16px) to match the text height."
+        }
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "summary": "Display disclaimer modal when user clicks a detected link",
+      "acceptanceCriteria": [
+        "Clicking a detected link opens a disclaimer modal instead of immediately navigating",
+        "Modal displays the text: 'You are about to leave Chattr. External links may be unsafe — proceed with caution.'",
+        "Confirm button opens the link in a new tab and closes the modal",
+        "Cancel button closes the modal without navigating",
+        "No existing layout styles, colors, spacing, or other UI elements are altered"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/ExternalLinkDisclaimerModal.tsx",
+          "operation": "create",
+          "description": "Create a new modal component using shadcn/ui Dialog components (Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter) to display the external link disclaimer. The modal should accept props for isOpen (boolean), onClose (function), targetUrl (string or null), and onConfirm (function). Display the exact text: 'You are about to leave Chattr. External links may be unsafe — proceed with caution.' in the DialogDescription. Include two buttons in the DialogFooter: a Cancel button that calls onClose, and a Confirm button that calls onConfirm. Use existing button styling from the shadcn/ui Button component with appropriate variants (e.g., outline for Cancel, default for Confirm). Ensure the modal does not introduce any new global styles or layout changes."
+        },
+        {
+          "path": "frontend/src/components/MessageBubble.tsx",
+          "operation": "modify",
+          "description": "Import and integrate the ExternalLinkDisclaimerModal component. Add React state to track whether the modal is open and the target URL to be opened. Modify the link rendering logic from REQ-1 to attach an onClick handler to each detected link anchor element. The onClick handler should prevent default navigation (e.preventDefault), store the link's href in state, and open the modal. Wire the modal's onConfirm callback to open the stored URL in a new tab (window.open with '_blank' and 'noopener,noreferrer') and then close the modal. Wire the modal's onClose callback to clear the stored URL and close the modal. Ensure no visual or layout changes are introduced beyond the modal overlay itself."
+        }
+      ]
+    }
+  ]
+}

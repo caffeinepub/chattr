@@ -1,0 +1,48 @@
+{
+  "kind": "feature_evidence_report",
+  "features": [
+    {
+      "featureId": "feature-in-the-messagebubble-component-detect-urls-in-message-text-and-render-them-as-clickable-links-each-detected-link-must-display-a-lucide-externallink-icon-immediately-before-the-link-text-do-not-change-any-existing-layout-styles-spacing-colors-or-other-ui-elements",
+      "featureTitle": "In the MessageBubble component, detect URLs in message text and render them as clickable links. Each detected link must display a Lucide `ExternalLink` icon immediately before the link text. Do not change any existing layout styles, spacing, colors, or other UI elements.",
+      "files": [
+        "frontend/src/components/MessageBubble.tsx"
+      ],
+      "components": [
+        "authorization@1.0.1",
+        "blob-storage@2.0.3",
+        "http-outcalls@1.1.1",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-1"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-when-a-user-clicks-a-detected-link-in-a-chat-message-intercept-the-navigation-and-display-a-modal-disclaimer-with-the-text-you-are-about-to-leave-chattr-external-links-may-be-unsafe-proceed-with-caution-the-modal-must-have-a-confirm-button-opens-the-link-in-a-new-tab-and-a-cancel-button-closes-the-modal-without-navigating-do-not-change-any-existing-layout-styles-or-other-ui-elements",
+      "featureTitle": "When a user clicks a detected link in a chat message, intercept the navigation and display a modal disclaimer with the text: 'You are about to leave Chattr. External links may be unsafe — proceed with caution.' The modal must have a Confirm button (opens the link in a new tab) and a Cancel button (closes the modal without navigating). Do not change any existing layout styles or other UI elements.",
+      "files": [
+        "frontend/src/components/ExternalLinkDisclaimerModal.tsx",
+        "frontend/src/components/MessageBubble.tsx"
+      ],
+      "components": [
+        "authorization@1.0.1",
+        "blob-storage@2.0.3",
+        "http-outcalls@1.1.1",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-2"
+      ],
+      "confidence": "high"
+    }
+  ]
+}
