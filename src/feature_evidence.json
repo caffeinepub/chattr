@@ -2,10 +2,11 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-set-max-width-to-300px-for-inline-images-and-gifs-in-their-non-expanded-state-in-the-messagebubble-component-without-changing-any-other-styles-or-functionality",
-      "featureTitle": "Set max-width to 300px for inline images and GIFs in their non-expanded state in the MessageBubble component without changing any other styles or functionality",
+      "featureId": "feature-make-urls-in-chat-messages-automatically-clickable-by-detecting-url-patterns-in-message-text-and-rendering-them-as-clickable-links",
+      "featureTitle": "Make URLs in chat messages automatically clickable by detecting URL patterns in message text and rendering them as clickable links",
       "files": [
-        "frontend/src/components/MessageBubble.tsx"
+        "frontend/src/components/MessageBubble.tsx",
+        "frontend/src/lib/linkDetection.ts"
       ],
       "components": [
         "authorization@1.0.1",
@@ -19,6 +20,93 @@
       ],
       "testIds": [
         "REQ-1"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-show-a-you-are-leaving-this-site-warning-dialog-when-users-click-on-urls-in-chat-messages-requiring-confirmation-before-opening-the-external-link-in-a-new-tab",
+      "featureTitle": "Show a 'You are leaving this site' warning dialog when users click on URLs in chat messages, requiring confirmation before opening the external link in a new tab",
+      "files": [
+        "frontend/src/components/ExternalLinkDialog.tsx",
+        "frontend/src/components/MessageBubble.tsx"
+      ],
+      "components": [
+        "authorization@1.0.1",
+        "blob-storage@2.0.3",
+        "http-outcalls@1.1.1",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-2"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-skip-the-you-are-leaving-this-site-warning-for-trusted-embed-urls-from-x-twitter-youtube-and-twitch-these-should-open-directly-without-showing-the-disclaimer-dialog",
+      "featureTitle": "Skip the 'You are leaving this site' warning for trusted embed URLs from X/Twitter, YouTube, and Twitch - these should open directly without showing the disclaimer dialog",
+      "files": [
+        "frontend/src/components/MessageBubble.tsx",
+        "frontend/src/lib/trustedDomains.ts"
+      ],
+      "components": [
+        "authorization@1.0.1",
+        "blob-storage@2.0.3",
+        "http-outcalls@1.1.1",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-3"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-fix-the-share-link-functionality-in-chatarea-to-properly-scroll-to-the-target-message-when-the-messageid-query-parameter-is-present-in-the-url-ensuring-the-message-is-visible-in-the-viewport",
+      "featureTitle": "Fix the share link functionality in ChatArea to properly scroll to the target message when the messageId query parameter is present in the URL, ensuring the message is visible in the viewport",
+      "files": [
+        "frontend/src/components/ChatArea.tsx"
+      ],
+      "components": [
+        "authorization@1.0.1",
+        "blob-storage@2.0.3",
+        "http-outcalls@1.1.1",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-4"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-fix-the-share-link-functionality-in-chatarea-to-properly-highlight-the-target-message-when-the-messageid-query-parameter-is-present-making-it-visually-distinct-for-3-seconds-as-currently-intended-but-not-working",
+      "featureTitle": "Fix the share link functionality in ChatArea to properly highlight the target message when the messageId query parameter is present, making it visually distinct for 3 seconds as currently intended but not working",
+      "files": [
+        "frontend/src/components/ChatArea.tsx",
+        "frontend/src/components/MessageBubble.tsx"
+      ],
+      "components": [
+        "authorization@1.0.1",
+        "blob-storage@2.0.3",
+        "http-outcalls@1.1.1",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-5"
       ],
       "confidence": "high"
     }

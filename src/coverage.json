@@ -1,23 +1,75 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-24T02:08:55.035Z",
+  "generatedAt": "2026-02-24T02:55:56.043Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 1,
-    "implemented": 1,
+    "total": 5,
+    "implemented": 5,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Set max-width to 300px for inline images and GIFs in their non-expanded state in the MessageBubble component without changing any other styles or functionality",
+        "summary": "Make URLs in chat messages automatically clickable by detecting URL patterns in message text and rendering them as clickable links",
         "status": "implemented",
         "plannedFiles": [
+          "frontend/src/lib/linkDetection.ts",
           "frontend/src/components/MessageBubble.tsx"
         ],
         "matchedFiles": [
+          "frontend/src/lib/linkDetection.ts",
+          "frontend/src/components/MessageBubble.tsx"
+        ]
+      },
+      {
+        "id": "REQ-2",
+        "summary": "Show a 'You are leaving this site' warning dialog when users click on URLs in chat messages, requiring confirmation before opening the external link in a new tab",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/ExternalLinkDialog.tsx",
+          "frontend/src/components/MessageBubble.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/ExternalLinkDialog.tsx",
+          "frontend/src/components/MessageBubble.tsx"
+        ]
+      },
+      {
+        "id": "REQ-3",
+        "summary": "Skip the 'You are leaving this site' warning for trusted embed URLs from X/Twitter, YouTube, and Twitch - these should open directly without showing the disclaimer dialog",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/lib/trustedDomains.ts",
+          "frontend/src/components/MessageBubble.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/lib/trustedDomains.ts",
+          "frontend/src/components/MessageBubble.tsx"
+        ]
+      },
+      {
+        "id": "REQ-4",
+        "summary": "Fix the share link functionality in ChatArea to properly scroll to the target message when the messageId query parameter is present in the URL, ensuring the message is visible in the viewport",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/ChatArea.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/ChatArea.tsx"
+        ]
+      },
+      {
+        "id": "REQ-5",
+        "summary": "Fix the share link functionality in ChatArea to properly highlight the target message when the messageId query parameter is present, making it visually distinct for 3 seconds as currently intended but not working",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/ChatArea.tsx",
+          "frontend/src/components/MessageBubble.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/ChatArea.tsx",
           "frontend/src/components/MessageBubble.tsx"
         ]
       }
@@ -28,7 +80,11 @@
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
+    "frontend/src/components/ChatArea.tsx",
+    "frontend/src/components/ExternalLinkDialog.tsx",
     "frontend/src/components/MessageBubble.tsx",
+    "frontend/src/lib/linkDetection.ts",
+    "frontend/src/lib/trustedDomains.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

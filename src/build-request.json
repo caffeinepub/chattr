@@ -1,38 +1,122 @@
 {
   "kind": "build_request",
-  "title": "Set max-width to 300px for inline images and GIFs",
+  "title": "Add link detection with disclaimer and fix share link scroll/highlight",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Set max-width to 300px for inline images and GIFs in their non-expanded state in the MessageBubble component without changing any other styles or functionality",
+      "text": "Make URLs in chat messages automatically clickable by detecting URL patterns in message text and rendering them as clickable links",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-user-latest"
+          "msg-3",
+          "msg-5"
         ],
         "quotes": [
-          "lets make the max-width for inline images and gifs 300px (non-expanded). dont change any styles or make any changes other than this."
+          "Make URLs in chats automatically clickable"
         ]
       },
       "acceptanceCriteria": [
-        "Inline images in messages display with a maximum width of 300px when not expanded",
-        "Inline GIFs in messages display with a maximum width of 300px when not expanded",
-        "No other styles or functionality are modified",
-        "Expanded view behavior remains unchanged"
+        "URLs in message text are detected and rendered as clickable links",
+        "Link detection works for http://, https://, and www. patterns",
+        "Links maintain the original message text formatting"
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "text": "Show a 'You are leaving this site' warning dialog when users click on URLs in chat messages, requiring confirmation before opening the external link in a new tab",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-3",
+          "msg-5"
+        ],
+        "quotes": [
+          "show a \"You are leaving this site\" warning when clicked"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Clicking a URL displays a warning dialog with the message 'You are leaving this site'",
+        "Dialog shows the destination URL",
+        "Dialog has confirm and cancel buttons",
+        "Confirmed links open in a new tab/window"
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Skip the 'You are leaving this site' warning for trusted embed URLs from X/Twitter, YouTube, and Twitch - these should open directly without showing the disclaimer dialog",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-3",
+          "msg-5"
+        ],
+        "quotes": [
+          "skip the disclaimer for trusted embeds from X, YouTube, and Twitch"
+        ]
+      },
+      "acceptanceCriteria": [
+        "URLs matching twitter.com, x.com, youtube.com, youtu.be, twitch.tv, and twitch.com patterns skip the warning",
+        "Trusted URLs open directly in new tab without confirmation",
+        "All other URLs still show the warning dialog"
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "Fix the share link functionality in ChatArea to properly scroll to the target message when the messageId query parameter is present in the URL, ensuring the message is visible in the viewport",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-3",
+          "msg-5"
+        ],
+        "quotes": [
+          "Currently it loads the room but doesn't scroll to or highlight the specific message",
+          "I need to fix the scroll-to-message and highlight functionality"
+        ]
+      },
+      "acceptanceCriteria": [
+        "When a share link with messageId parameter is opened, the view scrolls to position that message in the viewport",
+        "Scroll happens after messages are loaded and rendered",
+        "Scroll works reliably even with many messages in the room"
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "text": "Fix the share link functionality in ChatArea to properly highlight the target message when the messageId query parameter is present, making it visually distinct for 3 seconds as currently intended but not working",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-3",
+          "msg-5"
+        ],
+        "quotes": [
+          "Currently it loads the room but doesn't scroll to or highlight the specific message",
+          "I need to fix the scroll-to-message and highlight functionality"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Target message receives visual highlighting when accessed via share link",
+        "Highlight effect is clearly visible and distinct from normal message appearance",
+        "Highlight automatically removes after 3 seconds",
+        "Highlight only applies to the specific message referenced in the messageId parameter"
       ]
     }
   ],
   "constraints": [
-    "Only modify the max-width property for inline images and GIFs",
-    "Do not change any other styles or make any other modifications",
-    "Preserve all existing functionality including expand/collapse behavior"
+    "Do not modify styles, layout, or any other aspects beyond link detection and share link fixes",
+    "Preserve existing message rendering logic in MessageBubble component",
+    "Maintain existing scroll-to-target-message logic structure in ChatArea component",
+    "Do not change the existing 3-second highlight duration",
+    "Do not modify existing YouTube/Twitch/Twitter embed rendering"
   ],
   "nonGoals": [
-    "Changing expanded image dimensions",
-    "Modifying image aspect ratios",
-    "Adjusting GIF picker layout",
-    "Updating any other component styles"
+    "Styling or layout changes",
+    "Modifications to message input functionality",
+    "Changes to avatar, reactions, or pinning features",
+    "Backend modifications",
+    "Changes to chatroom creation or management",
+    "Modifications to authentication or user profiles"
   ],
   "imageRequirements": {
     "required": [],

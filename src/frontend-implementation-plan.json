@@ -1,22 +1,107 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Set max-width to 300px for inline images and GIFs",
+  "title": "Add link detection with disclaimer and fix share link scroll/highlight",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Set max-width to 300px for inline images and GIFs in their non-expanded state in the MessageBubble component",
+      "summary": "Make URLs in chat messages automatically clickable by detecting URL patterns in message text and rendering them as clickable links",
       "acceptanceCriteria": [
-        "Inline images in messages display with a maximum width of 300px when not expanded",
-        "Inline GIFs in messages display with a maximum width of 300px when not expanded",
-        "No other styles or functionality are modified",
-        "Expanded view behavior remains unchanged"
+        "URLs in message text are detected and rendered as clickable links",
+        "Link detection works for http://, https://, and www. patterns",
+        "Links maintain the original message text formatting"
       ],
       "file_operations": [
         {
+          "path": "frontend/src/lib/linkDetection.ts",
+          "operation": "create",
+          "description": "Create a utility module that exports a function to detect URLs in text and return an array of text/link segments. The function should use regex patterns to match http://, https://, and www. patterns while preserving the original text structure. Return segments as objects with type ('text' or 'link') and content properties."
+        },
+        {
           "path": "frontend/src/components/MessageBubble.tsx",
           "operation": "modify",
-          "description": "Update the max-width style for inline images and GIFs to 300px in their non-expanded state. Locate the image and GIF rendering logic and modify only the max-width property on the img or container element that displays the collapsed/non-expanded media. Ensure the expanded state (if using a modal or full-size view) remains unchanged. Do not modify any other styles, functionality, reactions, embeds, or layout logic."
+          "description": "Import the link detection utility. In the message content rendering section, replace plain text rendering with logic that processes the content through link detection. For text segments, render as-is. For link segments, render as clickable elements that trigger the URL click handler (to be added in REQ-2). Ensure the existing message structure, styling, and other features (reactions, replies, media) remain unchanged."
+        }
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "summary": "Show a 'You are leaving this site' warning dialog when users click on URLs in chat messages, requiring confirmation before opening the external link in a new tab",
+      "acceptanceCriteria": [
+        "Clicking a URL displays a warning dialog with the message 'You are leaving this site'",
+        "Dialog shows the destination URL",
+        "Dialog has confirm and cancel buttons",
+        "Confirmed links open in a new tab/window"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/ExternalLinkDialog.tsx",
+          "operation": "create",
+          "description": "Create a dialog component that displays a warning message 'You are leaving this site', shows the destination URL, and provides 'Continue' and 'Cancel' buttons. Use shadcn/ui Dialog components for consistent styling. Accept props for the URL and open/close state. On 'Continue', open the URL in a new tab using window.open with appropriate security attributes (noopener, noreferrer)."
+        },
+        {
+          "path": "frontend/src/components/MessageBubble.tsx",
+          "operation": "modify",
+          "description": "Import ExternalLinkDialog component. Add state to track dialog visibility and selected URL. Implement a click handler for detected links that checks if the URL should bypass the disclaimer (covered in REQ-3), and if not, opens the ExternalLinkDialog. Render the ExternalLinkDialog component within MessageBubble and wire it to the state."
+        }
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "summary": "Skip the 'You are leaving this site' warning for trusted embed URLs from X/Twitter, YouTube, and Twitch - these should open directly without showing the disclaimer dialog",
+      "acceptanceCriteria": [
+        "URLs matching twitter.com, x.com, youtube.com, youtu.be, twitch.tv, and twitch.com patterns skip the warning",
+        "Trusted URLs open directly in new tab without confirmation",
+        "All other URLs still show the warning dialog"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/lib/trustedDomains.ts",
+          "operation": "create",
+          "description": "Create a utility module that exports a function to check if a URL belongs to a trusted domain. The function should return true for URLs containing twitter.com, x.com, youtube.com, youtu.be, twitch.tv, or twitch.com domains. Use URL parsing for reliable domain extraction and matching."
+        },
+        {
+          "path": "frontend/src/components/MessageBubble.tsx",
+          "operation": "modify",
+          "description": "Import the trusted domains utility. In the link click handler added in REQ-2, check if the URL is trusted using the utility function. If trusted, open the URL directly in a new tab with security attributes. If not trusted, show the ExternalLinkDialog as implemented in REQ-2."
+        }
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "summary": "Fix the share link functionality in ChatArea to properly scroll to the target message when the messageId query parameter is present in the URL, ensuring the message is visible in the viewport",
+      "acceptanceCriteria": [
+        "When a share link with messageId parameter is opened, the view scrolls to position that message in the viewport",
+        "Scroll happens after messages are loaded and rendered",
+        "Scroll works reliably even with many messages in the room"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/ChatArea.tsx",
+          "operation": "modify",
+          "description": "Review and fix the existing scroll-to-message logic in the useEffect that handles the messageId search parameter. Ensure the scroll happens only after messages are fully loaded and the DOM elements are rendered. Use scrollIntoView with appropriate options (behavior: 'smooth', block: 'center') on the target message element. Add proper dependency tracking to prevent repeated scrolling. Consider using a small delay or requestAnimationFrame if needed to ensure DOM rendering is complete before scrolling."
+        }
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "summary": "Fix the share link functionality in ChatArea to properly highlight the target message when the messageId query parameter is present, making it visually distinct for 3 seconds as currently intended but not working",
+      "acceptanceCriteria": [
+        "Target message receives visual highlighting when accessed via share link",
+        "Highlight effect is clearly visible and distinct from normal message appearance",
+        "Highlight automatically removes after 3 seconds",
+        "Highlight only applies to the specific message referenced in the messageId parameter"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/ChatArea.tsx",
+          "operation": "modify",
+          "description": "Review and fix the existing highlight logic that uses the highlightedMessageId state. Ensure the state is properly set when the messageId search parameter is present and messages are loaded. Verify the timeout logic that clears the highlight after 3 seconds is working correctly. Ensure the highlightedMessageId state is passed correctly to the MessageBubble components."
+        },
+        {
+          "path": "frontend/src/components/MessageBubble.tsx",
+          "operation": "modify",
+          "description": "Review the conditional styling applied when isHighlighted prop is true. Ensure the highlight styling is visually distinct and clearly visible. Verify the prop is being received and applied correctly. The existing animation or background color change should be confirmed to work properly."
         }
       ]
     }

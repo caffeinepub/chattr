@@ -66,21 +66,24 @@ export default function ChatArea({ chatroomId, chatroom, targetMessageId }: Chat
   // Scroll to target message when messages load
   useEffect(() => {
     if (targetMessageId && filteredMessages && filteredMessages.length > 0 && !hasScrolledToTarget.current) {
-      const messageElement = messageRefs.current.get(targetMessageId.toString());
-      if (messageElement && scrollContainerRef.current) {
-        // Wait a bit for rendering to complete
-        setTimeout(() => {
+      // Use requestAnimationFrame to ensure DOM is fully rendered
+      requestAnimationFrame(() => {
+        const messageElement = messageRefs.current.get(targetMessageId.toString());
+        if (messageElement && scrollContainerRef.current) {
+          // Scroll to the message
           messageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          
+          // Set highlight
           setHighlightedMessageId(targetMessageId);
           
           // Remove highlight after 3 seconds
           setTimeout(() => {
             setHighlightedMessageId(null);
           }, 3000);
-        }, 100);
-        
-        hasScrolledToTarget.current = true;
-      }
+          
+          hasScrolledToTarget.current = true;
+        }
+      });
     }
   }, [targetMessageId, filteredMessages]);
 

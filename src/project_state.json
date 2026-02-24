@@ -1,22 +1,73 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "New project",
-  "architectural_notes": [],
-  "known_issues": [],
-  "isFixRequest": false,
+  "summary": "Chat application with link detection, disclaimer warnings, and share link functionality",
+  "architectural_notes": [
+    "Chat application with message sharing capability",
+    "Trusted embed sources: X (Twitter), YouTube, Twitch"
+  ],
+  "known_issues": [
+    "Share links currently load room but don't scroll to or highlight the target message"
+  ],
+  "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-set-max-width-to-300px-for-inline-images-and-gifs-in-their-non-expanded-state-in-the-messagebubble-component-without-changing-any-other-styles-or-functionality",
-      "title": "Set max-width to 300px for inline images and GIFs in their non-expanded state in the MessageBubble component without changing any other styles or functionality",
+      "id": "feature-make-urls-in-chat-messages-automatically-clickable-by-detecting-url-patterns-in-message-text-and-rendering-them-as-clickable-links",
+      "title": "Make URLs in chat messages automatically clickable by detecting URL patterns in message text and rendering them as clickable links",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-show-a-you-are-leaving-this-site-warning-dialog-when-users-click-on-urls-in-chat-messages-requiring-confirmation-before-opening-the-external-link-in-a-new-tab",
+      "title": "Show a 'You are leaving this site' warning dialog when users click on URLs in chat messages, requiring confirmation before opening the external link in a new tab",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-skip-the-you-are-leaving-this-site-warning-for-trusted-embed-urls-from-x-twitter-youtube-and-twitch-these-should-open-directly-without-showing-the-disclaimer-dialog",
+      "title": "Skip the 'You are leaving this site' warning for trusted embed URLs from X/Twitter, YouTube, and Twitch - these should open directly without showing the disclaimer dialog",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-the-share-link-functionality-in-chatarea-to-properly-scroll-to-the-target-message-when-the-messageid-query-parameter-is-present-in-the-url-ensuring-the-message-is-visible-in-the-viewport",
+      "title": "Fix the share link functionality in ChatArea to properly scroll to the target message when the messageId query parameter is present in the URL, ensuring the message is visible in the viewport",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-the-share-link-functionality-in-chatarea-to-properly-highlight-the-target-message-when-the-messageid-query-parameter-is-present-making-it-visually-distinct-for-3-seconds-as-currently-intended-but-not-working",
+      "title": "Fix the share link functionality in ChatArea to properly highlight the target message when the messageId query parameter is present, making it visually distinct for 3 seconds as currently intended but not working",
+      "reqIds": [
+        "REQ-5"
+      ],
+      "version": 1
     }
   ],
-  "new_feature_requests": [],
-  "projectName": "Set max-width to 300px for inline images and GIFs",
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Make URLs in chats automatically clickable with 'You are leaving this site' warning (skip for X, YouTube, Twitch embeds)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Fix share link to scroll to and highlight specific message",
+      "reqIds": [],
+      "status": "pending"
+    }
+  ],
+  "gameProjectType": "none",
+  "projectName": "Add link detection with disclaimer and fix share link scroll/highlight",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

@@ -20,6 +20,9 @@ import {
 } from '../lib/videoUtils';
 import VoiceMessagePlayer from './VoiceMessagePlayer';
 import { toast } from 'sonner';
+import { detectLinks, type ContentSegment } from '../lib/linkDetection';
+import { isTrustedDomain } from '../lib/trustedDomains';
+import ExternalLinkDialog from './ExternalLinkDialog';
 
 interface MessageBubbleProps {
   message: MessageWithReactions;
@@ -127,6 +130,8 @@ export default function MessageBubble({
   const [isExpanded, setIsExpanded] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [tweetLoading, setTweetLoading] = useState(true);
+  const [externalLinkUrl, setExternalLinkUrl] = useState<string | null>(null);
+  const [showExternalLinkDialog, setShowExternalLinkDialog] = useState(false);
   const tweetContainerRef = useRef<HTMLDivElement>(null);
   const pinVideo = usePinVideo();
   const unpinVideo = useUnpinVideo();
@@ -227,6 +232,18 @@ export default function MessageBubble({
     } catch (error) {
       console.error('Failed to copy link:', error);
       toast.error('Failed to copy link');
+    }
+  };
+
+  const handleLinkClick = (url: string) => {
+    // Check if URL is from a trusted domain
+    if (isTrustedDomain(url)) {
+      // Open directly without warning
+      window.open(url, '_blank', 'noopener,noreferrer');
+    } else {
+      // Show warning dialog
+      setExternalLinkUrl(url);
+      setShowExternalLinkDialog(true);
     }
   };
 
@@ -431,11 +448,36 @@ export default function MessageBubble({
     );
   };
 
+  const renderMessageContent = (content: string) => {
+    // First replace Twitter URLs with plain text
+    const processedContent = replaceTwitterUrlsWithText(content);
+    
+    // Then detect links in the processed content
+    const segments = detectLinks(processedContent);
+    
+    return (
+      <div className="whitespace-pre-wrap break-words">
+        {segments.map((segment, index) => {
+          if (segment.type === 'text') {
+            return <span key={index}>{segment.content}</span>;
+          } else {
+            return (
+              <button
+                key={index}
+                onClick={() => handleLinkClick(segment.url)}
+                className="text-blue-500 hover:text-blue-600 underline cursor-pointer break-all"
+              >
+                {segment.content}
+              </button>
+            );
+          }
+        })}
+      </div>
+    );
+  };
+
   const reactions = listToArray<Reaction>(message.reactions);
   const userId = getUserId();
-
-  // Process message content to replace X/Twitter URLs with plain text
-  const displayContent = replaceTwitterUrlsWithText(message.content);
 
   return (
     <>
@@ -509,48 +551,52 @@ export default function MessageBubble({
                       {parentMessage.mediaType === 'twitch' && (
                         <img 
                           src="/assets/generated/twitch-icon-transparent.dim_32x32.png"
-                          alt="Twitch thumbnail" 
+                          alt="Twitch" 
                           className="h-10 w-10 rounded object-cover"
                         />
                       )}
                       {parentMessage.mediaType === 'twitter' && (
                         <img 
                           src="/assets/generated/twitter-icon-transparent.dim_32x32.png"
-                          alt="Twitter thumbnail" 
+                          alt="Twitter" 
                           className="h-10 w-10 rounded object-cover"
                         />
                       )}
                       {parentMessage.mediaType === 'audio' && (
                         <img 
                           src="/assets/generated/audio-waveform-icon-transparent.dim_24x24.png"
-                          alt="Audio thumbnail" 
-                          className="h-10 w-10 rounded object-cover p-2"
+                          alt="Audio" 
+                          className="h-10 w-10 rounded object-cover"
                         />
                       )}
                     </div>
                   )}
-                  <div className="flex-1 min-w-0">
-                    <div className={`text-xs font-medium ${isOwnMessage ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>
+                  <div className="min-w-0 flex-1">
+                    <p className={`text-xs font-medium ${isOwnMessage ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
                       {parentMessage.sender}
-                    </div>
-                    <div className={`text-xs line-clamp-2 ${isOwnMessage ? 'text-primary-foreground/70' : 'text-muted-foreground/80'}`}>
-                      {truncateText(parentMessage.content, 100)}
-                    </div>
+                    </p>
+                    <p className={`truncate text-sm ${isOwnMessage ? 'text-primary-foreground/90' : 'text-foreground'}`}>
+                      {truncateText(replaceTwitterUrlsWithText(parentMessage.content), 100)}
+                    </p>
                   </div>
                 </div>
               </div>
             )}
 
-            <p className="whitespace-pre-wrap break-words text-sm">{displayContent}</p>
+            {/* Message content with link detection */}
+            {renderMessageContent(message.content)}
+
+            {/* Media rendering */}
             {renderMedia()}
           </div>
 
-          {/* Reactions */}
+          {/* Reactions display */}
           {reactions.length > 0 && (
             <div className="mt-1 flex flex-wrap gap-1">
               {reactions.map((reaction) => {
                 const users = listToArray<string>(reaction.users);
                 const hasReacted = users.includes(userId);
+                
                 return (
                   <button
                     key={reaction.emoji}
@@ -575,7 +621,7 @@ export default function MessageBubble({
               variant="ghost"
               size="sm"
               onClick={handleReplyClick}
-              className="h-7 gap-1 px-2 text-xs text-muted-foreground hover:text-foreground"
+              className="h-7 gap-1 px-2 text-xs"
             >
               <Reply className="h-3 w-3" />
               <span>Reply</span>
@@ -586,7 +632,7 @@ export default function MessageBubble({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-7 gap-1 px-2 text-xs text-muted-foreground hover:text-foreground"
+                  className="h-7 gap-1 px-2 text-xs"
                 >
                   <Smile className="h-3 w-3" />
                   <span>React</span>
@@ -611,7 +657,7 @@ export default function MessageBubble({
               variant="ghost"
               size="sm"
               onClick={handleShareClick}
-              className="h-7 gap-1 px-2 text-xs text-muted-foreground hover:text-foreground"
+              className="h-7 gap-1 px-2 text-xs"
             >
               <Share2 className="h-3 w-3" />
               <span>Share</span>
@@ -620,7 +666,15 @@ export default function MessageBubble({
         </div>
       </div>
 
+      {/* Expanded media modal */}
       {renderExpandedMedia()}
+
+      {/* External link warning dialog */}
+      <ExternalLinkDialog
+        url={externalLinkUrl || ''}
+        open={showExternalLinkDialog}
+        onOpenChange={setShowExternalLinkDialog}
+      />
     </>
   );
 }
