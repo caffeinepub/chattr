@@ -51,6 +51,7 @@ export interface http_request_result {
 export interface MessageWithReactions {
     id: bigint;
     content: string;
+    messageId: string;
     chatroomId: bigint;
     sender: string;
     mediaUrl?: string;
@@ -69,6 +70,7 @@ export type List_1 = [Reaction, List_1] | null;
 export interface Message {
     id: bigint;
     content: string;
+    messageId: string;
     chatroomId: bigint;
     sender: string;
     mediaUrl?: string;

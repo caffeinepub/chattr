@@ -72,6 +72,7 @@ List_1.fill(IDL.Opt(IDL.Tuple(Reaction, List_1)));
 export const MessageWithReactions = IDL.Record({
   'id' : IDL.Nat,
   'content' : IDL.Text,
+  'messageId' : IDL.Text,
   'chatroomId' : IDL.Nat,
   'sender' : IDL.Text,
   'mediaUrl' : IDL.Opt(IDL.Text),
@@ -85,6 +86,7 @@ export const MessageWithReactions = IDL.Record({
 export const Message = IDL.Record({
   'id' : IDL.Nat,
   'content' : IDL.Text,
+  'messageId' : IDL.Text,
   'chatroomId' : IDL.Nat,
   'sender' : IDL.Text,
   'mediaUrl' : IDL.Opt(IDL.Text),
@@ -300,6 +302,7 @@ export const idlFactory = ({ IDL }) => {
   const MessageWithReactions = IDL.Record({
     'id' : IDL.Nat,
     'content' : IDL.Text,
+    'messageId' : IDL.Text,
     'chatroomId' : IDL.Nat,
     'sender' : IDL.Text,
     'mediaUrl' : IDL.Opt(IDL.Text),
@@ -313,6 +316,7 @@ export const idlFactory = ({ IDL }) => {
   const Message = IDL.Record({
     'id' : IDL.Nat,
     'content' : IDL.Text,
+    'messageId' : IDL.Text,
     'chatroomId' : IDL.Nat,
     'sender' : IDL.Text,
     'mediaUrl' : IDL.Opt(IDL.Text),

@@ -14,10 +14,7 @@ import Debug "mo:base/Debug";
 import AccessControl "authorization/access-control";
 
 
-
-// Specify data migration in with-clause
-
-actor {
+ actor {
   let storage = Storage.new();
   include MixinStorage(storage);
 
@@ -51,6 +48,7 @@ actor {
     avatarUrl : ?Text;
     senderId : Text;
     replyToMessageId : ?Nat;
+    messageId : Text;
   };
 
   public type Chatroom = {
@@ -129,6 +127,7 @@ actor {
     senderId : Text;
     reactions : List.List<Reaction>;
     replyToMessageId : ?Nat;
+    messageId : Text;
   };
 
   public type ReplyPreview = {
@@ -140,6 +139,7 @@ actor {
 
   var nextMessageId = 0;
   var nextChatroomId = 0;
+  var siteMessageCounter : Nat = 0;
 
   transient let natMap = OrderedMap.Make<Nat>(Nat.compare);
   var chatrooms : OrderedMap.Map<Nat, Chatroom> = natMap.empty();
@@ -228,12 +228,29 @@ actor {
       avatarUrl = null;
       senderId = "creator";
       replyToMessageId = null;
+      messageId = formatMessageId(siteMessageCounter);
     };
 
     messages := natMap.put(messages, nextChatroomId, List.push(firstMessage, List.nil<Message>()));
     nextMessageId += 1;
     nextChatroomId += 1;
+    siteMessageCounter += 1;
     chatroom.id;
+  };
+
+  func formatMessageId(counter : Nat) : Text {
+    let paddedId = Nat.toText(counter);
+    let padding = if (counter < 10) { "00000000" } else if (counter < 100) {
+      "0000000";
+    } else if (counter < 1000) { "000000" } else if (counter < 10000) {
+      "00000";
+    } else if (counter < 100000) { "0000" } else if (counter < 1000000) {
+      "000";
+    } else if (counter < 10000000) { "00" } else if (counter < 100000000) {
+      "0";
+    } else { "" };
+
+    padding # paddedId;
   };
 
   func validateMediaUrl(url : Text, mediaType : Text) : Bool {
@@ -427,6 +444,7 @@ actor {
           avatarUrl;
           senderId;
           replyToMessageId;
+          messageId = formatMessageId(siteMessageCounter);
         };
 
         let chatroomMessages = switch (natMap.get(messages, chatroomId)) {
@@ -436,6 +454,7 @@ actor {
 
         messages := natMap.put(messages, chatroomId, List.push(message, chatroomMessages));
         nextMessageId += 1;
+        siteMessageCounter += 1;
 
         let updatedChatroom = {
           chatroom with
@@ -694,10 +713,9 @@ actor {
       };
       reactions := natMap.put(reactions, messageId, List.push(newReaction, messageReactions));
 
-      // Update last activity for the chatroom containing the message
-      var found = false;
+      var foundChatroom = false;
       for ((chatroomId, chatroomMessages) in natMap.entries(messages)) {
-        if (not found) {
+        if (not foundChatroom) {
           let containsMessage = List.some<Message>(
             chatroomMessages,
             func(msg) { msg.id == messageId },
@@ -711,7 +729,7 @@ actor {
                   lastActivity = Time.now()
                 };
                 chatrooms := natMap.put(chatrooms, chatroomId, updatedChatroom);
-                found := true;
+                foundChatroom := true;
               };
             };
           };
@@ -719,10 +737,9 @@ actor {
       };
     } else {
       reactions := natMap.put(reactions, messageId, List.reverse(updatedReactions));
-      // Update last activity as above without creating a new reaction
-      var found = false;
+      var foundChatroom = false;
       for ((chatroomId, chatroomMessages) in natMap.entries(messages)) {
-        if (not found) {
+        if (not foundChatroom) {
           let containsMessage = List.some<Message>(
             chatroomMessages,
             func(msg) { msg.id == messageId },
@@ -736,7 +753,7 @@ actor {
                   lastActivity = Time.now()
                 };
                 chatrooms := natMap.put(chatrooms, chatroomId, updatedChatroom);
-                found := true;
+                foundChatroom := true;
               };
             };
           };
@@ -1003,3 +1020,4 @@ actor {
     Text.fromArray(Array.tabulate(length, func(i : Nat) : Char { chars[i] }));
   };
 };
+

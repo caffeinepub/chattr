@@ -1,18 +1,18 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-24T19:46:13.617Z",
+  "generatedAt": "2026-02-26T22:01:21.705Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 2,
-    "implemented": 2,
+    "total": 3,
+    "implemented": 3,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "In the MessageBubble component, detect URLs in message text and render them as clickable links. Each detected link must display a Lucide `ExternalLink` icon immediately before the link text. Do not change any existing layout styles, spacing, colors, or other UI elements.",
+        "summary": "In the share link generation logic, zero-pad the messageId query parameter to a fixed 9-digit format (e.g., messageId=2 becomes messageId=000000002) so that share links resolve correctly.",
         "status": "implemented",
         "plannedFiles": [
           "frontend/src/components/MessageBubble.tsx"
@@ -23,14 +23,23 @@
       },
       {
         "id": "REQ-2",
-        "summary": "When a user clicks a detected link in a chat message, intercept the navigation and display a modal disclaimer with the text: 'You are about to leave Chattr. External links may be unsafe — proceed with caution.' The modal must have a Confirm button (opens the link in a new tab) and a Cancel button (closes the modal without navigating). Do not change any existing layout styles or other UI elements.",
+        "summary": "Apply the Tailwind class `font-mono` to the inline message ID displayed inside each message bubble so that IDs render in a monospace font.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/ExternalLinkDisclaimerModal.tsx",
           "frontend/src/components/MessageBubble.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/ExternalLinkDisclaimerModal.tsx",
+          "frontend/src/components/MessageBubble.tsx"
+        ]
+      },
+      {
+        "id": "REQ-3",
+        "summary": "Set the max-width of the X (Twitter) post iframe embed element to 300px (currently 250px) inside the MessageBubble component.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/MessageBubble.tsx"
+        ],
+        "matchedFiles": [
           "frontend/src/components/MessageBubble.tsx"
         ]
       }
@@ -38,12 +47,11 @@
   },
   "changedFiles": [
     "build-request.json",
-    "caffeine.lock.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/components/ExternalLinkDisclaimerModal.tsx",
     "frontend/src/components/MessageBubble.tsx",
+    "frontend/src/index.css",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

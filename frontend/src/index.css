@@ -230,3 +230,9 @@
 .voice-message-range-other::-moz-range-thumb:hover {
     transform: scale(1.1);
 }
+
+/* Twitter/X embed iframe max-width override */
+.twitter-embed-container iframe {
+    max-width: 300px !important;
+    width: 300px !important;
+}

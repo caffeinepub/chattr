@@ -1,68 +1,71 @@
 {
   "kind": "build_request",
-  "title": "Add link detection with ExternalLink icon and disclaimer modal in chat messages",
+  "title": "Plan Y: Zero-pad share link IDs, font-mono message IDs, X post iframe max-width",
   "projectName": "Chattr",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "In the MessageBubble component, detect URLs in message text and render them as clickable links. Each detected link must display a Lucide `ExternalLink` icon immediately before the link text. Do not change any existing layout styles, spacing, colors, or other UI elements.",
+      "text": "In the share link generation logic, zero-pad the messageId query parameter to a fixed 9-digit format (e.g., messageId=2 becomes messageId=000000002) so that share links resolve correctly.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-4",
-          "msg-5",
-          "msg-6"
+          "msg-1",
+          "msg-5"
         ],
         "quotes": [
-          "can we make it so links are detected in chats",
-          "maybe add a lucide icon in front of the link too",
-          "dont make any additional changes. dont change any layout styles either. keep everything exactly as is"
+          "the current link is displayed as: https://roasted-white-6xx-draft.caffeine.xyz/chatroom/0?messageId=2 , instead of: https://roasted-white-6xx-draft.caffeine.xyz/chatroom/0?messageId=000000002"
         ]
       },
       "acceptanceCriteria": [
-        "URLs in chat message text are auto-detected and rendered as clickable anchor elements",
-        "A Lucide `ExternalLink` icon appears immediately before each detected link",
-        "Non-link text in messages remains visually unchanged",
-        "No existing layout styles, colors, spacing, or other UI elements are altered"
+        "Share links generated from the MessageBubble component include a zero-padded 9-digit messageId (e.g., ?messageId=000000002)",
+        "Single-digit and multi-digit IDs are all padded to exactly 9 characters with leading zeros",
+        "Navigating to a generated share link correctly scrolls to and highlights the target message"
       ]
     },
     {
       "id": "REQ-2",
-      "text": "When a user clicks a detected link in a chat message, intercept the navigation and display a modal disclaimer with the text: 'You are about to leave Chattr. External links may be unsafe — proceed with caution.' The modal must have a Confirm button (opens the link in a new tab) and a Cancel button (closes the modal without navigating). Do not change any existing layout styles or other UI elements.",
+      "text": "Apply the Tailwind class `font-mono` to the inline message ID displayed inside each message bubble so that IDs render in a monospace font.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-3",
-          "msg-4",
-          "msg-5",
-          "msg-6"
+          "msg-3"
         ],
         "quotes": [
-          "add a disclaimer when clicking the link",
-          "You are about to leave Chattr... (somethin else after)",
-          "dont make any additional changes. dont change any layout styles either. keep everything exactly as is"
+          "you need to add the the 'font-mono' class to ids in messages so they look better"
         ]
       },
       "acceptanceCriteria": [
-        "Clicking a detected link opens a disclaimer modal instead of immediately navigating",
-        "Modal displays the text: 'You are about to leave Chattr. External links may be unsafe — proceed with caution.'",
-        "Confirm button opens the link in a new tab and closes the modal",
-        "Cancel button closes the modal without navigating",
-        "No existing layout styles, colors, spacing, or other UI elements are altered"
+        "The message ID element inside MessageBubble has the `font-mono` Tailwind class applied",
+        "Message IDs visually render in a monospace font in the chat UI"
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Set the max-width of the X (Twitter) post iframe embed element to 300px (currently 250px) inside the MessageBubble component.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-4"
+        ],
+        "quotes": [
+          "the max width of 300px for x posts needs to be added to the iframe element because its currently 250px"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The iframe element used to render Twitter/X post embeds has a max-width of 300px",
+        "The previous 250px max-width constraint is removed or overridden"
       ]
     }
   ],
   "constraints": [
-    "Do not change any existing layout styles, spacing, colors, typography, or visual design",
-    "Do not modify any backend files",
-    "Do not alter any components other than MessageBubble (and a new disclaimer modal component if needed)",
-    "Immutable frontend paths must not be edited"
+    "Only the three listed changes must be made — no other UI, logic, or styling changes are permitted",
+    "Do not modify backend files"
   ],
   "nonGoals": [
-    "Adding any new features beyond link detection, the ExternalLink icon, and the disclaimer modal",
-    "Changing the app's visual theme or design system",
-    "Backend changes of any kind"
+    "Content moderation or NSFW filtering",
+    "Admin message deletion",
+    "Any new features beyond the three Plan Y items"
   ],
   "imageRequirements": {
     "required": [],

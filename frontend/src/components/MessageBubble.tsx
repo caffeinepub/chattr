@@ -264,13 +264,14 @@ export default function MessageBubble({
   };
 
   const handleShareClick = async () => {
-    const url = `${window.location.origin}/chatroom/${chatroomId}?messageId=${message.id}`;
+    // Zero-pad the message ID to 9 digits for the share link
+    const paddedMessageId = message.id.toString().padStart(9, '0');
+    const url = `${window.location.origin}/chatroom/${chatroomId}?messageId=${paddedMessageId}`;
     
     try {
       await navigator.clipboard.writeText(url);
       toast.success('Link copied to clipboard!');
-    } catch (error) {
-      console.error('Failed to copy link:', error);
+    } catch {
       toast.error('Failed to copy link');
     }
   };
@@ -416,14 +417,11 @@ export default function MessageBubble({
       const postId = getTwitterPostId(mediaUrl);
       if (postId) {
         return (
-          <div className="mt-2 w-full max-w-[550px]">
+          <div className="mt-2 w-full twitter-embed-container" style={{ maxWidth: '300px' }}>
             <div 
               ref={tweetContainerRef}
-              className="rounded-lg overflow-hidden max-w-full"
-              style={{
-                maxWidth: '100%',
-                overflow: 'hidden'
-              }}
+              className="rounded-lg overflow-hidden"
+              style={{ maxWidth: '300px', overflow: 'hidden' }}
             />
             {tweetLoading && (
               <div className="rounded-lg border border-border bg-card p-4">
@@ -521,11 +519,17 @@ export default function MessageBubble({
         </Avatar>
 
         <div className={`flex flex-col ${isOwnMessage ? 'items-end' : 'items-start'} ${hasVideo ? 'w-full max-w-[600px]' : 'max-w-[70%]'}`}>
+          {/* Message header: sender, timestamp, and ID inline at the same font size */}
           <div className="mb-1 flex items-center gap-2">
             <span className="text-xs font-medium text-foreground">{message.sender}</span>
             <span className="text-xs text-muted-foreground">
               {formatTimestamp(message.timestamp)}
             </span>
+            {message.messageId && (
+              <span className="text-xs font-mono text-muted-foreground">
+                #{message.messageId}
+              </span>
+            )}
           </div>
 
           <div
@@ -537,73 +541,32 @@ export default function MessageBubble({
           >
             {/* Quoted reply block */}
             {parentMessage && onScrollToMessage && (
-              <div 
-                onClick={() => onScrollToMessage(parentMessage.id)}
-                className={`mb-2 cursor-pointer rounded-lg border-l-4 border-primary/50 bg-muted/30 p-2 transition-colors hover:bg-muted/50 ${
-                  isOwnMessage ? 'border-primary-foreground/30' : ''
+              <div
+                className={`mb-2 cursor-pointer rounded-lg border-l-2 border-primary px-3 py-1.5 text-xs opacity-80 hover:opacity-100 transition-opacity ${
+                  isOwnMessage ? 'bg-white/10' : 'bg-muted'
                 }`}
+                onClick={() => onScrollToMessage(parentMessage.id)}
               >
-                <div className="flex items-start gap-2">
-                  {parentMessage.mediaUrl && parentMessage.mediaType && (
-                    <div className="flex-shrink-0">
-                      {parentMessage.mediaType === 'image' && (
-                        <img 
-                          src={parentMessage.mediaUrl} 
-                          alt="Reply thumbnail" 
-                          className="h-10 w-10 rounded object-cover"
-                        />
-                      )}
-                      {parentMessage.mediaType === 'giphy' && isGiphyUrl(parentMessage.mediaUrl) && (
-                        <img 
-                          src={parentMessage.mediaUrl} 
-                          alt="GIF thumbnail" 
-                          className="h-10 w-10 rounded object-cover"
-                        />
-                      )}
-                      {parentMessage.mediaType === 'youtube' && isYouTubeUrl(parentMessage.mediaUrl) && (
-                        <img 
-                          src={`https://img.youtube.com/vi/${getYouTubeVideoId(parentMessage.mediaUrl)}/default.jpg`}
-                          alt="YouTube thumbnail" 
-                          className="h-10 w-10 rounded object-cover"
-                        />
-                      )}
-                      {parentMessage.mediaType === 'twitch' && (
-                        <img 
-                          src="/assets/generated/twitch-icon-transparent.dim_32x32.png"
-                          alt="Twitch" 
-                          className="h-10 w-10 rounded object-cover"
-                        />
-                      )}
-                      {parentMessage.mediaType === 'twitter' && (
-                        <img 
-                          src="/assets/generated/twitter-icon-transparent.dim_32x32.png"
-                          alt="Twitter" 
-                          className="h-10 w-10 rounded object-cover"
-                        />
-                      )}
-                      {parentMessage.mediaType === 'audio' && (
-                        <img 
-                          src="/assets/generated/audio-waveform-icon-transparent.dim_24x24.png"
-                          alt="Audio" 
-                          className="h-10 w-10 rounded object-cover"
-                        />
-                      )}
-                    </div>
+                <div className="font-medium">{parentMessage.sender}</div>
+                <div className="truncate">
+                  {parentMessage.mediaType && !parentMessage.content ? (
+                    <span className="italic">
+                      {parentMessage.mediaType === 'image' ? '📷 Image' :
+                       parentMessage.mediaType === 'audio' ? '🎵 Voice message' :
+                       parentMessage.mediaType === 'youtube' ? '▶️ YouTube video' :
+                       parentMessage.mediaType === 'twitch' ? '🎮 Twitch stream' :
+                       parentMessage.mediaType === 'twitter' ? '🐦 X post' :
+                       parentMessage.mediaType === 'giphy' ? '🎭 GIF' : 'Media'}
+                    </span>
+                  ) : (
+                    truncateText(replaceTwitterUrlsWithText(parentMessage.content), 80)
                   )}
-                  <div className="min-w-0 flex-1">
-                    <p className={`text-xs font-semibold ${isOwnMessage ? 'text-primary-foreground/80' : 'text-primary'}`}>
-                      {parentMessage.sender}
-                    </p>
-                    <p className={`text-xs truncate ${isOwnMessage ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
-                      {truncateText(replaceTwitterUrlsWithText(parentMessage.content), 80)}
-                    </p>
-                  </div>
                 </div>
               </div>
             )}
 
-            {/* Message text with link detection */}
-            {displayContent && (
+            {/* Message content */}
+            {message.sender !== 'Creator' && (
               <p className="text-sm leading-relaxed break-words whitespace-pre-wrap">
                 {renderTextWithLinks(displayContent, handleLinkClick, isOwnMessage)}
               </p>
@@ -613,9 +576,9 @@ export default function MessageBubble({
             {renderMedia()}
           </div>
 
-          {/* Reactions */}
+          {/* Reactions display */}
           {reactions.length > 0 && (
-            <div className={`mt-1 flex flex-wrap gap-1 ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
+            <div className="mt-1 flex flex-wrap gap-1">
               {reactions.map((reaction) => {
                 const reactionUsers = listToArray<string>(reaction.users);
                 const hasReacted = reactionUsers.includes(userId);
@@ -626,7 +589,7 @@ export default function MessageBubble({
                     className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs transition-colors ${
                       hasReacted
                         ? 'bg-primary/20 text-primary border border-primary/30'
-                        : 'bg-muted text-muted-foreground border border-border hover:bg-muted/80'
+                        : 'bg-muted text-muted-foreground hover:bg-muted/80'
                     }`}
                   >
                     <span>{reaction.emoji}</span>
@@ -638,33 +601,31 @@ export default function MessageBubble({
           )}
 
           {/* Action buttons */}
-          <div className={`mt-1 flex items-center gap-1 ${isOwnMessage ? 'flex-row-reverse' : 'flex-row'}`}>
+          <div className="mt-1 flex items-center gap-1 flex-row">
             {onReply && (
               <button
                 onClick={handleReplyClick}
                 className="flex items-center gap-1 rounded-md px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
               >
                 <Reply className="h-3 w-3" />
-                <span>Reply</span>
+                Reply
               </button>
             )}
 
             <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
               <PopoverTrigger asChild>
-                <button
-                  className="flex items-center gap-1 rounded-md px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                >
+                <button className="flex items-center gap-1 rounded-md px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
                   <Smile className="h-3 w-3" />
-                  <span>React</span>
+                  React
                 </button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-2" align={isOwnMessage ? 'end' : 'start'}>
+              <PopoverContent className="w-auto p-2" align="start">
                 <div className="flex gap-1">
                   {COMMON_EMOJIS.map((emoji) => (
                     <button
                       key={emoji}
                       onClick={() => handleReaction(emoji)}
-                      className="rounded p-1 text-lg transition-colors hover:bg-muted"
+                      className="rounded p-1.5 text-lg hover:bg-muted transition-colors"
                     >
                       {emoji}
                     </button>
@@ -678,7 +639,7 @@ export default function MessageBubble({
               className="flex items-center gap-1 rounded-md px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             >
               <Share2 className="h-3 w-3" />
-              <span>Share</span>
+              Share
             </button>
           </div>
         </div>
@@ -688,9 +649,9 @@ export default function MessageBubble({
 
       <ExternalLinkDisclaimerModal
         isOpen={disclaimerOpen}
-        onClose={handleDisclaimerClose}
         targetUrl={pendingUrl}
         onConfirm={handleDisclaimerConfirm}
+        onClose={handleDisclaimerClose}
       />
     </>
   );

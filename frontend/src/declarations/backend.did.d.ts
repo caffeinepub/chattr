@@ -45,6 +45,7 @@ export interface LobbyChatroomCard {
 export interface Message {
   'id' : bigint,
   'content' : string,
+  'messageId' : string,
   'chatroomId' : bigint,
   'sender' : string,
   'mediaUrl' : [] | [string],
@@ -57,6 +58,7 @@ export interface Message {
 export interface MessageWithReactions {
   'id' : bigint,
   'content' : string,
+  'messageId' : string,
   'chatroomId' : bigint,
   'sender' : string,
   'mediaUrl' : [] | [string],

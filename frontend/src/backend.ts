@@ -140,6 +140,7 @@ export interface http_request_result {
 export interface MessageWithReactions {
     id: bigint;
     content: string;
+    messageId: string;
     chatroomId: bigint;
     sender: string;
     mediaUrl?: string;
@@ -158,6 +159,7 @@ export type List_1 = [Reaction, List_1] | null;
 export interface Message {
     id: bigint;
     content: string;
+    messageId: string;
     chatroomId: bigint;
     sender: string;
     mediaUrl?: string;
@@ -1001,6 +1003,7 @@ function from_candid_record_n22(_uploadFile: (file: ExternalBlob) => Promise<Uin
 function from_candid_record_n25(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     id: bigint;
     content: string;
+    messageId: string;
     chatroomId: bigint;
     sender: string;
     mediaUrl: [] | [string];
@@ -1013,6 +1016,7 @@ function from_candid_record_n25(_uploadFile: (file: ExternalBlob) => Promise<Uin
 }): {
     id: bigint;
     content: string;
+    messageId: string;
     chatroomId: bigint;
     sender: string;
     mediaUrl?: string;
@@ -1026,6 +1030,7 @@ function from_candid_record_n25(_uploadFile: (file: ExternalBlob) => Promise<Uin
     return {
         id: value.id,
         content: value.content,
+        messageId: value.messageId,
         chatroomId: value.chatroomId,
         sender: value.sender,
         mediaUrl: record_opt_to_undefined(from_candid_opt_n13(_uploadFile, _downloadFile, value.mediaUrl)),
@@ -1055,6 +1060,7 @@ function from_candid_record_n30(_uploadFile: (file: ExternalBlob) => Promise<Uin
 function from_candid_record_n36(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     id: bigint;
     content: string;
+    messageId: string;
     chatroomId: bigint;
     sender: string;
     mediaUrl: [] | [string];
@@ -1066,6 +1072,7 @@ function from_candid_record_n36(_uploadFile: (file: ExternalBlob) => Promise<Uin
 }): {
     id: bigint;
     content: string;
+    messageId: string;
     chatroomId: bigint;
     sender: string;
     mediaUrl?: string;
@@ -1078,6 +1085,7 @@ function from_candid_record_n36(_uploadFile: (file: ExternalBlob) => Promise<Uin
     return {
         id: value.id,
         content: value.content,
+        messageId: value.messageId,
         chatroomId: value.chatroomId,
         sender: value.sender,
         mediaUrl: record_opt_to_undefined(from_candid_opt_n13(_uploadFile, _downloadFile, value.mediaUrl)),
