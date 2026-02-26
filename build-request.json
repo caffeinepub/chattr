@@ -1,71 +1,41 @@
 {
   "kind": "build_request",
-  "title": "Plan Y: Zero-pad share link IDs, font-mono message IDs, X post iframe max-width",
+  "title": "Hide message IDs from chat UI while preserving share/anchor functionality",
   "projectName": "Chattr",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "In the share link generation logic, zero-pad the messageId query parameter to a fixed 9-digit format (e.g., messageId=2 becomes messageId=000000002) so that share links resolve correctly.",
+      "text": "In MessageBubble.tsx, remove the visible display of the message ID from the rendered chat bubble. The message ID must still exist on the DOM element (e.g., as an id or data attribute) so that URL anchor scrolling and share link functionality continue to work. Do not change any other part of the message bubble layout or logic.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1",
-          "msg-5"
+          "msg-recent-5",
+          "msg-recent-6"
         ],
         "quotes": [
-          "the current link is displayed as: https://roasted-white-6xx-draft.caffeine.xyz/chatroom/0?messageId=2 , instead of: https://roasted-white-6xx-draft.caffeine.xyz/chatroom/0?messageId=000000002"
+          "yes i would like to hide message ids from chat id while maintaining functionality and not making any other changes"
         ]
       },
       "acceptanceCriteria": [
-        "Share links generated from the MessageBubble component include a zero-padded 9-digit messageId (e.g., ?messageId=000000002)",
-        "Single-digit and multi-digit IDs are all padded to exactly 9 characters with leading zeros",
-        "Navigating to a generated share link correctly scrolls to and highlights the target message"
-      ]
-    },
-    {
-      "id": "REQ-2",
-      "text": "Apply the Tailwind class `font-mono` to the inline message ID displayed inside each message bubble so that IDs render in a monospace font.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-3"
-        ],
-        "quotes": [
-          "you need to add the the 'font-mono' class to ids in messages so they look better"
-        ]
-      },
-      "acceptanceCriteria": [
-        "The message ID element inside MessageBubble has the `font-mono` Tailwind class applied",
-        "Message IDs visually render in a monospace font in the chat UI"
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "text": "Set the max-width of the X (Twitter) post iframe embed element to 300px (currently 250px) inside the MessageBubble component.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-4"
-        ],
-        "quotes": [
-          "the max width of 300px for x posts needs to be added to the iframe element because its currently 250px"
-        ]
-      },
-      "acceptanceCriteria": [
-        "The iframe element used to render Twitter/X post embeds has a max-width of 300px",
-        "The previous 250px max-width constraint is removed or overridden"
+        "Message IDs are no longer visibly rendered in the chat bubble UI for any message",
+        "The DOM element for each message still has an id or data attribute containing the message ID so anchor links work",
+        "Clicking the share button on a message still generates a correct share URL with the zero-padded 9-digit message ID",
+        "Opening a share URL still scrolls to and highlights the correct message",
+        "No other visual or functional changes are present in the chat UI"
       ]
     }
   ],
   "constraints": [
-    "Only the three listed changes must be made — no other UI, logic, or styling changes are permitted",
-    "Do not modify backend files"
+    "Do not change any backend logic",
+    "Do not alter share link generation, URL anchoring, or scroll-to-message behavior",
+    "Do not modify any other part of the MessageBubble component beyond removing the visible ID display",
+    "Do not touch any immutable frontend paths"
   ],
   "nonGoals": [
-    "Content moderation or NSFW filtering",
-    "Admin message deletion",
-    "Any new features beyond the three Plan Y items"
+    "Removing message IDs from the DOM entirely",
+    "Changing the share link format or zero-padding logic",
+    "Any other UI or UX changes beyond hiding the visible message ID text"
   ],
   "imageRequirements": {
     "required": [],

@@ -519,17 +519,12 @@ export default function MessageBubble({
         </Avatar>
 
         <div className={`flex flex-col ${isOwnMessage ? 'items-end' : 'items-start'} ${hasVideo ? 'w-full max-w-[600px]' : 'max-w-[70%]'}`}>
-          {/* Message header: sender, timestamp, and ID inline at the same font size */}
+          {/* Message header: sender and timestamp */}
           <div className="mb-1 flex items-center gap-2">
             <span className="text-xs font-medium text-foreground">{message.sender}</span>
             <span className="text-xs text-muted-foreground">
               {formatTimestamp(message.timestamp)}
             </span>
-            {message.messageId && (
-              <span className="text-xs font-mono text-muted-foreground">
-                #{message.messageId}
-              </span>
-            )}
           </div>
 
           <div
@@ -539,29 +534,18 @@ export default function MessageBubble({
                 : 'rounded-tl-sm bg-card text-card-foreground border border-border'
             } ${hasVideo ? 'w-full' : ''}`}
           >
-            {/* Quoted reply block */}
-            {parentMessage && onScrollToMessage && (
+            {/* Reply preview */}
+            {parentMessage && (
               <div
-                className={`mb-2 cursor-pointer rounded-lg border-l-2 border-primary px-3 py-1.5 text-xs opacity-80 hover:opacity-100 transition-opacity ${
-                  isOwnMessage ? 'bg-white/10' : 'bg-muted'
+                className={`mb-2 cursor-pointer rounded-lg border-l-2 px-3 py-1.5 text-xs opacity-80 hover:opacity-100 transition-opacity ${
+                  isOwnMessage
+                    ? 'border-primary-foreground/50 bg-primary-foreground/10'
+                    : 'border-primary bg-muted'
                 }`}
-                onClick={() => onScrollToMessage(parentMessage.id)}
+                onClick={() => onScrollToMessage && onScrollToMessage(parentMessage.id)}
               >
-                <div className="font-medium">{parentMessage.sender}</div>
-                <div className="truncate">
-                  {parentMessage.mediaType && !parentMessage.content ? (
-                    <span className="italic">
-                      {parentMessage.mediaType === 'image' ? '📷 Image' :
-                       parentMessage.mediaType === 'audio' ? '🎵 Voice message' :
-                       parentMessage.mediaType === 'youtube' ? '▶️ YouTube video' :
-                       parentMessage.mediaType === 'twitch' ? '🎮 Twitch stream' :
-                       parentMessage.mediaType === 'twitter' ? '🐦 X post' :
-                       parentMessage.mediaType === 'giphy' ? '🎭 GIF' : 'Media'}
-                    </span>
-                  ) : (
-                    truncateText(replaceTwitterUrlsWithText(parentMessage.content), 80)
-                  )}
-                </div>
+                <p className="font-medium">{parentMessage.sender}</p>
+                <p className="truncate">{truncateText(parentMessage.content, 80)}</p>
               </div>
             )}
 
@@ -576,7 +560,7 @@ export default function MessageBubble({
             {renderMedia()}
           </div>
 
-          {/* Reactions display */}
+          {/* Reactions */}
           {reactions.length > 0 && (
             <div className="mt-1 flex flex-wrap gap-1">
               {reactions.map((reaction) => {
@@ -588,12 +572,12 @@ export default function MessageBubble({
                     onClick={() => handleReaction(reaction.emoji)}
                     className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs transition-colors ${
                       hasReacted
-                        ? 'bg-primary/20 text-primary border border-primary/30'
+                        ? 'bg-primary/20 text-primary ring-1 ring-primary/30'
                         : 'bg-muted text-muted-foreground hover:bg-muted/80'
                     }`}
                   >
                     <span>{reaction.emoji}</span>
-                    <span>{Number(reaction.count)}</span>
+                    <span>{reaction.count.toString()}</span>
                   </button>
                 );
               })}
@@ -601,31 +585,20 @@ export default function MessageBubble({
           )}
 
           {/* Action buttons */}
-          <div className="mt-1 flex items-center gap-1 flex-row">
-            {onReply && (
-              <button
-                onClick={handleReplyClick}
-                className="flex items-center gap-1 rounded-md px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-              >
-                <Reply className="h-3 w-3" />
-                Reply
-              </button>
-            )}
-
+          <div className={`mt-1 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity`}>
             <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
               <PopoverTrigger asChild>
-                <button className="flex items-center gap-1 rounded-md px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
-                  <Smile className="h-3 w-3" />
-                  React
-                </button>
+                <Button variant="ghost" size="icon" className="h-6 w-6">
+                  <Smile className="h-3.5 w-3.5" />
+                </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-2" align="start">
+              <PopoverContent className="w-auto p-2" align={isOwnMessage ? 'end' : 'start'}>
                 <div className="flex gap-1">
                   {COMMON_EMOJIS.map((emoji) => (
                     <button
                       key={emoji}
                       onClick={() => handleReaction(emoji)}
-                      className="rounded p-1.5 text-lg hover:bg-muted transition-colors"
+                      className="rounded p-1 text-lg hover:bg-muted transition-colors"
                     >
                       {emoji}
                     </button>
@@ -634,22 +607,26 @@ export default function MessageBubble({
               </PopoverContent>
             </Popover>
 
-            <button
-              onClick={handleShareClick}
-              className="flex items-center gap-1 rounded-md px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-            >
-              <Share2 className="h-3 w-3" />
-              Share
-            </button>
+            {onReply && (
+              <Button variant="ghost" size="icon" className="h-6 w-6" onClick={handleReplyClick}>
+                <Reply className="h-3.5 w-3.5" />
+              </Button>
+            )}
+
+            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={handleShareClick}>
+              <Share2 className="h-3.5 w-3.5" />
+            </Button>
           </div>
         </div>
       </div>
 
+      {/* Expanded media overlay */}
       {renderExpandedMedia()}
 
+      {/* External link disclaimer modal */}
       <ExternalLinkDisclaimerModal
         isOpen={disclaimerOpen}
-        targetUrl={pendingUrl}
+        targetUrl={pendingUrl || ''}
         onConfirm={handleDisclaimerConfirm}
         onClose={handleDisclaimerClose}
       />

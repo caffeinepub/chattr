@@ -2,8 +2,8 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-in-the-share-link-generation-logic-zero-pad-the-messageid-query-parameter-to-a-fixed-9-digit-format-e-g-messageid-2-becomes-messageid-000000002-so-that-share-links-resolve-correctly",
-      "featureTitle": "In the share link generation logic, zero-pad the messageId query parameter to a fixed 9-digit format (e.g., messageId=2 becomes messageId=000000002) so that share links resolve correctly.",
+      "featureId": "feature-in-messagebubble-tsx-remove-the-visible-display-of-the-message-id-from-the-rendered-chat-bubble-the-message-id-must-still-exist-on-the-dom-element-e-g-as-an-id-or-data-attribute-so-that-url-anchor-scrolling-and-share-link-functionality-continue-to-work-do-not-change-any-other-part-of-the-message-bubble-layout-or-logic",
+      "featureTitle": "In MessageBubble.tsx, remove the visible display of the message ID from the rendered chat bubble. The message ID must still exist on the DOM element (e.g., as an id or data attribute) so that URL anchor scrolling and share link functionality continue to work. Do not change any other part of the message bubble layout or logic.",
       "files": [
         "frontend/src/components/MessageBubble.tsx"
       ],
@@ -19,48 +19,6 @@
       ],
       "testIds": [
         "REQ-1"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-apply-the-tailwind-class-font-mono-to-the-inline-message-id-displayed-inside-each-message-bubble-so-that-ids-render-in-a-monospace-font",
-      "featureTitle": "Apply the Tailwind class `font-mono` to the inline message ID displayed inside each message bubble so that IDs render in a monospace font.",
-      "files": [
-        "frontend/src/components/MessageBubble.tsx"
-      ],
-      "components": [
-        "authorization@1.0.1",
-        "blob-storage@2.0.3",
-        "http-outcalls@1.1.1",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-2"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-set-the-max-width-of-the-x-twitter-post-iframe-embed-element-to-300px-currently-250px-inside-the-messagebubble-component",
-      "featureTitle": "Set the max-width of the X (Twitter) post iframe embed element to 300px (currently 250px) inside the MessageBubble component.",
-      "files": [
-        "frontend/src/components/MessageBubble.tsx"
-      ],
-      "components": [
-        "authorization@1.0.1",
-        "blob-storage@2.0.3",
-        "http-outcalls@1.1.1",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-3"
       ],
       "confidence": "high"
     }

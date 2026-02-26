@@ -1,11 +1,10 @@
 # Specification
 
 ## Summary
-**Goal:** Apply three small targeted fixes to the Chattr message bubble component: zero-pad share link message IDs, apply monospace font to inline message IDs, and increase X post iframe max-width.
+**Goal:** Hide the visible message ID text from chat bubbles in the UI while keeping the ID accessible in the DOM for anchor/share functionality.
 
 **Planned changes:**
-- Zero-pad the `messageId` query parameter in share link generation to a fixed 9-digit format (e.g., `?messageId=000000002`)
-- Add the `font-mono` Tailwind class to the inline message ID element inside each message bubble
-- Update the X (Twitter) post iframe embed max-width from 250px to 300px in the MessageBubble component
+- In `MessageBubble.tsx`, remove the visible rendering of the message ID from the chat bubble UI
+- Ensure each message's DOM element retains an `id` or `data` attribute containing the message ID so URL anchor scrolling and share links continue to work
 
-**User-visible outcome:** Share links correctly include zero-padded message IDs that resolve to the right message; message IDs in chat bubbles render in a monospace font; X post embeds display slightly wider at up to 300px.
+**User-visible outcome:** Message IDs no longer appear as visible text in chat bubbles, while share links and scroll-to-message functionality remain fully intact.
