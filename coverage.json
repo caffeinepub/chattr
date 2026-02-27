@@ -1,7 +1,7 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-26T22:01:21.705Z",
+  "generatedAt": "2026-02-27T21:17:14.573Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
@@ -12,29 +12,29 @@
     "items": [
       {
         "id": "REQ-1",
-        "summary": "In the share link generation logic, zero-pad the messageId query parameter to a fixed 9-digit format (e.g., messageId=2 becomes messageId=000000002) so that share links resolve correctly.",
+        "summary": "In the chat input area (MessageInput component), vertically center-align all elements — the text input field and all action buttons — so they share the same horizontal axis.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/MessageBubble.tsx"
+          "frontend/src/components/MessageInput.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/MessageBubble.tsx"
+          "frontend/src/components/MessageInput.tsx"
         ]
       },
       {
         "id": "REQ-2",
-        "summary": "Apply the Tailwind class `font-mono` to the inline message ID displayed inside each message bubble so that IDs render in a monospace font.",
+        "summary": "Reduce vertical padding in the chat input area (MessageInput component) to give more vertical space to the chat messages area above it.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/MessageBubble.tsx"
+          "frontend/src/components/MessageInput.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/MessageBubble.tsx"
+          "frontend/src/components/MessageInput.tsx"
         ]
       },
       {
         "id": "REQ-3",
-        "summary": "Set the max-width of the X (Twitter) post iframe embed element to 300px (currently 250px) inside the MessageBubble component.",
+        "summary": "Visually hide message ID labels in the chat message bubbles (MessageBubble component) so they are not visible to users, while preserving their DOM presence with the correct anchor IDs so that share links and URL-based anchoring remain fully functional.",
         "status": "implemented",
         "plannedFiles": [
           "frontend/src/components/MessageBubble.tsx"
@@ -51,7 +51,7 @@
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
     "frontend/src/components/MessageBubble.tsx",
-    "frontend/src/index.css",
+    "frontend/src/components/MessageInput.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

@@ -1,51 +1,53 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Plan Y: Zero-pad share link IDs, font-mono message IDs, X post iframe max-width",
+  "title": "Vertically align input elements, reduce input padding, hide message IDs visually",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Zero-pad the messageId query parameter in share links to a fixed 9-digit format (e.g., messageId=2 becomes messageId=000000002) so that share links resolve correctly",
+      "summary": "In the chat input area (MessageInput component), vertically center-align all elements — the text input field and all action buttons — so they share the same horizontal axis.",
       "acceptanceCriteria": [
-        "Share links generated from the MessageBubble component include a zero-padded 9-digit messageId (e.g., ?messageId=000000002)",
-        "Single-digit and multi-digit IDs are all padded to exactly 9 characters with leading zeros",
-        "Navigating to a generated share link correctly scrolls to and highlights the target message"
+        "The text input and all buttons in the chat input bar are vertically centered on the same axis",
+        "No other layout or styling changes are introduced"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/MessageBubble.tsx",
+          "path": "frontend/src/components/MessageInput.tsx",
           "operation": "modify",
-          "description": "Modify the share link generation logic to zero-pad the messageId to 9 digits using .toString().padStart(9, '0') before constructing the URL with the messageId query parameter. Locate the code that builds the share link URL (likely in a share or copy-link handler) and apply padding to message.id before appending it as ?messageId=000000002 format."
+          "description": "Update the container element that wraps the text input and action buttons to use flexbox with `items-center` (vertical centering). Ensure all child elements (text input field, send button, voice recording button, emoji button, Giphy button, and media upload button) are aligned on the same horizontal axis using consistent flex alignment properties. Do not modify any other styling or functionality."
         }
       ]
     },
     {
       "id": "REQ-2",
-      "summary": "Apply the Tailwind class font-mono to the inline message ID displayed inside each message bubble so that IDs render in a monospace font",
+      "summary": "Reduce vertical padding in the chat input area (MessageInput component) to give more vertical space to the chat messages area above it.",
       "acceptanceCriteria": [
-        "The message ID element inside MessageBubble has the `font-mono` Tailwind class applied",
-        "Message IDs visually render in a monospace font in the chat UI"
+        "The chat input area has less vertical padding than before",
+        "More vertical space is available for the messages list",
+        "No other style changes are introduced"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/MessageBubble.tsx",
+          "path": "frontend/src/components/MessageInput.tsx",
           "operation": "modify",
-          "description": "Add the 'font-mono' Tailwind class to the className of the HTML element that displays the message ID within the message bubble. Locate the element rendering the message ID (likely a span or div showing message.id or message.messageId) and append 'font-mono' to its existing className string or template."
+          "description": "Reduce the vertical padding (py-* classes) on the MessageInput container element. Review the current padding values and decrease them to provide more space for the messages list above. Do not modify horizontal padding or any other styling properties."
         }
       ]
     },
     {
       "id": "REQ-3",
-      "summary": "Set the max-width of the X (Twitter) post iframe embed element to 300px (currently 250px) inside the MessageBubble component",
+      "summary": "Visually hide message ID labels in the chat message bubbles (MessageBubble component) so they are not visible to users, while preserving their DOM presence with the correct anchor IDs so that share links and URL-based anchoring remain fully functional.",
       "acceptanceCriteria": [
-        "The iframe element used to render Twitter/X post embeds has a max-width of 300px",
-        "The previous 250px max-width constraint is removed or overridden"
+        "Message ID text is not visible in the chat UI",
+        "Each message still has its anchor element in the DOM with the correct ID attribute",
+        "Navigating to a share link scrolls to and highlights the correct message",
+        "No other style or functionality changes are introduced"
       ],
       "file_operations": [
         {
           "path": "frontend/src/components/MessageBubble.tsx",
           "operation": "modify",
-          "description": "Update the inline style or className of the Twitter/X post iframe element to set max-width to 300px instead of 250px. Locate the iframe element used for Twitter embeds (likely within a conditional render for mediaType === 'twitter' or similar) and change the maxWidth style property from '250px' to '300px' or update the corresponding Tailwind class."
+          "description": "Apply visual hiding to the message ID text content while keeping the anchor element in the DOM. Use CSS utility classes like `sr-only` (screen-reader-only) or `opacity-0 h-0 overflow-hidden` to hide the ID text visually. Ensure the anchor element retains its `id` attribute (e.g., `id={message.messageId}`) so that URL-based navigation and scroll-to-message functionality continue to work. Do not remove the anchor element or modify any other message rendering logic."
         }
       ]
     }

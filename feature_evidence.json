@@ -2,10 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-in-the-share-link-generation-logic-zero-pad-the-messageid-query-parameter-to-a-fixed-9-digit-format-e-g-messageid-2-becomes-messageid-000000002-so-that-share-links-resolve-correctly",
-      "featureTitle": "In the share link generation logic, zero-pad the messageId query parameter to a fixed 9-digit format (e.g., messageId=2 becomes messageId=000000002) so that share links resolve correctly.",
+      "featureId": "feature-in-the-chat-input-area-messageinput-component-vertically-center-align-all-elements-the-text-input-field-and-all-action-buttons-so-they-share-the-same-horizontal-axis",
+      "featureTitle": "In the chat input area (MessageInput component), vertically center-align all elements — the text input field and all action buttons — so they share the same horizontal axis.",
       "files": [
-        "frontend/src/components/MessageBubble.tsx"
+        "frontend/src/components/MessageInput.tsx"
       ],
       "components": [
         "authorization@1.0.1",
@@ -23,10 +23,10 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-apply-the-tailwind-class-font-mono-to-the-inline-message-id-displayed-inside-each-message-bubble-so-that-ids-render-in-a-monospace-font",
-      "featureTitle": "Apply the Tailwind class `font-mono` to the inline message ID displayed inside each message bubble so that IDs render in a monospace font.",
+      "featureId": "feature-reduce-vertical-padding-in-the-chat-input-area-messageinput-component-to-give-more-vertical-space-to-the-chat-messages-area-above-it",
+      "featureTitle": "Reduce vertical padding in the chat input area (MessageInput component) to give more vertical space to the chat messages area above it.",
       "files": [
-        "frontend/src/components/MessageBubble.tsx"
+        "frontend/src/components/MessageInput.tsx"
       ],
       "components": [
         "authorization@1.0.1",
@@ -44,8 +44,8 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-set-the-max-width-of-the-x-twitter-post-iframe-embed-element-to-300px-currently-250px-inside-the-messagebubble-component",
-      "featureTitle": "Set the max-width of the X (Twitter) post iframe embed element to 300px (currently 250px) inside the MessageBubble component.",
+      "featureId": "feature-visually-hide-message-id-labels-in-the-chat-message-bubbles-messagebubble-component-so-they-are-not-visible-to-users-while-preserving-their-dom-presence-with-the-correct-anchor-ids-so-that-share-links-and-url-based-anchoring-remain-fully-functional",
+      "featureTitle": "Visually hide message ID labels in the chat message bubbles (MessageBubble component) so they are not visible to users, while preserving their DOM presence with the correct anchor IDs so that share links and URL-based anchoring remain fully functional.",
       "files": [
         "frontend/src/components/MessageBubble.tsx"
       ],

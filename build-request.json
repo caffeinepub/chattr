@@ -1,71 +1,72 @@
 {
   "kind": "build_request",
-  "title": "Plan Y: Zero-pad share link IDs, font-mono message IDs, X post iframe max-width",
+  "title": "Vertically align input elements, reduce input padding, hide message IDs visually",
   "projectName": "Chattr",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "In the share link generation logic, zero-pad the messageId query parameter to a fixed 9-digit format (e.g., messageId=2 becomes messageId=000000002) so that share links resolve correctly.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-1",
-          "msg-5"
-        ],
-        "quotes": [
-          "the current link is displayed as: https://roasted-white-6xx-draft.caffeine.xyz/chatroom/0?messageId=2 , instead of: https://roasted-white-6xx-draft.caffeine.xyz/chatroom/0?messageId=000000002"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Share links generated from the MessageBubble component include a zero-padded 9-digit messageId (e.g., ?messageId=000000002)",
-        "Single-digit and multi-digit IDs are all padded to exactly 9 characters with leading zeros",
-        "Navigating to a generated share link correctly scrolls to and highlights the target message"
-      ]
-    },
-    {
-      "id": "REQ-2",
-      "text": "Apply the Tailwind class `font-mono` to the inline message ID displayed inside each message bubble so that IDs render in a monospace font.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-3"
-        ],
-        "quotes": [
-          "you need to add the the 'font-mono' class to ids in messages so they look better"
-        ]
-      },
-      "acceptanceCriteria": [
-        "The message ID element inside MessageBubble has the `font-mono` Tailwind class applied",
-        "Message IDs visually render in a monospace font in the chat UI"
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "text": "Set the max-width of the X (Twitter) post iframe embed element to 300px (currently 250px) inside the MessageBubble component.",
+      "text": "In the chat input area (MessageInput component), vertically center-align all elements — the text input field and all action buttons — so they share the same horizontal axis.",
       "target": "frontend",
       "source": {
         "messageIds": [
           "msg-4"
         ],
         "quotes": [
-          "the max width of 300px for x posts needs to be added to the iframe element because its currently 250px"
+          "Vertically align the input area elements (buttons + text input) so they're centered on the same axis"
         ]
       },
       "acceptanceCriteria": [
-        "The iframe element used to render Twitter/X post embeds has a max-width of 300px",
-        "The previous 250px max-width constraint is removed or overridden"
+        "The text input and all buttons in the chat input bar are vertically centered on the same axis",
+        "No other layout or styling changes are introduced"
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "text": "Reduce vertical padding in the chat input area (MessageInput component) to give more vertical space to the chat messages area above it.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-4"
+        ],
+        "quotes": [
+          "Reduce vertical padding in the chat input area to give more room to the chat messages"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The chat input area has less vertical padding than before",
+        "More vertical space is available for the messages list",
+        "No other style changes are introduced"
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Visually hide message ID labels in the chat message bubbles (MessageBubble component) so they are not visible to users, while preserving their DOM presence with the correct anchor IDs so that share links and URL-based anchoring remain fully functional.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-4"
+        ],
+        "quotes": [
+          "Hide message IDs visually while keeping share links and URL anchoring fully functional"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Message ID text is not visible in the chat UI",
+        "Each message still has its anchor element in the DOM with the correct ID attribute",
+        "Navigating to a share link scrolls to and highlights the correct message",
+        "No other style or functionality changes are introduced"
       ]
     }
   ],
   "constraints": [
-    "Only the three listed changes must be made — no other UI, logic, or styling changes are permitted",
-    "Do not modify backend files"
+    "No other style or functionality changes beyond the three listed requirements",
+    "Share link and URL anchor functionality must remain fully intact after hiding message IDs"
   ],
   "nonGoals": [
-    "Content moderation or NSFW filtering",
-    "Admin message deletion",
-    "Any new features beyond the three Plan Y items"
+    "Backend changes",
+    "Changes to any component other than MessageInput and MessageBubble",
+    "Modifying message ID generation or storage logic"
   ],
   "imageRequirements": {
     "required": [],

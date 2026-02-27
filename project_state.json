@@ -1,58 +1,39 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Chat platform project with share link fixes, message ID formatting, and X post iframe width updates planned as 'Plan Y'.",
-  "architectural_notes": [],
-  "known_issues": [
-    "Share links use unpadded message IDs (e.g., ?messageId=2 instead of ?messageId=000000002)"
+  "summary": "Chat application with UI refinements: vertically aligned input area elements, reduced vertical padding in chat input area, and visually hidden message IDs (while keeping share links and URL anchoring functional).",
+  "architectural_notes": [
+    "Message IDs are hidden visually but remain in the DOM for anchor links and share functionality"
   ],
-  "isFixRequest": true,
+  "known_issues": [],
+  "isFixRequest": false,
   "existing_features": [
     {
-      "id": "feature-in-the-share-link-generation-logic-zero-pad-the-messageid-query-parameter-to-a-fixed-9-digit-format-e-g-messageid-2-becomes-messageid-000000002-so-that-share-links-resolve-correctly",
-      "title": "In the share link generation logic, zero-pad the messageId query parameter to a fixed 9-digit format (e.g., messageId=2 becomes messageId=000000002) so that share links resolve correctly.",
+      "id": "feature-in-the-chat-input-area-messageinput-component-vertically-center-align-all-elements-the-text-input-field-and-all-action-buttons-so-they-share-the-same-horizontal-axis",
+      "title": "In the chat input area (MessageInput component), vertically center-align all elements — the text input field and all action buttons — so they share the same horizontal axis.",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-apply-the-tailwind-class-font-mono-to-the-inline-message-id-displayed-inside-each-message-bubble-so-that-ids-render-in-a-monospace-font",
-      "title": "Apply the Tailwind class `font-mono` to the inline message ID displayed inside each message bubble so that IDs render in a monospace font.",
+      "id": "feature-reduce-vertical-padding-in-the-chat-input-area-messageinput-component-to-give-more-vertical-space-to-the-chat-messages-area-above-it",
+      "title": "Reduce vertical padding in the chat input area (MessageInput component) to give more vertical space to the chat messages area above it.",
       "reqIds": [
         "REQ-2"
       ],
       "version": 1
     },
     {
-      "id": "feature-set-the-max-width-of-the-x-twitter-post-iframe-embed-element-to-300px-currently-250px-inside-the-messagebubble-component",
-      "title": "Set the max-width of the X (Twitter) post iframe embed element to 300px (currently 250px) inside the MessageBubble component.",
+      "id": "feature-visually-hide-message-id-labels-in-the-chat-message-bubbles-messagebubble-component-so-they-are-not-visible-to-users-while-preserving-their-dom-presence-with-the-correct-anchor-ids-so-that-share-links-and-url-based-anchoring-remain-fully-functional",
+      "title": "Visually hide message ID labels in the chat message bubbles (MessageBubble component) so they are not visible to users, while preserving their DOM presence with the correct anchor IDs so that share links and URL-based anchoring remain fully functional.",
       "reqIds": [
         "REQ-3"
       ],
       "version": 1
     }
   ],
-  "new_feature_requests": [
-    {
-      "id": "AR-1",
-      "summary": "Zero-pad message IDs in share links to 9-digit format (e.g., 2 → 000000002)",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-2",
-      "summary": "Apply font-mono class to message IDs displayed in the chat",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-3",
-      "summary": "Set X post iframe max-width to 300px (up from 250px)",
-      "reqIds": [],
-      "status": "pending"
-    }
-  ],
+  "new_feature_requests": [],
   "gameProjectType": "none",
   "projectName": "Chattr",
   "clarification_mode": "instant",
