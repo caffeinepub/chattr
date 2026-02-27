@@ -1,23 +1,51 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Hide message IDs from chat UI while preserving share/anchor functionality",
+  "title": "Plan Y: Zero-pad share link IDs, font-mono message IDs, X post iframe max-width",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Remove visible message ID display from chat bubbles while preserving DOM attributes for anchor scrolling and share functionality",
+      "summary": "Zero-pad the messageId query parameter in share links to a fixed 9-digit format (e.g., messageId=2 becomes messageId=000000002) so that share links resolve correctly",
       "acceptanceCriteria": [
-        "Message IDs are no longer visibly rendered in the chat bubble UI for any message",
-        "The DOM element for each message still has an id or data attribute containing the message ID so anchor links work",
-        "Clicking the share button on a message still generates a correct share URL with the zero-padded 9-digit message ID",
-        "Opening a share URL still scrolls to and highlights the correct message",
-        "No other visual or functional changes are present in the chat UI"
+        "Share links generated from the MessageBubble component include a zero-padded 9-digit messageId (e.g., ?messageId=000000002)",
+        "Single-digit and multi-digit IDs are all padded to exactly 9 characters with leading zeros",
+        "Navigating to a generated share link correctly scrolls to and highlights the target message"
       ],
       "file_operations": [
         {
           "path": "frontend/src/components/MessageBubble.tsx",
           "operation": "modify",
-          "description": "Remove the visible text rendering of message.messageId from the JSX output. Ensure the message container element retains its id={message.messageId} attribute (or equivalent data-message-id attribute) so URL anchor scrolling and share link functionality continue to work. Do not modify any other rendering logic, styles, media embeds, reactions, pinning, or reply handling. Verify that the share button logic remains intact and continues to reference message.messageId correctly."
+          "description": "Modify the share link generation logic to zero-pad the messageId to 9 digits using .toString().padStart(9, '0') before constructing the URL with the messageId query parameter. Locate the code that builds the share link URL (likely in a share or copy-link handler) and apply padding to message.id before appending it as ?messageId=000000002 format."
+        }
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "summary": "Apply the Tailwind class font-mono to the inline message ID displayed inside each message bubble so that IDs render in a monospace font",
+      "acceptanceCriteria": [
+        "The message ID element inside MessageBubble has the `font-mono` Tailwind class applied",
+        "Message IDs visually render in a monospace font in the chat UI"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/MessageBubble.tsx",
+          "operation": "modify",
+          "description": "Add the 'font-mono' Tailwind class to the className of the HTML element that displays the message ID within the message bubble. Locate the element rendering the message ID (likely a span or div showing message.id or message.messageId) and append 'font-mono' to its existing className string or template."
+        }
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "summary": "Set the max-width of the X (Twitter) post iframe embed element to 300px (currently 250px) inside the MessageBubble component",
+      "acceptanceCriteria": [
+        "The iframe element used to render Twitter/X post embeds has a max-width of 300px",
+        "The previous 250px max-width constraint is removed or overridden"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/MessageBubble.tsx",
+          "operation": "modify",
+          "description": "Update the inline style or className of the Twitter/X post iframe element to set max-width to 300px instead of 250px. Locate the iframe element used for Twitter embeds (likely within a conditional render for mediaType === 'twitter' or similar) and change the maxWidth style property from '250px' to '300px' or update the corresponding Tailwind class."
         }
       ]
     }

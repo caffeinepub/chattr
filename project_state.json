@@ -1,19 +1,34 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Chat app (Chattr) deployed on Caffeine/DFINITY platform. Plan Y (v335) is live: message IDs zero-padded to 9 digits in share links, font-mono on displayed IDs, X post iframe max-width 300px. Now removing visible message IDs from chat UI while keeping share/anchor functionality intact.",
-  "architectural_notes": [
-    "Message IDs are used for share links and URL anchoring (e.g. /room/abc#000000042); display is separate from functionality",
-    "App is deployed on Caffeine/DFINITY platform at chattr-068.caffeine.xyz; custom domain config must go through Caffeine team"
+  "summary": "Chat platform project with share link fixes, message ID formatting, and X post iframe width updates planned as 'Plan Y'.",
+  "architectural_notes": [],
+  "known_issues": [
+    "Share links use unpadded message IDs (e.g., ?messageId=2 instead of ?messageId=000000002)"
   ],
-  "known_issues": [],
-  "isFixRequest": false,
+  "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-in-messagebubble-tsx-remove-the-visible-display-of-the-message-id-from-the-rendered-chat-bubble-the-message-id-must-still-exist-on-the-dom-element-e-g-as-an-id-or-data-attribute-so-that-url-anchor-scrolling-and-share-link-functionality-continue-to-work-do-not-change-any-other-part-of-the-message-bubble-layout-or-logic",
-      "title": "In MessageBubble.tsx, remove the visible display of the message ID from the rendered chat bubble. The message ID must still exist on the DOM element (e.g., as an id or data attribute) so that URL anchor scrolling and share link functionality continue to work. Do not change any other part of the message bubble layout or logic.",
+      "id": "feature-in-the-share-link-generation-logic-zero-pad-the-messageid-query-parameter-to-a-fixed-9-digit-format-e-g-messageid-2-becomes-messageid-000000002-so-that-share-links-resolve-correctly",
+      "title": "In the share link generation logic, zero-pad the messageId query parameter to a fixed 9-digit format (e.g., messageId=2 becomes messageId=000000002) so that share links resolve correctly.",
       "reqIds": [
         "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-apply-the-tailwind-class-font-mono-to-the-inline-message-id-displayed-inside-each-message-bubble-so-that-ids-render-in-a-monospace-font",
+      "title": "Apply the Tailwind class `font-mono` to the inline message ID displayed inside each message bubble so that IDs render in a monospace font.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-set-the-max-width-of-the-x-twitter-post-iframe-embed-element-to-300px-currently-250px-inside-the-messagebubble-component",
+      "title": "Set the max-width of the X (Twitter) post iframe embed element to 300px (currently 250px) inside the MessageBubble component.",
+      "reqIds": [
+        "REQ-3"
       ],
       "version": 1
     }
@@ -21,7 +36,19 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Hide message IDs from chat UI while keeping share link and URL anchor functionality intact",
+      "summary": "Zero-pad message IDs in share links to 9-digit format (e.g., 2 → 000000002)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Apply font-mono class to message IDs displayed in the chat",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Set X post iframe max-width to 300px (up from 250px)",
       "reqIds": [],
       "status": "pending"
     }
