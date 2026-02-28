@@ -1,53 +1,54 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Vertically align input elements, reduce input padding, hide message IDs visually",
+  "title": "Vertically align input area, reduce padding, and hide message IDs visually",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "In the chat input area (MessageInput component), vertically center-align all elements — the text input field and all action buttons — so they share the same horizontal axis.",
+      "summary": "Vertically align all elements within the chat message input area (text input, buttons, character count indicator) so they are centered on the same vertical axis.",
       "acceptanceCriteria": [
-        "The text input and all buttons in the chat input bar are vertically centered on the same axis",
-        "No other layout or styling changes are introduced"
+        "All elements in the chat input area (text field, send button, attachment buttons, character count indicator) are vertically centered relative to each other.",
+        "No elements appear misaligned or offset vertically in the input row.",
+        "Character count indicator and all action buttons (Reply, React, Share) remain present and functional."
       ],
       "file_operations": [
         {
           "path": "frontend/src/components/MessageInput.tsx",
           "operation": "modify",
-          "description": "Update the container element that wraps the text input and action buttons to use flexbox with `items-center` (vertical centering). Ensure all child elements (text input field, send button, voice recording button, emoji button, Giphy button, and media upload button) are aligned on the same horizontal axis using consistent flex alignment properties. Do not modify any other styling or functionality."
+          "description": "Update the input container layout to use flexbox with items-center alignment. Ensure all child elements (textarea, send button, attachment buttons, character count indicator) are wrapped in a flex container with vertical centering applied. Adjust any existing padding or margin that causes vertical misalignment. Keep all existing controls including the character count indicator."
         }
       ]
     },
     {
       "id": "REQ-2",
-      "summary": "Reduce vertical padding in the chat input area (MessageInput component) to give more vertical space to the chat messages area above it.",
+      "summary": "Reduce the vertical padding inside the chat message input area to make it more compact without removing any existing controls.",
       "acceptanceCriteria": [
-        "The chat input area has less vertical padding than before",
-        "More vertical space is available for the messages list",
-        "No other style changes are introduced"
+        "The vertical padding (top and bottom) of the chat input container is visibly reduced compared to the current version.",
+        "No controls are removed — character count indicator and all action buttons (Reply, React, Share) remain.",
+        "Input area does not feel cramped or cause overflow."
       ],
       "file_operations": [
         {
           "path": "frontend/src/components/MessageInput.tsx",
           "operation": "modify",
-          "description": "Reduce the vertical padding (py-* classes) on the MessageInput container element. Review the current padding values and decrease them to provide more space for the messages list above. Do not modify horizontal padding or any other styling properties."
+          "description": "Reduce the vertical padding (py-* classes) on the main input container. Decrease padding on internal elements like the textarea wrapper to create a more compact layout. Ensure the reduced padding does not cause text truncation or control overlap. All existing controls (character count indicator, Reply/React/Share buttons) must remain visible and functional."
         }
       ]
     },
     {
       "id": "REQ-3",
-      "summary": "Visually hide message ID labels in the chat message bubbles (MessageBubble component) so they are not visible to users, while preserving their DOM presence with the correct anchor IDs so that share links and URL-based anchoring remain fully functional.",
+      "summary": "Hide message ID text visually within message bubbles by making it invisible (e.g., via CSS), while keeping the element in the DOM so that share link functionality continues to work.",
       "acceptanceCriteria": [
-        "Message ID text is not visible in the chat UI",
-        "Each message still has its anchor element in the DOM with the correct ID attribute",
-        "Navigating to a share link scrolls to and highlights the correct message",
-        "No other style or functionality changes are introduced"
+        "Message ID text is not visible to the user inside message bubbles.",
+        "The message ID element is still present in the DOM (not removed via conditional rendering).",
+        "Share link functionality that relies on message IDs continues to work correctly.",
+        "Reply, React, and Share action buttons remain visible and functional."
       ],
       "file_operations": [
         {
           "path": "frontend/src/components/MessageBubble.tsx",
           "operation": "modify",
-          "description": "Apply visual hiding to the message ID text content while keeping the anchor element in the DOM. Use CSS utility classes like `sr-only` (screen-reader-only) or `opacity-0 h-0 overflow-hidden` to hide the ID text visually. Ensure the anchor element retains its `id` attribute (e.g., `id={message.messageId}`) so that URL-based navigation and scroll-to-message functionality continue to work. Do not remove the anchor element or modify any other message rendering logic."
+          "description": "Locate the message ID text element within the message bubble rendering logic. Apply CSS classes to hide the message ID visually (e.g., opacity-0, sr-only, or invisible) without removing the element from the DOM via conditional rendering. Ensure the message ID remains accessible for share link functionality and programmatic access. Verify that Reply, React, and Share action buttons remain fully visible and functional."
         }
       ]
     }

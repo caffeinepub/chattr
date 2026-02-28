@@ -1,7 +1,7 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-27T21:17:14.573Z",
+  "generatedAt": "2026-02-28T07:39:16.132Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
@@ -12,7 +12,7 @@
     "items": [
       {
         "id": "REQ-1",
-        "summary": "In the chat input area (MessageInput component), vertically center-align all elements — the text input field and all action buttons — so they share the same horizontal axis.",
+        "summary": "Vertically align all elements within the chat message input area (text input, buttons, character count indicator) so they are centered on the same vertical axis.",
         "status": "implemented",
         "plannedFiles": [
           "frontend/src/components/MessageInput.tsx"
@@ -23,7 +23,7 @@
       },
       {
         "id": "REQ-2",
-        "summary": "Reduce vertical padding in the chat input area (MessageInput component) to give more vertical space to the chat messages area above it.",
+        "summary": "Reduce the vertical padding inside the chat message input area to make it more compact without removing any existing controls.",
         "status": "implemented",
         "plannedFiles": [
           "frontend/src/components/MessageInput.tsx"
@@ -34,7 +34,7 @@
       },
       {
         "id": "REQ-3",
-        "summary": "Visually hide message ID labels in the chat message bubbles (MessageBubble component) so they are not visible to users, while preserving their DOM presence with the correct anchor IDs so that share links and URL-based anchoring remain fully functional.",
+        "summary": "Hide message ID text visually within message bubbles by making it invisible (e.g., via CSS), while keeping the element in the DOM so that share link functionality continues to work.",
         "status": "implemented",
         "plannedFiles": [
           "frontend/src/components/MessageBubble.tsx"

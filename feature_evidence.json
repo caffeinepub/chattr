@@ -2,8 +2,8 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-in-the-chat-input-area-messageinput-component-vertically-center-align-all-elements-the-text-input-field-and-all-action-buttons-so-they-share-the-same-horizontal-axis",
-      "featureTitle": "In the chat input area (MessageInput component), vertically center-align all elements — the text input field and all action buttons — so they share the same horizontal axis.",
+      "featureId": "feature-vertically-align-all-elements-within-the-chat-message-input-area-text-input-buttons-character-count-indicator-so-they-are-centered-on-the-same-vertical-axis",
+      "featureTitle": "Vertically align all elements within the chat message input area (text input, buttons, character count indicator) so they are centered on the same vertical axis.",
       "files": [
         "frontend/src/components/MessageInput.tsx"
       ],
@@ -23,8 +23,8 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-reduce-vertical-padding-in-the-chat-input-area-messageinput-component-to-give-more-vertical-space-to-the-chat-messages-area-above-it",
-      "featureTitle": "Reduce vertical padding in the chat input area (MessageInput component) to give more vertical space to the chat messages area above it.",
+      "featureId": "feature-reduce-the-vertical-padding-inside-the-chat-message-input-area-to-make-it-more-compact-without-removing-any-existing-controls",
+      "featureTitle": "Reduce the vertical padding inside the chat message input area to make it more compact without removing any existing controls.",
       "files": [
         "frontend/src/components/MessageInput.tsx"
       ],
@@ -44,8 +44,8 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-visually-hide-message-id-labels-in-the-chat-message-bubbles-messagebubble-component-so-they-are-not-visible-to-users-while-preserving-their-dom-presence-with-the-correct-anchor-ids-so-that-share-links-and-url-based-anchoring-remain-fully-functional",
-      "featureTitle": "Visually hide message ID labels in the chat message bubbles (MessageBubble component) so they are not visible to users, while preserving their DOM presence with the correct anchor IDs so that share links and URL-based anchoring remain fully functional.",
+      "featureId": "feature-hide-message-id-text-visually-within-message-bubbles-by-making-it-invisible-e-g-via-css-while-keeping-the-element-in-the-dom-so-that-share-link-functionality-continues-to-work",
+      "featureTitle": "Hide message ID text visually within message bubbles by making it invisible (e.g., via CSS), while keeping the element in the DOM so that share link functionality continues to work.",
       "files": [
         "frontend/src/components/MessageBubble.tsx"
       ],

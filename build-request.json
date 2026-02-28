@@ -1,72 +1,80 @@
 {
   "kind": "build_request",
-  "title": "Vertically align input elements, reduce input padding, hide message IDs visually",
+  "title": "Vertically align input area, reduce padding, and hide message IDs visually",
   "projectName": "Chattr",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "In the chat input area (MessageInput component), vertically center-align all elements — the text input field and all action buttons — so they share the same horizontal axis.",
+      "text": "Vertically align all elements within the chat message input area (text input, buttons, character count indicator) so they are centered on the same vertical axis.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-4"
+          "msg-1",
+          "msg-6"
         ],
         "quotes": [
-          "Vertically align the input area elements (buttons + text input) so they're centered on the same axis"
+          "Vertically align the input area elements"
         ]
       },
       "acceptanceCriteria": [
-        "The text input and all buttons in the chat input bar are vertically centered on the same axis",
-        "No other layout or styling changes are introduced"
+        "All elements in the chat input area (text field, send button, attachment buttons, character count indicator) are vertically centered relative to each other.",
+        "No elements appear misaligned or offset vertically in the input row.",
+        "Character count indicator and all action buttons (Reply, React, Share) remain present and functional."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Reduce vertical padding in the chat input area (MessageInput component) to give more vertical space to the chat messages area above it.",
+      "text": "Reduce the vertical padding inside the chat message input area to make it more compact without removing any existing controls.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-4"
+          "msg-1",
+          "msg-6"
         ],
         "quotes": [
-          "Reduce vertical padding in the chat input area to give more room to the chat messages"
+          "Reduce vertical padding in the chat input area"
         ]
       },
       "acceptanceCriteria": [
-        "The chat input area has less vertical padding than before",
-        "More vertical space is available for the messages list",
-        "No other style changes are introduced"
+        "The vertical padding (top and bottom) of the chat input container is visibly reduced compared to the current version.",
+        "No controls are removed — character count indicator and all action buttons (Reply, React, Share) remain.",
+        "Input area does not feel cramped or cause overflow."
       ]
     },
     {
       "id": "REQ-3",
-      "text": "Visually hide message ID labels in the chat message bubbles (MessageBubble component) so they are not visible to users, while preserving their DOM presence with the correct anchor IDs so that share links and URL-based anchoring remain fully functional.",
+      "text": "Hide message ID text visually within message bubbles by making it invisible (e.g., via CSS), while keeping the element in the DOM so that share link functionality continues to work.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-4"
+          "msg-1",
+          "msg-3",
+          "msg-6"
         ],
         "quotes": [
-          "Hide message IDs visually while keeping share links and URL anchoring fully functional"
+          "Hide message IDs visually (keeping them in the DOM for share links)"
         ]
       },
       "acceptanceCriteria": [
-        "Message ID text is not visible in the chat UI",
-        "Each message still has its anchor element in the DOM with the correct ID attribute",
-        "Navigating to a share link scrolls to and highlights the correct message",
-        "No other style or functionality changes are introduced"
+        "Message ID text is not visible to the user inside message bubbles.",
+        "The message ID element is still present in the DOM (not removed via conditional rendering).",
+        "Share link functionality that relies on message IDs continues to work correctly.",
+        "Reply, React, and Share action buttons remain visible and functional."
       ]
     }
   ],
   "constraints": [
-    "No other style or functionality changes beyond the three listed requirements",
-    "Share link and URL anchor functionality must remain fully intact after hiding message IDs"
+    "Do not remove the character count indicator from the message input area.",
+    "Do not remove or hide the Reply, React, or Share action buttons on message bubbles.",
+    "Message ID elements must remain in the DOM — only hide them visually.",
+    "No backend changes required."
   ],
   "nonGoals": [
-    "Backend changes",
-    "Changes to any component other than MessageInput and MessageBubble",
-    "Modifying message ID generation or storage logic"
+    "Changing any backend logic or data models.",
+    "Modifying share link URL format or message ID encoding.",
+    "Redesigning or restyling any part of the UI beyond the three specified changes.",
+    "Altering message bubble layout beyond hiding message IDs."
   ],
   "imageRequirements": {
     "required": [],

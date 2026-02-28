@@ -1,32 +1,32 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Chat application with UI refinements: vertically aligned input area elements, reduced vertical padding in chat input area, and visually hidden message IDs (while keeping share links and URL anchoring functional).",
+  "summary": "Chat application with a message input area, character count indicator, action buttons (Reply, React, Share), and share link functionality via message IDs.",
   "architectural_notes": [
-    "Message IDs are hidden visually but remain in the DOM for anchor links and share functionality"
+    "Message IDs must remain in the DOM (even if visually hidden) to support share link functionality"
   ],
   "known_issues": [],
   "isFixRequest": false,
   "existing_features": [
     {
-      "id": "feature-in-the-chat-input-area-messageinput-component-vertically-center-align-all-elements-the-text-input-field-and-all-action-buttons-so-they-share-the-same-horizontal-axis",
-      "title": "In the chat input area (MessageInput component), vertically center-align all elements — the text input field and all action buttons — so they share the same horizontal axis.",
+      "id": "feature-vertically-align-all-elements-within-the-chat-message-input-area-text-input-buttons-character-count-indicator-so-they-are-centered-on-the-same-vertical-axis",
+      "title": "Vertically align all elements within the chat message input area (text input, buttons, character count indicator) so they are centered on the same vertical axis.",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-reduce-vertical-padding-in-the-chat-input-area-messageinput-component-to-give-more-vertical-space-to-the-chat-messages-area-above-it",
-      "title": "Reduce vertical padding in the chat input area (MessageInput component) to give more vertical space to the chat messages area above it.",
+      "id": "feature-reduce-the-vertical-padding-inside-the-chat-message-input-area-to-make-it-more-compact-without-removing-any-existing-controls",
+      "title": "Reduce the vertical padding inside the chat message input area to make it more compact without removing any existing controls.",
       "reqIds": [
         "REQ-2"
       ],
       "version": 1
     },
     {
-      "id": "feature-visually-hide-message-id-labels-in-the-chat-message-bubbles-messagebubble-component-so-they-are-not-visible-to-users-while-preserving-their-dom-presence-with-the-correct-anchor-ids-so-that-share-links-and-url-based-anchoring-remain-fully-functional",
-      "title": "Visually hide message ID labels in the chat message bubbles (MessageBubble component) so they are not visible to users, while preserving their DOM presence with the correct anchor IDs so that share links and URL-based anchoring remain fully functional.",
+      "id": "feature-hide-message-id-text-visually-within-message-bubbles-by-making-it-invisible-e-g-via-css-while-keeping-the-element-in-the-dom-so-that-share-link-functionality-continues-to-work",
+      "title": "Hide message ID text visually within message bubbles by making it invisible (e.g., via CSS), while keeping the element in the DOM so that share link functionality continues to work.",
       "reqIds": [
         "REQ-3"
       ],
