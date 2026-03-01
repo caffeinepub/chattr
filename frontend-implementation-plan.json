@@ -1,24 +1,67 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Disable mobile default long-press behavior in context menu",
+  "title": "Message bubble avatar position, username size, timestamp placement, and mobile long-press fixes",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Suppress native mobile long-press popups in MessageBubble by preventing default touch and context menu events, and applying CSS properties to disable browser gestures",
+      "summary": "Align message bubble avatar to the top instead of bottom",
       "acceptanceCriteria": [
-        "On mobile, long-pressing a message bubble does not trigger the browser's native context menu or text selection popup.",
-        "On iOS, the native image/link save dialog does not appear on long press.",
-        "On Android, the browser's native context menu does not appear on long press.",
-        "The custom context menu still appears correctly on long press.",
-        "The touchstart and contextmenu events have preventDefault() called.",
-        "The message bubble element has -webkit-touch-callout: none and touch-action: none applied."
+        "The avatar image is vertically aligned to the top of the message bubble container, not the bottom.",
+        "Alignment is consistent for both sent and received messages."
       ],
       "file_operations": [
         {
           "path": "frontend/src/components/MessageBubble.tsx",
           "operation": "modify",
-          "description": "Add preventDefault() calls to both touchstart and contextmenu event handlers on the message bubble container element. Add onContextMenu={(e) => e.preventDefault()} prop alongside the existing long-press touch handlers. Apply inline styles or className with touch-action: none and -webkit-touch-callout: none CSS properties to the message bubble container to suppress iOS image save dialogs and Android context menus. Ensure these changes do not interfere with the existing custom context menu triggered by long press."
+          "description": "Change the avatar container flex alignment from items-end to items-start (or apply align-self: flex-start to the avatar wrapper) so the avatar aligns to the top of the message bubble. Ensure this change applies to both sent and received message layouts."
+        }
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "summary": "Increase avatar username label font size without changing timestamp size",
+      "acceptanceCriteria": [
+        "The username displayed near the avatar is visibly slightly larger than before.",
+        "The timestamp font size remains unchanged."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/MessageBubble.tsx",
+          "operation": "modify",
+          "description": "Locate the username text element (the sender name near the avatar) and increase its font size from text-xs to text-sm or apply a similar modest size increase. Do not modify the timestamp's font size class or styles."
+        }
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "summary": "Move timestamp inside the message bubble",
+      "acceptanceCriteria": [
+        "The timestamp is rendered within the visual boundary of the message bubble.",
+        "The timestamp does not overlap the message text in a way that makes it unreadable.",
+        "The timestamp is no longer displayed outside the bubble container."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/MessageBubble.tsx",
+          "operation": "modify",
+          "description": "Relocate the timestamp element so it renders inside the message bubble container (e.g., at the bottom-right or bottom-left corner of the bubble content area) rather than outside or below the bubble. Adjust positioning and padding to ensure the timestamp is visible and does not obstruct the message text."
+        }
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "summary": "Suppress default mobile long-press behavior to prevent interference with custom context menu",
+      "acceptanceCriteria": [
+        "Long-pressing a message on mobile does not trigger the native browser text-selection or context menu.",
+        "The custom context menu still appears on long press without interference from the browser default behavior.",
+        "Right-click on desktop still triggers the custom context menu without the browser's native context menu appearing."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/MessageBubble.tsx",
+          "operation": "modify",
+          "description": "Apply CSS properties to the message bubble container (user-select: none, -webkit-user-select: none, -webkit-touch-callout: none) to prevent native text selection on long press. Add an onContextMenu event handler to the message bubble container that calls event.preventDefault() to suppress the native browser context menu on both mobile long press and desktop right-click, ensuring the custom context menu appears without interference."
         }
       ]
     }

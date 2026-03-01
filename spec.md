@@ -1,11 +1,12 @@
 # Specification
 
 ## Summary
-**Goal:** Disable the browser's native mobile long-press behavior when triggering the custom context menu in MessageBubble.tsx.
+**Goal:** Fix several message bubble UI issues in the Chattr chat interface: avatar alignment, username font size, timestamp placement, and mobile long-press behavior.
 
 **Planned changes:**
-- Call `preventDefault()` on `touchstart` and `contextmenu` events in MessageBubble.tsx to suppress native mobile long-press popups
-- Add `onContextMenu={(e) => e.preventDefault()}` alongside existing touch event handlers
-- Apply `-webkit-touch-callout: none` and `touch-action: none` CSS properties to the message bubble element
+- Align the avatar to the top of the message bubble container (instead of the bottom) for both sent and received messages
+- Slightly increase the font size of the username label near the avatar (e.g., `text-xs` → `text-sm`), without changing the timestamp font size
+- Move the timestamp inside the message bubble (e.g., bottom-right/bottom-left of the bubble content area) instead of outside or below it
+- Suppress native mobile long-press browser behavior on message bubbles by applying `user-select: none`, `-webkit-user-select: none`, `-webkit-touch-callout: none`, and calling `event.preventDefault()` on the `onContextMenu` handler
 
-**User-visible outcome:** On mobile (iOS and Android), long-pressing a message bubble no longer triggers native browser context menus, text selection popups, or image/link save dialogs — only the custom context menu appears.
+**User-visible outcome:** Message bubbles display avatars at the top, usernames are slightly larger, timestamps appear inside the bubble, and long-pressing on mobile no longer triggers the native browser context menu or text selection — allowing the custom context menu to work without interference.

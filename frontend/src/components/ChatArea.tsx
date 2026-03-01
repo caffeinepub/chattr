@@ -250,7 +250,7 @@ export default function ChatArea({ chatroomId, chatroom, targetMessageId }: Chat
         ref={scrollContainerRef}
         className="flex-1 min-h-0 overflow-y-auto px-4 py-4"
       >
-        <div className="mx-auto max-w-3xl space-y-1">
+        <div className="mx-auto max-w-3xl space-y-4">
           {filteredMessages && filteredMessages.length > 0 ? (
             filteredMessages.map((message) => (
               <div
