@@ -1,46 +1,44 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-03-01T18:11:03.873Z",
+  "generatedAt": "2026-03-01T23:16:17.587Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
     "total": 3,
-    "implemented": 3,
+    "implemented": 2,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Move quoted reply previews inside the chat bubble so they appear as part of the message bubble content, above the message text, rather than outside or above the bubble.",
+        "summary": "In ChatArea.tsx, when rendering the live user count inside a chatroom, floor the displayed value at a minimum of 1 whenever the local user is present in the room. This ensures the count never shows 0 while the user is viewing the room.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/MessageBubble.tsx"
+          "frontend/src/components/ChatArea.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/MessageBubble.tsx"
+          "frontend/src/components/ChatArea.tsx"
         ]
       },
       {
         "id": "REQ-2",
-        "summary": "Make message action buttons (reply, react, pin, etc.) always visible on every message bubble without requiring hover. Remove all text labels from action buttons, keeping only the icons.",
-        "status": "implemented",
+        "summary": "In ChatroomPage.tsx (or useHeartbeat.ts), fire an immediate heartbeat call to the backend as soon as the user joins/enters a room, without waiting for the first 45-second interval tick. This causes the real backend count to sync quickly after join.",
+        "status": "missing",
         "plannedFiles": [
-          "frontend/src/components/MessageBubble.tsx"
+          "frontend/src/hooks/useHeartbeat.ts"
         ],
-        "matchedFiles": [
-          "frontend/src/components/MessageBubble.tsx"
-        ]
+        "matchedFiles": []
       },
       {
         "id": "REQ-3",
-        "summary": "Remove the character counter displayed below the chat input field. The circular character counter rendered inside the chat input must remain intact and unchanged.",
+        "summary": "Remove the word 'online' (or any 'online' label/text) from the live user count display in ChatArea.tsx. The count should display without an 'online' suffix or prefix.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/MessageInput.tsx"
+          "frontend/src/components/ChatArea.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/MessageInput.tsx"
+          "frontend/src/components/ChatArea.tsx"
         ]
       }
     ]
@@ -50,8 +48,7 @@
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/components/MessageBubble.tsx",
-    "frontend/src/components/MessageInput.tsx",
+    "frontend/src/components/ChatArea.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

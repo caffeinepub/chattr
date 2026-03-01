@@ -1,73 +1,72 @@
 {
   "kind": "build_request",
-  "title": "Quoted replies inside bubbles, icon-only action buttons, remove extra character counter",
+  "title": "Floor live user count at 1 on room join and remove 'online' text",
   "projectName": "Chattr",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Move quoted reply previews inside the chat bubble so they appear as part of the message bubble content, above the message text, rather than outside or above the bubble.",
+      "text": "In ChatArea.tsx, when rendering the live user count inside a chatroom, floor the displayed value at a minimum of 1 whenever the local user is present in the room. This ensures the count never shows 0 while the user is viewing the room.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-recent-user-1"
+          "msg-recent"
         ],
         "quotes": [
-          "Put quoted replies inside of the chat bubble"
+          "The count should never be 0 because that wouldn't make sense",
+          "floor it at 1 (since you are there)"
         ]
       },
       "acceptanceCriteria": [
-        "Quoted reply context renders inside the chat bubble container, visually contained within the bubble's background/border",
-        "Quoted reply appears above the message text within the same bubble",
-        "No style changes to colors, fonts, spacing, or bubble shape"
+        "The live user count displayed in ChatArea never shows 0 while the user is inside a room",
+        "If the backend returns a count >= 1, that real count is shown without modification",
+        "If the backend returns 0 (e.g., heartbeat not yet responded), the UI displays 1 instead"
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Make message action buttons (reply, react, pin, etc.) always visible on every message bubble without requiring hover. Remove all text labels from action buttons, keeping only the icons.",
+      "text": "In ChatroomPage.tsx (or useHeartbeat.ts), fire an immediate heartbeat call to the backend as soon as the user joins/enters a room, without waiting for the first 45-second interval tick. This causes the real backend count to sync quickly after join.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-recent-user-1"
+          "msg-recent"
         ],
         "quotes": [
-          "Make the action buttons always visible but remove the labels from them (keep the icon only)"
+          "Immediate heartbeat on join so the real count syncs quickly from the backend"
         ]
       },
       "acceptanceCriteria": [
-        "Action buttons are visible at all times on every message bubble, not only on hover",
-        "Action buttons show only icons — no text labels beside or below them",
-        "All existing action button icons remain unchanged",
-        "No other style or layout changes are made"
+        "A heartbeat is sent to the backend immediately on room entry (not waiting for the 45-second interval)",
+        "The periodic 45-second heartbeat continues to run as before",
+        "The live user count updates to the real backend value as soon as the immediate heartbeat response arrives"
       ]
     },
     {
       "id": "REQ-3",
-      "text": "Remove the character counter displayed below the chat input field. The circular character counter rendered inside the chat input must remain intact and unchanged.",
+      "text": "Remove the word 'online' (or any 'online' label/text) from the live user count display in ChatArea.tsx. The count should display without an 'online' suffix or prefix.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-recent-user-1"
+          "msg-recent"
         ],
         "quotes": [
-          "remove the extra chat input counter below the chat input (keep the circular one inside the chat input)"
+          "remove the online text"
         ]
       },
       "acceptanceCriteria": [
-        "No character count text or indicator appears below the chat input field",
-        "The circular progress/counter indicator inside the chat input field is still present and functional",
-        "No other changes to the chat input layout or styling"
+        "The text 'online' does not appear anywhere in the live user count display inside a chatroom",
+        "The count number itself is still displayed"
       ]
     }
   ],
   "constraints": [
-    "Do not change any styles — colors, typography, spacing, border radii, shadows, or component themes must remain identical to Version 348",
-    "Do not modify backend code"
+    "Do not add caller checks to any backend functions if the backend is modified",
+    "Do not modify files listed under frontend.immutablePaths"
   ],
   "nonGoals": [
-    "Redesigning or restyling message bubbles",
-    "Changing reaction or pinning behavior",
-    "Altering the chat input functionality beyond removing the below-input counter"
+    "Optimistic update approach for user count (explicitly rejected)",
+    "Any changes to the 45-second heartbeat interval",
+    "Authentication or login flow changes"
   ],
   "imageRequirements": {
     "required": [],

@@ -13,6 +13,7 @@ interface ChatAreaProps {
   chatroomId: bigint;
   chatroom: ChatroomWithLiveStatus;
   targetMessageId?: bigint;
+  activeUserCount?: number;
 }
 
 interface ReplyContext {
@@ -22,7 +23,7 @@ interface ReplyContext {
   mediaThumbnail?: string;
 }
 
-export default function ChatArea({ chatroomId, chatroom, targetMessageId }: ChatAreaProps) {
+export default function ChatArea({ chatroomId, chatroom, targetMessageId, activeUserCount }: ChatAreaProps) {
   const { data: messages, isLoading } = useGetMessages(chatroomId);
   const currentUsername = useCurrentUsername();
   const sendMessage = useSendMessage();
@@ -34,6 +35,13 @@ export default function ChatArea({ chatroomId, chatroom, targetMessageId }: Chat
   const previousMessageCountRef = useRef<number>(0);
   const [isHeaderExpanded, setIsHeaderExpanded] = useState(true);
   const hasScrolledToTarget = useRef(false);
+
+  // Use heartbeat-based activeUserCount if provided, otherwise fall back to chatroom data
+  // Floor at 1 since the current user is always present in the room
+  const rawActiveUserCount = activeUserCount !== undefined
+    ? activeUserCount
+    : Number(chatroom.activeUserCount);
+  const displayedActiveUserCount = Math.max(1, rawActiveUserCount);
 
   const scrollToBottom = (behavior: ScrollBehavior = 'smooth') => {
     messagesEndRef.current?.scrollIntoView({ behavior });
@@ -195,7 +203,7 @@ export default function ChatArea({ chatroomId, chatroom, targetMessageId }: Chat
                 </div>
                 <div className="flex items-center gap-1.5">
                   <Users className="h-3.5 w-3.5" />
-                  <span>{formatCompactNumber(chatroom.activeUserCount)}</span>
+                  <span>{formatCompactNumber(BigInt(displayedActiveUserCount))}</span>
                 </div>
               </div>
             </div>
@@ -221,7 +229,7 @@ export default function ChatArea({ chatroomId, chatroom, targetMessageId }: Chat
               </div>
               <div className="flex items-center gap-1.5">
                 <Users className="h-3.5 w-3.5" />
-                <span>{formatCompactNumber(chatroom.activeUserCount)}</span>
+                <span>{formatCompactNumber(BigInt(displayedActiveUserCount))}</span>
               </div>
             </div>
             <Button

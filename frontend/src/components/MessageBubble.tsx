@@ -555,70 +555,63 @@ export default function MessageBubble({
   return (
     <div
       className={`group flex gap-2 ${isOwnMessage ? 'flex-row-reverse' : 'flex-row'} ${
-        isHighlighted ? 'rounded-lg bg-primary/10 px-2 py-1 transition-colors' : ''
+        isHighlighted ? 'rounded-xl bg-yellow-100 px-2 py-1 dark:bg-yellow-900/30' : ''
       }`}
     >
-      {/* Avatar */}
-      <div className="flex-shrink-0 self-end">
-        <Avatar className="h-7 w-7">
+      {/* Avatar — top aligned, slightly larger */}
+      <div className="flex-shrink-0 self-start pt-0.5">
+        <Avatar className="h-10 w-10">
           {message.avatarUrl ? (
             <AvatarImage src={message.avatarUrl} alt={message.sender} />
           ) : null}
-          <AvatarFallback className="text-xs">{getInitials(message.sender)}</AvatarFallback>
+          <AvatarFallback className="text-xs font-semibold">
+            {getInitials(message.sender)}
+          </AvatarFallback>
         </Avatar>
       </div>
 
-      {/* Bubble + actions */}
-      <div className={`flex max-w-[75%] flex-col gap-1 ${isOwnMessage ? 'items-end' : 'items-start'}`}>
-        {/* Sender name + timestamp */}
-        <div className={`flex items-baseline gap-2 ${isOwnMessage ? 'flex-row-reverse' : 'flex-row'}`}>
-          <span className="text-xs font-medium text-foreground">{message.sender}</span>
-          <span className="text-[10px] text-muted-foreground">{formatTimestamp(message.timestamp)}</span>
-          {isPinned && <Pin className="h-3 w-3 text-primary" />}
+      {/* Bubble column */}
+      <div className={`flex min-w-0 max-w-[75%] flex-col ${isOwnMessage ? 'items-end' : 'items-start'}`}>
+        {/* Username + timestamp — slightly larger */}
+        <div className={`mb-1 flex items-center gap-1.5 ${isOwnMessage ? 'flex-row-reverse' : 'flex-row'}`}>
+          <span className="text-sm font-semibold leading-none text-foreground">
+            {message.sender}
+          </span>
+          <span className="text-sm leading-none text-muted-foreground">
+            {formatTimestamp(message.timestamp)}
+          </span>
         </div>
 
         {/* Bubble */}
         <div
-          className={`relative rounded-2xl px-3 py-2 text-sm ${
+          className={`relative rounded-2xl px-3 py-2 text-sm leading-relaxed ${
             isOwnMessage
               ? 'rounded-tr-sm bg-primary text-primary-foreground'
-              : 'rounded-tl-sm bg-muted text-foreground'
+              : 'rounded-tl-sm bg-card text-card-foreground shadow-sm ring-1 ring-border'
           }`}
         >
-          {/* ── Quoted reply INSIDE the bubble ── */}
+          {/* Quoted reply preview inside bubble */}
           {parentMessage && (
-            <div
-              className={`mb-2 cursor-pointer rounded-lg px-2 py-1.5 text-xs ${
+            <button
+              className={`mb-2 block w-full rounded-lg border-l-2 px-2 py-1 text-left text-xs transition-colors ${
                 isOwnMessage
-                  ? 'border-l-2 border-primary-foreground/40 bg-primary-foreground/10'
-                  : 'border-l-2 border-primary bg-background/40'
+                  ? 'border-white/60 bg-white/20 text-white/80 hover:bg-white/30'
+                  : 'border-primary/40 bg-muted/60 text-muted-foreground hover:bg-muted'
               }`}
-              onClick={() => parentMessage && onScrollToMessage && onScrollToMessage(parentMessage.id)}
+              onClick={() => onScrollToMessage && onScrollToMessage(parentMessage.id)}
             >
-              <p className={`font-semibold ${isOwnMessage ? 'text-primary-foreground/80' : 'text-primary'}`}>
-                {parentMessage.sender}
-              </p>
-              {parentMessage.mediaUrl &&
-                (parentMessage.mediaType === 'image' || parentMessage.mediaType === 'giphy') && (
-                  <img
-                    src={parentMessage.mediaUrl}
-                    alt="reply media"
-                    className="mt-1 h-10 w-10 rounded object-cover"
-                  />
-                )}
-              <p className={`mt-0.5 line-clamp-2 ${isOwnMessage ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
-                {parentMessage.content !== 'Media content posted by creator'
-                  ? parentMessage.content
-                  : parentMessage.mediaType
-                  ? `[${parentMessage.mediaType}]`
-                  : '[media]'}
-              </p>
-            </div>
+              <span className="block font-semibold">{parentMessage.sender}</span>
+              <span className="block truncate">
+                {parentMessage.content === 'Media content posted by creator' && parentMessage.mediaUrl
+                  ? '📎 Media'
+                  : truncateText(parentMessage.content, 80)}
+              </span>
+            </button>
           )}
 
           {/* Message text */}
           {message.content && message.content !== 'Media content posted by creator' && (
-            <p className="break-words whitespace-pre-wrap leading-relaxed">
+            <p className="whitespace-pre-wrap break-words">
               {renderTextWithLinks(message.content, handleLinkClick, isOwnMessage)}
             </p>
           )}
@@ -626,58 +619,54 @@ export default function MessageBubble({
           {/* Media */}
           {renderMedia()}
 
-          {/* Reactions */}
+          {/* Reactions display */}
           {reactions.length > 0 && (
-            <div className="mt-2 flex flex-wrap gap-1">
-              {reactions.map((reaction) => {
-                const reactionUsers = listToArray<string>(reaction.users);
-                const hasReacted = reactionUsers.includes(userId);
-                return (
-                  <button
-                    key={reaction.emoji}
-                    onClick={() => handleReaction(reaction.emoji)}
-                    className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs transition-colors ${
-                      hasReacted
-                        ? isOwnMessage
-                          ? 'bg-primary-foreground/20 text-primary-foreground'
-                          : 'bg-primary/20 text-primary'
-                        : isOwnMessage
-                        ? 'bg-primary-foreground/10 text-primary-foreground/70 hover:bg-primary-foreground/20'
-                        : 'bg-background/60 text-muted-foreground hover:bg-background'
-                    }`}
-                  >
-                    <span>{reaction.emoji}</span>
-                    <span>{Number(reaction.count)}</span>
-                  </button>
-                );
-              })}
+            <div className="mt-1.5 flex flex-wrap gap-1">
+              {reactions
+                .filter((r) => r.count > 0)
+                .map((r) => {
+                  const users = listToArray<string>(r.users);
+                  const hasReacted = users.includes(userId);
+                  return (
+                    <button
+                      key={r.emoji}
+                      onClick={() => handleReaction(r.emoji)}
+                      className={`flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-xs font-medium transition-colors ${
+                        isOwnMessage
+                          ? 'bg-white/40 text-white hover:bg-white/60'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600'
+                      } ${hasReacted ? 'ring-1 ring-white/60' : ''}`}
+                    >
+                      <span>{r.emoji}</span>
+                      <span>{Number(r.count)}</span>
+                    </button>
+                  );
+                })}
             </div>
           )}
         </div>
 
-        {/* ── Action buttons — always visible, icon only ── */}
-        <div className={`flex items-center gap-0.5 ${isOwnMessage ? 'flex-row-reverse' : 'flex-row'}`}>
-          {/* Reply */}
+        {/* Action buttons — always visible, icon-only */}
+        <div className={`mt-1 flex items-center gap-0.5 ${isOwnMessage ? 'flex-row-reverse' : 'flex-row'}`}>
           <button
             onClick={handleReplyClick}
-            className="rounded p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
+            className="rounded-full p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             title="Reply"
           >
             <Reply className="h-3.5 w-3.5" />
           </button>
 
-          {/* React */}
           <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
             <PopoverTrigger asChild>
               <button
-                className="rounded p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
+                className="rounded-full p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                 title="React"
               >
                 <Smile className="h-3.5 w-3.5" />
               </button>
             </PopoverTrigger>
             <PopoverContent
-              className="w-auto p-2"
+              className="w-auto p-1.5"
               align={isOwnMessage ? 'end' : 'start'}
               side="top"
             >
@@ -686,7 +675,7 @@ export default function MessageBubble({
                   <button
                     key={emoji}
                     onClick={() => handleReaction(emoji)}
-                    className="rounded p-1 text-lg hover:bg-muted transition-colors"
+                    className="rounded p-1 text-base transition-transform hover:scale-125"
                   >
                     {emoji}
                   </button>
@@ -695,29 +684,27 @@ export default function MessageBubble({
             </PopoverContent>
           </Popover>
 
-          {/* Share */}
           <button
             onClick={handleShareClick}
-            className="rounded p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
+            className="rounded-full p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             title="Share"
           >
             <Share2 className="h-3.5 w-3.5" />
           </button>
 
-          {/* Flag */}
           <ReportButton messageId={message.id} />
         </div>
       </div>
 
-      {/* Expanded media overlay */}
+      {/* Expanded media lightbox */}
       {renderExpandedMedia()}
 
-      {/* External link disclaimer — uses isOpen and targetUrl props */}
+      {/* External link disclaimer */}
       <ExternalLinkDisclaimerModal
         isOpen={disclaimerOpen}
         targetUrl={pendingUrl}
-        onConfirm={handleDisclaimerConfirm}
         onClose={handleDisclaimerClose}
+        onConfirm={handleDisclaimerConfirm}
       />
     </div>
   );

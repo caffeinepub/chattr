@@ -1,12 +1,11 @@
 # Specification
 
 ## Summary
-**Goal:** Polish the Chattr chat UI by moving quoted reply previews inside message bubbles, making action buttons always visible with icons only, and removing the redundant character counter below the chat input.
+**Goal:** Fix the live user count display in the chatroom to always show at least 1 when the user is present, sync the count quickly on room join, and remove the "online" label.
 
 **Planned changes:**
-- Move quoted reply previews to render inside the chat bubble container, above the message text, rather than outside the bubble
-- Make message action buttons (reply, react, pin, etc.) always visible on all message bubbles instead of only on hover
-- Remove all text labels from action buttons, leaving only the icons
-- Remove the character counter displayed below the chat input field, while keeping the circular counter inside the input intact
+- In `ChatArea.tsx`, floor the displayed live user count at a minimum of 1 whenever the local user is in the room (show 1 instead of 0 if the backend returns 0)
+- In `ChatroomPage.tsx` or `useHeartbeat.ts`, fire an immediate heartbeat on room entry so the real backend count syncs quickly without waiting for the 45-second interval
+- In `ChatArea.tsx`, remove the "online" text/label from the live user count display
 
-**User-visible outcome:** Quoted replies appear as part of the message bubble, action buttons are always shown with icons only, and the chat input no longer shows a duplicate counter below it.
+**User-visible outcome:** When a user joins a chatroom, the live user count immediately reflects a real value (never 0), syncs quickly with the backend, and displays without an "online" label.

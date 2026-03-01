@@ -27,21 +27,6 @@ export interface ChatroomWithLiveStatus {
 }
 export type List = [] | [[string, List]];
 export type List_1 = [] | [[Reaction, List_1]];
-export interface LobbyChatroomCard {
-  'id' : bigint,
-  'topic' : string,
-  'activeUserCount' : bigint,
-  'lastActivity' : bigint,
-  'createdAt' : bigint,
-  'description' : string,
-  'isLive' : boolean,
-  'mediaUrl' : [] | [string],
-  'messageCount' : bigint,
-  'mediaType' : [] | [string],
-  'category' : string,
-  'pinnedVideoId' : [] | [bigint],
-  'presenceIndicator' : bigint,
-}
 export interface Message {
   'id' : bigint,
   'content' : string,
@@ -133,7 +118,6 @@ export interface _SERVICE {
   '_caffeineStorageUpdateGatewayPrincipals' : ActorMethod<[], undefined>,
   'addReaction' : ActorMethod<[bigint, string, string], undefined>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
-  'cleanupInactiveUsers' : ActorMethod<[], undefined>,
   'createChatroom' : ActorMethod<
     [string, string, string, string, string],
     bigint
@@ -151,10 +135,8 @@ export interface _SERVICE {
   >,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
-  'getChatroom' : ActorMethod<[bigint], [] | [ChatroomWithLiveStatus]>,
   'getChatrooms' : ActorMethod<[], Array<ChatroomWithLiveStatus>>,
   'getFlaggedMessages' : ActorMethod<[], Array<Message>>,
-  'getLobbyChatroomCards' : ActorMethod<[], Array<LobbyChatroomCard>>,
   'getMessageWithReactionsAndReplies' : ActorMethod<
     [bigint],
     Array<MessageWithReactions>
@@ -165,6 +147,7 @@ export interface _SERVICE {
   'getReplies' : ActorMethod<[bigint, bigint], Array<Message>>,
   'getReplyPreview' : ActorMethod<[bigint, bigint], [] | [ReplyPreview]>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
+  'heartbeat' : ActorMethod<[string, string], undefined>,
   'incrementViewCount' : ActorMethod<[bigint, string], undefined>,
   'initializeAccessControl' : ActorMethod<[], undefined>,
   'isCallerAdmin' : ActorMethod<[], boolean>,

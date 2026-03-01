@@ -1,6 +1,5 @@
 import type { MessageWithReactions } from '../backend';
-import { X } from 'lucide-react';
-import { Button } from './ui/button';
+import { X, Pin } from 'lucide-react';
 import { useUnpinVideo } from '../hooks/useQueries';
 import { 
   getYouTubeVideoId, 
@@ -59,30 +58,25 @@ export default function PinnedVideo({ message, chatroomId }: PinnedVideoProps) {
   };
 
   return (
-    <div className="relative mx-auto w-full max-w-xl p-4">
-      <div className="mb-2 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <img 
-            src="/assets/generated/pin-icon-transparent.dim_24x24.png" 
-            alt="Pinned" 
-            className="h-4 w-4"
-          />
-          <span className="text-sm font-medium text-foreground">Pinned Video</span>
-        </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleUnpin}
-          disabled={unpinVideo.isPending}
-          className="h-8 w-8 p-0"
-        >
-          <X className="h-4 w-4" />
-        </Button>
-      </div>
+    <div className="relative mx-auto w-full max-w-xl px-4 pt-4 pb-2">
       <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-muted">
         {renderVideo()}
+
+        {/* Pin icon overlay — top-left, non-interactive */}
+        <div className="pointer-events-none absolute left-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-black/50 text-white">
+          <Pin className="h-3 w-3" />
+        </div>
+
+        {/* Unpin button overlay — top-right */}
+        <button
+          onClick={handleUnpin}
+          disabled={unpinVideo.isPending}
+          aria-label="Unpin video"
+          className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-black/50 text-white transition-colors hover:bg-black/70 disabled:opacity-50"
+        >
+          <X className="h-3 w-3" />
+        </button>
       </div>
     </div>
   );
 }
-

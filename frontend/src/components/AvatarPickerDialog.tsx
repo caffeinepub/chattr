@@ -123,7 +123,7 @@ export default function AvatarPickerDialog({ open, onOpenChange }: AvatarPickerD
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col">
+      <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>Change Avatar</DialogTitle>
           <DialogDescription>
@@ -131,9 +131,9 @@ export default function AvatarPickerDialog({ open, onOpenChange }: AvatarPickerD
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex flex-col gap-4 flex-1 min-h-0 overflow-hidden">
+        <div className="flex flex-col gap-4">
           {/* Current Avatar Preview */}
-          <div className="flex items-center gap-4 p-4 border border-border rounded-lg bg-muted/30 flex-shrink-0">
+          <div className="flex items-center gap-4 p-4 border border-border rounded-lg bg-muted/30">
             <Avatar className="h-16 w-16">
               {currentAvatar ? (
                 <AvatarImage src={currentAvatar} alt="Current avatar" />
@@ -162,7 +162,7 @@ export default function AvatarPickerDialog({ open, onOpenChange }: AvatarPickerD
           </div>
 
           {/* Upload Section */}
-          <div className="space-y-2 flex-shrink-0">
+          <div className="space-y-2">
             <label className="text-sm font-medium">Upload Image</label>
             <div className="flex gap-2">
               <Button
@@ -185,9 +185,9 @@ export default function AvatarPickerDialog({ open, onOpenChange }: AvatarPickerD
           </div>
 
           {/* Giphy Search Section */}
-          <div className="space-y-2 flex-1 min-h-0 flex flex-col">
+          <div className="space-y-2">
             <label className="text-sm font-medium">Search Giphy</label>
-            <div className="relative flex-shrink-0">
+            <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search for GIFs..."
@@ -197,9 +197,9 @@ export default function AvatarPickerDialog({ open, onOpenChange }: AvatarPickerD
               />
             </div>
 
-            {/* Giphy Results - Scrollable */}
-            <div className="flex-1 min-h-0 border border-border rounded-lg overflow-hidden">
-              <ScrollArea className="h-full">
+            {/* Giphy Results - Scrollable with fixed height */}
+            <div className="border border-border rounded-lg overflow-hidden">
+              <ScrollArea className="h-64">
                 <div className="p-2">
                   {isSearchingGiphy ? (
                     <div className="flex items-center justify-center py-8">

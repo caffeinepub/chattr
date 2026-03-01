@@ -1,54 +1,52 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Quoted replies inside bubbles, icon-only action buttons, remove extra character counter",
+  "title": "Floor live user count at 1 on room join and remove 'online' text",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Move quoted reply previews inside the chat bubble so they appear as part of the message bubble content",
+      "summary": "Floor the displayed live user count at a minimum of 1 when the local user is present in the chatroom to prevent showing 0",
       "acceptanceCriteria": [
-        "Quoted reply context renders inside the chat bubble container, visually contained within the bubble's background/border",
-        "Quoted reply appears above the message text within the same bubble",
-        "No style changes to colors, fonts, spacing, or bubble shape"
+        "The live user count displayed in ChatArea never shows 0 while the user is inside a room",
+        "If the backend returns a count >= 1, that real count is shown without modification",
+        "If the backend returns 0 (e.g., heartbeat not yet responded), the UI displays 1 instead"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/MessageBubble.tsx",
+          "path": "frontend/src/components/ChatArea.tsx",
           "operation": "modify",
-          "description": "Move the ReplyPreview component rendering from outside the bubble container to inside it, positioning it above the message content. The reply preview should be rendered as the first child within the message bubble's main container, before the message text. Ensure the reply preview remains clickable and visually distinct while staying within the bubble's background and borders. Do not modify any colors, fonts, spacing values, border radii, or other styling properties."
+          "description": "In the live user count display logic, apply Math.max(1, activeUserCount) to ensure the displayed count is never less than 1 when the user is viewing the room. This guarantees the count shows at least 1 (representing the current user) even if the backend heartbeat response hasn't arrived yet or temporarily returns 0."
         }
       ]
     },
     {
       "id": "REQ-2",
-      "summary": "Make message action buttons always visible and icon-only without text labels",
+      "summary": "Fire an immediate heartbeat call to the backend as soon as the user enters a chatroom, without waiting for the first 45-second interval tick",
       "acceptanceCriteria": [
-        "Action buttons are visible at all times on every message bubble, not only on hover",
-        "Action buttons show only icons — no text labels beside or below them",
-        "All existing action button icons remain unchanged",
-        "No other style or layout changes are made"
+        "A heartbeat is sent to the backend immediately on room entry (not waiting for the 45-second interval)",
+        "The periodic 45-second heartbeat continues to run as before",
+        "The live user count updates to the real backend value as soon as the immediate heartbeat response arrives"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/MessageBubble.tsx",
+          "path": "frontend/src/hooks/useHeartbeat.ts",
           "operation": "modify",
-          "description": "Remove any hover-based conditional visibility logic for action buttons (reply, react, pin, report). Ensure action buttons are always rendered and visible. Remove all text labels from action button elements, keeping only the icon elements. Do not modify button icons, colors, or other styling. The buttons should remain functional with their existing click handlers."
+          "description": "Add an immediate invocation of the heartbeat mutation when the hook initializes or when the roomId changes, before setting up the 45-second interval. This ensures the backend receives a presence signal immediately upon room entry, allowing the live user count to sync quickly. The existing interval-based heartbeat logic remains unchanged."
         }
       ]
     },
     {
       "id": "REQ-3",
-      "summary": "Remove the character counter displayed below the chat input field while keeping the circular counter inside intact",
+      "summary": "Remove the word 'online' from the live user count display in ChatArea",
       "acceptanceCriteria": [
-        "No character count text or indicator appears below the chat input field",
-        "The circular progress/counter indicator inside the chat input field is still present and functional",
-        "No other changes to the chat input layout or styling"
+        "The text 'online' does not appear anywhere in the live user count display inside a chatroom",
+        "The count number itself is still displayed"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/MessageInput.tsx",
+          "path": "frontend/src/components/ChatArea.tsx",
           "operation": "modify",
-          "description": "Remove the character counter element that is rendered below the chat input field. Do not remove or modify the circular progress indicator that is rendered inside the input field itself. Ensure the input field layout and all other functionality (image upload, GIF search, voice recording, URL detection) remain unchanged."
+          "description": "Locate the JSX rendering the live user count and remove any text node, string literal, or variable containing the word 'online'. Ensure the numeric count remains visible without any 'online' suffix or prefix."
         }
       ]
     }

@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
-import type { Message, ChatroomWithLiveStatus, MessageWithReactions, Reaction } from '../backend';
+import type { Message, ChatroomWithLiveStatus, MessageWithReactions } from '../backend';
 import { toast } from 'sonner';
 import { compressImage } from '../lib/imageCompression';
 
@@ -190,7 +190,8 @@ export function useGetChatroom(chatroomId: bigint) {
         throw new Error('Backend connection not available');
       }
       console.log('[useGetChatroom] Fetching chatroom:', chatroomId.toString());
-      const chatroom = await actor.getChatroom(chatroomId);
+      const chatrooms = await actor.getChatrooms();
+      const chatroom = chatrooms.find((c) => c.id === chatroomId) ?? null;
       console.log('[useGetChatroom] Fetched chatroom:', chatroom ? 'found' : 'not found');
       return chatroom;
     },
@@ -199,6 +200,25 @@ export function useGetChatroom(chatroomId: bigint) {
     retry: 3,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000),
     staleTime: 30000,
+  });
+}
+
+// ─── Active User Count (heartbeat-based) ─────────────────────────────────────
+
+export function useGetActiveUserCount(chatroomId: bigint) {
+  const { actor, isFetching: actorFetching } = useActor();
+
+  return useQuery<number>({
+    queryKey: ['activeUserCount', chatroomId.toString()],
+    queryFn: async () => {
+      if (!actor) return 0;
+      const chatrooms = await actor.getChatrooms();
+      const chatroom = chatrooms.find((c) => c.id === chatroomId);
+      return chatroom ? Number(chatroom.activeUserCount) : 0;
+    },
+    enabled: !!actor && !actorFetching,
+    refetchInterval: 10_000,
+    placeholderData: (previousData) => previousData,
   });
 }
 
@@ -546,13 +566,6 @@ export function useUpdateUsername() {
         errorMessage.includes('not available')
       ) {
         toast.error('This username is already taken. Please choose another one.');
-      } else if (
-        errorMessage.includes('alphanumeric') ||
-        errorMessage.includes('letters and numbers')
-      ) {
-        toast.error('Username must contain only letters and numbers');
-      } else if (errorMessage.includes('15 characters')) {
-        toast.error('Username must be 15 characters or less');
       } else {
         toast.error(errorMessage);
       }
@@ -568,15 +581,16 @@ export function useUpdateAvatar() {
     mutationFn: async (newAvatarUrl: string | null) => {
       if (!actor) throw new Error('Actor not available');
       const userId = getUserId();
-      await actor.updateAvatarRetroactively(userId, newAvatarUrl);
       if (newAvatarUrl) {
         localStorage.setItem('chatAvatarUrl', newAvatarUrl);
       } else {
         localStorage.removeItem('chatAvatarUrl');
       }
+      await actor.updateAvatarRetroactively(userId, newAvatarUrl);
+      queryClient.invalidateQueries({ queryKey: ['messages'] });
+      return newAvatarUrl;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['messages'] });
       toast.success('Avatar updated');
     },
     onError: (error: Error) => {
@@ -584,3 +598,6 @@ export function useUpdateAvatar() {
     },
   });
 }
+
+// Re-export listToArray for use in components
+export { listToArray };

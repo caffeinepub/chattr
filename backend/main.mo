@@ -7,12 +7,12 @@ import Iter "mo:base/Iter";
 import Int "mo:base/Int";
 import Array "mo:base/Array";
 import Principal "mo:base/Principal";
+import Debug "mo:base/Debug";
 
 import Storage "blob-storage/Storage";
 import MixinStorage "blob-storage/Mixin";
 import OutCall "http-outcalls/outcall";
 import AccessControl "authorization/access-control";
-
 
 actor {
   type Message = {
@@ -29,12 +29,6 @@ actor {
     messageId : Text;
     flagCount : Nat;
     reportReasons : [Text];
-  };
-
-  type FlagRecord = {
-    messageId : Nat;
-    flagCount : Nat;
-    reasons : [Text];
   };
 
   type Chatroom = {
@@ -61,38 +55,6 @@ actor {
   type ActiveUser = {
     userId : Text;
     lastActive : Int;
-  };
-
-  type ChatroomWithLiveStatus = {
-    id : Nat;
-    topic : Text;
-    description : Text;
-    mediaUrl : ?Text;
-    mediaType : ?Text;
-    createdAt : Int;
-    messageCount : Nat;
-    viewCount : Nat;
-    pinnedVideoId : ?Nat;
-    isLive : Bool;
-    activeUserCount : Nat;
-    category : Text;
-    lastActivity : Int;
-  };
-
-  type LobbyChatroomCard = {
-    id : Nat;
-    topic : Text;
-    description : Text;
-    mediaUrl : ?Text;
-    mediaType : ?Text;
-    createdAt : Int;
-    messageCount : Nat;
-    presenceIndicator : Nat;
-    pinnedVideoId : ?Nat;
-    isLive : Bool;
-    activeUserCount : Nat;
-    category : Text;
-    lastActivity : Int;
   };
 
   type Reaction = {
@@ -125,6 +87,22 @@ actor {
     mediaThumbnail : ?Text;
   };
 
+  type ChatroomWithLiveStatus = {
+    id : Nat;
+    topic : Text;
+    description : Text;
+    mediaUrl : ?Text;
+    mediaType : ?Text;
+    createdAt : Int;
+    messageCount : Nat;
+    viewCount : Nat;
+    pinnedVideoId : ?Nat;
+    isLive : Bool;
+    activeUserCount : Nat;
+    category : Text;
+    lastActivity : Int;
+  };
+
   let storage = Storage.new();
   include MixinStorage(storage);
 
@@ -137,6 +115,10 @@ actor {
   var messages : OrderedMap.Map<Nat, List.List<Message>> = natMap.empty();
   var activeUsers : OrderedMap.Map<Nat, List.List<ActiveUser>> = natMap.empty();
   var reactions : OrderedMap.Map<Nat, List.List<Reaction>> = natMap.empty();
+
+  transient let sessionMap = OrderedMap.Make<Text>(Text.compare);
+  transient let roomMap = OrderedMap.Make<Text>(Text.compare);
+  var chatRoomSessions : OrderedMap.Map<Text, OrderedMap.Map<Text, Int>> = sessionMap.empty();
 
   let accessControlState = AccessControl.initState();
 
@@ -162,21 +144,21 @@ actor {
 
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      return null;
+      Debug.trap("Unauthorized: Only users can view profiles");
     };
     principalMap.get(userProfiles, caller);
   };
 
   public query ({ caller }) func getUserProfile(user : Principal) : async ?UserProfile {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin)) and caller != user) {
-      return null;
+    if (caller != user and not AccessControl.isAdmin(accessControlState, caller)) {
+      Debug.trap("Unauthorized: Can only view your own profile");
     };
     principalMap.get(userProfiles, user);
   };
 
   public shared ({ caller }) func saveCallerUserProfile(profile : UserProfile) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      return;
+      Debug.trap("Unauthorized: Only users can save profiles");
     };
     userProfiles := principalMap.put(userProfiles, caller, profile);
   };
@@ -538,76 +520,33 @@ actor {
     };
   };
 
-  public query func getLobbyChatroomCards() : async [LobbyChatroomCard] {
-    if (natMap.size(chatrooms) == 0) {
-      return [];
-    };
-
-    let currentTime = Time.now();
-    let activeThreshold = 60 * 1_000_000_000;
-
-    let lobbyCards = Iter.map<Chatroom, LobbyChatroomCard>(
-      natMap.vals(chatrooms),
-      func(chatroom) {
-        let activeUsersForRoom = switch (natMap.get(activeUsers, chatroom.id)) {
-          case (null) { List.nil<ActiveUser>() };
-          case (?users) { users };
-        };
-
-        let activeUserCount = List.size(
-          List.filter<ActiveUser>(
-            activeUsersForRoom,
-            func(user) {
-              Int.abs(currentTime - user.lastActive) <= activeThreshold;
-            },
-          )
-        );
-
-        {
-          chatroom with
-          presenceIndicator = if (activeUserCount > 0) {
-            activeUserCount;
-          } else {
-            chatroom.viewCount;
-          };
-          isLive = activeUserCount > 0;
-          activeUserCount;
-        };
-      },
-    );
-
-    Iter.toArray(lobbyCards);
-  };
-
   public query func getChatrooms() : async [ChatroomWithLiveStatus] {
     if (natMap.size(chatrooms) == 0) {
       return [];
     };
 
     let currentTime = Time.now();
-    let activeThreshold = 60 * 1_000_000_000;
 
     let chatroomsWithLiveStatus = Iter.map<Chatroom, ChatroomWithLiveStatus>(
       natMap.vals(chatrooms),
       func(chatroom) {
-        let activeUsersForRoom = switch (natMap.get(activeUsers, chatroom.id)) {
-          case (null) { List.nil<ActiveUser>() };
-          case (?users) { users };
+        let sessionRoomMap = switch (sessionMap.get(chatRoomSessions, Nat.toText(chatroom.id))) {
+          case (null) { roomMap.empty<Int>() };
+          case (?sessions) { sessions };
         };
-
-        let activeUserCount = List.size(
-          List.filter<ActiveUser>(
-            activeUsersForRoom,
-            func(user) {
-              Int.abs(currentTime - user.lastActive) <= activeThreshold;
+        let activeSessions = Iter.size(
+          Iter.filter(
+            roomMap.vals(sessionRoomMap),
+            func(timestamp : Int) : Bool {
+              currentTime - timestamp <= 90 * 1_000_000_000
             },
           )
         );
 
         {
           chatroom with
-          isLive = activeUserCount > 0;
-          activeUserCount;
+          isLive = activeSessions > 0;
+          activeUserCount = activeSessions;
         };
       },
     );
@@ -623,36 +562,6 @@ actor {
       return "";
     };
     url;
-  };
-
-  public query func getChatroom(id : Nat) : async ?ChatroomWithLiveStatus {
-    switch (natMap.get(chatrooms, id)) {
-      case (null) { null };
-      case (?chatroom) {
-        let currentTime = Time.now();
-        let activeThreshold = 60 * 1_000_000_000;
-
-        let activeUsersForRoom = switch (natMap.get(activeUsers, id)) {
-          case (null) { List.nil<ActiveUser>() };
-          case (?users) { users };
-        };
-
-        let activeUserCount = List.size(
-          List.filter<ActiveUser>(
-            activeUsersForRoom,
-            func(user) {
-              Int.abs(currentTime - user.lastActive) <= activeThreshold;
-            },
-          )
-        );
-
-        ?{
-          chatroom with
-          isLive = activeUserCount > 0;
-          activeUserCount;
-        };
-      };
-    };
   };
 
   public func updateUsernameRetroactively(senderId : Text, newUsername : Text) : async () {
@@ -699,25 +608,6 @@ actor {
     };
 
     messages := updatedMessages;
-  };
-
-  public func cleanupInactiveUsers() : async () {
-    let currentTime = Time.now();
-    let activeThreshold = 60 * 1_000_000_000;
-
-    var updatedActiveUsers = activeUsers;
-
-    for ((chatroomId, users) in natMap.entries(activeUsers)) {
-      let filteredUsers = List.filter<ActiveUser>(
-        users,
-        func(user) {
-          Int.abs(currentTime - user.lastActive) <= activeThreshold;
-        },
-      );
-      updatedActiveUsers := natMap.put(updatedActiveUsers, chatroomId, filteredUsers);
-    };
-
-    activeUsers := updatedActiveUsers;
   };
 
   public func addReaction(messageId : Nat, emoji : Text, userId : Text) : async () {
@@ -1065,6 +955,18 @@ actor {
     let chars = Text.toArray(text);
     let length = if (chars.size() > maxLength) { maxLength } else { chars.size() };
     Text.fromArray(Array.tabulate(length, func(i : Nat) : Char { chars[i] }));
+  };
+
+  // New heartbeat function for presence tracking
+  public func heartbeat(roomId : Text, sessionId : Text) : async () {
+    let currentTime : Int = Time.now();
+    let sessionsForRoom = switch (sessionMap.get(chatRoomSessions, roomId)) {
+      case (null) { roomMap.empty<Int>() };
+      case (?sessions) { sessions };
+    };
+
+    let updatedSessions = roomMap.put(sessionsForRoom, sessionId, currentTime);
+    chatRoomSessions := sessionMap.put(chatRoomSessions, roomId, updatedSessions);
   };
 };
 
