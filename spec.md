@@ -1,11 +1,10 @@
 # Specification
 
 ## Summary
-**Goal:** Polish the chat message input area layout and hide message IDs visually in message bubbles.
+**Goal:** Polish the message bubble action buttons and clean up the chat input area by unifying colors and removing redundant UI elements.
 
 **Planned changes:**
-- Vertically center all elements in the chat message input area (text field, send button, attachment buttons, character count indicator) so they align on the same vertical axis
-- Reduce the vertical padding (top and bottom) of the chat input container to make it more compact while keeping all controls intact
-- Hide message ID text inside message bubbles visually (via CSS) while keeping the elements in the DOM so share link functionality continues to work
+- In `MessageBubble.tsx`, update the font and icon color of the Reply, React, Share, and Report action buttons to match the gray color used by the message timestamp.
+- In `MessageInput.tsx`, remove the text-based line character counter displayed below the chat input field while keeping the circular character counter inside the input intact.
 
-**User-visible outcome:** The chat input area appears more compact and neatly aligned, and message bubbles no longer display visible message ID text, while all existing controls and share functionality remain fully operational.
+**User-visible outcome:** Action buttons in message bubbles will have a consistent gray color matching the timestamp, and the chat input area will no longer show a redundant character counter below the field.

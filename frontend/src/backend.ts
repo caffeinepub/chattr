@@ -144,12 +144,14 @@ export interface MessageWithReactions {
     chatroomId: bigint;
     sender: string;
     mediaUrl?: string;
+    reportReasons: Array<string>;
     avatarUrl?: string;
     replyToMessageId?: bigint;
     timestamp: bigint;
     mediaType?: string;
     reactions: List_1;
     senderId: string;
+    flagCount: bigint;
 }
 export interface TransformationInput {
     context: Uint8Array;
@@ -163,11 +165,13 @@ export interface Message {
     chatroomId: bigint;
     sender: string;
     mediaUrl?: string;
+    reportReasons: Array<string>;
     avatarUrl?: string;
     replyToMessageId?: bigint;
     timestamp: bigint;
     mediaType?: string;
     senderId: string;
+    flagCount: bigint;
 }
 export type List = [string, List] | null;
 export interface ChatroomWithLiveStatus {
@@ -210,7 +214,7 @@ export interface backendInterface {
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     cleanupInactiveUsers(): Promise<void>;
     createChatroom(topic: string, description: string, mediaUrl: string, mediaType: string, category: string): Promise<bigint>;
-    deleteChatroomWithPassword(chatroomId: bigint, password: string): Promise<void>;
+    deleteChatroomWithPassword(chatroomId: bigint, _password: string): Promise<void>;
     fetchGiphyResults(searchTerm: string): Promise<string>;
     fetchTrendingGiphyGifs(): Promise<string>;
     fetchTwitchThumbnail(channelName: string): Promise<string>;
@@ -222,6 +226,7 @@ export interface backendInterface {
     getCallerUserRole(): Promise<UserRole>;
     getChatroom(id: bigint): Promise<ChatroomWithLiveStatus | null>;
     getChatrooms(): Promise<Array<ChatroomWithLiveStatus>>;
+    getFlaggedMessages(): Promise<Array<Message>>;
     getLobbyChatroomCards(): Promise<Array<LobbyChatroomCard>>;
     getMessageWithReactionsAndReplies(chatroomId: bigint): Promise<Array<MessageWithReactions>>;
     getMessages(chatroomId: bigint): Promise<Array<Message>>;
@@ -235,6 +240,7 @@ export interface backendInterface {
     isCallerAdmin(): Promise<boolean>;
     pinVideo(chatroomId: bigint, messageId: bigint): Promise<void>;
     removeReaction(messageId: bigint, emoji: string, userId: string): Promise<void>;
+    reportMessage(messageId: bigint, reason: string): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     searchChatrooms(searchTerm: string): Promise<Array<ChatroomWithLiveStatus>>;
     sendMessage(content: string, sender: string, chatroomId: bigint, mediaUrl: string | null, mediaType: string | null, avatarUrl: string | null, senderId: string, replyToMessageId: bigint | null): Promise<void>;
@@ -554,46 +560,60 @@ export class Backend implements backendInterface {
             return from_candid_vec_n10(this._uploadFile, this._downloadFile, result);
         }
     }
-    async getLobbyChatroomCards(): Promise<Array<LobbyChatroomCard>> {
+    async getFlaggedMessages(): Promise<Array<Message>> {
         if (this.processError) {
             try {
-                const result = await this.actor.getLobbyChatroomCards();
+                const result = await this.actor.getFlaggedMessages();
                 return from_candid_vec_n20(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.getLobbyChatroomCards();
+            const result = await this.actor.getFlaggedMessages();
             return from_candid_vec_n20(this._uploadFile, this._downloadFile, result);
         }
     }
-    async getMessageWithReactionsAndReplies(arg0: bigint): Promise<Array<MessageWithReactions>> {
+    async getLobbyChatroomCards(): Promise<Array<LobbyChatroomCard>> {
         if (this.processError) {
             try {
-                const result = await this.actor.getMessageWithReactionsAndReplies(arg0);
+                const result = await this.actor.getLobbyChatroomCards();
                 return from_candid_vec_n23(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.getMessageWithReactionsAndReplies(arg0);
+            const result = await this.actor.getLobbyChatroomCards();
             return from_candid_vec_n23(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async getMessageWithReactionsAndReplies(arg0: bigint): Promise<Array<MessageWithReactions>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getMessageWithReactionsAndReplies(arg0);
+                return from_candid_vec_n26(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getMessageWithReactionsAndReplies(arg0);
+            return from_candid_vec_n26(this._uploadFile, this._downloadFile, result);
         }
     }
     async getMessages(arg0: bigint): Promise<Array<Message>> {
         if (this.processError) {
             try {
                 const result = await this.actor.getMessages(arg0);
-                return from_candid_vec_n34(this._uploadFile, this._downloadFile, result);
+                return from_candid_vec_n20(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getMessages(arg0);
-            return from_candid_vec_n34(this._uploadFile, this._downloadFile, result);
+            return from_candid_vec_n20(this._uploadFile, this._downloadFile, result);
         }
     }
     async getPinnedVideo(arg0: bigint): Promise<bigint | null> {
@@ -628,14 +648,14 @@ export class Backend implements backendInterface {
         if (this.processError) {
             try {
                 const result = await this.actor.getReplies(arg0, arg1);
-                return from_candid_vec_n34(this._uploadFile, this._downloadFile, result);
+                return from_candid_vec_n20(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getReplies(arg0, arg1);
-            return from_candid_vec_n34(this._uploadFile, this._downloadFile, result);
+            return from_candid_vec_n20(this._uploadFile, this._downloadFile, result);
         }
     }
     async getReplyPreview(arg0: bigint, arg1: bigint): Promise<ReplyPreview | null> {
@@ -733,6 +753,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.removeReaction(arg0, arg1, arg2);
+            return result;
+        }
+    }
+    async reportMessage(arg0: bigint, arg1: string): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.reportMessage(arg0, arg1);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.reportMessage(arg0, arg1);
             return result;
         }
     }
@@ -838,23 +872,23 @@ export class Backend implements backendInterface {
 function from_candid_ChatroomWithLiveStatus_n11(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _ChatroomWithLiveStatus): ChatroomWithLiveStatus {
     return from_candid_record_n12(_uploadFile, _downloadFile, value);
 }
-function from_candid_List_1_n26(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _List_1): List_1 {
-    return from_candid_opt_n27(_uploadFile, _downloadFile, value);
+function from_candid_List_1_n29(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _List_1): List_1 {
+    return from_candid_opt_n30(_uploadFile, _downloadFile, value);
 }
-function from_candid_List_n31(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _List): List {
-    return from_candid_opt_n32(_uploadFile, _downloadFile, value);
+function from_candid_List_n34(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _List): List {
+    return from_candid_opt_n35(_uploadFile, _downloadFile, value);
 }
-function from_candid_LobbyChatroomCard_n21(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _LobbyChatroomCard): LobbyChatroomCard {
-    return from_candid_record_n22(_uploadFile, _downloadFile, value);
-}
-function from_candid_MessageWithReactions_n24(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _MessageWithReactions): MessageWithReactions {
+function from_candid_LobbyChatroomCard_n24(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _LobbyChatroomCard): LobbyChatroomCard {
     return from_candid_record_n25(_uploadFile, _downloadFile, value);
 }
-function from_candid_Message_n35(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Message): Message {
-    return from_candid_record_n36(_uploadFile, _downloadFile, value);
+function from_candid_MessageWithReactions_n27(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _MessageWithReactions): MessageWithReactions {
+    return from_candid_record_n28(_uploadFile, _downloadFile, value);
 }
-function from_candid_Reaction_n29(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Reaction): Reaction {
-    return from_candid_record_n30(_uploadFile, _downloadFile, value);
+function from_candid_Message_n21(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Message): Message {
+    return from_candid_record_n22(_uploadFile, _downloadFile, value);
+}
+function from_candid_Reaction_n32(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Reaction): Reaction {
+    return from_candid_record_n33(_uploadFile, _downloadFile, value);
 }
 function from_candid_ReplyPreview_n39(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _ReplyPreview): ReplyPreview {
     return from_candid_record_n40(_uploadFile, _downloadFile, value);
@@ -877,11 +911,11 @@ function from_candid_opt_n14(_uploadFile: (file: ExternalBlob) => Promise<Uint8A
 function from_candid_opt_n19(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_ChatroomWithLiveStatus]): ChatroomWithLiveStatus | null {
     return value.length === 0 ? null : from_candid_ChatroomWithLiveStatus_n11(_uploadFile, _downloadFile, value[0]);
 }
-function from_candid_opt_n27(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [[_Reaction, _List_1]]): [Reaction, List_1] | null {
-    return value.length === 0 ? null : from_candid_tuple_n28(_uploadFile, _downloadFile, value[0]);
+function from_candid_opt_n30(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [[_Reaction, _List_1]]): [Reaction, List_1] | null {
+    return value.length === 0 ? null : from_candid_tuple_n31(_uploadFile, _downloadFile, value[0]);
 }
-function from_candid_opt_n32(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [[string, _List]]): [string, List] | null {
-    return value.length === 0 ? null : from_candid_tuple_n33(_uploadFile, _downloadFile, value[0]);
+function from_candid_opt_n35(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [[string, _List]]): [string, List] | null {
+    return value.length === 0 ? null : from_candid_tuple_n36(_uploadFile, _downloadFile, value[0]);
 }
 function from_candid_opt_n38(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_ReplyPreview]): ReplyPreview | null {
     return value.length === 0 ? null : from_candid_ReplyPreview_n39(_uploadFile, _downloadFile, value[0]);
@@ -957,6 +991,51 @@ function from_candid_record_n16(_uploadFile: (file: ExternalBlob) => Promise<Uin
 }
 function from_candid_record_n22(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     id: bigint;
+    content: string;
+    messageId: string;
+    chatroomId: bigint;
+    sender: string;
+    mediaUrl: [] | [string];
+    reportReasons: Array<string>;
+    avatarUrl: [] | [string];
+    replyToMessageId: [] | [bigint];
+    timestamp: bigint;
+    mediaType: [] | [string];
+    senderId: string;
+    flagCount: bigint;
+}): {
+    id: bigint;
+    content: string;
+    messageId: string;
+    chatroomId: bigint;
+    sender: string;
+    mediaUrl?: string;
+    reportReasons: Array<string>;
+    avatarUrl?: string;
+    replyToMessageId?: bigint;
+    timestamp: bigint;
+    mediaType?: string;
+    senderId: string;
+    flagCount: bigint;
+} {
+    return {
+        id: value.id,
+        content: value.content,
+        messageId: value.messageId,
+        chatroomId: value.chatroomId,
+        sender: value.sender,
+        mediaUrl: record_opt_to_undefined(from_candid_opt_n13(_uploadFile, _downloadFile, value.mediaUrl)),
+        reportReasons: value.reportReasons,
+        avatarUrl: record_opt_to_undefined(from_candid_opt_n13(_uploadFile, _downloadFile, value.avatarUrl)),
+        replyToMessageId: record_opt_to_undefined(from_candid_opt_n7(_uploadFile, _downloadFile, value.replyToMessageId)),
+        timestamp: value.timestamp,
+        mediaType: record_opt_to_undefined(from_candid_opt_n13(_uploadFile, _downloadFile, value.mediaType)),
+        senderId: value.senderId,
+        flagCount: value.flagCount
+    };
+}
+function from_candid_record_n25(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    id: bigint;
     topic: string;
     activeUserCount: bigint;
     lastActivity: bigint;
@@ -1000,19 +1079,21 @@ function from_candid_record_n22(_uploadFile: (file: ExternalBlob) => Promise<Uin
         presenceIndicator: value.presenceIndicator
     };
 }
-function from_candid_record_n25(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function from_candid_record_n28(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     id: bigint;
     content: string;
     messageId: string;
     chatroomId: bigint;
     sender: string;
     mediaUrl: [] | [string];
+    reportReasons: Array<string>;
     avatarUrl: [] | [string];
     replyToMessageId: [] | [bigint];
     timestamp: bigint;
     mediaType: [] | [string];
     reactions: _List_1;
     senderId: string;
+    flagCount: bigint;
 }): {
     id: bigint;
     content: string;
@@ -1020,12 +1101,14 @@ function from_candid_record_n25(_uploadFile: (file: ExternalBlob) => Promise<Uin
     chatroomId: bigint;
     sender: string;
     mediaUrl?: string;
+    reportReasons: Array<string>;
     avatarUrl?: string;
     replyToMessageId?: bigint;
     timestamp: bigint;
     mediaType?: string;
     reactions: List_1;
     senderId: string;
+    flagCount: bigint;
 } {
     return {
         id: value.id,
@@ -1034,15 +1117,17 @@ function from_candid_record_n25(_uploadFile: (file: ExternalBlob) => Promise<Uin
         chatroomId: value.chatroomId,
         sender: value.sender,
         mediaUrl: record_opt_to_undefined(from_candid_opt_n13(_uploadFile, _downloadFile, value.mediaUrl)),
+        reportReasons: value.reportReasons,
         avatarUrl: record_opt_to_undefined(from_candid_opt_n13(_uploadFile, _downloadFile, value.avatarUrl)),
         replyToMessageId: record_opt_to_undefined(from_candid_opt_n7(_uploadFile, _downloadFile, value.replyToMessageId)),
         timestamp: value.timestamp,
         mediaType: record_opt_to_undefined(from_candid_opt_n13(_uploadFile, _downloadFile, value.mediaType)),
-        reactions: from_candid_List_1_n26(_uploadFile, _downloadFile, value.reactions),
-        senderId: value.senderId
+        reactions: from_candid_List_1_n29(_uploadFile, _downloadFile, value.reactions),
+        senderId: value.senderId,
+        flagCount: value.flagCount
     };
 }
-function from_candid_record_n30(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function from_candid_record_n33(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     count: bigint;
     emoji: string;
     users: _List;
@@ -1054,46 +1139,7 @@ function from_candid_record_n30(_uploadFile: (file: ExternalBlob) => Promise<Uin
     return {
         count: value.count,
         emoji: value.emoji,
-        users: from_candid_List_n31(_uploadFile, _downloadFile, value.users)
-    };
-}
-function from_candid_record_n36(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
-    id: bigint;
-    content: string;
-    messageId: string;
-    chatroomId: bigint;
-    sender: string;
-    mediaUrl: [] | [string];
-    avatarUrl: [] | [string];
-    replyToMessageId: [] | [bigint];
-    timestamp: bigint;
-    mediaType: [] | [string];
-    senderId: string;
-}): {
-    id: bigint;
-    content: string;
-    messageId: string;
-    chatroomId: bigint;
-    sender: string;
-    mediaUrl?: string;
-    avatarUrl?: string;
-    replyToMessageId?: bigint;
-    timestamp: bigint;
-    mediaType?: string;
-    senderId: string;
-} {
-    return {
-        id: value.id,
-        content: value.content,
-        messageId: value.messageId,
-        chatroomId: value.chatroomId,
-        sender: value.sender,
-        mediaUrl: record_opt_to_undefined(from_candid_opt_n13(_uploadFile, _downloadFile, value.mediaUrl)),
-        avatarUrl: record_opt_to_undefined(from_candid_opt_n13(_uploadFile, _downloadFile, value.avatarUrl)),
-        replyToMessageId: record_opt_to_undefined(from_candid_opt_n7(_uploadFile, _downloadFile, value.replyToMessageId)),
-        timestamp: value.timestamp,
-        mediaType: record_opt_to_undefined(from_candid_opt_n13(_uploadFile, _downloadFile, value.mediaType)),
-        senderId: value.senderId
+        users: from_candid_List_n34(_uploadFile, _downloadFile, value.users)
     };
 }
 function from_candid_record_n40(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
@@ -1126,16 +1172,16 @@ function from_candid_record_n5(_uploadFile: (file: ExternalBlob) => Promise<Uint
         topped_up_amount: record_opt_to_undefined(from_candid_opt_n7(_uploadFile, _downloadFile, value.topped_up_amount))
     };
 }
-function from_candid_tuple_n28(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [_Reaction, _List_1]): [Reaction, List_1] {
+function from_candid_tuple_n31(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [_Reaction, _List_1]): [Reaction, List_1] {
     return [
-        from_candid_Reaction_n29(_uploadFile, _downloadFile, value[0]),
-        from_candid_List_1_n26(_uploadFile, _downloadFile, value[1])
+        from_candid_Reaction_n32(_uploadFile, _downloadFile, value[0]),
+        from_candid_List_1_n29(_uploadFile, _downloadFile, value[1])
     ];
 }
-function from_candid_tuple_n33(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [string, _List]): [string, List] {
+function from_candid_tuple_n36(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [string, _List]): [string, List] {
     return [
         value[0],
-        from_candid_List_n31(_uploadFile, _downloadFile, value[1])
+        from_candid_List_n34(_uploadFile, _downloadFile, value[1])
     ];
 }
 function from_candid_variant_n18(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
@@ -1150,17 +1196,17 @@ function from_candid_variant_n18(_uploadFile: (file: ExternalBlob) => Promise<Ui
 function from_candid_vec_n10(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_ChatroomWithLiveStatus>): Array<ChatroomWithLiveStatus> {
     return value.map((x)=>from_candid_ChatroomWithLiveStatus_n11(_uploadFile, _downloadFile, x));
 }
-function from_candid_vec_n20(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_LobbyChatroomCard>): Array<LobbyChatroomCard> {
-    return value.map((x)=>from_candid_LobbyChatroomCard_n21(_uploadFile, _downloadFile, x));
+function from_candid_vec_n20(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_Message>): Array<Message> {
+    return value.map((x)=>from_candid_Message_n21(_uploadFile, _downloadFile, x));
 }
-function from_candid_vec_n23(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_MessageWithReactions>): Array<MessageWithReactions> {
-    return value.map((x)=>from_candid_MessageWithReactions_n24(_uploadFile, _downloadFile, x));
+function from_candid_vec_n23(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_LobbyChatroomCard>): Array<LobbyChatroomCard> {
+    return value.map((x)=>from_candid_LobbyChatroomCard_n24(_uploadFile, _downloadFile, x));
 }
-function from_candid_vec_n34(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_Message>): Array<Message> {
-    return value.map((x)=>from_candid_Message_n35(_uploadFile, _downloadFile, x));
+function from_candid_vec_n26(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_MessageWithReactions>): Array<MessageWithReactions> {
+    return value.map((x)=>from_candid_MessageWithReactions_n27(_uploadFile, _downloadFile, x));
 }
 function from_candid_vec_n37(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_Reaction>): Array<Reaction> {
-    return value.map((x)=>from_candid_Reaction_n29(_uploadFile, _downloadFile, x));
+    return value.map((x)=>from_candid_Reaction_n32(_uploadFile, _downloadFile, x));
 }
 function to_candid_UserProfile_n41(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserProfile): _UserProfile {
     return to_candid_record_n42(_uploadFile, _downloadFile, value);

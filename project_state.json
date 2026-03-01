@@ -1,34 +1,24 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Chat application with a message input area, character count indicator, action buttons (Reply, React, Share), and share link functionality via message IDs.",
-  "architectural_notes": [
-    "Message IDs must remain in the DOM (even if visually hidden) to support share link functionality"
-  ],
+  "summary": "Chat interface project with UI refinements including button color styling and character counter display.",
+  "architectural_notes": [],
   "known_issues": [],
   "isFixRequest": false,
   "existing_features": [
     {
-      "id": "feature-vertically-align-all-elements-within-the-chat-message-input-area-text-input-buttons-character-count-indicator-so-they-are-centered-on-the-same-vertical-axis",
-      "title": "Vertically align all elements within the chat message input area (text input, buttons, character count indicator) so they are centered on the same vertical axis.",
+      "id": "feature-in-messagebubble-tsx-update-the-font-and-icon-color-for-the-reply-react-share-and-report-action-buttons-to-match-the-same-gray-color-used-by-the-message-timestamp",
+      "title": "In MessageBubble.tsx, update the font and icon color for the Reply, React, Share, and Report action buttons to match the same gray color used by the message timestamp.",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-reduce-the-vertical-padding-inside-the-chat-message-input-area-to-make-it-more-compact-without-removing-any-existing-controls",
-      "title": "Reduce the vertical padding inside the chat message input area to make it more compact without removing any existing controls.",
+      "id": "feature-in-messageinput-tsx-remove-the-redundant-text-based-line-character-counter-displayed-below-the-chat-text-input-field-the-circular-character-counter-rendered-inside-the-input-field-must-remain-visible-and-functional",
+      "title": "In MessageInput.tsx, remove the redundant text-based line character counter displayed below the chat text input field. The circular character counter rendered inside the input field must remain visible and functional.",
       "reqIds": [
         "REQ-2"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-hide-message-id-text-visually-within-message-bubbles-by-making-it-invisible-e-g-via-css-while-keeping-the-element-in-the-dom-so-that-share-link-functionality-continues-to-work",
-      "title": "Hide message ID text visually within message bubbles by making it invisible (e.g., via CSS), while keeping the element in the DOM so that share link functionality continues to work.",
-      "reqIds": [
-        "REQ-3"
       ],
       "version": 1
     }

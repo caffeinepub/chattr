@@ -2,10 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-vertically-align-all-elements-within-the-chat-message-input-area-text-input-buttons-character-count-indicator-so-they-are-centered-on-the-same-vertical-axis",
-      "featureTitle": "Vertically align all elements within the chat message input area (text input, buttons, character count indicator) so they are centered on the same vertical axis.",
+      "featureId": "feature-in-messagebubble-tsx-update-the-font-and-icon-color-for-the-reply-react-share-and-report-action-buttons-to-match-the-same-gray-color-used-by-the-message-timestamp",
+      "featureTitle": "In MessageBubble.tsx, update the font and icon color for the Reply, React, Share, and Report action buttons to match the same gray color used by the message timestamp.",
       "files": [
-        "frontend/src/components/MessageInput.tsx"
+        "frontend/src/components/MessageBubble.tsx"
       ],
       "components": [
         "authorization@1.0.1",
@@ -23,8 +23,8 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-reduce-the-vertical-padding-inside-the-chat-message-input-area-to-make-it-more-compact-without-removing-any-existing-controls",
-      "featureTitle": "Reduce the vertical padding inside the chat message input area to make it more compact without removing any existing controls.",
+      "featureId": "feature-in-messageinput-tsx-remove-the-redundant-text-based-line-character-counter-displayed-below-the-chat-text-input-field-the-circular-character-counter-rendered-inside-the-input-field-must-remain-visible-and-functional",
+      "featureTitle": "In MessageInput.tsx, remove the redundant text-based line character counter displayed below the chat text input field. The circular character counter rendered inside the input field must remain visible and functional.",
       "files": [
         "frontend/src/components/MessageInput.tsx"
       ],
@@ -40,27 +40,6 @@
       ],
       "testIds": [
         "REQ-2"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-hide-message-id-text-visually-within-message-bubbles-by-making-it-invisible-e-g-via-css-while-keeping-the-element-in-the-dom-so-that-share-link-functionality-continues-to-work",
-      "featureTitle": "Hide message ID text visually within message bubbles by making it invisible (e.g., via CSS), while keeping the element in the DOM so that share link functionality continues to work.",
-      "files": [
-        "frontend/src/components/MessageBubble.tsx"
-      ],
-      "components": [
-        "authorization@1.0.1",
-        "blob-storage@2.0.3",
-        "http-outcalls@1.1.1",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-3"
       ],
       "confidence": "high"
     }

@@ -1,54 +1,36 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Vertically align input area, reduce padding, and hide message IDs visually",
+  "title": "Update action button colors and remove redundant character counter",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Vertically align all elements within the chat message input area (text input, buttons, character count indicator) so they are centered on the same vertical axis.",
+      "summary": "Update action button colors in MessageBubble to match timestamp gray",
       "acceptanceCriteria": [
-        "All elements in the chat input area (text field, send button, attachment buttons, character count indicator) are vertically centered relative to each other.",
-        "No elements appear misaligned or offset vertically in the input row.",
-        "Character count indicator and all action buttons (Reply, React, Share) remain present and functional."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/MessageInput.tsx",
-          "operation": "modify",
-          "description": "Update the input container layout to use flexbox with items-center alignment. Ensure all child elements (textarea, send button, attachment buttons, character count indicator) are wrapped in a flex container with vertical centering applied. Adjust any existing padding or margin that causes vertical misalignment. Keep all existing controls including the character count indicator."
-        }
-      ]
-    },
-    {
-      "id": "REQ-2",
-      "summary": "Reduce the vertical padding inside the chat message input area to make it more compact without removing any existing controls.",
-      "acceptanceCriteria": [
-        "The vertical padding (top and bottom) of the chat input container is visibly reduced compared to the current version.",
-        "No controls are removed — character count indicator and all action buttons (Reply, React, Share) remain.",
-        "Input area does not feel cramped or cause overflow."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/MessageInput.tsx",
-          "operation": "modify",
-          "description": "Reduce the vertical padding (py-* classes) on the main input container. Decrease padding on internal elements like the textarea wrapper to create a more compact layout. Ensure the reduced padding does not cause text truncation or control overlap. All existing controls (character count indicator, Reply/React/Share buttons) must remain visible and functional."
-        }
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "summary": "Hide message ID text visually within message bubbles by making it invisible (e.g., via CSS), while keeping the element in the DOM so that share link functionality continues to work.",
-      "acceptanceCriteria": [
-        "Message ID text is not visible to the user inside message bubbles.",
-        "The message ID element is still present in the DOM (not removed via conditional rendering).",
-        "Share link functionality that relies on message IDs continues to work correctly.",
-        "Reply, React, and Share action buttons remain visible and functional."
+        "The Reply, React, Share, and Report button labels and icons render in the same gray color as the message timestamp text.",
+        "No other button styles or colors are affected."
       ],
       "file_operations": [
         {
           "path": "frontend/src/components/MessageBubble.tsx",
           "operation": "modify",
-          "description": "Locate the message ID text element within the message bubble rendering logic. Apply CSS classes to hide the message ID visually (e.g., opacity-0, sr-only, or invisible) without removing the element from the DOM via conditional rendering. Ensure the message ID remains accessible for share link functionality and programmatic access. Verify that Reply, React, and Share action buttons remain fully visible and functional."
+          "description": "Update the color classes for the Reply, React, Share, and Report action buttons (both icon and text) to use the same gray color token currently applied to the message timestamp. Locate the timestamp element to identify its exact color class (likely text-muted-foreground or similar), then apply that same class to the four action buttons. Ensure only the color changes—preserve all other styles including size, layout, hover states, and spacing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "summary": "Remove redundant text-based character counter below chat input",
+      "acceptanceCriteria": [
+        "No character count text or line counter appears below the chat input field.",
+        "The circular character counter inside the chat input remains present and updates correctly as the user types.",
+        "The input area layout is clean with no empty space left by the removed counter."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/MessageInput.tsx",
+          "operation": "modify",
+          "description": "Remove the text-based character counter line that appears below the chat text input field. Do not modify or remove the circular character counter rendered inside the input field. After removal, verify that no empty space or layout gaps remain in the input area."
         }
       ]
     }

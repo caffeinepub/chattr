@@ -1,80 +1,54 @@
 {
   "kind": "build_request",
-  "title": "Vertically align input area, reduce padding, and hide message IDs visually",
+  "title": "Update action button colors and remove redundant character counter",
   "projectName": "Chattr",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Vertically align all elements within the chat message input area (text input, buttons, character count indicator) so they are centered on the same vertical axis.",
+      "text": "In MessageBubble.tsx, update the font and icon color for the Reply, React, Share, and Report action buttons to match the same gray color used by the message timestamp.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1",
           "msg-6"
         ],
         "quotes": [
-          "Vertically align the input area elements"
+          "Change the font and icon color for the reply react share and report buttons to the same gray as the timestamp"
         ]
       },
       "acceptanceCriteria": [
-        "All elements in the chat input area (text field, send button, attachment buttons, character count indicator) are vertically centered relative to each other.",
-        "No elements appear misaligned or offset vertically in the input row.",
-        "Character count indicator and all action buttons (Reply, React, Share) remain present and functional."
+        "The Reply, React, Share, and Report button labels and icons render in the same gray color as the message timestamp text.",
+        "No other button styles or colors are affected."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Reduce the vertical padding inside the chat message input area to make it more compact without removing any existing controls.",
+      "text": "In MessageInput.tsx, remove the redundant text-based line character counter displayed below the chat text input field. The circular character counter rendered inside the input field must remain visible and functional.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1",
-          "msg-6"
+          "msg-7"
         ],
         "quotes": [
-          "Reduce vertical padding in the chat input area"
+          "remove the redundant line character counter from underneath the chat text input and keep the circular character counter inside the chat input"
         ]
       },
       "acceptanceCriteria": [
-        "The vertical padding (top and bottom) of the chat input container is visibly reduced compared to the current version.",
-        "No controls are removed — character count indicator and all action buttons (Reply, React, Share) remain.",
-        "Input area does not feel cramped or cause overflow."
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "text": "Hide message ID text visually within message bubbles by making it invisible (e.g., via CSS), while keeping the element in the DOM so that share link functionality continues to work.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-1",
-          "msg-3",
-          "msg-6"
-        ],
-        "quotes": [
-          "Hide message IDs visually (keeping them in the DOM for share links)"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Message ID text is not visible to the user inside message bubbles.",
-        "The message ID element is still present in the DOM (not removed via conditional rendering).",
-        "Share link functionality that relies on message IDs continues to work correctly.",
-        "Reply, React, and Share action buttons remain visible and functional."
+        "No character count text or line counter appears below the chat input field.",
+        "The circular character counter inside the chat input remains present and updates correctly as the user types.",
+        "The input area layout is clean with no empty space left by the removed counter."
       ]
     }
   ],
   "constraints": [
-    "Do not remove the character count indicator from the message input area.",
-    "Do not remove or hide the Reply, React, or Share action buttons on message bubbles.",
-    "Message ID elements must remain in the DOM — only hide them visually.",
-    "No backend changes required."
+    "Do not modify any files listed in frontend.immutablePaths.",
+    "Do not alter the circular character counter inside the chat input field.",
+    "Only change the color of the Reply, React, Share, and Report buttons — do not change their size, shape, or layout."
   ],
   "nonGoals": [
-    "Changing any backend logic or data models.",
-    "Modifying share link URL format or message ID encoding.",
-    "Redesigning or restyling any part of the UI beyond the three specified changes.",
-    "Altering message bubble layout beyond hiding message IDs."
+    "Redesigning or repositioning any message action buttons.",
+    "Changing the timestamp color or style.",
+    "Modifying any backend logic."
   ],
   "imageRequirements": {
     "required": [],

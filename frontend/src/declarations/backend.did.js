@@ -47,6 +47,21 @@ export const UserProfile = IDL.Record({
   'anonId' : IDL.Text,
   'avatarUrl' : IDL.Opt(IDL.Text),
 });
+export const Message = IDL.Record({
+  'id' : IDL.Nat,
+  'content' : IDL.Text,
+  'messageId' : IDL.Text,
+  'chatroomId' : IDL.Nat,
+  'sender' : IDL.Text,
+  'mediaUrl' : IDL.Opt(IDL.Text),
+  'reportReasons' : IDL.Vec(IDL.Text),
+  'avatarUrl' : IDL.Opt(IDL.Text),
+  'replyToMessageId' : IDL.Opt(IDL.Nat),
+  'timestamp' : IDL.Int,
+  'mediaType' : IDL.Opt(IDL.Text),
+  'senderId' : IDL.Text,
+  'flagCount' : IDL.Nat,
+});
 export const LobbyChatroomCard = IDL.Record({
   'id' : IDL.Nat,
   'topic' : IDL.Text,
@@ -76,25 +91,14 @@ export const MessageWithReactions = IDL.Record({
   'chatroomId' : IDL.Nat,
   'sender' : IDL.Text,
   'mediaUrl' : IDL.Opt(IDL.Text),
+  'reportReasons' : IDL.Vec(IDL.Text),
   'avatarUrl' : IDL.Opt(IDL.Text),
   'replyToMessageId' : IDL.Opt(IDL.Nat),
   'timestamp' : IDL.Int,
   'mediaType' : IDL.Opt(IDL.Text),
   'reactions' : List_1,
   'senderId' : IDL.Text,
-});
-export const Message = IDL.Record({
-  'id' : IDL.Nat,
-  'content' : IDL.Text,
-  'messageId' : IDL.Text,
-  'chatroomId' : IDL.Nat,
-  'sender' : IDL.Text,
-  'mediaUrl' : IDL.Opt(IDL.Text),
-  'avatarUrl' : IDL.Opt(IDL.Text),
-  'replyToMessageId' : IDL.Opt(IDL.Nat),
-  'timestamp' : IDL.Int,
-  'mediaType' : IDL.Opt(IDL.Text),
-  'senderId' : IDL.Text,
+  'flagCount' : IDL.Nat,
 });
 export const ReplyPreview = IDL.Record({
   'messageId' : IDL.Nat,
@@ -176,6 +180,7 @@ export const idlService = IDL.Service({
       ['query'],
     ),
   'getChatrooms' : IDL.Func([], [IDL.Vec(ChatroomWithLiveStatus)], ['query']),
+  'getFlaggedMessages' : IDL.Func([], [IDL.Vec(Message)], ['query']),
   'getLobbyChatroomCards' : IDL.Func(
       [],
       [IDL.Vec(LobbyChatroomCard)],
@@ -205,6 +210,7 @@ export const idlService = IDL.Service({
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
   'pinVideo' : IDL.Func([IDL.Nat, IDL.Nat], [], []),
   'removeReaction' : IDL.Func([IDL.Nat, IDL.Text, IDL.Text], [], []),
+  'reportMessage' : IDL.Func([IDL.Nat, IDL.Text], [], []),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
   'searchChatrooms' : IDL.Func(
       [IDL.Text],
@@ -277,6 +283,21 @@ export const idlFactory = ({ IDL }) => {
     'anonId' : IDL.Text,
     'avatarUrl' : IDL.Opt(IDL.Text),
   });
+  const Message = IDL.Record({
+    'id' : IDL.Nat,
+    'content' : IDL.Text,
+    'messageId' : IDL.Text,
+    'chatroomId' : IDL.Nat,
+    'sender' : IDL.Text,
+    'mediaUrl' : IDL.Opt(IDL.Text),
+    'reportReasons' : IDL.Vec(IDL.Text),
+    'avatarUrl' : IDL.Opt(IDL.Text),
+    'replyToMessageId' : IDL.Opt(IDL.Nat),
+    'timestamp' : IDL.Int,
+    'mediaType' : IDL.Opt(IDL.Text),
+    'senderId' : IDL.Text,
+    'flagCount' : IDL.Nat,
+  });
   const LobbyChatroomCard = IDL.Record({
     'id' : IDL.Nat,
     'topic' : IDL.Text,
@@ -306,25 +327,14 @@ export const idlFactory = ({ IDL }) => {
     'chatroomId' : IDL.Nat,
     'sender' : IDL.Text,
     'mediaUrl' : IDL.Opt(IDL.Text),
+    'reportReasons' : IDL.Vec(IDL.Text),
     'avatarUrl' : IDL.Opt(IDL.Text),
     'replyToMessageId' : IDL.Opt(IDL.Nat),
     'timestamp' : IDL.Int,
     'mediaType' : IDL.Opt(IDL.Text),
     'reactions' : List_1,
     'senderId' : IDL.Text,
-  });
-  const Message = IDL.Record({
-    'id' : IDL.Nat,
-    'content' : IDL.Text,
-    'messageId' : IDL.Text,
-    'chatroomId' : IDL.Nat,
-    'sender' : IDL.Text,
-    'mediaUrl' : IDL.Opt(IDL.Text),
-    'avatarUrl' : IDL.Opt(IDL.Text),
-    'replyToMessageId' : IDL.Opt(IDL.Nat),
-    'timestamp' : IDL.Int,
-    'mediaType' : IDL.Opt(IDL.Text),
-    'senderId' : IDL.Text,
+    'flagCount' : IDL.Nat,
   });
   const ReplyPreview = IDL.Record({
     'messageId' : IDL.Nat,
@@ -403,6 +413,7 @@ export const idlFactory = ({ IDL }) => {
         ['query'],
       ),
     'getChatrooms' : IDL.Func([], [IDL.Vec(ChatroomWithLiveStatus)], ['query']),
+    'getFlaggedMessages' : IDL.Func([], [IDL.Vec(Message)], ['query']),
     'getLobbyChatroomCards' : IDL.Func(
         [],
         [IDL.Vec(LobbyChatroomCard)],
@@ -432,6 +443,7 @@ export const idlFactory = ({ IDL }) => {
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
     'pinVideo' : IDL.Func([IDL.Nat, IDL.Nat], [], []),
     'removeReaction' : IDL.Func([IDL.Nat, IDL.Text, IDL.Text], [], []),
+    'reportMessage' : IDL.Func([IDL.Nat, IDL.Text], [], []),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
     'searchChatrooms' : IDL.Func(
         [IDL.Text],
