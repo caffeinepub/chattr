@@ -1,19 +1,93 @@
-import React, { useState } from 'react';
-import { Reply, Smile, Share2, Flag, Pin } from 'lucide-react';
-import { useAddReaction, useRemoveReaction, useReportMessage } from '../hooks/useQueries';
-import { MessageWithReactions, Reaction } from '../backend';
+import { useState, useEffect, useRef } from 'react';
+import type { MessageWithReactions, Reaction } from '../backend';
+import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
+import { formatDistanceToNow } from 'date-fns';
+import { X, Pin, Smile, Reply, Share2, ExternalLink, Flag, Check } from 'lucide-react';
+import { Button } from './ui/button';
+import { usePinVideo, useUnpinVideo, useAddReaction, useRemoveReaction, useReportMessage } from '../hooks/useQueries';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from './ui/popover';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from './ui/dropdown-menu';
+import { 
+  getYouTubeVideoId, 
+  getTwitchEmbedUrl,
+  getTwitterPostId,
+  isYouTubeUrl, 
+  isTwitchUrl, 
+  isTwitterUrl 
+} from '../lib/videoUtils';
+import VoiceMessagePlayer from './VoiceMessagePlayer';
+import { toast } from 'sonner';
+import ExternalLinkDisclaimerModal from './ExternalLinkDisclaimerModal';
 
 interface MessageBubbleProps {
   message: MessageWithReactions;
   isOwnMessage: boolean;
   chatroomId: bigint;
-  isPinned?: boolean;
-  onReply: (messageId: bigint, sender: string, contentSnippet: string, mediaThumbnail?: string) => void;
+  isPinned: boolean;
+  onReply?: (messageId: bigint, sender: string, contentSnippet: string, mediaThumbnail?: string) => void;
   onScrollToMessage?: (messageId: bigint) => void;
   allMessages?: MessageWithReactions[];
   isHighlighted?: boolean;
 }
 
+const COMMON_EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '🔥', '👏', '🎉'];
+const REPORT_REASONS = ['Spam', 'Inappropriate', 'Harassment', 'Other'];
+
+// URL detection regex
+const URL_REGEX = /https?:\/\/[^\s<>"{}|\\^`[\]]+/gi;
+
+// Declare Twitter widgets type
+declare global {
+  interface Window {
+    twttr?: {
+      widgets: {
+        load: (element?: HTMLElement) => void;
+        createTweet: (
+          tweetId: string,
+          targetElement: HTMLElement,
+          options?: {
+            theme?: 'light' | 'dark';
+            align?: 'left' | 'center' | 'right';
+            conversation?: 'none' | 'all';
+            dnt?: boolean;
+          }
+        ) => Promise<HTMLElement | undefined>;
+      };
+      ready?: (callback: () => void) => void;
+    };
+  }
+}
+
+// Load Twitter widgets script
+function loadTwitterScript(): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (window.twttr) {
+      resolve();
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = 'https://platform.twitter.com/widgets.js';
+    script.async = true;
+    script.charset = 'utf-8';
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error('Failed to load Twitter widgets script'));
+    document.body.appendChild(script);
+  });
+}
+
+// Convert List to array helper
 function listToArray<T>(list: any): T[] {
   const result: T[] = [];
   let current = list;
@@ -24,256 +98,526 @@ function listToArray<T>(list: any): T[] {
   return result;
 }
 
-function formatTimestamp(timestamp: bigint): string {
-  const ms = Number(timestamp) / 1_000_000;
-  const date = new Date(ms);
-  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+// Get user ID from localStorage
+function getUserId(): string {
+  let userId = localStorage.getItem('chatUserId');
+  if (!userId) {
+    userId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    localStorage.setItem('chatUserId', userId);
+  }
+  return userId;
 }
 
-function getMediaType(mediaType?: string): 'image' | 'youtube' | 'twitch' | 'twitter' | 'audio' | 'gif' | 'giphy' | null {
-  if (!mediaType) return null;
-  if (mediaType === 'image') return 'image';
-  if (mediaType === 'youtube') return 'youtube';
-  if (mediaType === 'twitch') return 'twitch';
-  if (mediaType === 'twitter') return 'twitter';
-  if (mediaType === 'audio') return 'audio';
-  if (mediaType === 'gif') return 'gif';
-  if (mediaType === 'giphy') return 'giphy';
-  return null;
+// Truncate text to specified length
+function truncateText(text: string, maxLength: number): string {
+  if (text.length <= maxLength) return text;
+  return text.substring(0, maxLength) + '...';
 }
 
-function getYouTubeEmbedUrl(url: string): string {
-  const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s]+)/);
-  if (match) return `https://www.youtube.com/embed/${match[1]}`;
-  return url;
+// Check if URL is a Giphy GIF URL
+function isGiphyUrl(url: string): boolean {
+  const lowerUrl = url.toLowerCase();
+  return lowerUrl.includes('giphy.com') || lowerUrl.includes('media.giphy.com') || lowerUrl.includes('i.giphy.com');
 }
 
-function getTwitchEmbedUrl(url: string): string {
-  const channelMatch = url.match(/twitch\.tv\/([^/?]+)/);
-  const clipMatch = url.match(/clips\.twitch\.tv\/([^/?]+)/);
-  const parent = window.location.hostname;
-  if (clipMatch) return `https://clips.twitch.tv/embed?clip=${clipMatch[1]}&parent=${parent}`;
-  if (channelMatch) return `https://player.twitch.tv/?channel=${channelMatch[1]}&parent=${parent}`;
-  return url;
+// Render text with detected links
+function renderTextWithLinks(
+  text: string,
+  onLinkClick: (url: string) => void,
+  isOwnMessage: boolean
+): React.ReactNode[] {
+  const parts: React.ReactNode[] = [];
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+  const regex = new RegExp(URL_REGEX.source, 'gi');
+
+  while ((match = regex.exec(text)) !== null) {
+    const url = match[0];
+    const start = match.index;
+
+    if (start > lastIndex) {
+      parts.push(text.slice(lastIndex, start));
+    }
+
+    parts.push(
+      <span
+        key={start}
+        className="inline-flex items-center gap-0.5 cursor-pointer underline underline-offset-2 break-all"
+        style={{ color: isOwnMessage ? 'inherit' : undefined }}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onLinkClick(url);
+        }}
+      >
+        <ExternalLink className="inline h-3.5 w-3.5 flex-shrink-0" />
+        {url}
+      </span>
+    );
+
+    lastIndex = start + url.length;
+  }
+
+  if (lastIndex < text.length) {
+    parts.push(text.slice(lastIndex));
+  }
+
+  return parts;
 }
 
-const EMOJI_OPTIONS = ['👍', '❤️', '😂', '😮', '😢', '🔥'];
+// ─── Report Button ────────────────────────────────────────────────────────────
 
-export default function MessageBubble({
-  message,
-  isOwnMessage,
-  chatroomId,
-  isPinned = false,
+function ReportButton({ messageId }: { messageId: bigint }) {
+  const reportMutation = useReportMessage();
+  const [reported, setReported] = useState(false);
+
+  const handleReport = async (reason: string) => {
+    if (reported) return;
+    try {
+      await reportMutation.mutateAsync({ messageId, reason });
+      setReported(true);
+      setTimeout(() => setReported(false), 3000);
+    } catch {
+      // silent
+    }
+  };
+
+  if (reported) {
+    return (
+      <span className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400 px-1">
+        <Check className="h-3 w-3" />
+        Reported
+      </span>
+    );
+  }
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          className="flex items-center gap-1 rounded px-2 py-1 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:bg-muted hover:text-foreground"
+          title="Flag"
+          disabled={reportMutation.isPending}
+        >
+          <Flag className="h-3.5 w-3.5" />
+          <span className="text-xs">Flag</span>
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-40">
+        <DropdownMenuLabel className="text-xs">Report reason</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        {REPORT_REASONS.map((reason) => (
+          <DropdownMenuItem
+            key={reason}
+            onClick={() => handleReport(reason)}
+            className="cursor-pointer text-sm"
+          >
+            {reason}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+// ─── MessageBubble ────────────────────────────────────────────────────────────
+
+export default function MessageBubble({ 
+  message, 
+  isOwnMessage, 
+  chatroomId, 
+  isPinned, 
   onReply,
   onScrollToMessage,
-  allMessages = [],
-  isHighlighted = false,
+  allMessages,
+  isHighlighted 
 }: MessageBubbleProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const [showReportDialog, setShowReportDialog] = useState(false);
-  const [reportReason, setReportReason] = useState('');
-  const [showActions, setShowActions] = useState(false);
+  const [tweetLoading, setTweetLoading] = useState(true);
+  const [disclaimerOpen, setDisclaimerOpen] = useState(false);
+  const [pendingUrl, setPendingUrl] = useState<string | null>(null);
+  const tweetContainerRef = useRef<HTMLDivElement>(null);
+  const pinVideo = usePinVideo();
+  const unpinVideo = useUnpinVideo();
+  const addReaction = useAddReaction();
+  const removeReaction = useRemoveReaction();
 
-  const userId = localStorage.getItem('chatUserId') || 'anonymous';
-  const chatroomIdStr = chatroomId.toString();
+  const getInitials = (name: string) => {
+    if (!name) return '?';
+    return name
+      .split(' ')
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
 
-  const addReactionMutation = useAddReaction();
-  const removeReactionMutation = useRemoveReaction();
-  const reportMessageMutation = useReportMessage();
+  const formatTimestamp = (timestamp: bigint) => {
+    const date = new Date(Number(timestamp) / 1000000);
+    const distance = formatDistanceToNow(date, { addSuffix: true });
+    return distance.replace(/^about\s+/i, '');
+  };
 
-  const reactions = listToArray<Reaction>(message.reactions);
+  const hasVideo = message.mediaType && (
+    (message.mediaType === 'youtube' && message.mediaUrl && isYouTubeUrl(message.mediaUrl)) ||
+    (message.mediaType === 'twitch' && message.mediaUrl && isTwitchUrl(message.mediaUrl))
+  );
 
-  const isCreatorMessage = message.sender === 'Creator' && message.senderId === 'creator';
-
-  const replyToMessage = message.replyToMessageId
-    ? allMessages.find(m => m.id === message.replyToMessageId)
-    : null;
-
-  const handleReaction = (emoji: string) => {
-    const existingReaction = reactions.find(r => r.emoji === emoji);
-    const hasReacted = existingReaction
-      ? listToArray<string>(existingReaction.users).includes(userId)
-      : false;
-
-    if (hasReacted) {
-      removeReactionMutation.mutate({ messageId: message.id, emoji, chatroomId: chatroomIdStr });
+  const handlePinToggle = async () => {
+    if (isPinned) {
+      await unpinVideo.mutateAsync(chatroomId);
     } else {
-      addReactionMutation.mutate({ messageId: message.id, emoji, chatroomId: chatroomIdStr });
+      await pinVideo.mutateAsync({ chatroomId, messageId: message.id });
     }
+  };
+
+  const handleReaction = async (emoji: string) => {
+    const userId = getUserId();
+    const reactions = listToArray<Reaction>(message.reactions);
+    const existingReaction = reactions.find((r) => r.emoji === emoji);
+    const chatroomIdStr = chatroomId.toString();
+    
+    if (existingReaction) {
+      const users = listToArray<string>(existingReaction.users);
+      if (users.includes(userId)) {
+        await removeReaction.mutateAsync({ messageId: message.id, emoji, chatroomId: chatroomIdStr });
+      } else {
+        await addReaction.mutateAsync({ messageId: message.id, emoji, chatroomId: chatroomIdStr });
+      }
+    } else {
+      await addReaction.mutateAsync({ messageId: message.id, emoji, chatroomId: chatroomIdStr });
+    }
+    
     setShowEmojiPicker(false);
   };
 
-  const handleReport = () => {
-    if (!reportReason.trim()) return;
-    reportMessageMutation.mutate(
-      { messageId: message.id, reason: reportReason },
-      {
-        onSuccess: () => {
-          setShowReportDialog(false);
-          setReportReason('');
-        },
+  const handleReplyClick = () => {
+    if (!onReply) return;
+    
+    const contentSnippet = truncateText(message.content, 100);
+    
+    let mediaThumbnail: string | undefined;
+    if (message.mediaUrl && message.mediaType) {
+      if (message.mediaType === 'image') {
+        mediaThumbnail = message.mediaUrl;
+      } else if (message.mediaType === 'giphy' && isGiphyUrl(message.mediaUrl)) {
+        mediaThumbnail = message.mediaUrl;
+      } else if (message.mediaType === 'youtube' && isYouTubeUrl(message.mediaUrl)) {
+        const videoId = getYouTubeVideoId(message.mediaUrl);
+        if (videoId) {
+          mediaThumbnail = `https://img.youtube.com/vi/${videoId}/default.jpg`;
+        }
+      } else if (message.mediaType === 'twitch' && isTwitchUrl(message.mediaUrl)) {
+        mediaThumbnail = '/assets/generated/twitch-icon-transparent.dim_32x32.png';
+      } else if (message.mediaType === 'twitter' && isTwitterUrl(message.mediaUrl)) {
+        mediaThumbnail = '/assets/generated/twitter-icon-transparent.dim_32x32.png';
+      } else if (message.mediaType === 'audio') {
+        mediaThumbnail = '/assets/generated/audio-waveform-icon-transparent.dim_24x24.png';
       }
+    }
+    
+    onReply(message.id, message.sender, contentSnippet, mediaThumbnail);
+  };
+
+  const handleShareClick = async () => {
+    const paddedMessageId = message.id.toString().padStart(9, '0');
+    const url = `${window.location.origin}/chatroom/${chatroomId}?messageId=${paddedMessageId}`;
+    
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success('Link copied to clipboard!');
+    } catch {
+      toast.error('Failed to copy link');
+    }
+  };
+
+  const handleLinkClick = (url: string) => {
+    setPendingUrl(url);
+    setDisclaimerOpen(true);
+  };
+
+  const handleDisclaimerConfirm = () => {
+    if (pendingUrl) {
+      window.open(pendingUrl, '_blank', 'noopener,noreferrer');
+    }
+    setDisclaimerOpen(false);
+    setPendingUrl(null);
+  };
+
+  const handleDisclaimerClose = () => {
+    setDisclaimerOpen(false);
+    setPendingUrl(null);
+  };
+
+  // Load Twitter embed when message contains Twitter URL
+  useEffect(() => {
+    if (message.mediaType === 'twitter' && message.mediaUrl && isTwitterUrl(message.mediaUrl)) {
+      const tweetId = getTwitterPostId(message.mediaUrl);
+      if (tweetId && tweetContainerRef.current) {
+        setTweetLoading(true);
+        
+        loadTwitterScript()
+          .then(() => {
+            if (window.twttr && tweetContainerRef.current) {
+              const isDark = document.documentElement.classList.contains('dark');
+              
+              window.twttr.widgets.createTweet(
+                tweetId,
+                tweetContainerRef.current,
+                {
+                  theme: isDark ? 'dark' : 'light',
+                  align: 'center',
+                  conversation: 'none',
+                  dnt: true,
+                }
+              ).then(() => {
+                setTweetLoading(false);
+              }).catch(() => {
+                setTweetLoading(false);
+              });
+            }
+          })
+          .catch(() => {
+            setTweetLoading(false);
+          });
+      }
+    }
+  }, [message.mediaType, message.mediaUrl]);
+
+  // Find the message this is replying to
+  const parentMessage = message.replyToMessageId && allMessages
+    ? allMessages.find((m) => m.id === message.replyToMessageId)
+    : null;
+
+  const renderMedia = () => {
+    if (!message.mediaUrl || !message.mediaType) return null;
+
+    const mediaUrl = message.mediaUrl;
+
+    if (message.mediaType === 'giphy' && isGiphyUrl(mediaUrl)) {
+      return (
+        <div className="mt-2 w-full max-w-[300px]">
+          <img
+            src={mediaUrl}
+            alt="GIF"
+            className="w-full rounded-lg object-cover cursor-pointer hover:opacity-90 transition-opacity"
+            onClick={() => setIsExpanded(true)}
+          />
+        </div>
+      );
+    }
+
+    if (message.mediaType === 'youtube' && isYouTubeUrl(mediaUrl)) {
+      const videoId = getYouTubeVideoId(mediaUrl);
+      if (videoId) {
+        return (
+          <div className="mt-2 w-full max-w-[600px]">
+            <div className="relative aspect-video w-full overflow-hidden rounded-lg">
+              <iframe
+                src={`https://www.youtube.com/embed/${videoId}`}
+                title="YouTube video"
+                className="h-full w-full"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
+            <div className="mt-2 flex justify-end">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handlePinToggle}
+                disabled={pinVideo.isPending || unpinVideo.isPending}
+                className="gap-2 text-xs"
+              >
+                <Pin className={`h-3 w-3 ${isPinned ? 'fill-current' : ''}`} />
+                {isPinned ? 'Unpin' : 'Pin'}
+              </Button>
+            </div>
+          </div>
+        );
+      }
+    }
+
+    if (message.mediaType === 'twitch' && isTwitchUrl(mediaUrl)) {
+      const embedUrl = getTwitchEmbedUrl(mediaUrl);
+      if (embedUrl) {
+        return (
+          <div className="mt-2 w-full max-w-[600px]">
+            <div className="relative aspect-video w-full overflow-hidden rounded-lg">
+              <iframe
+                src={embedUrl}
+                title="Twitch video"
+                className="h-full w-full"
+                allowFullScreen
+              />
+            </div>
+            <div className="mt-2 flex justify-end">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handlePinToggle}
+                disabled={pinVideo.isPending || unpinVideo.isPending}
+                className="gap-2 text-xs"
+              >
+                <Pin className={`h-3 w-3 ${isPinned ? 'fill-current' : ''}`} />
+                {isPinned ? 'Unpin' : 'Pin'}
+              </Button>
+            </div>
+          </div>
+        );
+      }
+    }
+
+    if (message.mediaType === 'twitter' && isTwitterUrl(mediaUrl)) {
+      const postId = getTwitterPostId(mediaUrl);
+      if (postId) {
+        return (
+          <div className="mt-2 w-full twitter-embed-container" style={{ maxWidth: '300px' }}>
+            <div 
+              ref={tweetContainerRef}
+              className="rounded-lg overflow-hidden"
+              style={{ maxWidth: '300px', overflow: 'hidden' }}
+            />
+            {tweetLoading && (
+              <div className="rounded-lg border border-border bg-card p-4">
+                <div className="flex items-center justify-center">
+                  <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                  <span className="ml-2 text-sm text-muted-foreground">Loading tweet...</span>
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      }
+    }
+
+    if (message.mediaType === 'audio') {
+      return <VoiceMessagePlayer audioUrl={mediaUrl} isOwnMessage={isOwnMessage} />;
+    }
+
+    if (message.mediaType === 'image') {
+      return (
+        <div className="mt-2 w-full max-w-[300px]">
+          <img
+            src={mediaUrl}
+            alt="Uploaded media"
+            className="w-full rounded-lg object-cover cursor-pointer hover:opacity-90 transition-opacity"
+            onClick={() => setIsExpanded(true)}
+          />
+        </div>
+      );
+    }
+
+    return null;
+  };
+
+  const renderExpandedMedia = () => {
+    if (!isExpanded || !message.mediaUrl || !message.mediaType) return null;
+    if (message.mediaType !== 'image' && message.mediaType !== 'giphy') return null;
+
+    const mediaUrl = message.mediaUrl;
+
+    return (
+      <div 
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+        onClick={() => setIsExpanded(false)}
+      >
+        <button
+          className="absolute top-4 right-4 z-10 rounded-full bg-white/10 p-2 text-white hover:bg-white/20 transition-colors"
+          onClick={() => setIsExpanded(false)}
+          aria-label="Close"
+        >
+          <X className="h-6 w-6" />
+        </button>
+
+        <div 
+          className="relative max-h-[90vh] max-w-[90vw] w-full flex items-center justify-center"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <img
+            src={mediaUrl}
+            alt="Expanded media"
+            className="max-h-[90vh] max-w-full rounded-lg object-contain"
+          />
+        </div>
+      </div>
     );
   };
 
-  const handleShare = () => {
-    const paddedMessageId = message.id.toString().padStart(9, '0');
-    const url = `${window.location.origin}/chatroom/${chatroomId}?messageId=${paddedMessageId}`;
-    navigator.clipboard.writeText(url).catch(() => {});
-  };
+  const reactions = listToArray<Reaction>(message.reactions);
+  const userId = getUserId();
 
-  const handleReplyClick = () => {
-    const contentSnippet = message.mediaUrl ? '📎 Media' : message.content;
-    onReply(message.id, message.sender, contentSnippet, message.mediaUrl ?? undefined);
-  };
-
-  const mediaType = getMediaType(message.mediaType);
-  const avatarUrl = message.avatarUrl;
-  const senderInitial = message.sender ? message.sender.charAt(0).toUpperCase() : '?';
+  // Check if Creator message without media (filter these out)
+  if (message.sender === 'Creator' && message.senderId === 'creator' && !message.mediaUrl) {
+    return null;
+  }
 
   return (
     <div
-      className={`flex gap-2 group mb-1 ${isOwnMessage ? 'flex-row-reverse' : 'flex-row'} ${
-        isHighlighted ? 'rounded-xl bg-primary/10 transition-colors duration-500' : ''
+      className={`group relative flex gap-3 ${isOwnMessage ? 'flex-row-reverse' : 'flex-row'} ${
+        isHighlighted ? 'rounded-xl bg-primary/10 px-2 py-1 transition-colors duration-300' : ''
       }`}
-      onMouseEnter={() => setShowActions(true)}
-      onMouseLeave={() => {
-        setShowActions(false);
-        setShowEmojiPicker(false);
-      }}
     >
-      {/* Avatar - other user */}
-      {!isOwnMessage && (
-        <div className="flex-shrink-0 w-8 h-8 rounded-full overflow-hidden bg-primary flex items-center justify-center text-primary-foreground text-xs font-bold self-end mb-1">
-          {avatarUrl ? (
-            <img src={avatarUrl} alt={message.sender} className="w-full h-full object-cover" />
-          ) : (
-            <span>{senderInitial}</span>
-          )}
+      {/* Avatar */}
+      <div className="flex-shrink-0">
+        <Avatar className="h-8 w-8">
+          {message.avatarUrl && <AvatarImage src={message.avatarUrl} alt={message.sender} />}
+          <AvatarFallback className="text-xs">{getInitials(message.sender)}</AvatarFallback>
+        </Avatar>
+      </div>
+
+      {/* Message content */}
+      <div className={`flex min-w-0 max-w-[75%] flex-col ${isOwnMessage ? 'items-end' : 'items-start'}`}>
+        {/* Sender + timestamp */}
+        <div className={`mb-1 flex items-center gap-2 ${isOwnMessage ? 'flex-row-reverse' : 'flex-row'}`}>
+          <span className="text-xs font-semibold text-foreground/70">{message.sender}</span>
+          <span className="text-xs text-muted-foreground">{formatTimestamp(message.timestamp)}</span>
         </div>
-      )}
-
-      <div className={`flex flex-col max-w-[75%] ${isOwnMessage ? 'items-end' : 'items-start'}`}>
-        {/* Sender name + timestamp */}
-        {!isOwnMessage && !isCreatorMessage && (
-          <div className="flex items-center gap-1.5 mb-0.5 px-1">
-            <span className="text-xs font-semibold text-foreground">{message.sender}</span>
-            <span className="text-xs text-muted-foreground">{formatTimestamp(message.timestamp)}</span>
-            {isPinned && (
-              <span className="flex items-center gap-0.5 text-xs text-muted-foreground">
-                <Pin className="w-3 h-3" />
-              </span>
-            )}
-          </div>
-        )}
-
-        {isOwnMessage && (
-          <div className="flex items-center gap-1.5 mb-0.5 px-1">
-            <span className="text-xs text-muted-foreground">{formatTimestamp(message.timestamp)}</span>
-          </div>
-        )}
 
         {/* Reply preview */}
-        {replyToMessage && (
-          <button
-            onClick={() => onScrollToMessage && onScrollToMessage(replyToMessage.id)}
-            className={`mb-1 px-2 py-1 rounded-lg border-l-2 border-primary bg-muted/50 text-xs text-muted-foreground max-w-full text-left hover:bg-muted transition-colors ${isOwnMessage ? 'self-end' : 'self-start'}`}
+        {parentMessage && (
+          <div
+            className="mb-1 cursor-pointer rounded-lg border-l-2 border-primary/50 bg-muted/50 px-2 py-1 text-xs text-muted-foreground hover:bg-muted transition-colors"
+            onClick={() => onScrollToMessage && onScrollToMessage(parentMessage.id)}
           >
-            <span className="font-semibold text-foreground">{replyToMessage.sender}</span>
-            <span className="ml-1 truncate block max-w-[200px]">
-              {replyToMessage.mediaUrl ? '📎 Media' : replyToMessage.content}
-            </span>
-          </button>
+            <span className="font-medium">{parentMessage.sender}: </span>
+            <span>{truncateText(parentMessage.content, 60)}</span>
+          </div>
         )}
 
-        {/* Message bubble */}
+        {/* Bubble */}
         <div
-          className={`relative rounded-2xl px-3 py-2 text-sm break-words ${
-            isCreatorMessage
-              ? 'bg-transparent p-0'
-              : isOwnMessage
-              ? 'bg-primary text-primary-foreground rounded-tr-sm'
-              : 'bg-card border border-border text-foreground rounded-tl-sm'
+          className={`rounded-2xl px-3 py-2 text-sm ${
+            isOwnMessage
+              ? 'rounded-tr-sm bg-primary text-primary-foreground'
+              : 'rounded-tl-sm bg-muted text-foreground'
           }`}
         >
-          {/* Media content */}
-          {message.mediaUrl && (mediaType === 'image') && (
-            <div className="mb-1 rounded-xl overflow-hidden max-w-[280px]">
-              <img
-                src={message.mediaUrl}
-                alt="Shared image"
-                className="w-full h-auto object-cover"
-                loading="lazy"
-              />
-            </div>
+          {message.content && message.sender !== 'Creator' && (
+            <p className="whitespace-pre-wrap break-words leading-relaxed">
+              {renderTextWithLinks(message.content, handleLinkClick, isOwnMessage)}
+            </p>
           )}
-
-          {message.mediaUrl && (mediaType === 'gif' || mediaType === 'giphy') && (
-            <div className="mb-1 rounded-xl overflow-hidden max-w-[280px]">
-              <img
-                src={message.mediaUrl}
-                alt="GIF"
-                className="w-full h-auto object-cover"
-                loading="lazy"
-              />
-            </div>
-          )}
-
-          {message.mediaUrl && mediaType === 'youtube' && (
-            <div className="mb-1 rounded-xl overflow-hidden w-[280px]">
-              <div className="relative" style={{ paddingBottom: '56.25%' }}>
-                <iframe
-                  src={getYouTubeEmbedUrl(message.mediaUrl)}
-                  className="absolute inset-0 w-full h-full"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  title="YouTube video"
-                />
-              </div>
-            </div>
-          )}
-
-          {message.mediaUrl && mediaType === 'twitch' && (
-            <div className="mb-1 rounded-xl overflow-hidden w-[280px]">
-              <div className="relative" style={{ paddingBottom: '56.25%' }}>
-                <iframe
-                  src={getTwitchEmbedUrl(message.mediaUrl)}
-                  className="absolute inset-0 w-full h-full"
-                  allowFullScreen
-                  title="Twitch stream"
-                />
-              </div>
-            </div>
-          )}
-
-          {message.mediaUrl && mediaType === 'audio' && (
-            <div className="mb-1">
-              <audio controls src={message.mediaUrl} className="max-w-[240px]" />
-            </div>
-          )}
-
-          {/* Text content */}
-          {!isCreatorMessage && message.content && (
-            <p className="leading-relaxed whitespace-pre-wrap">{message.content}</p>
-          )}
+          {renderMedia()}
         </div>
 
-        {/* Reactions display */}
+        {/* Reactions */}
         {reactions.length > 0 && (
-          <div className={`flex flex-wrap gap-1 mt-1 px-1 ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
+          <div className="mt-1 flex flex-wrap gap-1">
             {reactions
-              .filter(r => Number(r.count) > 0)
-              .map(reaction => {
-                const users = listToArray<string>(reaction.users);
-                const hasReacted = users.includes(userId);
+              .filter((r) => Number(r.count) > 0)
+              .map((reaction) => {
+                const reactionUsers = listToArray<string>(reaction.users);
+                const hasReacted = reactionUsers.includes(userId);
                 return (
                   <button
                     key={reaction.emoji}
                     onClick={() => handleReaction(reaction.emoji)}
-                    className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-xs border transition-colors ${
+                    className={`flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs transition-colors ${
                       hasReacted
-                        ? 'bg-primary/20 border-primary text-primary'
-                        : 'bg-muted border-border text-muted-foreground hover:bg-muted/80'
+                        ? 'border-primary/40 bg-primary/20 text-primary'
+                        : 'border-border bg-muted hover:bg-muted/80'
                     }`}
                   >
                     <span>{reaction.emoji}</span>
@@ -284,119 +628,67 @@ export default function MessageBubble({
           </div>
         )}
 
-        {/* Action buttons — Reply, React, Share, Report all use text-muted-foreground to match timestamp */}
-        {!isCreatorMessage && (
-          <div
-            className={`flex items-center gap-1 mt-1 px-1 transition-opacity duration-150 ${
-              showActions ? 'opacity-100' : 'opacity-0 pointer-events-none'
-            } ${isOwnMessage ? 'flex-row-reverse' : 'flex-row'}`}
+        {/* Action buttons - visible on hover */}
+        <div className={`mt-1 flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 ${isOwnMessage ? 'flex-row-reverse' : 'flex-row'}`}>
+          {/* Reply */}
+          <button
+            onClick={handleReplyClick}
+            className="flex items-center gap-1 rounded px-2 py-1 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:bg-muted hover:text-foreground"
+            title="Reply"
           >
-            {/* Reply */}
-            <button
-              onClick={handleReplyClick}
-              className="flex items-center gap-1 px-2 py-1 rounded-full text-xs text-muted-foreground hover:bg-muted transition-colors"
-            >
-              <Reply className="w-3 h-3" />
-              <span>Reply</span>
-            </button>
+            <Reply className="h-3.5 w-3.5" />
+            <span className="text-xs">Reply</span>
+          </button>
 
-            {/* React */}
-            <div className="relative">
+          {/* React */}
+          <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
+            <PopoverTrigger asChild>
               <button
-                onClick={() => setShowEmojiPicker(prev => !prev)}
-                className="flex items-center gap-1 px-2 py-1 rounded-full text-xs text-muted-foreground hover:bg-muted transition-colors"
+                className="flex items-center gap-1 rounded px-2 py-1 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:bg-muted hover:text-foreground"
+                title="React"
               >
-                <Smile className="w-3 h-3" />
-                <span>React</span>
+                <Smile className="h-3.5 w-3.5" />
+                <span className="text-xs">React</span>
               </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-2" side="top" align="start">
+              <div className="flex flex-wrap gap-1" style={{ maxWidth: '200px' }}>
+                {COMMON_EMOJIS.map((emoji) => (
+                  <button
+                    key={emoji}
+                    onClick={() => handleReaction(emoji)}
+                    className="rounded p-1 text-lg transition-transform hover:scale-125 hover:bg-muted"
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+            </PopoverContent>
+          </Popover>
 
-              {showEmojiPicker && (
-                <div
-                  className={`absolute bottom-full mb-1 bg-card border border-border rounded-xl shadow-lg p-1.5 flex gap-1 z-50 ${
-                    isOwnMessage ? 'right-0' : 'left-0'
-                  }`}
-                >
-                  {EMOJI_OPTIONS.map(emoji => (
-                    <button
-                      key={emoji}
-                      onClick={() => handleReaction(emoji)}
-                      className="text-base hover:scale-125 transition-transform p-0.5"
-                    >
-                      {emoji}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+          {/* Share */}
+          <button
+            onClick={handleShareClick}
+            className="flex items-center gap-1 rounded px-2 py-1 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:bg-muted hover:text-foreground"
+            title="Share"
+          >
+            <Share2 className="h-3.5 w-3.5" />
+            <span className="text-xs">Share</span>
+          </button>
 
-            {/* Share */}
-            <button
-              onClick={handleShare}
-              className="flex items-center gap-1 px-2 py-1 rounded-full text-xs text-muted-foreground hover:bg-muted transition-colors"
-            >
-              <Share2 className="w-3 h-3" />
-              <span>Share</span>
-            </button>
-
-            {/* Report */}
-            <button
-              onClick={() => setShowReportDialog(true)}
-              className="flex items-center gap-1 px-2 py-1 rounded-full text-xs text-muted-foreground hover:bg-muted transition-colors"
-            >
-              <Flag className="w-3 h-3" />
-              <span>Report</span>
-            </button>
-          </div>
-        )}
+          {/* Flag */}
+          <ReportButton messageId={message.id} />
+        </div>
       </div>
 
-      {/* Avatar - own message */}
-      {isOwnMessage && (
-        <div className="flex-shrink-0 w-8 h-8 rounded-full overflow-hidden bg-primary flex items-center justify-center text-primary-foreground text-xs font-bold self-end mb-1">
-          {avatarUrl ? (
-            <img src={avatarUrl} alt={message.sender} className="w-full h-full object-cover" />
-          ) : (
-            <span>{senderInitial}</span>
-          )}
-        </div>
-      )}
+      {renderExpandedMedia()}
 
-      {/* Report Dialog */}
-      {showReportDialog && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-          onClick={() => setShowReportDialog(false)}
-        >
-          <div
-            className="bg-card border border-border rounded-2xl p-4 w-80 shadow-xl"
-            onClick={e => e.stopPropagation()}
-          >
-            <h3 className="font-semibold text-foreground mb-2">Report Message</h3>
-            <p className="text-xs text-muted-foreground mb-3">Why are you reporting this message?</p>
-            <textarea
-              value={reportReason}
-              onChange={e => setReportReason(e.target.value)}
-              placeholder="Describe the issue..."
-              className="w-full border border-border rounded-xl p-2 text-sm bg-background text-foreground resize-none h-20 focus:outline-none focus:ring-1 focus:ring-primary"
-            />
-            <div className="flex gap-2 mt-3 justify-end">
-              <button
-                onClick={() => { setShowReportDialog(false); setReportReason(''); }}
-                className="px-3 py-1.5 rounded-full text-sm text-muted-foreground hover:bg-muted transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleReport}
-                disabled={!reportReason.trim() || reportMessageMutation.isPending}
-                className="px-3 py-1.5 rounded-full text-sm bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors disabled:opacity-50"
-              >
-                {reportMessageMutation.isPending ? 'Reporting...' : 'Report'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ExternalLinkDisclaimerModal
+        isOpen={disclaimerOpen}
+        targetUrl={pendingUrl ?? ''}
+        onClose={handleDisclaimerClose}
+        onConfirm={handleDisclaimerConfirm}
+      />
     </div>
   );
 }

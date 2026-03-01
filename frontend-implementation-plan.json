@@ -1,36 +1,40 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Update action button colors and remove redundant character counter",
+  "title": "Add labels to action buttons and remove character count text from message input",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Update action button colors in MessageBubble to match timestamp gray",
+      "summary": "Add visible text labels ('Reply', 'React', 'Share', 'Flag') to the four message action buttons in MessageBubble.tsx alongside their existing icons",
       "acceptanceCriteria": [
-        "The Reply, React, Share, and Report button labels and icons render in the same gray color as the message timestamp text.",
-        "No other button styles or colors are affected."
+        "The Reply action button displays the text label 'Reply'",
+        "The React action button displays the text label 'React'",
+        "The Share action button displays the text label 'Share'",
+        "The Flag action button displays the text label 'Flag'",
+        "Each label is visible alongside the button's icon",
+        "No other changes are made to the buttons (size, color, behavior, layout remain the same)"
       ],
       "file_operations": [
         {
           "path": "frontend/src/components/MessageBubble.tsx",
           "operation": "modify",
-          "description": "Update the color classes for the Reply, React, Share, and Report action buttons (both icon and text) to use the same gray color token currently applied to the message timestamp. Locate the timestamp element to identify its exact color class (likely text-muted-foreground or similar), then apply that same class to the four action buttons. Ensure only the color changes—preserve all other styles including size, layout, hover states, and spacing."
+          "description": "Add text labels 'Reply', 'React', 'Share', and 'Flag' to each of the four message action buttons. Display each label alongside its corresponding icon without modifying button size, color, behavior, or layout. Ensure the labels are visible and properly aligned with their icons."
         }
       ]
     },
     {
       "id": "REQ-2",
-      "summary": "Remove redundant text-based character counter below chat input",
+      "summary": "Remove the numeric character count text display from the message input area in MessageInput.tsx while keeping any non-text counter indicator (e.g., progress ring)",
       "acceptanceCriteria": [
-        "No character count text or line counter appears below the chat input field.",
-        "The circular character counter inside the chat input remains present and updates correctly as the user types.",
-        "The input area layout is clean with no empty space left by the removed counter."
+        "No numeric character count text is rendered in the message input area",
+        "Any non-text counter indicator (e.g., ring, bar) may remain if present",
+        "No other changes are made to the message input component"
       ],
       "file_operations": [
         {
           "path": "frontend/src/components/MessageInput.tsx",
           "operation": "modify",
-          "description": "Remove the text-based character counter line that appears below the chat text input field. Do not modify or remove the circular character counter rendered inside the input field. After removal, verify that no empty space or layout gaps remain in the input area."
+          "description": "Remove the numeric character count text from the character counter display in the message input area. If a visual counter indicator (such as a progress ring or bar) exists, keep it intact. Only remove the text that shows the numeric character count value."
         }
       ]
     }

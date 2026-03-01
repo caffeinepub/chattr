@@ -1,10 +1,10 @@
 # Specification
 
 ## Summary
-**Goal:** Polish the message bubble action buttons and clean up the chat input area by unifying colors and removing redundant UI elements.
+**Goal:** Add text labels to message action buttons and remove the numeric character count text from the message input area.
 
 **Planned changes:**
-- In `MessageBubble.tsx`, update the font and icon color of the Reply, React, Share, and Report action buttons to match the gray color used by the message timestamp.
-- In `MessageInput.tsx`, remove the text-based line character counter displayed below the chat input field while keeping the circular character counter inside the input intact.
+- Add visible text labels ("Reply", "React", "Share", "Flag") alongside the existing icons on the four message action buttons in MessageBubble.tsx
+- Remove the numeric character count text from the character counter in MessageInput.tsx (non-text indicator such as a progress ring may remain)
 
-**User-visible outcome:** Action buttons in message bubbles will have a consistent gray color matching the timestamp, and the chat input area will no longer show a redundant character counter below the field.
+**User-visible outcome:** Message action buttons now display their names next to their icons, and the message input no longer shows a numeric character count.

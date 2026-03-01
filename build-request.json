@@ -1,54 +1,58 @@
 {
   "kind": "build_request",
-  "title": "Update action button colors and remove redundant character counter",
+  "title": "Add labels to action buttons and remove character count text from message input",
   "projectName": "Chattr",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "In MessageBubble.tsx, update the font and icon color for the Reply, React, Share, and Report action buttons to match the same gray color used by the message timestamp.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-6"
-        ],
-        "quotes": [
-          "Change the font and icon color for the reply react share and report buttons to the same gray as the timestamp"
-        ]
-      },
-      "acceptanceCriteria": [
-        "The Reply, React, Share, and Report button labels and icons render in the same gray color as the message timestamp text.",
-        "No other button styles or colors are affected."
-      ]
-    },
-    {
-      "id": "REQ-2",
-      "text": "In MessageInput.tsx, remove the redundant text-based line character counter displayed below the chat text input field. The circular character counter rendered inside the input field must remain visible and functional.",
+      "text": "Add visible text labels to the four message action buttons in MessageBubble.tsx: 'Reply', 'React', 'Share', and 'Flag'. Each label should appear alongside its existing icon.",
       "target": "frontend",
       "source": {
         "messageIds": [
           "msg-7"
         ],
         "quotes": [
-          "remove the redundant line character counter from underneath the chat text input and keep the circular character counter inside the chat input"
+          "add labels to the action buttons. Reply, React, Share, Flag"
         ]
       },
       "acceptanceCriteria": [
-        "No character count text or line counter appears below the chat input field.",
-        "The circular character counter inside the chat input remains present and updates correctly as the user types.",
-        "The input area layout is clean with no empty space left by the removed counter."
+        "The Reply action button displays the text label 'Reply'",
+        "The React action button displays the text label 'React'",
+        "The Share action button displays the text label 'Share'",
+        "The Flag action button displays the text label 'Flag'",
+        "Each label is visible alongside the button's icon",
+        "No other changes are made to the buttons (size, color, behavior, layout remain the same)"
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "text": "Remove the character count text display from the character counter in the message input area in MessageInput.tsx. The counter element itself (e.g., progress ring or indicator) may remain, but the numeric character count text must not be shown.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-7"
+        ],
+        "quotes": [
+          "remove the character count text from the character counter in the message input area"
+        ]
+      },
+      "acceptanceCriteria": [
+        "No numeric character count text is rendered in the message input area",
+        "Any non-text counter indicator (e.g., ring, bar) may remain if present",
+        "No other changes are made to the message input component"
       ]
     }
   ],
   "constraints": [
-    "Do not modify any files listed in frontend.immutablePaths.",
-    "Do not alter the circular character counter inside the chat input field.",
-    "Only change the color of the Reply, React, Share, and Report buttons — do not change their size, shape, or layout."
+    "Do not make any changes other than those specified in REQ-1 and REQ-2",
+    "Do not modify any backend files",
+    "Do not alter button behavior, sizing, colors, or layout beyond adding the text labels"
   ],
   "nonGoals": [
-    "Redesigning or repositioning any message action buttons.",
-    "Changing the timestamp color or style.",
-    "Modifying any backend logic."
+    "Redesigning or restyling the action buttons beyond adding labels",
+    "Changing the character counter behavior or limits",
+    "Modifying any other components not mentioned in this request"
   ],
   "imageRequirements": {
     "required": [],

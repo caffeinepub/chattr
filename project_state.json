@@ -1,29 +1,42 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Chat interface project with UI refinements including button color styling and character counter display.",
+  "summary": "Social/messaging app with action buttons (Reply, React, Share, Flag) and a message input area with character counter.",
   "architectural_notes": [],
   "known_issues": [],
   "isFixRequest": false,
   "existing_features": [
     {
-      "id": "feature-in-messagebubble-tsx-update-the-font-and-icon-color-for-the-reply-react-share-and-report-action-buttons-to-match-the-same-gray-color-used-by-the-message-timestamp",
-      "title": "In MessageBubble.tsx, update the font and icon color for the Reply, React, Share, and Report action buttons to match the same gray color used by the message timestamp.",
+      "id": "feature-add-visible-text-labels-to-the-four-message-action-buttons-in-messagebubble-tsx-reply-react-share-and-flag-each-label-should-appear-alongside-its-existing-icon",
+      "title": "Add visible text labels to the four message action buttons in MessageBubble.tsx: 'Reply', 'React', 'Share', and 'Flag'. Each label should appear alongside its existing icon.",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-in-messageinput-tsx-remove-the-redundant-text-based-line-character-counter-displayed-below-the-chat-text-input-field-the-circular-character-counter-rendered-inside-the-input-field-must-remain-visible-and-functional",
-      "title": "In MessageInput.tsx, remove the redundant text-based line character counter displayed below the chat text input field. The circular character counter rendered inside the input field must remain visible and functional.",
+      "id": "feature-remove-the-character-count-text-display-from-the-character-counter-in-the-message-input-area-in-messageinput-tsx-the-counter-element-itself-e-g-progress-ring-or-indicator-may-remain-but-the-numeric-character-count-text-must-not-be-shown",
+      "title": "Remove the character count text display from the character counter in the message input area in MessageInput.tsx. The counter element itself (e.g., progress ring or indicator) may remain, but the numeric character count text must not be shown.",
       "reqIds": [
         "REQ-2"
       ],
       "version": 1
     }
   ],
-  "new_feature_requests": [],
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Add labels to action buttons: Reply, React, Share, Flag",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Remove character count text from the character counter in the message input area",
+      "reqIds": [],
+      "status": "pending"
+    }
+  ],
   "gameProjectType": "none",
   "projectName": "Chattr",
   "clarification_mode": "instant",

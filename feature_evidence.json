@@ -2,8 +2,8 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-in-messagebubble-tsx-update-the-font-and-icon-color-for-the-reply-react-share-and-report-action-buttons-to-match-the-same-gray-color-used-by-the-message-timestamp",
-      "featureTitle": "In MessageBubble.tsx, update the font and icon color for the Reply, React, Share, and Report action buttons to match the same gray color used by the message timestamp.",
+      "featureId": "feature-add-visible-text-labels-to-the-four-message-action-buttons-in-messagebubble-tsx-reply-react-share-and-flag-each-label-should-appear-alongside-its-existing-icon",
+      "featureTitle": "Add visible text labels to the four message action buttons in MessageBubble.tsx: 'Reply', 'React', 'Share', and 'Flag'. Each label should appear alongside its existing icon.",
       "files": [
         "frontend/src/components/MessageBubble.tsx"
       ],
@@ -23,8 +23,8 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-in-messageinput-tsx-remove-the-redundant-text-based-line-character-counter-displayed-below-the-chat-text-input-field-the-circular-character-counter-rendered-inside-the-input-field-must-remain-visible-and-functional",
-      "featureTitle": "In MessageInput.tsx, remove the redundant text-based line character counter displayed below the chat text input field. The circular character counter rendered inside the input field must remain visible and functional.",
+      "featureId": "feature-remove-the-character-count-text-display-from-the-character-counter-in-the-message-input-area-in-messageinput-tsx-the-counter-element-itself-e-g-progress-ring-or-indicator-may-remain-but-the-numeric-character-count-text-must-not-be-shown",
+      "featureTitle": "Remove the character count text display from the character counter in the message input area in MessageInput.tsx. The counter element itself (e.g., progress ring or indicator) may remain, but the numeric character count text must not be shown.",
       "files": [
         "frontend/src/components/MessageInput.tsx"
       ],
