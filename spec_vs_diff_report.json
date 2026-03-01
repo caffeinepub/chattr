@@ -1,22 +1,14 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-03-01T03:21:53.358Z",
-  "summary": "The diff modifies MessageBubble.tsx to replace always-visible action buttons with a ContextMenu component (right-click on desktop, long-press on mobile) containing Reply, React, and Share actions. The implementation appears largely aligned with REQ-1, but a Flag action was also added to the context menu beyond the three requested actions.",
+  "generatedAt": "2026-03-01T05:38:11.086Z",
+  "summary": "The diff implements all four requirements. ChatArea.tsx reduces spacing from space-y-4 to space-y-1 (REQ-2). MessageBubble.tsx adds a custom context menu with Copy Text, right-click and long-press support, and CSS/JS to suppress native mobile long-press (REQ-3, REQ-4). Usernames, avatars, and layout are preserved (REQ-1). No hallucinated features detected.",
   "missing_requirements": [],
-  "hallucinated_features": [
-    {
-      "description": "A 'Flag' (report) action was added to the context menu in MessageBubble.tsx",
-      "reason": "The build request explicitly states the menu must contain exactly the same three actions — Reply, React, and Share — and that no new message actions should be added beyond these three. The file summary explicitly mentions 'Flag actions' in the context menu.",
-      "evidence": [
-        "frontend/src/components/MessageBubble.tsx",
-        "frontend-file-summaries.txt"
-      ]
-    }
-  ],
-  "confidence": 0.85,
+  "hallucinated_features": [],
+  "confidence": 0.88,
   "changed_files": [
     "frontend-file-summaries.txt",
+    "frontend/src/components/ChatArea.tsx",
     "frontend/src/components/MessageBubble.tsx",
     "project_state.json"
   ]

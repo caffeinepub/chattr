@@ -1,13 +1,14 @@
 # Specification
 
 ## Summary
-**Goal:** Replace the always-visible message action buttons in MessageBubble.tsx with a context menu triggered by right-click on desktop and long-press on mobile.
+**Goal:** Add a custom context menu with a "Copy Text" option to chat messages, reduce message spacing, and suppress native mobile long-press behavior.
 
 **Planned changes:**
-- Remove the always-visible Reply, React, and Share action buttons from message bubbles
-- Add a context menu that opens on right-click (desktop) or long-press (~500ms, mobile)
-- Context menu contains the same three actions — Reply, React, and Share — with identical functionality
-- Context menu dismisses when clicking/tapping outside of it
-- Only MessageBubble.tsx is modified; no other files, styles, or layouts are changed
+- Add a custom context menu to `MessageBubble.tsx` triggered by right-click on desktop and a ~500ms long press on mobile
+- Include a "Copy Text" option in the context menu that copies the message text to the clipboard
+- Dismiss the context menu when clicking or tapping outside of it
+- Reduce vertical spacing/gap between message bubbles in `ChatArea.tsx` for a more compact look
+- Suppress the browser's native long-press behavior on message bubbles via CSS (`user-select: none`, `-webkit-touch-callout: none`) and JavaScript (`preventDefault` on relevant touch/context events)
+- Preserve all existing layout, username rendering, and avatar rendering exactly as-is
 
-**User-visible outcome:** Users no longer see action buttons on message bubbles by default. Instead, they right-click (desktop) or long-press (mobile) a message bubble to reveal a context menu with Reply, React, and Share options.
+**User-visible outcome:** Users can right-click (desktop) or long-press (mobile) a message to open a custom context menu and copy the message text. Messages appear more compact, and no native browser popup interferes on mobile.
