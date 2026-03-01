@@ -2,10 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-in-chatarea-tsx-when-rendering-the-live-user-count-inside-a-chatroom-floor-the-displayed-value-at-a-minimum-of-1-whenever-the-local-user-is-present-in-the-room-this-ensures-the-count-never-shows-0-while-the-user-is-viewing-the-room",
-      "featureTitle": "In ChatArea.tsx, when rendering the live user count inside a chatroom, floor the displayed value at a minimum of 1 whenever the local user is present in the room. This ensures the count never shows 0 while the user is viewing the room.",
+      "featureId": "feature-in-the-pinnedvideo-component-overlay-the-unpin-x-button-absolutely-at-the-top-right-corner-of-the-video-container-top-2-right-2-styled-as-a-small-circular-button-bg-black-50-text-white-rounded-full-w-6-h-6-with-a-hover-effect-hover-bg-black-70-remove-any-separate-header-row-or-dedicated-section-that-previously-housed-the-unpin-button",
+      "featureTitle": "In the PinnedVideo component, overlay the unpin (X) button absolutely at the top-right corner of the video container (top-2 right-2), styled as a small circular button (bg-black/50 text-white rounded-full w-6 h-6) with a hover effect (hover:bg-black/70). Remove any separate header row or dedicated section that previously housed the unpin button.",
       "files": [
-        "frontend/src/components/ChatArea.tsx"
+        "frontend/src/components/PinnedVideo.tsx"
       ],
       "components": [
         "authorization@1.0.1",
@@ -23,10 +23,10 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-remove-the-word-online-or-any-online-label-text-from-the-live-user-count-display-in-chatarea-tsx-the-count-should-display-without-an-online-suffix-or-prefix",
-      "featureTitle": "Remove the word 'online' (or any 'online' label/text) from the live user count display in ChatArea.tsx. The count should display without an 'online' suffix or prefix.",
+      "featureId": "feature-in-the-pinnedvideo-component-add-a-non-clickable-pin-icon-lucide-pin-icon-absolutely-overlaid-at-the-top-left-corner-of-the-video-container-top-2-left-2-styled-identically-to-the-x-button-bg-black-50-text-white-rounded-full-w-6-h-6-as-a-visual-indicator-that-the-video-is-pinned",
+      "featureTitle": "In the PinnedVideo component, add a non-clickable pin icon (Lucide Pin icon) absolutely overlaid at the top-left corner of the video container (top-2 left-2), styled identically to the X button (bg-black/50 text-white rounded-full w-6 h-6) as a visual indicator that the video is pinned.",
       "files": [
-        "frontend/src/components/ChatArea.tsx"
+        "frontend/src/components/PinnedVideo.tsx"
       ],
       "components": [
         "authorization@1.0.1",
@@ -39,7 +39,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-3"
+        "REQ-2"
       ],
       "confidence": "high"
     }

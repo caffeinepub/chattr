@@ -1,52 +1,40 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Floor live user count at 1 on room join and remove 'online' text",
+  "title": "Overlay pin icon and X button on pinned video thumbnail",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Floor the displayed live user count at a minimum of 1 when the local user is present in the chatroom to prevent showing 0",
+      "summary": "Overlay the unpin (X) button absolutely at the top-right corner of the pinned video container with hover effect, removing any separate header row that previously housed it.",
       "acceptanceCriteria": [
-        "The live user count displayed in ChatArea never shows 0 while the user is inside a room",
-        "If the backend returns a count >= 1, that real count is shown without modification",
-        "If the backend returns 0 (e.g., heartbeat not yet responded), the UI displays 1 instead"
+        "The X (unpin) button is absolutely positioned at the top-right corner of the pinned video container.",
+        "The button is styled as a small circular icon button with a semi-transparent dark background.",
+        "Hovering the button darkens its background.",
+        "Clicking the button unpins the video (calls useUnpinVideo mutation).",
+        "No separate header row for the unpin button exists; the space previously used by it is reclaimed."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/ChatArea.tsx",
+          "path": "frontend/src/components/PinnedVideo.tsx",
           "operation": "modify",
-          "description": "In the live user count display logic, apply Math.max(1, activeUserCount) to ensure the displayed count is never less than 1 when the user is viewing the room. This guarantees the count shows at least 1 (representing the current user) even if the backend heartbeat response hasn't arrived yet or temporarily returns 0."
+          "description": "Refactor the PinnedVideo component to remove any existing header row or dedicated unpin button section. Move the unpin button to be absolutely positioned at top-2 right-2 within the video container. Style the button as a small circular element (w-6 h-6 rounded-full bg-black/50 text-white) with hover:bg-black/70. Ensure the video embed container has position relative to support absolute positioning of the overlaid button. The button should display an X icon (from Lucide) and call the useUnpinVideo mutation on click."
         }
       ]
     },
     {
       "id": "REQ-2",
-      "summary": "Fire an immediate heartbeat call to the backend as soon as the user enters a chatroom, without waiting for the first 45-second interval tick",
+      "summary": "Add a non-clickable pin icon absolutely overlaid at the top-left corner of the pinned video container as a visual indicator.",
       "acceptanceCriteria": [
-        "A heartbeat is sent to the backend immediately on room entry (not waiting for the 45-second interval)",
-        "The periodic 45-second heartbeat continues to run as before",
-        "The live user count updates to the real backend value as soon as the immediate heartbeat response arrives"
+        "A Lucide Pin icon is absolutely positioned at the top-left corner of the pinned video container.",
+        "The pin icon is styled with the same circular semi-transparent dark background as the X button.",
+        "The pin icon is non-interactive (no click handler, pointer-events-none).",
+        "Both icons (pin top-left, X top-right) are visible simultaneously over the video embed."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/hooks/useHeartbeat.ts",
+          "path": "frontend/src/components/PinnedVideo.tsx",
           "operation": "modify",
-          "description": "Add an immediate invocation of the heartbeat mutation when the hook initializes or when the roomId changes, before setting up the 45-second interval. This ensures the backend receives a presence signal immediately upon room entry, allowing the live user count to sync quickly. The existing interval-based heartbeat logic remains unchanged."
-        }
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "summary": "Remove the word 'online' from the live user count display in ChatArea",
-      "acceptanceCriteria": [
-        "The text 'online' does not appear anywhere in the live user count display inside a chatroom",
-        "The count number itself is still displayed"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/ChatArea.tsx",
-          "operation": "modify",
-          "description": "Locate the JSX rendering the live user count and remove any text node, string literal, or variable containing the word 'online'. Ensure the numeric count remains visible without any 'online' suffix or prefix."
+          "description": "Add a Lucide Pin icon component to the PinnedVideo component, absolutely positioned at top-2 left-2 within the video container. Style it identically to the X button (w-6 h-6 rounded-full bg-black/50 text-white) but add pointer-events-none to make it non-interactive. Ensure both the pin icon and the X button are rendered as children of the video container so they appear overlaid on the video embed. No click handler should be attached to the pin icon."
         }
       ]
     }

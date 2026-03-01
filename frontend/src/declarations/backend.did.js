@@ -62,6 +62,21 @@ export const Message = IDL.Record({
   'senderId' : IDL.Text,
   'flagCount' : IDL.Nat,
 });
+export const LobbyChatroomCard = IDL.Record({
+  'id' : IDL.Nat,
+  'topic' : IDL.Text,
+  'activeUserCount' : IDL.Nat,
+  'lastActivity' : IDL.Int,
+  'createdAt' : IDL.Int,
+  'description' : IDL.Text,
+  'isLive' : IDL.Bool,
+  'mediaUrl' : IDL.Opt(IDL.Text),
+  'messageCount' : IDL.Nat,
+  'mediaType' : IDL.Opt(IDL.Text),
+  'category' : IDL.Text,
+  'pinnedVideoId' : IDL.Opt(IDL.Nat),
+  'presenceIndicator' : IDL.Nat,
+});
 List.fill(IDL.Opt(IDL.Tuple(IDL.Text, List)));
 export const Reaction = IDL.Record({
   'count' : IDL.Nat,
@@ -139,6 +154,7 @@ export const idlService = IDL.Service({
   '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
   'addReaction' : IDL.Func([IDL.Nat, IDL.Text, IDL.Text], [], []),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
+  'cleanupInactiveUsers' : IDL.Func([], [], []),
   'createChatroom' : IDL.Func(
       [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text],
       [IDL.Nat],
@@ -158,8 +174,18 @@ export const idlService = IDL.Service({
     ),
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
+  'getChatroom' : IDL.Func(
+      [IDL.Nat],
+      [IDL.Opt(ChatroomWithLiveStatus)],
+      ['query'],
+    ),
   'getChatrooms' : IDL.Func([], [IDL.Vec(ChatroomWithLiveStatus)], ['query']),
   'getFlaggedMessages' : IDL.Func([], [IDL.Vec(Message)], ['query']),
+  'getLobbyChatroomCards' : IDL.Func(
+      [],
+      [IDL.Vec(LobbyChatroomCard)],
+      ['query'],
+    ),
   'getMessageWithReactionsAndReplies' : IDL.Func(
       [IDL.Nat],
       [IDL.Vec(MessageWithReactions)],
@@ -179,7 +205,6 @@ export const idlService = IDL.Service({
       [IDL.Opt(UserProfile)],
       ['query'],
     ),
-  'heartbeat' : IDL.Func([IDL.Text, IDL.Text], [], []),
   'incrementViewCount' : IDL.Func([IDL.Nat, IDL.Text], [], []),
   'initializeAccessControl' : IDL.Func([], [], []),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
@@ -273,6 +298,21 @@ export const idlFactory = ({ IDL }) => {
     'senderId' : IDL.Text,
     'flagCount' : IDL.Nat,
   });
+  const LobbyChatroomCard = IDL.Record({
+    'id' : IDL.Nat,
+    'topic' : IDL.Text,
+    'activeUserCount' : IDL.Nat,
+    'lastActivity' : IDL.Int,
+    'createdAt' : IDL.Int,
+    'description' : IDL.Text,
+    'isLive' : IDL.Bool,
+    'mediaUrl' : IDL.Opt(IDL.Text),
+    'messageCount' : IDL.Nat,
+    'mediaType' : IDL.Opt(IDL.Text),
+    'category' : IDL.Text,
+    'pinnedVideoId' : IDL.Opt(IDL.Nat),
+    'presenceIndicator' : IDL.Nat,
+  });
   List.fill(IDL.Opt(IDL.Tuple(IDL.Text, List)));
   const Reaction = IDL.Record({
     'count' : IDL.Nat,
@@ -347,6 +387,7 @@ export const idlFactory = ({ IDL }) => {
     '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
     'addReaction' : IDL.Func([IDL.Nat, IDL.Text, IDL.Text], [], []),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
+    'cleanupInactiveUsers' : IDL.Func([], [], []),
     'createChatroom' : IDL.Func(
         [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text],
         [IDL.Nat],
@@ -366,8 +407,18 @@ export const idlFactory = ({ IDL }) => {
       ),
     'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
+    'getChatroom' : IDL.Func(
+        [IDL.Nat],
+        [IDL.Opt(ChatroomWithLiveStatus)],
+        ['query'],
+      ),
     'getChatrooms' : IDL.Func([], [IDL.Vec(ChatroomWithLiveStatus)], ['query']),
     'getFlaggedMessages' : IDL.Func([], [IDL.Vec(Message)], ['query']),
+    'getLobbyChatroomCards' : IDL.Func(
+        [],
+        [IDL.Vec(LobbyChatroomCard)],
+        ['query'],
+      ),
     'getMessageWithReactionsAndReplies' : IDL.Func(
         [IDL.Nat],
         [IDL.Vec(MessageWithReactions)],
@@ -387,7 +438,6 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Opt(UserProfile)],
         ['query'],
       ),
-    'heartbeat' : IDL.Func([IDL.Text, IDL.Text], [], []),
     'incrementViewCount' : IDL.Func([IDL.Nat, IDL.Text], [], []),
     'initializeAccessControl' : IDL.Func([], [], []),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),

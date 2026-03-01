@@ -1,6 +1,5 @@
 import { useParams, useNavigate, useSearch } from '@tanstack/react-router';
-import { useGetChatroom, useIncrementViewCount, useGetActiveUserCount } from '../hooks/useQueries';
-import { useHeartbeat } from '../hooks/useHeartbeat';
+import { useGetChatroom, useIncrementViewCount } from '../hooks/useQueries';
 import { useActor } from '../hooks/useActor';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '../components/ui/alert';
@@ -27,12 +26,6 @@ export default function ChatroomPage() {
   // Extract messageId from query params
   const targetMessageId = search.messageId ? BigInt(search.messageId) : undefined;
 
-  // Heartbeat: keep presence alive while viewing this chatroom
-  useHeartbeat(chatroomIdBigInt);
-
-  // Active user count based on heartbeat data
-  const { data: activeUserCount } = useGetActiveUserCount(chatroomIdBigInt);
-
   // Increment view count when chatroom is loaded
   useEffect(() => {
     if (chatroom && !hasIncrementedView.current) {
@@ -54,7 +47,6 @@ export default function ChatroomPage() {
     isError,
     error: error ? String(error) : null,
     targetMessageId: targetMessageId?.toString(),
-    activeUserCount,
   });
 
   if (isLoading) {
@@ -104,12 +96,7 @@ export default function ChatroomPage() {
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <ChatArea
-        chatroomId={chatroomIdBigInt}
-        chatroom={chatroom}
-        targetMessageId={targetMessageId}
-        activeUserCount={activeUserCount}
-      />
+      <ChatArea chatroomId={chatroomIdBigInt} chatroom={chatroom} targetMessageId={targetMessageId} />
     </div>
   );
 }

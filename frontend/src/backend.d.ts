@@ -7,6 +7,21 @@ export interface None {
     __kind__: "None";
 }
 export type Option<T> = Some<T> | None;
+export interface LobbyChatroomCard {
+    id: bigint;
+    topic: string;
+    activeUserCount: bigint;
+    lastActivity: bigint;
+    createdAt: bigint;
+    description: string;
+    isLive: boolean;
+    mediaUrl?: string;
+    messageCount: bigint;
+    mediaType?: string;
+    category: string;
+    pinnedVideoId?: bigint;
+    presenceIndicator: bigint;
+}
 export interface UserProfile {
     name: string;
     presetAvatar?: string;
@@ -98,6 +113,7 @@ export enum UserRole {
 export interface backendInterface {
     addReaction(messageId: bigint, emoji: string, userId: string): Promise<void>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
+    cleanupInactiveUsers(): Promise<void>;
     createChatroom(topic: string, description: string, mediaUrl: string, mediaType: string, category: string): Promise<bigint>;
     deleteChatroomWithPassword(chatroomId: bigint, _password: string): Promise<void>;
     fetchGiphyResults(searchTerm: string): Promise<string>;
@@ -109,8 +125,10 @@ export interface backendInterface {
     filterChatroomsByCategory(category: string): Promise<Array<ChatroomWithLiveStatus>>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
+    getChatroom(id: bigint): Promise<ChatroomWithLiveStatus | null>;
     getChatrooms(): Promise<Array<ChatroomWithLiveStatus>>;
     getFlaggedMessages(): Promise<Array<Message>>;
+    getLobbyChatroomCards(): Promise<Array<LobbyChatroomCard>>;
     getMessageWithReactionsAndReplies(chatroomId: bigint): Promise<Array<MessageWithReactions>>;
     getMessages(chatroomId: bigint): Promise<Array<Message>>;
     getPinnedVideo(chatroomId: bigint): Promise<bigint | null>;
@@ -118,7 +136,6 @@ export interface backendInterface {
     getReplies(chatroomId: bigint, parentMessageId: bigint): Promise<Array<Message>>;
     getReplyPreview(chatroomId: bigint, messageId: bigint): Promise<ReplyPreview | null>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
-    heartbeat(roomId: string, sessionId: string): Promise<void>;
     incrementViewCount(chatroomId: bigint, userId: string): Promise<void>;
     initializeAccessControl(): Promise<void>;
     isCallerAdmin(): Promise<boolean>;

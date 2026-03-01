@@ -1,28 +1,24 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Chat room app with live user count fix: floor count at 1 when inside a room, send immediate heartbeat on join for real count sync, and remove 'online' text from UI. No caller checks to be added to backend.",
-  "architectural_notes": [
-    "Do not add caller checks to the backend when editing it"
-  ],
-  "known_issues": [
-    "Live user count shows 0 briefly on room join before heartbeat responds (being fixed)"
-  ],
-  "isFixRequest": true,
+  "summary": "Video chat/streaming app with pinned video functionality and GIF picker. UI improvements ongoing.",
+  "architectural_notes": [],
+  "known_issues": [],
+  "isFixRequest": false,
   "existing_features": [
     {
-      "id": "feature-in-chatarea-tsx-when-rendering-the-live-user-count-inside-a-chatroom-floor-the-displayed-value-at-a-minimum-of-1-whenever-the-local-user-is-present-in-the-room-this-ensures-the-count-never-shows-0-while-the-user-is-viewing-the-room",
-      "title": "In ChatArea.tsx, when rendering the live user count inside a chatroom, floor the displayed value at a minimum of 1 whenever the local user is present in the room. This ensures the count never shows 0 while the user is viewing the room.",
+      "id": "feature-in-the-pinnedvideo-component-overlay-the-unpin-x-button-absolutely-at-the-top-right-corner-of-the-video-container-top-2-right-2-styled-as-a-small-circular-button-bg-black-50-text-white-rounded-full-w-6-h-6-with-a-hover-effect-hover-bg-black-70-remove-any-separate-header-row-or-dedicated-section-that-previously-housed-the-unpin-button",
+      "title": "In the PinnedVideo component, overlay the unpin (X) button absolutely at the top-right corner of the video container (top-2 right-2), styled as a small circular button (bg-black/50 text-white rounded-full w-6 h-6) with a hover effect (hover:bg-black/70). Remove any separate header row or dedicated section that previously housed the unpin button.",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-remove-the-word-online-or-any-online-label-text-from-the-live-user-count-display-in-chatarea-tsx-the-count-should-display-without-an-online-suffix-or-prefix",
-      "title": "Remove the word 'online' (or any 'online' label/text) from the live user count display in ChatArea.tsx. The count should display without an 'online' suffix or prefix.",
+      "id": "feature-in-the-pinnedvideo-component-add-a-non-clickable-pin-icon-lucide-pin-icon-absolutely-overlaid-at-the-top-left-corner-of-the-video-container-top-2-left-2-styled-identically-to-the-x-button-bg-black-50-text-white-rounded-full-w-6-h-6-as-a-visual-indicator-that-the-video-is-pinned",
+      "title": "In the PinnedVideo component, add a non-clickable pin icon (Lucide Pin icon) absolutely overlaid at the top-left corner of the video container (top-2 left-2), styled identically to the X button (bg-black/50 text-white rounded-full w-6 h-6) as a visual indicator that the video is pinned.",
       "reqIds": [
-        "REQ-3"
+        "REQ-2"
       ],
       "version": 1
     }
@@ -30,22 +26,8 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Floor live user count at 1 when inside a room and send immediate heartbeat on join",
+      "summary": "Overlay X (remove pin) button on top-right of pinned video, and pin icon on top-left, to save space",
       "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-2",
-      "summary": "Remove 'online' text from the UI",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-4",
-      "summary": "In ChatroomPage.tsx (or useHeartbeat.ts), fire an immediate heartbeat call to the backend as soon as the user joins/enters a room, without waiting for the first 45-second interval tick. This causes the real backend count to sync quickly after join.",
-      "reqIds": [
-        "REQ-2"
-      ],
       "status": "pending"
     }
   ],

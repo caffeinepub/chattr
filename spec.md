@@ -1,11 +1,11 @@
 # Specification
 
 ## Summary
-**Goal:** Fix the live user count display in the chatroom to always show at least 1 when the user is present, sync the count quickly on room join, and remove the "online" label.
+**Goal:** Overlay both the unpin (X) button and a pin indicator icon directly on the pinned video thumbnail, removing the separate header row.
 
 **Planned changes:**
-- In `ChatArea.tsx`, floor the displayed live user count at a minimum of 1 whenever the local user is in the room (show 1 instead of 0 if the backend returns 0)
-- In `ChatroomPage.tsx` or `useHeartbeat.ts`, fire an immediate heartbeat on room entry so the real backend count syncs quickly without waiting for the 45-second interval
-- In `ChatArea.tsx`, remove the "online" text/label from the live user count display
+- Remove the existing separate header row/section that housed the unpin button in the PinnedVideo component
+- Overlay the X (unpin) button absolutely at the top-right corner of the video container, styled as a small circular semi-transparent button with hover effect
+- Overlay a non-clickable Lucide Pin icon absolutely at the top-left corner of the video container, styled identically to the X button
 
-**User-visible outcome:** When a user joins a chatroom, the live user count immediately reflects a real value (never 0), syncs quickly with the backend, and displays without an "online" label.
+**User-visible outcome:** The pinned video thumbnail displays both a pin icon (top-left) and an X button (top-right) overlaid directly on the video, with no separate header row, giving a cleaner look and more vertical space for the video.
