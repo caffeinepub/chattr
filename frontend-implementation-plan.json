@@ -1,23 +1,22 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Mirror current user message header layout to match other users' messages",
+  "title": "Revert action button styling to Version 335",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Reorder current user message header elements to match other users' layout (Message ID → Timestamp → Username → Avatar, left-to-right) without changing any styles",
+      "summary": "Revert the action buttons in MessageBubble.tsx to their original styling from Version 335, restoring full visibility and all button styles (colors, opacity, background, borders, hover states) while preserving the Version 369 message header layout reorder",
       "acceptanceCriteria": [
-        "Current user message headers display elements in this left-to-right order: Message ID, Timestamp, Username, Avatar.",
-        "Other users' message header layout remains completely unchanged.",
-        "No CSS classes, inline styles, colors, font sizes, spacing, or visual properties are modified anywhere in the component.",
-        "The avatar remains on the far right for current user messages.",
-        "The message ID appears on the far left for current user messages."
+        "All action buttons in MessageBubble are fully visible and not hidden or transparent",
+        "Button colors, backgrounds, borders, and hover states match the Version 335 appearance",
+        "Action buttons remain functional (clickable) after the styling revert",
+        "No regression in the message layout reorder (Message ID → Timestamp → Username → Avatar) introduced in Version 369"
       ],
       "file_operations": [
         {
           "path": "frontend/src/components/MessageBubble.tsx",
           "operation": "modify",
-          "description": "Reorder the DOM elements in the current user message header section to match the left-to-right sequence: Message ID → Timestamp → Username → Avatar. Locate the conditional rendering block for current user messages (isCurrentUser === true) and restructure only the header element order without touching any className attributes, inline styles, or other visual properties. Keep all existing Tailwind classes, colors, spacing, and layout utilities intact. Do not modify the header structure for other users' messages."
+          "description": "Restore action button styling (pin, reply, reaction buttons) to Version 335 appearance. Specifically: ensure all buttons have explicit opacity: 1, visible backgrounds, proper text/icon colors, defined borders where applicable, and working hover states. Do not alter the message header layout order (Message ID → Timestamp → Username → Avatar). Focus only on the action button styling within the message bubble component."
         }
       ]
     }

@@ -1,11 +1,11 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-03-01T09:59:36.630Z",
-  "summary": "The diff modifies MessageBubble.tsx to reorder current user message header elements left-to-right as Message ID → Timestamp → Username, with the avatar remaining on the far right via the existing flex-row-reverse container. The file summary explicitly confirms no styles, classes, or other properties were changed. This fully implements REQ-1.",
+  "generatedAt": "2026-03-01T10:09:32.126Z",
+  "summary": "The diff modifies MessageBubble.tsx and associated summary files. The frontend-file-summaries.txt explicitly states that action buttons (emoji, reply, pin) now use 'bg-muted/border-border styling for full visibility on hover' and confirms the message header order (Message ID → Timestamp → Username → Avatar) is preserved. This aligns with REQ-1's requirements to restore button visibility and styling while not reverting the layout reorder. The truncated MessageBubble.tsx diff prevents full verification of all button styling details, but available evidence is consistent with the requirement.",
   "missing_requirements": [],
   "hallucinated_features": [],
-  "confidence": 0.92,
+  "confidence": 0.72,
   "changed_files": [
     "frontend-file-summaries.txt",
     "frontend/src/components/MessageBubble.tsx",

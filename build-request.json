@@ -1,43 +1,36 @@
 {
   "kind": "build_request",
-  "title": "Mirror current user message header layout to match other users' messages",
-  "projectName": "Chattr",
+  "title": "Revert action button styling to Version 335",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "For messages sent by the current user, reorder the header elements left-to-right as: Message ID → Timestamp → Username → Avatar. This must mirror the exact same left-to-right order used for other users' messages. No styles, colors, spacing, font sizes, or any other visual properties may be changed — only the structural DOM order/positioning of these four elements.",
+      "text": "Revert the action buttons in MessageBubble.tsx to their original styling from Version 335. The buttons became invisible after the layout reorder changes introduced in Version 369. Restore all button styles (colors, visibility, opacity, background, borders, hover states) to exactly how they appeared in Version 335.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-recent-9",
-          "msg-recent-11",
-          "msg-recent-13"
+          "msg-4"
         ],
         "quotes": [
-          "the username should be to the left of the avatar, the timestamp to the left of that, then the message id to the left of that",
-          "Don't change any styles in the process keep the overall layout identical just for the change I mentioned",
-          "Message ID → Timestamp → Username → Avatar (left to right)"
+          "The action buttons are not visible anymore. Please revert their styling back to version 335"
         ]
       },
       "acceptanceCriteria": [
-        "Current user message headers display elements in this left-to-right order: Message ID, Timestamp, Username, Avatar.",
-        "Other users' message header layout remains completely unchanged.",
-        "No CSS classes, inline styles, colors, font sizes, spacing, or visual properties are modified anywhere in the component.",
-        "The avatar remains on the far right for current user messages.",
-        "The message ID appears on the far left for current user messages."
+        "All action buttons in MessageBubble are fully visible and not hidden or transparent",
+        "Button colors, backgrounds, borders, and hover states match the Version 335 appearance",
+        "Action buttons remain functional (clickable) after the styling revert",
+        "No regression in the message layout reorder (Message ID → Timestamp → Username → Avatar) introduced in Version 369"
       ]
     }
   ],
   "constraints": [
-    "Do not change any CSS classes, Tailwind utility classes, colors, spacing, font sizes, or any other style properties.",
-    "Only reorder the structural DOM elements for current user message headers.",
-    "Other users' message layout must remain completely untouched."
+    "Do not alter the message header layout reorder (Message ID → Timestamp → Username → Avatar) that was introduced in Version 369",
+    "Only restore action button styling — do not change any other UI elements"
   ],
   "nonGoals": [
-    "Restyling or redesigning any part of the message bubble.",
-    "Changing layouts for anything other than current user message headers.",
-    "Modifying the backend."
+    "Reverting any other changes from Version 369 beyond the action button styles",
+    "Changes to backend logic or data models",
+    "Any new features or UI enhancements beyond restoring button visibility"
   ],
   "imageRequirements": {
     "required": [],

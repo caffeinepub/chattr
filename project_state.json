@@ -1,32 +1,22 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Chat messaging app with message bubbles, avatars, usernames, timestamps, and message IDs. User has reverted to version 335 and is now adjusting the layout of current user messages to mirror other users' messages.",
-  "architectural_notes": [
-    "Chat UI uses message bubbles with avatars outside and metadata (username, timestamp, message ID) displayed per-message"
-  ],
+  "summary": "New project",
+  "architectural_notes": [],
   "known_issues": [],
-  "isFixRequest": false,
+  "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-for-messages-sent-by-the-current-user-reorder-the-header-elements-left-to-right-as-message-id-timestamp-username-avatar-this-must-mirror-the-exact-same-left-to-right-order-used-for-other-users-messages-no-styles-colors-spacing-font-sizes-or-any-other-visual-properties-may-be-changed-only-the-structural-dom-order-positioning-of-these-four-elements",
-      "title": "For messages sent by the current user, reorder the header elements left-to-right as: Message ID → Timestamp → Username → Avatar. This must mirror the exact same left-to-right order used for other users' messages. No styles, colors, spacing, font sizes, or any other visual properties may be changed — only the structural DOM order/positioning of these four elements.",
+      "id": "feature-revert-the-action-buttons-in-messagebubble-tsx-to-their-original-styling-from-version-335-the-buttons-became-invisible-after-the-layout-reorder-changes-introduced-in-version-369-restore-all-button-styles-colors-visibility-opacity-background-borders-hover-states-to-exactly-how-they-appeared-in-version-335",
+      "title": "Revert the action buttons in MessageBubble.tsx to their original styling from Version 335. The buttons became invisible after the layout reorder changes introduced in Version 369. Restore all button styles (colors, visibility, opacity, background, borders, hover states) to exactly how they appeared in Version 335.",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     }
   ],
-  "new_feature_requests": [
-    {
-      "id": "AR-1",
-      "summary": "For current user messages, reorder header elements left-to-right as: Message ID → Timestamp → Username → Avatar, mirroring the layout used for other users' messages, without changing any styles",
-      "reqIds": [],
-      "status": "pending"
-    }
-  ],
-  "gameProjectType": "none",
-  "projectName": "Chattr",
+  "new_feature_requests": [],
+  "projectName": "Revert action button styling to Version 335",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

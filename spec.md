@@ -1,10 +1,10 @@
 # Specification
 
 ## Summary
-**Goal:** Reorder the header elements of current user messages so they mirror the left-to-right layout used for other users' messages.
+**Goal:** Restore the action button styling in MessageBubble.tsx to how it appeared in Version 335, fixing the invisible buttons caused by layout reorder changes in Version 369.
 
 **Planned changes:**
-- For current user message headers, reorder the four elements left-to-right as: Message ID → Timestamp → Username → Avatar
-- No styles, colors, spacing, font sizes, CSS classes, or any other visual properties are changed — only the DOM order of these four elements
+- Revert action button styles (colors, visibility, opacity, backgrounds, borders, hover states) in `MessageBubble.tsx` to match Version 335
+- Preserve the message header layout reorder (Message ID → Timestamp → Username → Avatar) from Version 369
 
-**User-visible outcome:** Current user message headers will display the message ID on the far left, followed by the timestamp, then the username, and the avatar on the far right — matching the structural order of other users' messages.
+**User-visible outcome:** Action buttons in message bubbles are fully visible and styled as they were before Version 369, while the updated message header layout remains intact.

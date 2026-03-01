@@ -1,7 +1,7 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-03-01T09:59:36.633Z",
+  "generatedAt": "2026-03-01T10:09:32.129Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
@@ -12,7 +12,7 @@
     "items": [
       {
         "id": "REQ-1",
-        "summary": "For messages sent by the current user, reorder the header elements left-to-right as: Message ID → Timestamp → Username → Avatar. This must mirror the exact same left-to-right order used for other users' messages. No styles, colors, spacing, font sizes, or any other visual properties may be changed — only the structural DOM order/positioning of these four elements.",
+        "summary": "Revert the action buttons in MessageBubble.tsx to their original styling from Version 335. The buttons became invisible after the layout reorder changes introduced in Version 369. Restore all button styles (colors, visibility, opacity, background, borders, hover states) to exactly how they appeared in Version 335.",
         "status": "implemented",
         "plannedFiles": [
           "frontend/src/components/MessageBubble.tsx"
