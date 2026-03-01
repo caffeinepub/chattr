@@ -1,75 +1,24 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Add context menu with Copy Text, reduce message spacing, disable mobile long-press default",
+  "title": "Disable mobile default long-press behavior in context menu",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Preserve all existing layout from version 348: usernames, avatars, spacing, and styling in MessageBubble.tsx and ChatArea.tsx must remain untouched",
+      "summary": "Suppress native mobile long-press popups in MessageBubble by preventing default touch and context menu events, and applying CSS properties to disable browser gestures",
       "acceptanceCriteria": [
-        "Usernames are visible on chat messages",
-        "User avatars are visible on chat messages",
-        "Overall chat layout matches version 348"
+        "On mobile, long-pressing a message bubble does not trigger the browser's native context menu or text selection popup.",
+        "On iOS, the native image/link save dialog does not appear on long press.",
+        "On Android, the browser's native context menu does not appear on long press.",
+        "The custom context menu still appears correctly on long press.",
+        "The touchstart and contextmenu events have preventDefault() called.",
+        "The message bubble element has -webkit-touch-callout: none and touch-action: none applied."
       ],
       "file_operations": [
         {
           "path": "frontend/src/components/MessageBubble.tsx",
           "operation": "modify",
-          "description": "Audit and preserve all existing username and avatar rendering logic. Do not remove or alter any existing props, className assignments, or rendering structures related to usernames (sender field) or avatars (avatarUrl field). This requirement serves as a baseline constraint for all subsequent changes."
-        },
-        {
-          "path": "frontend/src/components/ChatArea.tsx",
-          "operation": "modify",
-          "description": "Audit and preserve all existing message layout structures, including how MessageBubble components are rendered and positioned. Do not remove or alter any existing spacing, padding, or layout props that control the overall message list appearance. This requirement establishes the baseline for REQ-2's spacing adjustments."
-        }
-      ]
-    },
-    {
-      "id": "REQ-2",
-      "summary": "Reduce vertical spacing between messages in ChatArea.tsx for a more compact appearance",
-      "acceptanceCriteria": [
-        "Gap/margin between consecutive message bubbles is visibly smaller than before",
-        "Messages do not overlap or become illegible"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/ChatArea.tsx",
-          "operation": "modify",
-          "description": "Reduce the vertical spacing/gap between consecutive MessageBubble components by decreasing the margin or gap property in the message list container (likely a flex or grid container with gap/space-y utilities). Adjust Tailwind classes such as space-y-* or gap-* to a smaller value. Ensure messages remain clearly separated and readable. Do not alter username or avatar rendering as per REQ-1."
-        }
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "summary": "Add custom context menu to MessageBubble.tsx with 'Copy Text' option, triggered by right-click (desktop) or long press (~500ms, mobile)",
-      "acceptanceCriteria": [
-        "Right-clicking a message on desktop opens a context menu",
-        "Long-pressing a message on mobile opens the context menu",
-        "The context menu contains a 'Copy Text' option",
-        "Clicking 'Copy Text' copies the message's text content to the clipboard",
-        "The context menu closes when clicking/tapping outside of it"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/MessageBubble.tsx",
-          "operation": "modify",
-          "description": "Add a custom context menu component or inline JSX that renders a positioned menu overlay when triggered. On desktop, attach an onContextMenu handler to the message bubble root element to open the menu at the cursor position. On mobile, use a touchstart/touchend event handler to detect long press (check if touch duration exceeds ~500ms without significant movement) and open the menu. Include a 'Copy Text' menu item that, when clicked, uses navigator.clipboard.writeText(content) to copy the message's text content to the clipboard. Implement click-outside or tap-outside detection (via useEffect + document event listeners or a ref callback) to close the menu when the user clicks/taps elsewhere. Ensure the menu is positioned absolutely or fixed relative to the message bubble or viewport. Do not alter username or avatar rendering as per REQ-1. This change integrates with REQ-4's mobile long-press suppression."
-        }
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "summary": "Disable browser's default mobile long-press behavior on message bubbles to prevent native text selection and context menu interference",
-      "acceptanceCriteria": [
-        "Long-pressing a message on mobile does not trigger the browser's native text selection or context menu",
-        "Only the custom context menu appears on mobile long press",
-        "Normal text selection outside of message bubbles is not affected"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/MessageBubble.tsx",
-          "operation": "modify",
-          "description": "Apply CSS properties to the message bubble root element to suppress mobile long-press defaults: add user-select: none, -webkit-user-select: none, -webkit-touch-callout: none (via Tailwind utilities such as select-none or inline style). In the event handlers, call event.preventDefault() on the contextmenu event (desktop) and touchstart or touchend events (mobile) to block the browser's native context menu and text selection UI. Ensure these suppressions are scoped only to the message bubble container so that text selection remains functional elsewhere in the app. This change works in tandem with REQ-3's custom context menu implementation."
+          "description": "Add preventDefault() calls to both touchstart and contextmenu event handlers on the message bubble container element. Add onContextMenu={(e) => e.preventDefault()} prop alongside the existing long-press touch handlers. Apply inline styles or className with touch-action: none and -webkit-touch-callout: none CSS properties to the message bubble container to suppress iOS image save dialogs and Android context menus. Ensure these changes do not interfere with the existing custom context menu triggered by long press."
         }
       ]
     }

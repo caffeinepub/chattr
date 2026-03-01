@@ -1,53 +1,18 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-03-01T05:38:11.088Z",
+  "generatedAt": "2026-03-01T06:11:35.686Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 4,
-    "implemented": 4,
+    "total": 1,
+    "implemented": 1,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Preserve all existing layout from version 348 exactly as-is: usernames displayed on messages, user avatars displayed, and all existing spacing and styling in MessageBubble.tsx and ChatArea.tsx must remain untouched. Do not remove or alter username rendering or avatar rendering logic under any circumstances.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/MessageBubble.tsx",
-          "frontend/src/components/ChatArea.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/MessageBubble.tsx",
-          "frontend/src/components/ChatArea.tsx"
-        ]
-      },
-      {
-        "id": "REQ-2",
-        "summary": "Reduce the vertical spacing between individual messages in ChatArea.tsx so messages appear more compact. Decrease the margin/gap between message bubbles.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/ChatArea.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/ChatArea.tsx"
-        ]
-      },
-      {
-        "id": "REQ-3",
-        "summary": "Add a custom context menu to MessageBubble.tsx. On desktop, the menu is triggered by right-clicking a message. On mobile, it is triggered by a long press (approximately 500ms hold). The context menu must include at least a 'Copy Text' option that copies the message text to the clipboard.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/MessageBubble.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/MessageBubble.tsx"
-        ]
-      },
-      {
-        "id": "REQ-4",
-        "summary": "Disable the browser's default long-press behavior on message bubbles on mobile (which triggers text selection, magnifier, or the native context menu). Use CSS (e.g., user-select: none, -webkit-touch-callout: none) and/or JavaScript (e.g., preventDefault on contextmenu and touchstart events) to suppress the native long-press popup so only the custom context menu fires.",
+        "summary": "In MessageBubble.tsx, when attaching the long-press handler to trigger the context menu, call preventDefault() on the touchstart and contextmenu events to suppress the browser's native mobile long-press popup (text selection, OS context menu, image save dialog). Use touch-action: none and -webkit-touch-callout: none CSS properties on the message bubble element, and add onContextMenu={(e) => e.preventDefault()} alongside the touch event handlers to ensure all native long-press actions are blocked across iOS and Android.",
         "status": "implemented",
         "plannedFiles": [
           "frontend/src/components/MessageBubble.tsx"
@@ -63,7 +28,6 @@
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/components/ChatArea.tsx",
     "frontend/src/components/MessageBubble.tsx",
     "project_state.json",
     "scratch/component-selection.json",

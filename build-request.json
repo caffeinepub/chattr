@@ -1,95 +1,38 @@
 {
   "kind": "build_request",
-  "title": "Add context menu with Copy Text, reduce message spacing, disable mobile long-press default",
-  "projectName": "Chattr",
-  "priority": "high",
+  "title": "Disable mobile default long-press behavior in context menu",
+  "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Preserve all existing layout from version 348 exactly as-is: usernames displayed on messages, user avatars displayed, and all existing spacing and styling in MessageBubble.tsx and ChatArea.tsx must remain untouched. Do not remove or alter username rendering or avatar rendering logic under any circumstances.",
+      "text": "In MessageBubble.tsx, when attaching the long-press handler to trigger the context menu, call preventDefault() on the touchstart and contextmenu events to suppress the browser's native mobile long-press popup (text selection, OS context menu, image save dialog). Use touch-action: none and -webkit-touch-callout: none CSS properties on the message bubble element, and add onContextMenu={(e) => e.preventDefault()} alongside the touch event handlers to ensure all native long-press actions are blocked across iOS and Android.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-recent-6"
+          "msg-1"
         ],
         "quotes": [
-          "Keep the same layout as version 348"
+          "Remember to disable the mobile default long press"
         ]
       },
       "acceptanceCriteria": [
-        "Usernames are visible on chat messages",
-        "User avatars are visible on chat messages",
-        "Overall chat layout matches version 348"
-      ]
-    },
-    {
-      "id": "REQ-2",
-      "text": "Reduce the vertical spacing between individual messages in ChatArea.tsx so messages appear more compact. Decrease the margin/gap between message bubbles.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-recent-5"
-        ],
-        "quotes": [
-          "Reduce the spacing between messages too"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Gap/margin between consecutive message bubbles is visibly smaller than before",
-        "Messages do not overlap or become illegible"
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "text": "Add a custom context menu to MessageBubble.tsx. On desktop, the menu is triggered by right-clicking a message. On mobile, it is triggered by a long press (approximately 500ms hold). The context menu must include at least a 'Copy Text' option that copies the message text to the clipboard.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-recent-6",
-          "msg-recent-4"
-        ],
-        "quotes": [
-          "Just add the context menu",
-          "Add copy text to the context menu too"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Right-clicking a message on desktop opens a context menu",
-        "Long-pressing a message on mobile opens the context menu",
-        "The context menu contains a 'Copy Text' option",
-        "Clicking 'Copy Text' copies the message's text content to the clipboard",
-        "The context menu closes when clicking/tapping outside of it"
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "text": "Disable the browser's default long-press behavior on message bubbles on mobile (which triggers text selection, magnifier, or the native context menu). Use CSS (e.g., user-select: none, -webkit-touch-callout: none) and/or JavaScript (e.g., preventDefault on contextmenu and touchstart events) to suppress the native long-press popup so only the custom context menu fires.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-recent-6"
-        ],
-        "quotes": [
-          "Disable the default mobile long press so it doesn't interfere"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Long-pressing a message on mobile does not trigger the browser's native text selection or context menu",
-        "Only the custom context menu appears on mobile long press",
-        "Normal text selection outside of message bubbles is not affected"
+        "On mobile, long-pressing a message bubble does not trigger the browser's native context menu or text selection popup.",
+        "On iOS, the native image/link save dialog does not appear on long press.",
+        "On Android, the browser's native context menu does not appear on long press.",
+        "The custom context menu still appears correctly on long press.",
+        "The touchstart and contextmenu events have preventDefault() called.",
+        "The message bubble element has -webkit-touch-callout: none and touch-action: none applied."
       ]
     }
   ],
   "constraints": [
-    "Do not modify backend/main.mo — this is a frontend-only change",
-    "Do not remove or alter username or avatar rendering in MessageBubble.tsx or ChatArea.tsx",
-    "Do not edit any files listed in frontend.immutablePaths"
+    "Do not modify any files under frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or frontend/src/components/ui.",
+    "Do not break the existing long-press context menu functionality."
   ],
   "nonGoals": [
-    "Adding additional context menu options beyond Copy Text (e.g., Delete, Reply, React) unless already present",
-    "Any backend schema changes",
-    "Changes to authentication or identity logic",
-    "Modifying the lobby page or chatroom creation flow"
+    "Changing the context menu items or layout.",
+    "Any backend changes.",
+    "Modifying long-press behavior on desktop/mouse devices."
   ],
   "imageRequirements": {
     "required": [],

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import type { MessageWithReactions, Reaction } from '../backend';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { formatDistanceToNow } from 'date-fns';
@@ -18,13 +18,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
-import { 
-  getYouTubeVideoId, 
+import {
+  getYouTubeVideoId,
   getTwitchEmbedUrl,
   getTwitterPostId,
-  isYouTubeUrl, 
-  isTwitchUrl, 
-  isTwitterUrl 
+  isYouTubeUrl,
+  isTwitchUrl,
+  isTwitterUrl
 } from '../lib/videoUtils';
 import VoiceMessagePlayer from './VoiceMessagePlayer';
 import { toast } from 'sonner';
@@ -228,15 +228,15 @@ function ReportButton({ messageId }: { messageId: bigint }) {
 
 // ─── MessageBubble ────────────────────────────────────────────────────────────
 
-export default function MessageBubble({ 
-  message, 
-  isOwnMessage, 
-  chatroomId, 
-  isPinned, 
+export default function MessageBubble({
+  message,
+  isOwnMessage,
+  chatroomId,
+  isPinned,
   onReply,
   onScrollToMessage,
   allMessages,
-  isHighlighted 
+  isHighlighted
 }: MessageBubbleProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -287,7 +287,7 @@ export default function MessageBubble({
     const reactions = listToArray<Reaction>(message.reactions);
     const existingReaction = reactions.find((r) => r.emoji === emoji);
     const chatroomIdStr = chatroomId.toString();
-    
+
     if (existingReaction) {
       const users = listToArray<string>(existingReaction.users);
       if (users.includes(userId)) {
@@ -298,15 +298,15 @@ export default function MessageBubble({
     } else {
       await addReaction.mutateAsync({ messageId: message.id, emoji, chatroomId: chatroomIdStr });
     }
-    
+
     setShowEmojiPicker(false);
   };
 
   const handleReplyClick = () => {
     if (!onReply) return;
-    
+
     const contentSnippet = truncateText(message.content, 100);
-    
+
     let mediaThumbnail: string | undefined;
     if (message.mediaUrl && message.mediaType) {
       if (message.mediaType === 'image') {
@@ -326,14 +326,14 @@ export default function MessageBubble({
         mediaThumbnail = '/assets/generated/audio-waveform-icon-transparent.dim_24x24.png';
       }
     }
-    
+
     onReply(message.id, message.sender, contentSnippet, mediaThumbnail);
   };
 
   const handleShareClick = async () => {
     const paddedMessageId = message.id.toString().padStart(9, '0');
     const url = `${window.location.origin}/chatroom/${chatroomId}?messageId=${paddedMessageId}`;
-    
+
     try {
       await navigator.clipboard.writeText(url);
       toast.success('Link copied to clipboard!');
@@ -374,6 +374,7 @@ export default function MessageBubble({
     setContextMenu({ visible: false, x: 0, y: 0 });
   }, []);
 
+  // Suppress native browser context menu (right-click on desktop, long-press on Android)
   const handleContextMenu = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -381,6 +382,9 @@ export default function MessageBubble({
   }, [openContextMenu]);
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    // Prevent native iOS callout / Android long-press context menu
+    e.preventDefault();
+
     const touch = e.touches[0];
     touchStartPosRef.current = { x: touch.clientX, y: touch.clientY };
 
@@ -455,12 +459,12 @@ export default function MessageBubble({
       const tweetId = getTwitterPostId(message.mediaUrl);
       if (tweetId && tweetContainerRef.current) {
         setTweetLoading(true);
-        
+
         loadTwitterScript()
           .then(() => {
             if (window.twttr && tweetContainerRef.current) {
               const isDark = document.documentElement.classList.contains('dark');
-              
+
               window.twttr.widgets.createTweet(
                 tweetId,
                 tweetContainerRef.current,
@@ -569,41 +573,38 @@ export default function MessageBubble({
     }
 
     if (message.mediaType === 'twitter' && isTwitterUrl(mediaUrl)) {
-      const postId = getTwitterPostId(mediaUrl);
-      if (postId) {
-        return (
-          <div className="mt-2 w-full twitter-embed-container" style={{ maxWidth: '300px' }}>
-            <div 
-              ref={tweetContainerRef}
-              className="rounded-lg overflow-hidden"
-              style={{ maxWidth: '300px', overflow: 'hidden' }}
-            />
-            {tweetLoading && (
-              <div className="rounded-lg border border-border bg-card p-4">
-                <div className="flex items-center justify-center">
-                  <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                  <span className="ml-2 text-sm text-muted-foreground">Loading tweet...</span>
-                </div>
-              </div>
-            )}
-          </div>
-        );
-      }
-    }
-
-    if (message.mediaType === 'audio') {
-      return <VoiceMessagePlayer audioUrl={mediaUrl} isOwnMessage={isOwnMessage} />;
+      return (
+        <div className="mt-2 w-full max-w-[550px]">
+          {tweetLoading && (
+            <div className="flex items-center justify-center rounded-lg bg-muted p-4">
+              <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+            </div>
+          )}
+          <div
+            ref={tweetContainerRef}
+            className={tweetLoading ? 'hidden' : 'block'}
+          />
+        </div>
+      );
     }
 
     if (message.mediaType === 'image') {
       return (
-        <div className="mt-2 w-full max-w-[300px]">
+        <div className="mt-2">
           <img
             src={mediaUrl}
-            alt="Uploaded media"
-            className="w-full rounded-lg object-cover cursor-pointer hover:opacity-90 transition-opacity"
+            alt="Message image"
+            className="max-h-64 max-w-full rounded-lg object-cover cursor-pointer hover:opacity-90 transition-opacity"
             onClick={() => setIsExpanded(true)}
           />
+        </div>
+      );
+    }
+
+    if (message.mediaType === 'audio') {
+      return (
+        <div className="mt-2">
+          <VoiceMessagePlayer audioUrl={mediaUrl} isOwnMessage={isOwnMessage} />
         </div>
       );
     }
@@ -611,61 +612,24 @@ export default function MessageBubble({
     return null;
   };
 
-  const renderExpandedMedia = () => {
-    if (!isExpanded || !message.mediaUrl || !message.mediaType) return null;
-    if (message.mediaType !== 'image' && message.mediaType !== 'giphy') return null;
-
-    const mediaUrl = message.mediaUrl;
-
-    return (
-      <div 
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
-        onClick={() => setIsExpanded(false)}
-      >
-        <button
-          className="absolute top-4 right-4 z-10 rounded-full bg-white/10 p-2 text-white hover:bg-white/20 transition-colors"
-          onClick={() => setIsExpanded(false)}
-          aria-label="Close"
-        >
-          <X className="h-6 w-6" />
-        </button>
-
-        <div 
-          className="relative max-h-[90vh] max-w-[90vw] w-full flex items-center justify-center"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <img
-            src={mediaUrl}
-            alt="Expanded media"
-            className="max-h-[90vh] max-w-full rounded-lg object-contain"
-          />
-        </div>
-      </div>
-    );
-  };
-
   const reactions = listToArray<Reaction>(message.reactions);
   const userId = getUserId();
-
-  // Check if Creator message without media (filter these out)
-  if (message.sender === 'Creator' && message.senderId === 'creator' && !message.mediaUrl) {
-    return null;
-  }
 
   return (
     <>
       <div
-        className={`group relative flex gap-3 ${isOwnMessage ? 'flex-row-reverse' : 'flex-row'} ${
-          isHighlighted ? 'rounded-xl bg-primary/10 px-2 py-1 transition-colors duration-300' : ''
-        }`}
+        className={`group relative flex gap-2 rounded-lg px-2 py-1 transition-colors ${
+          isHighlighted ? 'bg-primary/10' : 'hover:bg-muted/30'
+        } ${isOwnMessage ? 'flex-row-reverse' : 'flex-row'}`}
         onContextMenu={handleContextMenu}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
         style={{
+          WebkitTouchCallout: 'none',
           WebkitUserSelect: 'none',
           userSelect: 'none',
-          WebkitTouchCallout: 'none',
+          touchAction: 'pan-y',
         } as React.CSSProperties}
       >
         {/* Avatar */}
@@ -677,70 +641,79 @@ export default function MessageBubble({
         </div>
 
         {/* Message content */}
-        <div className={`flex min-w-0 max-w-[75%] flex-col ${isOwnMessage ? 'items-end' : 'items-start'}`}>
+        <div className={`flex min-w-0 max-w-[75%] flex-col gap-1 ${isOwnMessage ? 'items-end' : 'items-start'}`}>
           {/* Sender + timestamp */}
-          <div className={`mb-1 flex items-center gap-2 ${isOwnMessage ? 'flex-row-reverse' : 'flex-row'}`}>
-            <span className="text-xs font-semibold text-foreground/70">{message.sender}</span>
-            <span className="text-xs text-muted-foreground">{formatTimestamp(message.timestamp)}</span>
+          <div className={`flex items-baseline gap-2 ${isOwnMessage ? 'flex-row-reverse' : 'flex-row'}`}>
+            <span className="text-xs font-semibold text-foreground">{message.sender}</span>
+            <span className="text-[10px] text-muted-foreground">{formatTimestamp(message.timestamp)}</span>
           </div>
 
           {/* Reply preview */}
           {parentMessage && (
-            <div
-              className="mb-1 cursor-pointer rounded-lg border-l-2 border-primary/50 bg-muted/50 px-2 py-1 text-xs text-muted-foreground hover:bg-muted transition-colors"
+            <button
+              className={`flex max-w-full cursor-pointer items-center gap-2 rounded-md border-l-2 border-primary bg-muted/50 px-2 py-1 text-left text-xs text-muted-foreground hover:bg-muted transition-colors ${
+                isOwnMessage ? 'self-end' : 'self-start'
+              }`}
               onClick={() => onScrollToMessage && onScrollToMessage(parentMessage.id)}
             >
-              <span className="font-medium">{parentMessage.sender}: </span>
-              <span>{truncateText(parentMessage.content, 60)}</span>
-            </div>
+              <Reply className="h-3 w-3 flex-shrink-0 text-primary" />
+              <span className="font-medium text-primary">{parentMessage.sender}:</span>
+              <span className="truncate">{truncateText(parentMessage.content, 60)}</span>
+            </button>
           )}
 
           {/* Bubble */}
           <div
-            className={`rounded-2xl px-3 py-2 text-sm ${
+            className={`relative rounded-2xl px-3 py-2 text-sm ${
               isOwnMessage
                 ? 'rounded-tr-sm bg-primary text-primary-foreground'
                 : 'rounded-tl-sm bg-muted text-foreground'
             }`}
           >
-            {message.content && message.sender !== 'Creator' && (
-              <p
-                className="whitespace-pre-wrap break-words leading-relaxed"
-                style={{ userSelect: 'text', WebkitUserSelect: 'text' } as React.CSSProperties}
-              >
+            {/* Text content */}
+            {message.content && message.content !== 'Media content posted by creator' && (
+              <p className="whitespace-pre-wrap break-words leading-relaxed">
                 {renderTextWithLinks(message.content, handleLinkClick, isOwnMessage)}
               </p>
             )}
+
+            {/* Media */}
             {renderMedia()}
           </div>
 
-          {/* Reactions display */}
+          {/* Reactions */}
           {reactions.length > 0 && (
-            <div className={`mt-1 flex flex-wrap gap-1 ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
-              {reactions.map((reaction) => {
-                const users = listToArray<string>(reaction.users);
-                const hasReacted = users.includes(userId);
-                return (
-                  <button
-                    key={reaction.emoji}
-                    onClick={() => handleReaction(reaction.emoji)}
-                    className={`flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs transition-colors ${
-                      hasReacted
-                        ? 'border-primary/50 bg-primary/10 text-primary'
-                        : 'border-border bg-background text-foreground hover:bg-muted'
-                    }`}
-                  >
-                    <span>{reaction.emoji}</span>
-                    <span>{reaction.count.toString()}</span>
-                  </button>
-                );
-              })}
+            <div className="flex flex-wrap gap-1">
+              {reactions
+                .filter((r) => Number(r.count) > 0)
+                .map((reaction) => {
+                  const reactionUsers = listToArray<string>(reaction.users);
+                  const hasReacted = reactionUsers.includes(userId);
+                  return (
+                    <button
+                      key={reaction.emoji}
+                      onClick={() => handleReaction(reaction.emoji)}
+                      className={`flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs transition-colors ${
+                        hasReacted
+                          ? 'border-primary bg-primary/10 text-primary'
+                          : 'border-border bg-background text-muted-foreground hover:border-primary hover:bg-primary/5'
+                      }`}
+                    >
+                      <span>{reaction.emoji}</span>
+                      <span>{Number(reaction.count)}</span>
+                    </button>
+                  );
+                })}
             </div>
           )}
 
-          {/* Action buttons */}
-          <div className={`mt-1 flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 ${isOwnMessage ? 'flex-row-reverse' : 'flex-row'}`}>
-            {/* Emoji reaction */}
+          {/* Action buttons row */}
+          <div
+            className={`flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 ${
+              isOwnMessage ? 'flex-row-reverse' : 'flex-row'
+            }`}
+          >
+            {/* Emoji picker */}
             <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
               <PopoverTrigger asChild>
                 <button
@@ -748,7 +721,6 @@ export default function MessageBubble({
                   title="React"
                 >
                   <Smile className="h-3.5 w-3.5" />
-                  <span className="text-xs">React</span>
                 </button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-2" align={isOwnMessage ? 'end' : 'start'}>
@@ -770,7 +742,7 @@ export default function MessageBubble({
             {onReply && (
               <button
                 onClick={handleReplyClick}
-                className="flex items-center gap-1 rounded px-2 py-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+                className="flex items-center gap-1 rounded px-2 py-1 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:bg-muted hover:text-foreground"
                 title="Reply"
               >
                 <Reply className="h-3.5 w-3.5" />
@@ -781,44 +753,88 @@ export default function MessageBubble({
             {/* Share */}
             <button
               onClick={handleShareClick}
-              className="flex items-center gap-1 rounded px-2 py-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+              className="flex items-center gap-1 rounded px-2 py-1 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:bg-muted hover:text-foreground"
               title="Share"
             >
               <Share2 className="h-3.5 w-3.5" />
               <span className="text-xs">Share</span>
             </button>
 
-            {/* Flag */}
+            {/* Report */}
             <ReportButton messageId={message.id} />
           </div>
         </div>
-
-        {renderExpandedMedia()}
-
-        <ExternalLinkDisclaimerModal
-          isOpen={disclaimerOpen}
-          targetUrl={pendingUrl}
-          onConfirm={handleDisclaimerConfirm}
-          onClose={handleDisclaimerClose}
-        />
       </div>
 
-      {/* Custom Context Menu */}
+      {/* Custom context menu */}
       {contextMenu.visible && (
+        <>
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 z-40"
+            onClick={closeContextMenu}
+            onContextMenu={(e) => { e.preventDefault(); closeContextMenu(); }}
+          />
+          <div
+            ref={contextMenuRef}
+            className="fixed z-50 min-w-[160px] overflow-hidden rounded-xl border border-border bg-popover shadow-xl"
+            style={{ left: contextMenu.x, top: contextMenu.y }}
+          >
+            <button
+              className="flex w-full items-center gap-2 px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors text-left"
+              onClick={handleCopyText}
+            >
+              <Copy className="h-4 w-4" />
+              Copy Text
+            </button>
+            {onReply && (
+              <button
+                className="flex w-full items-center gap-2 px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors text-left"
+                onClick={() => { handleReplyClick(); closeContextMenu(); }}
+              >
+                <Reply className="h-4 w-4" />
+                Reply
+              </button>
+            )}
+            <button
+              className="flex w-full items-center gap-2 px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors text-left"
+              onClick={() => { handleShareClick(); closeContextMenu(); }}
+            >
+              <Share2 className="h-4 w-4" />
+              Share Link
+            </button>
+          </div>
+        </>
+      )}
+
+      {/* Expanded image modal */}
+      {isExpanded && message.mediaUrl && (
         <div
-          ref={contextMenuRef}
-          className="fixed z-[100] min-w-[140px] overflow-hidden rounded-lg border border-border bg-popover shadow-lg"
-          style={{ top: contextMenu.y, left: contextMenu.x }}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80"
+          onClick={() => setIsExpanded(false)}
         >
           <button
-            className="flex w-full items-center gap-2 px-3 py-2 text-sm text-popover-foreground hover:bg-muted transition-colors"
-            onClick={handleCopyText}
+            className="absolute right-4 top-4 rounded-full bg-white/10 p-2 text-white hover:bg-white/20"
+            onClick={() => setIsExpanded(false)}
           >
-            <Copy className="h-3.5 w-3.5 flex-shrink-0" />
-            Copy Text
+            <X className="h-5 w-5" />
           </button>
+          <img
+            src={message.mediaUrl}
+            alt="Expanded"
+            className="max-h-[90vh] max-w-[90vw] rounded-lg object-contain"
+            onClick={(e) => e.stopPropagation()}
+          />
         </div>
       )}
+
+      {/* External link disclaimer */}
+      <ExternalLinkDisclaimerModal
+        isOpen={disclaimerOpen}
+        targetUrl={pendingUrl}
+        onClose={handleDisclaimerClose}
+        onConfirm={handleDisclaimerConfirm}
+      />
     </>
   );
 }
