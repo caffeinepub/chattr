@@ -1,24 +1,46 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-03-01T10:09:32.129Z",
+  "generatedAt": "2026-03-01T18:11:03.873Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 1,
-    "implemented": 1,
+    "total": 3,
+    "implemented": 3,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Revert the action buttons in MessageBubble.tsx to their original styling from Version 335. The buttons became invisible after the layout reorder changes introduced in Version 369. Restore all button styles (colors, visibility, opacity, background, borders, hover states) to exactly how they appeared in Version 335.",
+        "summary": "Move quoted reply previews inside the chat bubble so they appear as part of the message bubble content, above the message text, rather than outside or above the bubble.",
         "status": "implemented",
         "plannedFiles": [
           "frontend/src/components/MessageBubble.tsx"
         ],
         "matchedFiles": [
           "frontend/src/components/MessageBubble.tsx"
+        ]
+      },
+      {
+        "id": "REQ-2",
+        "summary": "Make message action buttons (reply, react, pin, etc.) always visible on every message bubble without requiring hover. Remove all text labels from action buttons, keeping only the icons.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/MessageBubble.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/MessageBubble.tsx"
+        ]
+      },
+      {
+        "id": "REQ-3",
+        "summary": "Remove the character counter displayed below the chat input field. The circular character counter rendered inside the chat input must remain intact and unchanged.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/MessageInput.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/MessageInput.tsx"
         ]
       }
     ]
@@ -29,6 +51,7 @@
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
     "frontend/src/components/MessageBubble.tsx",
+    "frontend/src/components/MessageInput.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

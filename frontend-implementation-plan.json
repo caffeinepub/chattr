@@ -1,22 +1,54 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Revert action button styling to Version 335",
+  "title": "Quoted replies inside bubbles, icon-only action buttons, remove extra character counter",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Revert the action buttons in MessageBubble.tsx to their original styling from Version 335, restoring full visibility and all button styles (colors, opacity, background, borders, hover states) while preserving the Version 369 message header layout reorder",
+      "summary": "Move quoted reply previews inside the chat bubble so they appear as part of the message bubble content",
       "acceptanceCriteria": [
-        "All action buttons in MessageBubble are fully visible and not hidden or transparent",
-        "Button colors, backgrounds, borders, and hover states match the Version 335 appearance",
-        "Action buttons remain functional (clickable) after the styling revert",
-        "No regression in the message layout reorder (Message ID → Timestamp → Username → Avatar) introduced in Version 369"
+        "Quoted reply context renders inside the chat bubble container, visually contained within the bubble's background/border",
+        "Quoted reply appears above the message text within the same bubble",
+        "No style changes to colors, fonts, spacing, or bubble shape"
       ],
       "file_operations": [
         {
           "path": "frontend/src/components/MessageBubble.tsx",
           "operation": "modify",
-          "description": "Restore action button styling (pin, reply, reaction buttons) to Version 335 appearance. Specifically: ensure all buttons have explicit opacity: 1, visible backgrounds, proper text/icon colors, defined borders where applicable, and working hover states. Do not alter the message header layout order (Message ID → Timestamp → Username → Avatar). Focus only on the action button styling within the message bubble component."
+          "description": "Move the ReplyPreview component rendering from outside the bubble container to inside it, positioning it above the message content. The reply preview should be rendered as the first child within the message bubble's main container, before the message text. Ensure the reply preview remains clickable and visually distinct while staying within the bubble's background and borders. Do not modify any colors, fonts, spacing values, border radii, or other styling properties."
+        }
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "summary": "Make message action buttons always visible and icon-only without text labels",
+      "acceptanceCriteria": [
+        "Action buttons are visible at all times on every message bubble, not only on hover",
+        "Action buttons show only icons — no text labels beside or below them",
+        "All existing action button icons remain unchanged",
+        "No other style or layout changes are made"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/MessageBubble.tsx",
+          "operation": "modify",
+          "description": "Remove any hover-based conditional visibility logic for action buttons (reply, react, pin, report). Ensure action buttons are always rendered and visible. Remove all text labels from action button elements, keeping only the icon elements. Do not modify button icons, colors, or other styling. The buttons should remain functional with their existing click handlers."
+        }
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "summary": "Remove the character counter displayed below the chat input field while keeping the circular counter inside intact",
+      "acceptanceCriteria": [
+        "No character count text or indicator appears below the chat input field",
+        "The circular progress/counter indicator inside the chat input field is still present and functional",
+        "No other changes to the chat input layout or styling"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/MessageInput.tsx",
+          "operation": "modify",
+          "description": "Remove the character counter element that is rendered below the chat input field. Do not remove or modify the circular progress indicator that is rendered inside the input field itself. Ensure the input field layout and all other functionality (image upload, GIF search, voice recording, URL detection) remain unchanged."
         }
       ]
     }

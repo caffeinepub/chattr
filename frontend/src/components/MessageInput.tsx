@@ -70,16 +70,14 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
       return;
     }
 
-    // Extract URLs from message
     const urlRegex = /(https?:\/\/[^\s]+)/gi;
     const urls = message.match(urlRegex);
-    
+
     if (!urls || urls.length === 0) {
       setDetectedMedia(null);
       return;
     }
 
-    // Check each URL for media type
     for (const url of urls) {
       if (isYouTubeUrl(url)) {
         setDetectedMedia({ url, type: 'youtube' });
@@ -125,7 +123,7 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
         setGiphyError(result.error);
       }
       setGiphyGifs(result.gifs);
-    } catch (error) {
+    } catch {
       setGiphyError('Failed to load trending GIFs');
     } finally {
       setIsLoadingGiphy(false);
@@ -141,7 +139,7 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
         setGiphyError(result.error);
       }
       setGiphyGifs(result.gifs);
-    } catch (error) {
+    } catch {
       setGiphyError('Failed to search GIFs');
     } finally {
       setIsLoadingGiphy(false);
@@ -149,10 +147,9 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
   };
 
   const handleGifSelect = (gif: GiphyGif) => {
-    // Send the GIF URL with the message content
     const content = message.trim() || gif.title || 'GIF';
     onSendMessage(content, gif.originalUrl, 'giphy');
-    
+
     setMessage('');
     setShowMediaInput(false);
     setGiphySearch('');
@@ -193,29 +190,29 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
     try {
       setIsUploading(true);
       setUploadProgress(10);
-      
+
       const dataUrl = await new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => resolve(reader.result as string);
         reader.onerror = reject;
         reader.readAsDataURL(audioBlob);
       });
-      
+
       setUploadProgress(50);
-      
+
       const audioId = `blob-storage-audio-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
       const storageKey = `audio_${audioId}`;
-      
+
       try {
         localStorage.setItem(storageKey, dataUrl);
-      } catch (e) {
+      } catch {
         console.warn('[MessageInput] localStorage full, using data URL directly');
       }
-      
+
       setUploadProgress(100);
-      
+
       const blobStorageUrl = `data:${audioBlob.type};blob-storage-id=${audioId};base64,${dataUrl.split(',')[1]}`;
-      
+
       return blobStorageUrl;
     } catch (error) {
       console.error('[MessageInput] Error processing audio:', error);
@@ -228,40 +225,40 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
   const startRecording = async () => {
     try {
       setRecordingError('');
-      
+
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
-      
-      const mimeType = MediaRecorder.isTypeSupported('audio/webm') 
-        ? 'audio/webm' 
+
+      const mimeType = MediaRecorder.isTypeSupported('audio/webm')
+        ? 'audio/webm'
         : MediaRecorder.isTypeSupported('audio/mp4')
         ? 'audio/mp4'
         : 'audio/ogg';
-      
+
       const mediaRecorder = new MediaRecorder(stream, { mimeType });
       mediaRecorderRef.current = mediaRecorder;
       audioChunksRef.current = [];
-      
+
       mediaRecorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
           audioChunksRef.current.push(event.data);
         }
       };
-      
+
       mediaRecorder.onstop = async () => {
         if (streamRef.current) {
           streamRef.current.getTracks().forEach(track => track.stop());
           streamRef.current = null;
         }
-        
+
         const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
-        
+
         try {
           const audioUrl = await uploadAudio(audioBlob);
           const content = message.trim() || 'Voice message';
-          
+
           onSendMessage(content, audioUrl, 'audio');
-          
+
           setMessage('');
           setIsRecording(false);
           setRecordingTime(0);
@@ -274,22 +271,21 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
           setRecordingTime(0);
         }
       };
-      
-      mediaRecorder.onerror = (event) => {
-        console.error('[Recording] Error:', event);
+
+      mediaRecorder.onerror = () => {
         setRecordingError('Recording failed');
         setIsRecording(false);
         setRecordingTime(0);
       };
-      
+
       mediaRecorder.start();
       setIsRecording(true);
       setRecordingTime(0);
-      
+
       recordingTimerRef.current = setInterval(() => {
         setRecordingTime(prev => prev + 1);
       }, 1000);
-      
+
     } catch (error) {
       console.error('[Recording] Error starting recording:', error);
       if (error instanceof Error && error.name === 'NotAllowedError') {
@@ -305,7 +301,7 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
   const stopRecording = () => {
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
       mediaRecorderRef.current.stop();
-      
+
       if (recordingTimerRef.current) {
         clearInterval(recordingTimerRef.current);
         recordingTimerRef.current = null;
@@ -318,19 +314,19 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
       mediaRecorderRef.current.onstop = null;
       mediaRecorderRef.current.stop();
     }
-    
+
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => track.stop());
       streamRef.current = null;
     }
-    
+
     if (recordingTimerRef.current) {
       clearInterval(recordingTimerRef.current);
       recordingTimerRef.current = null;
     }
-    
+
     audioChunksRef.current = [];
-    
+
     setIsRecording(false);
     setRecordingTime(0);
     setRecordingError('');
@@ -345,11 +341,10 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
   const handleSend = async () => {
     if (disabled || isUploading || isSending || isRecording) return;
 
-    // Check if there's auto-detected media in the message
     if (detectedMedia && !showMediaInput) {
       const content = message.trim() || `${detectedMedia.type === 'youtube' ? 'YouTube' : detectedMedia.type === 'twitch' ? 'Twitch' : 'Twitter'} Post`;
       onSendMessage(content, detectedMedia.url, detectedMedia.type);
-      
+
       setMessage('');
       setDetectedMedia(null);
       if (textareaRef.current) {
@@ -361,7 +356,7 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
     if (showMediaInput) {
       if (mediaTab === 'image' && selectedFile) {
         if (!validateImageFile(selectedFile)) return;
-        
+
         try {
           setIsUploading(true);
           const mediaUrl = await uploadImage(selectedFile, (progress) => {
@@ -369,7 +364,7 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
           });
           const content = message.trim() || 'Image';
           onSendMessage(content, mediaUrl, 'image');
-          
+
           setMessage('');
           setSelectedFile(null);
           setShowMediaInput(false);
@@ -435,6 +430,13 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
 
   const messageProgressPercentage = (message.length / MAX_MESSAGE_LENGTH) * 100;
 
+  // SVG ring dimensions
+  const ringRadius = 10;
+  const ringCircumference = 2 * Math.PI * ringRadius;
+  const ringDashOffset = ringCircumference * (1 - Math.min(messageProgressPercentage / 100, 1));
+  const isNearLimit = message.length > MAX_MESSAGE_LENGTH * 0.8;
+  const isOverLimit = message.length > MAX_MESSAGE_LENGTH;
+
   const renderMediaPreview = () => {
     if (!detectedMedia) return null;
 
@@ -451,7 +453,7 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
             </div>
             {detectedMedia.type === 'youtube' && getYouTubeVideoId(detectedMedia.url) && (
               <div className="mt-2 w-full max-w-[200px]">
-                <img 
+                <img
                   src={`https://img.youtube.com/vi/${getYouTubeVideoId(detectedMedia.url)}/default.jpg`}
                   alt="YouTube preview"
                   className="w-full rounded border border-border"
@@ -476,7 +478,7 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
 
   return (
     <div className="flex-shrink-0 bg-card">
-      <div className="mx-auto max-w-3xl px-4 py-3">
+      <div className="mx-auto max-w-3xl px-4 py-2">
         <div className="space-y-2">
           {recordingError && (
             <div className="rounded-md bg-destructive/10 p-2 text-sm text-destructive">
@@ -495,14 +497,14 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
               <div className="flex gap-2">
                 <button
                   onClick={cancelRecording}
-                  className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 size-9 h-10 w-10 shrink-0 rounded-full"
+                  className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 size-9 h-10 w-10 shrink-0 rounded-full"
                   title="Cancel recording"
                 >
                   <X className="h-5 w-5" />
                 </button>
                 <button
                   onClick={stopRecording}
-                  className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-primary text-primary-foreground shadow hover:bg-primary/90 dark:bg-primary dark:text-primary-foreground dark:hover:bg-primary/90 size-9 h-10 w-10 shrink-0 rounded-full"
+                  className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 border bg-primary text-primary-foreground shadow hover:bg-primary/90 dark:bg-primary dark:text-primary-foreground dark:hover:bg-primary/90 size-9 h-10 w-10 shrink-0 rounded-full"
                   title="Send voice message"
                 >
                   <Square className="h-5 w-5 fill-current" />
@@ -517,123 +519,137 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
 
               {showMediaInput && (
                 <div className="rounded-lg border bg-card p-4">
-                  <Tabs value={mediaTab} onValueChange={(value) => setMediaTab(value as 'image' | 'giphy')}>
-                    <TabsList className="grid w-full grid-cols-2">
-                      <TabsTrigger value="image">Image</TabsTrigger>
-                      <TabsTrigger value="giphy">GIF</TabsTrigger>
+                  <Tabs value={mediaTab} onValueChange={(v) => setMediaTab(v as 'image' | 'giphy')}>
+                    <TabsList className="mb-3 w-full">
+                      <TabsTrigger value="image" className="flex-1">Image</TabsTrigger>
+                      <TabsTrigger value="giphy" className="flex-1">GIF</TabsTrigger>
                     </TabsList>
 
-                    <TabsContent value="image" className="space-y-3">
-                      <div className="space-y-2">
-                        <Label htmlFor="image-upload">Upload Image</Label>
-                        <Input
-                          id="image-upload"
-                          type="file"
-                          accept="image/*"
-                          onChange={handleFileChange}
-                          ref={fileInputRef}
-                          disabled={isUploading}
-                        />
-                      </div>
-
-                      {selectedFile && (
-                        <div className="space-y-2">
-                          <div className="relative aspect-video w-full overflow-hidden rounded-lg border bg-muted">
-                            <img
-                              src={URL.createObjectURL(selectedFile)}
-                              alt="Preview"
-                              className="h-full w-full object-contain"
-                            />
-                          </div>
-                          {isUploading && (
-                            <div className="space-y-1">
-                              <Progress value={uploadProgress} />
-                              <p className="text-xs text-muted-foreground text-center">
-                                Uploading... {uploadProgress}%
-                              </p>
-                            </div>
-                          )}
+                    <TabsContent value="image">
+                      <div className="space-y-3">
+                        <div>
+                          <Label htmlFor="image-upload" className="text-sm font-medium">
+                            Upload Image
+                          </Label>
+                          <Input
+                            id="image-upload"
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/*"
+                            onChange={handleFileChange}
+                            className="mt-1"
+                          />
                         </div>
-                      )}
 
-                      {mediaError && (
-                        <p className="text-sm text-destructive">{mediaError}</p>
-                      )}
+                        {selectedFile && (
+                          <div className="flex items-center gap-2 rounded-md bg-muted p-2">
+                            <ImageIcon className="h-4 w-4 text-muted-foreground" />
+                            <span className="flex-1 truncate text-sm">{selectedFile.name}</span>
+                            <button
+                              onClick={() => {
+                                setSelectedFile(null);
+                                if (fileInputRef.current) fileInputRef.current.value = '';
+                              }}
+                              className="text-muted-foreground hover:text-foreground"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          </div>
+                        )}
+
+                        {isUploading && (
+                          <div className="space-y-1">
+                            <Progress value={uploadProgress} className="h-1.5" />
+                            <p className="text-xs text-muted-foreground">
+                              Uploading... {Math.round(uploadProgress)}%
+                            </p>
+                          </div>
+                        )}
+
+                        {mediaError && (
+                          <p className="text-xs text-destructive">{mediaError}</p>
+                        )}
+                      </div>
                     </TabsContent>
 
-                    <TabsContent value="giphy" className="space-y-3">
-                      <div className="space-y-2">
-                        <Label htmlFor="giphy-search">Search GIFs</Label>
+                    <TabsContent value="giphy">
+                      <div className="space-y-3">
                         <Input
-                          id="giphy-search"
-                          type="text"
-                          placeholder="Search for GIFs..."
+                          placeholder="Search GIFs..."
                           value={giphySearch}
                           onChange={(e) => setGiphySearch(e.target.value)}
+                          className="h-8 text-sm"
                         />
-                      </div>
 
-                      {giphyError && (
-                        <p className="text-sm text-destructive">{giphyError}</p>
-                      )}
+                        {giphyError && (
+                          <p className="text-xs text-destructive">{giphyError}</p>
+                        )}
 
-                      {isLoadingGiphy ? (
-                        <div className="flex items-center justify-center py-8">
-                          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-                        </div>
-                      ) : (
-                        <ScrollArea className="h-[300px] w-full rounded-md border">
-                          <div className="grid grid-cols-4 gap-2 p-2">
-                            {giphyGifs.map((gif) => (
-                              <button
-                                key={gif.id}
-                                onClick={() => handleGifSelect(gif)}
-                                className="relative aspect-square overflow-hidden rounded-md border border-border hover:border-primary transition-colors"
-                              >
-                                <img
-                                  src={gif.previewUrl}
-                                  alt={gif.title}
-                                  className="h-full w-full object-cover"
-                                />
-                              </button>
-                            ))}
-                          </div>
-                          {giphyGifs.length === 0 && !isLoadingGiphy && (
-                            <div className="flex items-center justify-center py-8 text-sm text-muted-foreground">
-                              No GIFs found
+                        <ScrollArea className="h-48">
+                          {isLoadingGiphy ? (
+                            <div className="flex h-full items-center justify-center">
+                              <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                            </div>
+                          ) : giphyGifs.length === 0 ? (
+                            <div className="flex h-full items-center justify-center">
+                              <p className="text-sm text-muted-foreground">No GIFs found</p>
+                            </div>
+                          ) : (
+                            <div className="grid grid-cols-3 gap-1.5 p-1">
+                              {giphyGifs.map((gif) => (
+                                <button
+                                  key={gif.id}
+                                  onClick={() => handleGifSelect(gif)}
+                                  className="aspect-square overflow-hidden rounded-md hover:opacity-80 transition-opacity"
+                                >
+                                  <img
+                                    src={gif.previewUrl}
+                                    alt={gif.title}
+                                    className="h-full w-full object-cover"
+                                  />
+                                </button>
+                              ))}
                             </div>
                           )}
                         </ScrollArea>
-                      )}
+                      </div>
                     </TabsContent>
                   </Tabs>
+
+                  <div className="mt-3 flex justify-end gap-2">
+                    <button
+                      onClick={() => {
+                        setShowMediaInput(false);
+                        setSelectedFile(null);
+                        setMediaError('');
+                        if (fileInputRef.current) fileInputRef.current.value = '';
+                      }}
+                      className="rounded-md px-3 py-1.5 text-sm text-muted-foreground hover:bg-muted transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
                 </div>
               )}
 
+              {/* Main input row */}
               <div className="flex items-end gap-2">
+                {/* Image / GIF button */}
                 <button
                   onClick={handleImageButtonClick}
-                  disabled={disabled || isRecording}
-                  className={`inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 size-9 h-10 w-10 shrink-0 rounded-full ${
-                    showMediaInput ? 'bg-primary text-primary-foreground hover:bg-primary/90' : ''
-                  }`}
+                  disabled={disabled || isSending}
+                  className={`flex-shrink-0 rounded-full p-2 transition-colors ${
+                    showMediaInput
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                  } disabled:opacity-50`}
                   title="Add image or GIF"
                 >
                   <ImageIcon className="h-5 w-5" />
                 </button>
 
-                <button
-                  onClick={handleMicButtonClick}
-                  disabled={disabled || showMediaInput}
-                  className={`inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 size-9 h-10 w-10 shrink-0 rounded-full ${
-                    isRecording ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90' : ''
-                  }`}
-                  title={isRecording ? 'Cancel recording' : 'Record voice message'}
-                >
-                  <Mic className="h-5 w-5" />
-                </button>
-
-                <div className="relative flex-1">
+                {/* Pill-shaped textarea container */}
+                <div className="relative flex flex-1 items-end rounded-2xl border border-input bg-background px-3 py-2 focus-within:ring-1 focus-within:ring-ring">
                   <textarea
                     ref={textareaRef}
                     value={message}
@@ -642,30 +658,78 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
                     onFocus={() => setIsTextareaFocused(true)}
                     onBlur={() => setIsTextareaFocused(false)}
                     placeholder="Type a message..."
-                    disabled={disabled || isRecording}
-                    maxLength={MAX_MESSAGE_LENGTH}
-                    className="w-full resize-none overflow-hidden rounded-full border border-input bg-background px-4 py-2.5 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 h-10 min-h-[2.5rem] max-h-[120px]"
+                    disabled={disabled || isSending || isUploading}
                     rows={1}
-                    style={{ height: 'auto' }}
+                    className="flex-1 resize-none bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+                    style={{ maxHeight: '120px', fontSize: '16px' }}
                   />
-                  {isTextareaFocused && message.length > 0 && (
-                    <div className="absolute -bottom-1 left-0 right-0 h-0.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-primary transition-all duration-200"
-                        style={{ width: `${messageProgressPercentage}%` }}
-                      />
+
+                  {/* Circular progress ring — only shown when typing, no numeric text */}
+                  {message.length > 0 && (
+                    <div className="ml-2 flex-shrink-0 self-end pb-0.5">
+                      <svg width="20" height="20" viewBox="0 0 24 24" className="-rotate-90">
+                        <circle
+                          cx="12"
+                          cy="12"
+                          r={ringRadius}
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2.5"
+                          className="text-muted-foreground/20"
+                        />
+                        <circle
+                          cx="12"
+                          cy="12"
+                          r={ringRadius}
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2.5"
+                          strokeDasharray={ringCircumference}
+                          strokeDashoffset={ringDashOffset}
+                          strokeLinecap="round"
+                          className={
+                            isOverLimit
+                              ? 'text-destructive'
+                              : isNearLimit
+                              ? 'text-yellow-500'
+                              : 'text-primary'
+                          }
+                        />
+                      </svg>
                     </div>
                   )}
                 </div>
 
+                {/* Mic button */}
+                <button
+                  onClick={handleMicButtonClick}
+                  disabled={disabled || isSending || showMediaInput}
+                  className={`flex-shrink-0 rounded-full p-2 transition-colors disabled:opacity-50 ${
+                    isRecording
+                      ? 'bg-destructive text-destructive-foreground'
+                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                  }`}
+                  title={isRecording ? 'Cancel recording' : 'Voice message'}
+                >
+                  <Mic className="h-5 w-5" />
+                </button>
+
+                {/* Send button */}
                 <button
                   onClick={handleSend}
-                  disabled={disabled || isUploading || isSending || isRecording || (!message.trim() && !selectedFile && !detectedMedia)}
-                  className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-primary text-primary-foreground shadow hover:bg-primary/90 dark:bg-primary dark:text-primary-foreground dark:hover:bg-primary/90 size-9 h-10 w-10 shrink-0 rounded-full"
-                  title="Send message"
+                  disabled={
+                    disabled ||
+                    isSending ||
+                    isUploading ||
+                    isRecording ||
+                    isOverLimit ||
+                    (!message.trim() && !showMediaInput)
+                  }
+                  className="flex-shrink-0 rounded-full bg-primary p-2 text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 disabled:opacity-50"
+                  title="Send"
                 >
-                  {isSending ? (
-                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
+                  {isSending || isUploading ? (
+                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary-foreground/40 border-t-primary-foreground" />
                   ) : (
                     <Send className="h-5 w-5" />
                   )}

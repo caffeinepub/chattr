@@ -55,12 +55,14 @@ export interface MessageWithReactions {
     chatroomId: bigint;
     sender: string;
     mediaUrl?: string;
+    reportReasons: Array<string>;
     avatarUrl?: string;
     replyToMessageId?: bigint;
     timestamp: bigint;
     mediaType?: string;
     reactions: List_1;
     senderId: string;
+    flagCount: bigint;
 }
 export interface TransformationInput {
     context: Uint8Array;
@@ -74,11 +76,13 @@ export interface Message {
     chatroomId: bigint;
     sender: string;
     mediaUrl?: string;
+    reportReasons: Array<string>;
     avatarUrl?: string;
     replyToMessageId?: bigint;
     timestamp: bigint;
     mediaType?: string;
     senderId: string;
+    flagCount: bigint;
 }
 export type List = [string, List] | null;
 export interface ChatroomWithLiveStatus {
@@ -111,7 +115,7 @@ export interface backendInterface {
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     cleanupInactiveUsers(): Promise<void>;
     createChatroom(topic: string, description: string, mediaUrl: string, mediaType: string, category: string): Promise<bigint>;
-    deleteChatroomWithPassword(chatroomId: bigint, password: string): Promise<void>;
+    deleteChatroomWithPassword(chatroomId: bigint, _password: string): Promise<void>;
     fetchGiphyResults(searchTerm: string): Promise<string>;
     fetchTrendingGiphyGifs(): Promise<string>;
     fetchTwitchThumbnail(channelName: string): Promise<string>;
@@ -123,6 +127,7 @@ export interface backendInterface {
     getCallerUserRole(): Promise<UserRole>;
     getChatroom(id: bigint): Promise<ChatroomWithLiveStatus | null>;
     getChatrooms(): Promise<Array<ChatroomWithLiveStatus>>;
+    getFlaggedMessages(): Promise<Array<Message>>;
     getLobbyChatroomCards(): Promise<Array<LobbyChatroomCard>>;
     getMessageWithReactionsAndReplies(chatroomId: bigint): Promise<Array<MessageWithReactions>>;
     getMessages(chatroomId: bigint): Promise<Array<Message>>;
@@ -136,6 +141,7 @@ export interface backendInterface {
     isCallerAdmin(): Promise<boolean>;
     pinVideo(chatroomId: bigint, messageId: bigint): Promise<void>;
     removeReaction(messageId: bigint, emoji: string, userId: string): Promise<void>;
+    reportMessage(messageId: bigint, reason: string): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     searchChatrooms(searchTerm: string): Promise<Array<ChatroomWithLiveStatus>>;
     sendMessage(content: string, sender: string, chatroomId: bigint, mediaUrl: string | null, mediaType: string | null, avatarUrl: string | null, senderId: string, replyToMessageId: bigint | null): Promise<void>;

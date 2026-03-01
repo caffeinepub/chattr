@@ -1,36 +1,73 @@
 {
   "kind": "build_request",
-  "title": "Revert action button styling to Version 335",
+  "title": "Quoted replies inside bubbles, icon-only action buttons, remove extra character counter",
+  "projectName": "Chattr",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Revert the action buttons in MessageBubble.tsx to their original styling from Version 335. The buttons became invisible after the layout reorder changes introduced in Version 369. Restore all button styles (colors, visibility, opacity, background, borders, hover states) to exactly how they appeared in Version 335.",
+      "text": "Move quoted reply previews inside the chat bubble so they appear as part of the message bubble content, above the message text, rather than outside or above the bubble.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-4"
+          "msg-recent-user-1"
         ],
         "quotes": [
-          "The action buttons are not visible anymore. Please revert their styling back to version 335"
+          "Put quoted replies inside of the chat bubble"
         ]
       },
       "acceptanceCriteria": [
-        "All action buttons in MessageBubble are fully visible and not hidden or transparent",
-        "Button colors, backgrounds, borders, and hover states match the Version 335 appearance",
-        "Action buttons remain functional (clickable) after the styling revert",
-        "No regression in the message layout reorder (Message ID → Timestamp → Username → Avatar) introduced in Version 369"
+        "Quoted reply context renders inside the chat bubble container, visually contained within the bubble's background/border",
+        "Quoted reply appears above the message text within the same bubble",
+        "No style changes to colors, fonts, spacing, or bubble shape"
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "text": "Make message action buttons (reply, react, pin, etc.) always visible on every message bubble without requiring hover. Remove all text labels from action buttons, keeping only the icons.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-recent-user-1"
+        ],
+        "quotes": [
+          "Make the action buttons always visible but remove the labels from them (keep the icon only)"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Action buttons are visible at all times on every message bubble, not only on hover",
+        "Action buttons show only icons — no text labels beside or below them",
+        "All existing action button icons remain unchanged",
+        "No other style or layout changes are made"
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Remove the character counter displayed below the chat input field. The circular character counter rendered inside the chat input must remain intact and unchanged.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-recent-user-1"
+        ],
+        "quotes": [
+          "remove the extra chat input counter below the chat input (keep the circular one inside the chat input)"
+        ]
+      },
+      "acceptanceCriteria": [
+        "No character count text or indicator appears below the chat input field",
+        "The circular progress/counter indicator inside the chat input field is still present and functional",
+        "No other changes to the chat input layout or styling"
       ]
     }
   ],
   "constraints": [
-    "Do not alter the message header layout reorder (Message ID → Timestamp → Username → Avatar) that was introduced in Version 369",
-    "Only restore action button styling — do not change any other UI elements"
+    "Do not change any styles — colors, typography, spacing, border radii, shadows, or component themes must remain identical to Version 348",
+    "Do not modify backend code"
   ],
   "nonGoals": [
-    "Reverting any other changes from Version 369 beyond the action button styles",
-    "Changes to backend logic or data models",
-    "Any new features or UI enhancements beyond restoring button visibility"
+    "Redesigning or restyling message bubbles",
+    "Changing reaction or pinning behavior",
+    "Altering the chat input functionality beyond removing the below-input counter"
   ],
   "imageRequirements": {
     "required": [],
