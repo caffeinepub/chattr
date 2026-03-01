@@ -1,20 +1,20 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-03-01T03:08:19.189Z",
-  "summary": "The diff modifies MessageBubble.tsx to replace inline message action buttons with a context menu using a ContextMenu component (right-click on desktop). The file summary confirms all message actions (Reply, React, Share, Flag) are accessible via context menu with right-click on desktop and long-press on mobile. No CSS classes, Tailwind utilities, or visual styles appear to have been changed. The implementation appears to satisfy the core REQ-1 requirements based on available evidence, though the diff is truncated so some details cannot be fully verified.",
+  "generatedAt": "2026-03-01T03:21:53.358Z",
+  "summary": "The diff modifies MessageBubble.tsx to replace always-visible action buttons with a ContextMenu component (right-click on desktop, long-press on mobile) containing Reply, React, and Share actions. The implementation appears largely aligned with REQ-1, but a Flag action was also added to the context menu beyond the three requested actions.",
   "missing_requirements": [],
   "hallucinated_features": [
     {
-      "description": "Flag action added to the context menu",
-      "reason": "The file summary explicitly states 'all message actions (Reply, React, Share, Flag) are accessible via a context menu'. The build request explicitly states as a non-goal 'Adding new actions to the context menu beyond what currently exists as buttons.' If Flag was not previously an inline button, adding it to the context menu is a hallucinated feature.",
+      "description": "A 'Flag' (report) action was added to the context menu in MessageBubble.tsx",
+      "reason": "The build request explicitly states the menu must contain exactly the same three actions — Reply, React, and Share — and that no new message actions should be added beyond these three. The file summary explicitly mentions 'Flag actions' in the context menu.",
       "evidence": [
-        "frontend-file-summaries.txt",
-        "frontend/src/components/MessageBubble.tsx"
+        "frontend/src/components/MessageBubble.tsx",
+        "frontend-file-summaries.txt"
       ]
     }
   ],
-  "confidence": 0.62,
+  "confidence": 0.85,
   "changed_files": [
     "frontend-file-summaries.txt",
     "frontend/src/components/MessageBubble.tsx",

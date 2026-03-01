@@ -1,12 +1,13 @@
 # Specification
 
 ## Summary
-**Goal:** Replace the inline message action buttons in MessageBubble with a context menu, without changing any other styles or components.
+**Goal:** Replace the always-visible message action buttons in MessageBubble.tsx with a context menu triggered by right-click on desktop and long-press on mobile.
 
 **Planned changes:**
-- Remove the inline Reply, React, and Share action buttons from the message bubble UI
-- Add a context menu that opens on right-click (desktop) and long-press (mobile) on a message bubble
-- The context menu contains the same Reply, React, and Share actions with identical behavior
-- The context menu dismisses when clicking/tapping outside it and stays within the viewport
+- Remove the always-visible Reply, React, and Share action buttons from message bubbles
+- Add a context menu that opens on right-click (desktop) or long-press (~500ms, mobile)
+- Context menu contains the same three actions — Reply, React, and Share — with identical functionality
+- Context menu dismisses when clicking/tapping outside of it
+- Only MessageBubble.tsx is modified; no other files, styles, or layouts are changed
 
-**User-visible outcome:** Users no longer see inline action buttons on message bubbles; instead, they right-click (desktop) or long-press (mobile) a message to reveal a context menu with the same actions.
+**User-visible outcome:** Users no longer see action buttons on message bubbles by default. Instead, they right-click (desktop) or long-press (mobile) a message bubble to reveal a context menu with Reply, React, and Share options.

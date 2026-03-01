@@ -1,16 +1,14 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Chat application project. Currently at version 344 after reverting due to errors. Working on replacing message action buttons (Reply, React, Share) with a context menu triggered by right-click on desktop and long-press on mobile, without changing any styles.",
-  "architectural_notes": [
-    "Message action buttons (Reply, React, Share) are being replaced with a context menu — right-click on desktop, long-press on mobile"
-  ],
+  "summary": "Chat application with message actions implemented as a context menu (right-click on desktop, long-press on mobile) containing Reply, React, and Share options.",
+  "architectural_notes": [],
   "known_issues": [],
   "isFixRequest": false,
   "existing_features": [
     {
-      "id": "feature-in-messagebubble-tsx-replace-the-inline-message-action-buttons-reply-react-share-with-a-context-menu-that-appears-on-right-click-desktop-and-long-press-mobile-the-context-menu-must-contain-the-same-actions-currently-available-as-buttons-do-not-change-any-existing-styles-colors-typography-layout-or-any-other-visual-properties-anywhere-in-the-codebase",
-      "title": "In MessageBubble.tsx, replace the inline message action buttons (Reply, React, Share) with a context menu that appears on right-click (desktop) and long-press (mobile). The context menu must contain the same actions currently available as buttons. Do not change any existing styles, colors, typography, layout, or any other visual properties anywhere in the codebase.",
+      "id": "feature-in-messagebubble-tsx-replace-the-always-visible-reply-react-and-share-action-buttons-with-a-context-menu-on-desktop-the-menu-opens-on-right-click-of-the-message-bubble-on-mobile-the-menu-opens-on-long-press-touch-hold-500ms-the-menu-must-contain-exactly-the-same-three-actions-reply-react-and-share-with-identical-functionality-to-the-current-buttons-no-other-changes-to-messagebubble-tsx-or-any-other-file",
+      "title": "In MessageBubble.tsx, replace the always-visible Reply, React, and Share action buttons with a context menu: on desktop, the menu opens on right-click of the message bubble; on mobile, the menu opens on long-press (touch hold ~500ms). The menu must contain exactly the same three actions — Reply, React, and Share — with identical functionality to the current buttons. No other changes to MessageBubble.tsx or any other file.",
       "reqIds": [
         "REQ-1"
       ],
@@ -20,7 +18,7 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Replace message action buttons with a context menu (right-click desktop, long-press mobile) without changing any styles",
+      "summary": "Replace message action buttons with a context menu (right-click desktop, long-press mobile) containing Reply, React, Share — no other changes",
       "reqIds": [],
       "status": "pending"
     }

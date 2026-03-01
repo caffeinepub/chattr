@@ -1,25 +1,24 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Replace message action buttons with a context menu",
+  "title": "Replace message action buttons with context menu (right-click / long-press)",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Replace inline message action buttons (Reply, React, Share) in MessageBubble.tsx with a context menu triggered by right-click (desktop) and long-press (mobile), preserving all existing styles and behavior.",
+      "summary": "Replace the always-visible Reply, React, and Share action buttons in MessageBubble.tsx with a context menu that opens on right-click (desktop) or long-press (~500ms, mobile). The menu must contain the same three actions with identical functionality. No other changes to any file.",
       "acceptanceCriteria": [
-        "Inline message action buttons (Reply, React, Share) are no longer visible by default on each message bubble.",
-        "Right-clicking a message bubble on desktop opens a context menu with the same actions (Reply, React, Share).",
-        "Long-pressing a message bubble on mobile opens the same context menu.",
-        "Selecting an action from the context menu triggers the same behavior as the original buttons.",
-        "Clicking or tapping outside the context menu dismisses it.",
-        "The context menu is positioned near the cursor/tap point and stays within the viewport.",
-        "No existing styles, colors, typography, layout, spacing, or visual properties are changed anywhere in the app."
+        "The Reply, React, and Share buttons are no longer visible by default on message bubbles",
+        "Right-clicking a message bubble on desktop opens a context menu with Reply, React, and Share options",
+        "Long-pressing (~500ms) a message bubble on mobile opens the same context menu",
+        "Each menu action (Reply, React, Share) performs the same operation as the original buttons",
+        "The context menu closes when clicking/tapping outside of it",
+        "No other UI elements, styles, layouts, or behaviors are changed"
       ],
       "file_operations": [
         {
           "path": "frontend/src/components/MessageBubble.tsx",
           "operation": "modify",
-          "description": "Replace the inline action buttons (Reply, React, Share) with a context menu implementation. Add onContextMenu handler for right-click on desktop and onTouchStart/onTouchEnd handlers for long-press detection on mobile (e.g., 500ms threshold). Create a context menu component or inline element that renders the same three actions when triggered. Position the menu near the cursor/tap point using fixed positioning with viewport boundary checks. Add click-outside and escape-key handlers to dismiss the menu. Ensure all existing onClick handlers for Reply, React, and Share are preserved and called from the context menu items. Do not modify any existing className attributes, Tailwind utilities, inline styles, or any other visual properties. Do not change any other logic, props, or component structure."
+          "description": "Remove the always-visible Reply, React, and Share action buttons. Add state and event handlers for a context menu that opens on right-click (desktop) or long-press (~500ms touch hold, mobile). Implement the context menu UI containing Reply, React, and Share options with the same click handlers as the original buttons. Ensure the menu closes on outside click/tap. Preserve all existing functionality (reactions, pinning, replies, media embeds, voice playback, reporting, external link warnings) without modification."
         }
       ]
     }

@@ -273,7 +273,7 @@ export default function MessageBubble({
     }
   };
 
-  const handleReport = async (reason: string) => {
+  const handleReportClick = async (reason: string) => {
     if (reportedMessageId === message.id) return;
     try {
       await reportMutation.mutateAsync({ messageId: message.id, reason });
@@ -505,71 +505,72 @@ export default function MessageBubble({
     return null;
   }
 
-  // suppress unused variable warning
-  void hasVideo;
+  const isReported = reportedMessageId === message.id;
 
   return (
     <>
-      <ContextMenu>
-        <ContextMenuTrigger asChild>
-          <div
-            className={`group flex gap-2 px-4 py-1 ${isOwnMessage ? 'flex-row-reverse' : 'flex-row'} ${
-              isHighlighted ? 'bg-primary/10 rounded-lg transition-colors duration-300' : ''
-            }`}
-          >
-            {/* Avatar */}
-            {!isOwnMessage && (
-              <div className="flex-shrink-0 self-end mb-1">
-                <Avatar className="h-7 w-7">
-                  {message.avatarUrl ? (
-                    <AvatarImage src={message.avatarUrl} alt={message.sender} />
-                  ) : null}
-                  <AvatarFallback className="text-xs bg-muted">
-                    {getInitials(message.sender)}
-                  </AvatarFallback>
-                </Avatar>
-              </div>
-            )}
+      <div
+        className={`group flex gap-2 px-4 py-1 ${isOwnMessage ? 'flex-row-reverse' : 'flex-row'} ${
+          isHighlighted ? 'bg-primary/10 rounded-lg transition-colors duration-300' : ''
+        }`}
+        id={`message-${message.id}`}
+      >
+        {/* Avatar */}
+        {!isOwnMessage && (
+          <div className="flex-shrink-0 self-end mb-1">
+            <Avatar className="h-7 w-7">
+              {message.avatarUrl ? (
+                <AvatarImage src={message.avatarUrl} alt={message.sender} />
+              ) : null}
+              <AvatarFallback className="text-xs bg-muted">
+                {getInitials(message.sender)}
+              </AvatarFallback>
+            </Avatar>
+          </div>
+        )}
 
-            <div className={`flex flex-col max-w-[75%] ${isOwnMessage ? 'items-end' : 'items-start'}`}>
-              {/* Sender name + timestamp */}
-              {!isOwnMessage && (
-                <div className="flex items-baseline gap-1.5 mb-0.5 px-1">
-                  <span className="text-xs font-semibold text-foreground">{message.sender}</span>
-                  <span className="text-[10px] text-muted-foreground">{formatTimestamp(message.timestamp)}</span>
-                </div>
-              )}
-              {isOwnMessage && (
-                <div className="flex items-baseline gap-1.5 mb-0.5 px-1">
-                  <span className="text-[10px] text-muted-foreground">{formatTimestamp(message.timestamp)}</span>
-                </div>
-              )}
+        <div className={`flex flex-col max-w-[75%] ${isOwnMessage ? 'items-end' : 'items-start'}`}>
+          {/* Sender name + timestamp */}
+          {!isOwnMessage && (
+            <div className="flex items-center gap-1.5 mb-0.5 px-1">
+              <span className="text-xs font-medium text-foreground/80">{message.sender}</span>
+              <span className="text-[10px] text-muted-foreground">{formatTimestamp(message.timestamp)}</span>
+            </div>
+          )}
+          {isOwnMessage && (
+            <div className="flex items-center gap-1.5 mb-0.5 px-1">
+              <span className="text-[10px] text-muted-foreground">{formatTimestamp(message.timestamp)}</span>
+            </div>
+          )}
 
-              {/* Reply preview */}
-              {parentMessage && (
-                <button
-                  className="mb-1 flex items-center gap-1.5 rounded-lg border-l-2 border-primary bg-muted/50 px-2 py-1 text-left text-xs text-muted-foreground hover:bg-muted transition-colors max-w-full"
-                  onClick={() => onScrollToMessage && onScrollToMessage(parentMessage.id)}
-                >
-                  <Reply className="h-3 w-3 flex-shrink-0 text-primary" />
-                  <span className="font-medium text-foreground">{parentMessage.sender}</span>
-                  <span className="truncate">
-                    {parentMessage.mediaUrl && !parentMessage.content ? '📎 Media' : truncateText(parentMessage.content, 60)}
-                  </span>
-                </button>
-              )}
+          {/* Reply preview */}
+          {parentMessage && (
+            <div
+              className={`mb-1 px-2 py-1 rounded-lg border-l-2 border-primary/50 bg-muted/50 cursor-pointer max-w-full ${
+                isOwnMessage ? 'self-end' : 'self-start'
+              }`}
+              onClick={() => onScrollToMessage && onScrollToMessage(parentMessage.id)}
+            >
+              <p className="text-[10px] font-medium text-primary/80">{parentMessage.sender}</p>
+              <p className="text-[10px] text-muted-foreground truncate max-w-[200px]">
+                {truncateText(parentMessage.content, 60)}
+              </p>
+            </div>
+          )}
 
-              {/* Message bubble */}
+          {/* Message bubble wrapped in ContextMenu */}
+          <ContextMenu>
+            <ContextMenuTrigger asChild>
               <div
-                className={`rounded-2xl px-3 py-2 text-sm leading-relaxed select-none ${
+                className={`relative rounded-2xl px-3 py-2 text-sm select-none ${
                   isOwnMessage
                     ? 'bg-primary text-primary-foreground rounded-br-sm'
-                    : 'bg-muted text-foreground rounded-bl-sm'
+                    : 'bg-card border border-border text-foreground rounded-bl-sm'
                 }`}
               >
                 {/* Message content */}
                 {message.content && message.content !== 'Media content posted by creator' && (
-                  <p className="whitespace-pre-wrap break-words">
+                  <p className="whitespace-pre-wrap break-words leading-relaxed">
                     {renderTextWithLinks(message.content, handleLinkClick, isOwnMessage)}
                   </p>
                 )}
@@ -577,107 +578,116 @@ export default function MessageBubble({
                 {/* Media */}
                 {renderMedia()}
               </div>
+            </ContextMenuTrigger>
 
-              {/* Reactions display */}
-              {reactions.length > 0 && (
-                <div className={`mt-1 flex flex-wrap gap-1 ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
-                  {reactions.filter(r => r.count > 0).map((reaction) => {
-                    const users = listToArray<string>(reaction.users);
-                    const hasReacted = users.includes(userId);
-                    return (
-                      <button
-                        key={reaction.emoji}
-                        onClick={() => handleReaction(reaction.emoji)}
-                        className={`flex items-center gap-0.5 rounded-full border px-1.5 py-0.5 text-xs transition-colors ${
-                          hasReacted
-                            ? 'border-primary bg-primary/10 text-primary'
-                            : 'border-border bg-background text-foreground hover:bg-muted'
-                        }`}
-                      >
-                        <span>{reaction.emoji}</span>
-                        <span className="font-medium">{reaction.count.toString()}</span>
-                      </button>
-                    );
-                  })}
-                </div>
+            <ContextMenuContent className="w-48">
+              {/* Reply */}
+              {onReply && (
+                <ContextMenuItem
+                  className="flex items-center gap-2 cursor-pointer"
+                  onClick={handleReplyClick}
+                >
+                  <Reply className="h-4 w-4" />
+                  <span>Reply</span>
+                </ContextMenuItem>
               )}
+
+              {/* React (emoji submenu) */}
+              <ContextMenuSub>
+                <ContextMenuSubTrigger className="flex items-center gap-2 cursor-pointer">
+                  <Smile className="h-4 w-4" />
+                  <span>React</span>
+                </ContextMenuSubTrigger>
+                <ContextMenuSubContent className="p-2">
+                  <div className="flex flex-wrap gap-1 max-w-[160px]">
+                    {COMMON_EMOJIS.map((emoji) => {
+                      const existingReaction = reactions.find((r) => r.emoji === emoji);
+                      const users = existingReaction ? listToArray<string>(existingReaction.users) : [];
+                      const hasReacted = users.includes(userId);
+                      return (
+                        <button
+                          key={emoji}
+                          onClick={() => handleReaction(emoji)}
+                          className={`text-lg p-1 rounded hover:bg-muted transition-colors ${
+                            hasReacted ? 'bg-primary/20' : ''
+                          }`}
+                          title={emoji}
+                        >
+                          {emoji}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </ContextMenuSubContent>
+              </ContextMenuSub>
+
+              {/* Share */}
+              <ContextMenuItem
+                className="flex items-center gap-2 cursor-pointer"
+                onClick={handleShareClick}
+              >
+                <Share2 className="h-4 w-4" />
+                <span>Share</span>
+              </ContextMenuItem>
+
+              <ContextMenuSeparator />
+
+              {/* Flag / Report */}
+              {isReported ? (
+                <ContextMenuItem disabled className="flex items-center gap-2 text-green-600 dark:text-green-400">
+                  <Check className="h-4 w-4" />
+                  <span>Reported</span>
+                </ContextMenuItem>
+              ) : (
+                <ContextMenuSub>
+                  <ContextMenuSubTrigger className="flex items-center gap-2 cursor-pointer text-destructive focus:text-destructive">
+                    <Flag className="h-4 w-4" />
+                    <span>Flag</span>
+                  </ContextMenuSubTrigger>
+                  <ContextMenuSubContent className="w-40">
+                    {REPORT_REASONS.map((reason) => (
+                      <ContextMenuItem
+                        key={reason}
+                        onClick={() => handleReportClick(reason)}
+                        className="cursor-pointer text-sm"
+                        disabled={reportMutation.isPending}
+                      >
+                        {reason}
+                      </ContextMenuItem>
+                    ))}
+                  </ContextMenuSubContent>
+                </ContextMenuSub>
+              )}
+            </ContextMenuContent>
+          </ContextMenu>
+
+          {/* Reactions display */}
+          {reactions.length > 0 && (
+            <div className={`flex flex-wrap gap-1 mt-1 px-1 ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
+              {reactions
+                .filter((r) => r.count > 0)
+                .map((reaction) => {
+                  const users = listToArray<string>(reaction.users);
+                  const hasReacted = users.includes(userId);
+                  return (
+                    <button
+                      key={reaction.emoji}
+                      onClick={() => handleReaction(reaction.emoji)}
+                      className={`flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-xs transition-colors ${
+                        hasReacted
+                          ? 'bg-primary/20 text-primary border border-primary/30'
+                          : 'bg-muted text-muted-foreground border border-border hover:bg-muted/80'
+                      }`}
+                    >
+                      <span>{reaction.emoji}</span>
+                      <span>{Number(reaction.count)}</span>
+                    </button>
+                  );
+                })}
             </div>
-          </div>
-        </ContextMenuTrigger>
-
-        <ContextMenuContent className="w-48">
-          {/* Reply */}
-          {onReply && (
-            <ContextMenuItem
-              className="flex items-center gap-2 cursor-pointer"
-              onClick={handleReplyClick}
-            >
-              <Reply className="h-4 w-4" />
-              <span>Reply</span>
-            </ContextMenuItem>
           )}
-
-          {/* React submenu */}
-          <ContextMenuSub>
-            <ContextMenuSubTrigger className="flex items-center gap-2 cursor-pointer">
-              <Smile className="h-4 w-4" />
-              <span>React</span>
-            </ContextMenuSubTrigger>
-            <ContextMenuSubContent className="w-auto p-1">
-              <div className="flex gap-1">
-                {COMMON_EMOJIS.map((emoji) => (
-                  <button
-                    key={emoji}
-                    onClick={() => handleReaction(emoji)}
-                    className="rounded p-1 text-base hover:bg-muted transition-colors"
-                    title={emoji}
-                  >
-                    {emoji}
-                  </button>
-                ))}
-              </div>
-            </ContextMenuSubContent>
-          </ContextMenuSub>
-
-          {/* Share */}
-          <ContextMenuItem
-            className="flex items-center gap-2 cursor-pointer"
-            onClick={handleShareClick}
-          >
-            <Share2 className="h-4 w-4" />
-            <span>Share</span>
-          </ContextMenuItem>
-
-          <ContextMenuSeparator />
-
-          {/* Flag submenu */}
-          {reportedMessageId === message.id ? (
-            <ContextMenuItem disabled className="flex items-center gap-2">
-              <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
-              <span className="text-green-600 dark:text-green-400">Reported</span>
-            </ContextMenuItem>
-          ) : (
-            <ContextMenuSub>
-              <ContextMenuSubTrigger className="flex items-center gap-2 cursor-pointer text-muted-foreground">
-                <Flag className="h-4 w-4" />
-                <span>Flag</span>
-              </ContextMenuSubTrigger>
-              <ContextMenuSubContent className="w-40">
-                {REPORT_REASONS.map((reason) => (
-                  <ContextMenuItem
-                    key={reason}
-                    onClick={() => handleReport(reason)}
-                    className="cursor-pointer text-sm"
-                    disabled={reportMutation.isPending}
-                  >
-                    {reason}
-                  </ContextMenuItem>
-                ))}
-              </ContextMenuSubContent>
-            </ContextMenuSub>
-          )}
-        </ContextMenuContent>
-      </ContextMenu>
+        </div>
+      </div>
 
       {/* Expanded media overlay */}
       {renderExpandedMedia()}

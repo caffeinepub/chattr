@@ -1,44 +1,46 @@
 {
   "kind": "build_request",
-  "title": "Replace message action buttons with a context menu",
+  "title": "Replace message action buttons with context menu (right-click / long-press)",
   "projectName": "Chattr",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "In MessageBubble.tsx, replace the inline message action buttons (Reply, React, Share) with a context menu that appears on right-click (desktop) and long-press (mobile). The context menu must contain the same actions currently available as buttons. Do not change any existing styles, colors, typography, layout, or any other visual properties anywhere in the codebase.",
+      "text": "In MessageBubble.tsx, replace the always-visible Reply, React, and Share action buttons with a context menu: on desktop, the menu opens on right-click of the message bubble; on mobile, the menu opens on long-press (touch hold ~500ms). The menu must contain exactly the same three actions — Reply, React, and Share — with identical functionality to the current buttons. No other changes to MessageBubble.tsx or any other file.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-user-last",
-          "msg-user-second-last"
+          "msg-1",
+          "msg-2"
         ],
         "quotes": [
-          "Let's make the message buttons a context menu instead.",
-          "Yes but don't change anything else. Don't change any styles"
+          "Replace the message action buttons (Reply, React, Share) with a context menu",
+          "Right-click on desktop to open the menu",
+          "Long-press on mobile to open the menu",
+          "Menu contains the same actions: Reply, React, Share",
+          "No other changes — no style changes, no layout changes, nothing else modified"
         ]
       },
       "acceptanceCriteria": [
-        "Inline message action buttons (Reply, React, Share) are no longer visible by default on each message bubble.",
-        "Right-clicking a message bubble on desktop opens a context menu with the same actions (Reply, React, Share).",
-        "Long-pressing a message bubble on mobile opens the same context menu.",
-        "Selecting an action from the context menu triggers the same behavior as the original buttons.",
-        "Clicking or tapping outside the context menu dismisses it.",
-        "The context menu is positioned near the cursor/tap point and stays within the viewport.",
-        "No existing styles, colors, typography, layout, spacing, or visual properties are changed anywhere in the app."
+        "The Reply, React, and Share buttons are no longer visible by default on message bubbles",
+        "Right-clicking a message bubble on desktop opens a context menu with Reply, React, and Share options",
+        "Long-pressing (~500ms) a message bubble on mobile opens the same context menu",
+        "Each menu action (Reply, React, Share) performs the same operation as the original buttons",
+        "The context menu closes when clicking/tapping outside of it",
+        "No other UI elements, styles, layouts, or behaviors are changed"
       ]
     }
   ],
   "constraints": [
-    "Do not change any CSS classes, Tailwind utilities, color tokens, typography, spacing, or any other visual styles anywhere in the codebase.",
-    "Do not modify any files other than MessageBubble.tsx (and any helper/utility files strictly required for the context menu logic).",
-    "Do not alter backend logic or any other frontend components."
+    "Only modify MessageBubble.tsx — no changes to any other file",
+    "Do not alter any styles, layouts, colors, or typography",
+    "Do not add, remove, or modify any features outside of the message action button → context menu replacement"
   ],
   "nonGoals": [
-    "Redesigning or restyling any part of the UI.",
-    "Adding new actions to the context menu beyond what currently exists as buttons.",
-    "Changing message layout, bubble appearance, or any other component.",
-    "Modifying backend logic."
+    "Changing any backend logic",
+    "Modifying MessageInput.tsx or any other component",
+    "Altering chatroom, lobby, or header/footer components",
+    "Adding new message actions beyond Reply, React, and Share"
   ],
   "imageRequirements": {
     "required": [],
