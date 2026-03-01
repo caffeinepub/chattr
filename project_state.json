@@ -1,24 +1,18 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Social/messaging app with action buttons (Reply, React, Share, Flag) and a message input area with character counter.",
-  "architectural_notes": [],
+  "summary": "Chat application project. Currently at version 344 after reverting due to errors. Working on replacing message action buttons (Reply, React, Share) with a context menu triggered by right-click on desktop and long-press on mobile, without changing any styles.",
+  "architectural_notes": [
+    "Message action buttons (Reply, React, Share) are being replaced with a context menu — right-click on desktop, long-press on mobile"
+  ],
   "known_issues": [],
   "isFixRequest": false,
   "existing_features": [
     {
-      "id": "feature-add-visible-text-labels-to-the-four-message-action-buttons-in-messagebubble-tsx-reply-react-share-and-flag-each-label-should-appear-alongside-its-existing-icon",
-      "title": "Add visible text labels to the four message action buttons in MessageBubble.tsx: 'Reply', 'React', 'Share', and 'Flag'. Each label should appear alongside its existing icon.",
+      "id": "feature-in-messagebubble-tsx-replace-the-inline-message-action-buttons-reply-react-share-with-a-context-menu-that-appears-on-right-click-desktop-and-long-press-mobile-the-context-menu-must-contain-the-same-actions-currently-available-as-buttons-do-not-change-any-existing-styles-colors-typography-layout-or-any-other-visual-properties-anywhere-in-the-codebase",
+      "title": "In MessageBubble.tsx, replace the inline message action buttons (Reply, React, Share) with a context menu that appears on right-click (desktop) and long-press (mobile). The context menu must contain the same actions currently available as buttons. Do not change any existing styles, colors, typography, layout, or any other visual properties anywhere in the codebase.",
       "reqIds": [
         "REQ-1"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-remove-the-character-count-text-display-from-the-character-counter-in-the-message-input-area-in-messageinput-tsx-the-counter-element-itself-e-g-progress-ring-or-indicator-may-remain-but-the-numeric-character-count-text-must-not-be-shown",
-      "title": "Remove the character count text display from the character counter in the message input area in MessageInput.tsx. The counter element itself (e.g., progress ring or indicator) may remain, but the numeric character count text must not be shown.",
-      "reqIds": [
-        "REQ-2"
       ],
       "version": 1
     }
@@ -26,13 +20,7 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Add labels to action buttons: Reply, React, Share, Flag",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-2",
-      "summary": "Remove character count text from the character counter in the message input area",
+      "summary": "Replace message action buttons with a context menu (right-click desktop, long-press mobile) without changing any styles",
       "reqIds": [],
       "status": "pending"
     }

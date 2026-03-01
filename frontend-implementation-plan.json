@@ -1,40 +1,25 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Add labels to action buttons and remove character count text from message input",
+  "title": "Replace message action buttons with a context menu",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Add visible text labels ('Reply', 'React', 'Share', 'Flag') to the four message action buttons in MessageBubble.tsx alongside their existing icons",
+      "summary": "Replace inline message action buttons (Reply, React, Share) in MessageBubble.tsx with a context menu triggered by right-click (desktop) and long-press (mobile), preserving all existing styles and behavior.",
       "acceptanceCriteria": [
-        "The Reply action button displays the text label 'Reply'",
-        "The React action button displays the text label 'React'",
-        "The Share action button displays the text label 'Share'",
-        "The Flag action button displays the text label 'Flag'",
-        "Each label is visible alongside the button's icon",
-        "No other changes are made to the buttons (size, color, behavior, layout remain the same)"
+        "Inline message action buttons (Reply, React, Share) are no longer visible by default on each message bubble.",
+        "Right-clicking a message bubble on desktop opens a context menu with the same actions (Reply, React, Share).",
+        "Long-pressing a message bubble on mobile opens the same context menu.",
+        "Selecting an action from the context menu triggers the same behavior as the original buttons.",
+        "Clicking or tapping outside the context menu dismisses it.",
+        "The context menu is positioned near the cursor/tap point and stays within the viewport.",
+        "No existing styles, colors, typography, layout, spacing, or visual properties are changed anywhere in the app."
       ],
       "file_operations": [
         {
           "path": "frontend/src/components/MessageBubble.tsx",
           "operation": "modify",
-          "description": "Add text labels 'Reply', 'React', 'Share', and 'Flag' to each of the four message action buttons. Display each label alongside its corresponding icon without modifying button size, color, behavior, or layout. Ensure the labels are visible and properly aligned with their icons."
-        }
-      ]
-    },
-    {
-      "id": "REQ-2",
-      "summary": "Remove the numeric character count text display from the message input area in MessageInput.tsx while keeping any non-text counter indicator (e.g., progress ring)",
-      "acceptanceCriteria": [
-        "No numeric character count text is rendered in the message input area",
-        "Any non-text counter indicator (e.g., ring, bar) may remain if present",
-        "No other changes are made to the message input component"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/MessageInput.tsx",
-          "operation": "modify",
-          "description": "Remove the numeric character count text from the character counter display in the message input area. If a visual counter indicator (such as a progress ring or bar) exists, keep it intact. Only remove the text that shows the numeric character count value."
+          "description": "Replace the inline action buttons (Reply, React, Share) with a context menu implementation. Add onContextMenu handler for right-click on desktop and onTouchStart/onTouchEnd handlers for long-press detection on mobile (e.g., 500ms threshold). Create a context menu component or inline element that renders the same three actions when triggered. Position the menu near the cursor/tap point using fixed positioning with viewport boundary checks. Add click-outside and escape-key handlers to dismiss the menu. Ensure all existing onClick handlers for Reply, React, and Share are preserved and called from the context menu items. Do not modify any existing className attributes, Tailwind utilities, inline styles, or any other visual properties. Do not change any other logic, props, or component structure."
         }
       ]
     }

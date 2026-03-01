@@ -1,58 +1,44 @@
 {
   "kind": "build_request",
-  "title": "Add labels to action buttons and remove character count text from message input",
+  "title": "Replace message action buttons with a context menu",
   "projectName": "Chattr",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Add visible text labels to the four message action buttons in MessageBubble.tsx: 'Reply', 'React', 'Share', and 'Flag'. Each label should appear alongside its existing icon.",
+      "text": "In MessageBubble.tsx, replace the inline message action buttons (Reply, React, Share) with a context menu that appears on right-click (desktop) and long-press (mobile). The context menu must contain the same actions currently available as buttons. Do not change any existing styles, colors, typography, layout, or any other visual properties anywhere in the codebase.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-7"
+          "msg-user-last",
+          "msg-user-second-last"
         ],
         "quotes": [
-          "add labels to the action buttons. Reply, React, Share, Flag"
+          "Let's make the message buttons a context menu instead.",
+          "Yes but don't change anything else. Don't change any styles"
         ]
       },
       "acceptanceCriteria": [
-        "The Reply action button displays the text label 'Reply'",
-        "The React action button displays the text label 'React'",
-        "The Share action button displays the text label 'Share'",
-        "The Flag action button displays the text label 'Flag'",
-        "Each label is visible alongside the button's icon",
-        "No other changes are made to the buttons (size, color, behavior, layout remain the same)"
-      ]
-    },
-    {
-      "id": "REQ-2",
-      "text": "Remove the character count text display from the character counter in the message input area in MessageInput.tsx. The counter element itself (e.g., progress ring or indicator) may remain, but the numeric character count text must not be shown.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-7"
-        ],
-        "quotes": [
-          "remove the character count text from the character counter in the message input area"
-        ]
-      },
-      "acceptanceCriteria": [
-        "No numeric character count text is rendered in the message input area",
-        "Any non-text counter indicator (e.g., ring, bar) may remain if present",
-        "No other changes are made to the message input component"
+        "Inline message action buttons (Reply, React, Share) are no longer visible by default on each message bubble.",
+        "Right-clicking a message bubble on desktop opens a context menu with the same actions (Reply, React, Share).",
+        "Long-pressing a message bubble on mobile opens the same context menu.",
+        "Selecting an action from the context menu triggers the same behavior as the original buttons.",
+        "Clicking or tapping outside the context menu dismisses it.",
+        "The context menu is positioned near the cursor/tap point and stays within the viewport.",
+        "No existing styles, colors, typography, layout, spacing, or visual properties are changed anywhere in the app."
       ]
     }
   ],
   "constraints": [
-    "Do not make any changes other than those specified in REQ-1 and REQ-2",
-    "Do not modify any backend files",
-    "Do not alter button behavior, sizing, colors, or layout beyond adding the text labels"
+    "Do not change any CSS classes, Tailwind utilities, color tokens, typography, spacing, or any other visual styles anywhere in the codebase.",
+    "Do not modify any files other than MessageBubble.tsx (and any helper/utility files strictly required for the context menu logic).",
+    "Do not alter backend logic or any other frontend components."
   ],
   "nonGoals": [
-    "Redesigning or restyling the action buttons beyond adding labels",
-    "Changing the character counter behavior or limits",
-    "Modifying any other components not mentioned in this request"
+    "Redesigning or restyling any part of the UI.",
+    "Adding new actions to the context menu beyond what currently exists as buttons.",
+    "Changing message layout, bubble appearance, or any other component.",
+    "Modifying backend logic."
   ],
   "imageRequirements": {
     "required": [],

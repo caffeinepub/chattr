@@ -6,18 +6,15 @@ import { X, Pin, Smile, Reply, Share2, ExternalLink, Flag, Check } from 'lucide-
 import { Button } from './ui/button';
 import { usePinVideo, useUnpinVideo, useAddReaction, useRemoveReaction, useReportMessage } from '../hooks/useQueries';
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from './ui/popover';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from './ui/dropdown-menu';
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuSeparator,
+  ContextMenuSub,
+  ContextMenuSubContent,
+  ContextMenuSubTrigger,
+  ContextMenuTrigger,
+} from './ui/context-menu';
 import { 
   getYouTubeVideoId, 
   getTwitchEmbedUrl,
@@ -165,61 +162,6 @@ function renderTextWithLinks(
   return parts;
 }
 
-// ─── Report Button ────────────────────────────────────────────────────────────
-
-function ReportButton({ messageId }: { messageId: bigint }) {
-  const reportMutation = useReportMessage();
-  const [reported, setReported] = useState(false);
-
-  const handleReport = async (reason: string) => {
-    if (reported) return;
-    try {
-      await reportMutation.mutateAsync({ messageId, reason });
-      setReported(true);
-      setTimeout(() => setReported(false), 3000);
-    } catch {
-      // silent
-    }
-  };
-
-  if (reported) {
-    return (
-      <span className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400 px-1">
-        <Check className="h-3 w-3" />
-        Reported
-      </span>
-    );
-  }
-
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <button
-          className="flex items-center gap-1 rounded px-2 py-1 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:bg-muted hover:text-foreground"
-          title="Flag"
-          disabled={reportMutation.isPending}
-        >
-          <Flag className="h-3.5 w-3.5" />
-          <span className="text-xs">Flag</span>
-        </button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-40">
-        <DropdownMenuLabel className="text-xs">Report reason</DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        {REPORT_REASONS.map((reason) => (
-          <DropdownMenuItem
-            key={reason}
-            onClick={() => handleReport(reason)}
-            className="cursor-pointer text-sm"
-          >
-            {reason}
-          </DropdownMenuItem>
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-}
-
 // ─── MessageBubble ────────────────────────────────────────────────────────────
 
 export default function MessageBubble({ 
@@ -233,15 +175,16 @@ export default function MessageBubble({
   isHighlighted 
 }: MessageBubbleProps) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [tweetLoading, setTweetLoading] = useState(true);
   const [disclaimerOpen, setDisclaimerOpen] = useState(false);
   const [pendingUrl, setPendingUrl] = useState<string | null>(null);
+  const [reportedMessageId, setReportedMessageId] = useState<bigint | null>(null);
   const tweetContainerRef = useRef<HTMLDivElement>(null);
   const pinVideo = usePinVideo();
   const unpinVideo = useUnpinVideo();
   const addReaction = useAddReaction();
   const removeReaction = useRemoveReaction();
+  const reportMutation = useReportMessage();
 
   const getInitials = (name: string) => {
     if (!name) return '?';
@@ -288,8 +231,6 @@ export default function MessageBubble({
     } else {
       await addReaction.mutateAsync({ messageId: message.id, emoji, chatroomId: chatroomIdStr });
     }
-    
-    setShowEmojiPicker(false);
   };
 
   const handleReplyClick = () => {
@@ -329,6 +270,17 @@ export default function MessageBubble({
       toast.success('Link copied to clipboard!');
     } catch {
       toast.error('Failed to copy link');
+    }
+  };
+
+  const handleReport = async (reason: string) => {
+    if (reportedMessageId === message.id) return;
+    try {
+      await reportMutation.mutateAsync({ messageId: message.id, reason });
+      setReportedMessageId(message.id);
+      setTimeout(() => setReportedMessageId(null), 3000);
+    } catch {
+      // silent
     }
   };
 
@@ -553,142 +505,190 @@ export default function MessageBubble({
     return null;
   }
 
+  // suppress unused variable warning
+  void hasVideo;
+
   return (
-    <div
-      className={`group relative flex gap-3 ${isOwnMessage ? 'flex-row-reverse' : 'flex-row'} ${
-        isHighlighted ? 'rounded-xl bg-primary/10 px-2 py-1 transition-colors duration-300' : ''
-      }`}
-    >
-      {/* Avatar */}
-      <div className="flex-shrink-0">
-        <Avatar className="h-8 w-8">
-          {message.avatarUrl && <AvatarImage src={message.avatarUrl} alt={message.sender} />}
-          <AvatarFallback className="text-xs">{getInitials(message.sender)}</AvatarFallback>
-        </Avatar>
-      </div>
-
-      {/* Message content */}
-      <div className={`flex min-w-0 max-w-[75%] flex-col ${isOwnMessage ? 'items-end' : 'items-start'}`}>
-        {/* Sender + timestamp */}
-        <div className={`mb-1 flex items-center gap-2 ${isOwnMessage ? 'flex-row-reverse' : 'flex-row'}`}>
-          <span className="text-xs font-semibold text-foreground/70">{message.sender}</span>
-          <span className="text-xs text-muted-foreground">{formatTimestamp(message.timestamp)}</span>
-        </div>
-
-        {/* Reply preview */}
-        {parentMessage && (
+    <>
+      <ContextMenu>
+        <ContextMenuTrigger asChild>
           <div
-            className="mb-1 cursor-pointer rounded-lg border-l-2 border-primary/50 bg-muted/50 px-2 py-1 text-xs text-muted-foreground hover:bg-muted transition-colors"
-            onClick={() => onScrollToMessage && onScrollToMessage(parentMessage.id)}
+            className={`group flex gap-2 px-4 py-1 ${isOwnMessage ? 'flex-row-reverse' : 'flex-row'} ${
+              isHighlighted ? 'bg-primary/10 rounded-lg transition-colors duration-300' : ''
+            }`}
           >
-            <span className="font-medium">{parentMessage.sender}: </span>
-            <span>{truncateText(parentMessage.content, 60)}</span>
-          </div>
-        )}
+            {/* Avatar */}
+            {!isOwnMessage && (
+              <div className="flex-shrink-0 self-end mb-1">
+                <Avatar className="h-7 w-7">
+                  {message.avatarUrl ? (
+                    <AvatarImage src={message.avatarUrl} alt={message.sender} />
+                  ) : null}
+                  <AvatarFallback className="text-xs bg-muted">
+                    {getInitials(message.sender)}
+                  </AvatarFallback>
+                </Avatar>
+              </div>
+            )}
 
-        {/* Bubble */}
-        <div
-          className={`rounded-2xl px-3 py-2 text-sm ${
-            isOwnMessage
-              ? 'rounded-tr-sm bg-primary text-primary-foreground'
-              : 'rounded-tl-sm bg-muted text-foreground'
-          }`}
-        >
-          {message.content && message.sender !== 'Creator' && (
-            <p className="whitespace-pre-wrap break-words leading-relaxed">
-              {renderTextWithLinks(message.content, handleLinkClick, isOwnMessage)}
-            </p>
-          )}
-          {renderMedia()}
-        </div>
+            <div className={`flex flex-col max-w-[75%] ${isOwnMessage ? 'items-end' : 'items-start'}`}>
+              {/* Sender name + timestamp */}
+              {!isOwnMessage && (
+                <div className="flex items-baseline gap-1.5 mb-0.5 px-1">
+                  <span className="text-xs font-semibold text-foreground">{message.sender}</span>
+                  <span className="text-[10px] text-muted-foreground">{formatTimestamp(message.timestamp)}</span>
+                </div>
+              )}
+              {isOwnMessage && (
+                <div className="flex items-baseline gap-1.5 mb-0.5 px-1">
+                  <span className="text-[10px] text-muted-foreground">{formatTimestamp(message.timestamp)}</span>
+                </div>
+              )}
 
-        {/* Reactions */}
-        {reactions.length > 0 && (
-          <div className="mt-1 flex flex-wrap gap-1">
-            {reactions
-              .filter((r) => Number(r.count) > 0)
-              .map((reaction) => {
-                const reactionUsers = listToArray<string>(reaction.users);
-                const hasReacted = reactionUsers.includes(userId);
-                return (
-                  <button
-                    key={reaction.emoji}
-                    onClick={() => handleReaction(reaction.emoji)}
-                    className={`flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs transition-colors ${
-                      hasReacted
-                        ? 'border-primary/40 bg-primary/20 text-primary'
-                        : 'border-border bg-muted hover:bg-muted/80'
-                    }`}
-                  >
-                    <span>{reaction.emoji}</span>
-                    <span>{Number(reaction.count)}</span>
-                  </button>
-                );
-              })}
-          </div>
-        )}
+              {/* Reply preview */}
+              {parentMessage && (
+                <button
+                  className="mb-1 flex items-center gap-1.5 rounded-lg border-l-2 border-primary bg-muted/50 px-2 py-1 text-left text-xs text-muted-foreground hover:bg-muted transition-colors max-w-full"
+                  onClick={() => onScrollToMessage && onScrollToMessage(parentMessage.id)}
+                >
+                  <Reply className="h-3 w-3 flex-shrink-0 text-primary" />
+                  <span className="font-medium text-foreground">{parentMessage.sender}</span>
+                  <span className="truncate">
+                    {parentMessage.mediaUrl && !parentMessage.content ? '📎 Media' : truncateText(parentMessage.content, 60)}
+                  </span>
+                </button>
+              )}
 
-        {/* Action buttons - visible on hover */}
-        <div className={`mt-1 flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 ${isOwnMessage ? 'flex-row-reverse' : 'flex-row'}`}>
-          {/* Reply */}
-          <button
-            onClick={handleReplyClick}
-            className="flex items-center gap-1 rounded px-2 py-1 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:bg-muted hover:text-foreground"
-            title="Reply"
-          >
-            <Reply className="h-3.5 w-3.5" />
-            <span className="text-xs">Reply</span>
-          </button>
-
-          {/* React */}
-          <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
-            <PopoverTrigger asChild>
-              <button
-                className="flex items-center gap-1 rounded px-2 py-1 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:bg-muted hover:text-foreground"
-                title="React"
+              {/* Message bubble */}
+              <div
+                className={`rounded-2xl px-3 py-2 text-sm leading-relaxed select-none ${
+                  isOwnMessage
+                    ? 'bg-primary text-primary-foreground rounded-br-sm'
+                    : 'bg-muted text-foreground rounded-bl-sm'
+                }`}
               >
-                <Smile className="h-3.5 w-3.5" />
-                <span className="text-xs">React</span>
-              </button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-2" side="top" align="start">
-              <div className="flex flex-wrap gap-1" style={{ maxWidth: '200px' }}>
+                {/* Message content */}
+                {message.content && message.content !== 'Media content posted by creator' && (
+                  <p className="whitespace-pre-wrap break-words">
+                    {renderTextWithLinks(message.content, handleLinkClick, isOwnMessage)}
+                  </p>
+                )}
+
+                {/* Media */}
+                {renderMedia()}
+              </div>
+
+              {/* Reactions display */}
+              {reactions.length > 0 && (
+                <div className={`mt-1 flex flex-wrap gap-1 ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
+                  {reactions.filter(r => r.count > 0).map((reaction) => {
+                    const users = listToArray<string>(reaction.users);
+                    const hasReacted = users.includes(userId);
+                    return (
+                      <button
+                        key={reaction.emoji}
+                        onClick={() => handleReaction(reaction.emoji)}
+                        className={`flex items-center gap-0.5 rounded-full border px-1.5 py-0.5 text-xs transition-colors ${
+                          hasReacted
+                            ? 'border-primary bg-primary/10 text-primary'
+                            : 'border-border bg-background text-foreground hover:bg-muted'
+                        }`}
+                      >
+                        <span>{reaction.emoji}</span>
+                        <span className="font-medium">{reaction.count.toString()}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        </ContextMenuTrigger>
+
+        <ContextMenuContent className="w-48">
+          {/* Reply */}
+          {onReply && (
+            <ContextMenuItem
+              className="flex items-center gap-2 cursor-pointer"
+              onClick={handleReplyClick}
+            >
+              <Reply className="h-4 w-4" />
+              <span>Reply</span>
+            </ContextMenuItem>
+          )}
+
+          {/* React submenu */}
+          <ContextMenuSub>
+            <ContextMenuSubTrigger className="flex items-center gap-2 cursor-pointer">
+              <Smile className="h-4 w-4" />
+              <span>React</span>
+            </ContextMenuSubTrigger>
+            <ContextMenuSubContent className="w-auto p-1">
+              <div className="flex gap-1">
                 {COMMON_EMOJIS.map((emoji) => (
                   <button
                     key={emoji}
                     onClick={() => handleReaction(emoji)}
-                    className="rounded p-1 text-lg transition-transform hover:scale-125 hover:bg-muted"
+                    className="rounded p-1 text-base hover:bg-muted transition-colors"
+                    title={emoji}
                   >
                     {emoji}
                   </button>
                 ))}
               </div>
-            </PopoverContent>
-          </Popover>
+            </ContextMenuSubContent>
+          </ContextMenuSub>
 
           {/* Share */}
-          <button
+          <ContextMenuItem
+            className="flex items-center gap-2 cursor-pointer"
             onClick={handleShareClick}
-            className="flex items-center gap-1 rounded px-2 py-1 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:bg-muted hover:text-foreground"
-            title="Share"
           >
-            <Share2 className="h-3.5 w-3.5" />
-            <span className="text-xs">Share</span>
-          </button>
+            <Share2 className="h-4 w-4" />
+            <span>Share</span>
+          </ContextMenuItem>
 
-          {/* Flag */}
-          <ReportButton messageId={message.id} />
-        </div>
-      </div>
+          <ContextMenuSeparator />
 
+          {/* Flag submenu */}
+          {reportedMessageId === message.id ? (
+            <ContextMenuItem disabled className="flex items-center gap-2">
+              <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
+              <span className="text-green-600 dark:text-green-400">Reported</span>
+            </ContextMenuItem>
+          ) : (
+            <ContextMenuSub>
+              <ContextMenuSubTrigger className="flex items-center gap-2 cursor-pointer text-muted-foreground">
+                <Flag className="h-4 w-4" />
+                <span>Flag</span>
+              </ContextMenuSubTrigger>
+              <ContextMenuSubContent className="w-40">
+                {REPORT_REASONS.map((reason) => (
+                  <ContextMenuItem
+                    key={reason}
+                    onClick={() => handleReport(reason)}
+                    className="cursor-pointer text-sm"
+                    disabled={reportMutation.isPending}
+                  >
+                    {reason}
+                  </ContextMenuItem>
+                ))}
+              </ContextMenuSubContent>
+            </ContextMenuSub>
+          )}
+        </ContextMenuContent>
+      </ContextMenu>
+
+      {/* Expanded media overlay */}
       {renderExpandedMedia()}
 
+      {/* External link disclaimer */}
       <ExternalLinkDisclaimerModal
         isOpen={disclaimerOpen}
-        targetUrl={pendingUrl ?? ''}
-        onClose={handleDisclaimerClose}
+        targetUrl={pendingUrl}
         onConfirm={handleDisclaimerConfirm}
+        onClose={handleDisclaimerClose}
       />
-    </div>
+    </>
   );
 }

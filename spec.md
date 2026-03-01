@@ -1,10 +1,12 @@
 # Specification
 
 ## Summary
-**Goal:** Add text labels to message action buttons and remove the numeric character count text from the message input area.
+**Goal:** Replace the inline message action buttons in MessageBubble with a context menu, without changing any other styles or components.
 
 **Planned changes:**
-- Add visible text labels ("Reply", "React", "Share", "Flag") alongside the existing icons on the four message action buttons in MessageBubble.tsx
-- Remove the numeric character count text from the character counter in MessageInput.tsx (non-text indicator such as a progress ring may remain)
+- Remove the inline Reply, React, and Share action buttons from the message bubble UI
+- Add a context menu that opens on right-click (desktop) and long-press (mobile) on a message bubble
+- The context menu contains the same Reply, React, and Share actions with identical behavior
+- The context menu dismisses when clicking/tapping outside it and stays within the viewport
 
-**User-visible outcome:** Message action buttons now display their names next to their icons, and the message input no longer shows a numeric character count.
+**User-visible outcome:** Users no longer see inline action buttons on message bubbles; instead, they right-click (desktop) or long-press (mobile) a message to reveal a context menu with the same actions.

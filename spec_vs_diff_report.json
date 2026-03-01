@@ -1,15 +1,23 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-03-01T00:28:53.716Z",
-  "summary": "Both REQ-1 and REQ-2 appear to be implemented based on the diff evidence. MessageBubble.tsx has been modified to include text labels alongside icons for Reply, React, Share, and Flag buttons. MessageInput.tsx has been modified to show only the SVG progress ring without numeric count text. No backend files were modified and no removed files are present.",
+  "generatedAt": "2026-03-01T03:08:19.189Z",
+  "summary": "The diff modifies MessageBubble.tsx to replace inline message action buttons with a context menu using a ContextMenu component (right-click on desktop). The file summary confirms all message actions (Reply, React, Share, Flag) are accessible via context menu with right-click on desktop and long-press on mobile. No CSS classes, Tailwind utilities, or visual styles appear to have been changed. The implementation appears to satisfy the core REQ-1 requirements based on available evidence, though the diff is truncated so some details cannot be fully verified.",
   "missing_requirements": [],
-  "hallucinated_features": [],
-  "confidence": 0.85,
+  "hallucinated_features": [
+    {
+      "description": "Flag action added to the context menu",
+      "reason": "The file summary explicitly states 'all message actions (Reply, React, Share, Flag) are accessible via a context menu'. The build request explicitly states as a non-goal 'Adding new actions to the context menu beyond what currently exists as buttons.' If Flag was not previously an inline button, adding it to the context menu is a hallucinated feature.",
+      "evidence": [
+        "frontend-file-summaries.txt",
+        "frontend/src/components/MessageBubble.tsx"
+      ]
+    }
+  ],
+  "confidence": 0.62,
   "changed_files": [
     "frontend-file-summaries.txt",
     "frontend/src/components/MessageBubble.tsx",
-    "frontend/src/components/MessageInput.tsx",
     "project_state.json"
   ]
 }

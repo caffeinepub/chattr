@@ -2,8 +2,8 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-add-visible-text-labels-to-the-four-message-action-buttons-in-messagebubble-tsx-reply-react-share-and-flag-each-label-should-appear-alongside-its-existing-icon",
-      "featureTitle": "Add visible text labels to the four message action buttons in MessageBubble.tsx: 'Reply', 'React', 'Share', and 'Flag'. Each label should appear alongside its existing icon.",
+      "featureId": "feature-in-messagebubble-tsx-replace-the-inline-message-action-buttons-reply-react-share-with-a-context-menu-that-appears-on-right-click-desktop-and-long-press-mobile-the-context-menu-must-contain-the-same-actions-currently-available-as-buttons-do-not-change-any-existing-styles-colors-typography-layout-or-any-other-visual-properties-anywhere-in-the-codebase",
+      "featureTitle": "In MessageBubble.tsx, replace the inline message action buttons (Reply, React, Share) with a context menu that appears on right-click (desktop) and long-press (mobile). The context menu must contain the same actions currently available as buttons. Do not change any existing styles, colors, typography, layout, or any other visual properties anywhere in the codebase.",
       "files": [
         "frontend/src/components/MessageBubble.tsx"
       ],
@@ -19,27 +19,6 @@
       ],
       "testIds": [
         "REQ-1"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-remove-the-character-count-text-display-from-the-character-counter-in-the-message-input-area-in-messageinput-tsx-the-counter-element-itself-e-g-progress-ring-or-indicator-may-remain-but-the-numeric-character-count-text-must-not-be-shown",
-      "featureTitle": "Remove the character count text display from the character counter in the message input area in MessageInput.tsx. The counter element itself (e.g., progress ring or indicator) may remain, but the numeric character count text must not be shown.",
-      "files": [
-        "frontend/src/components/MessageInput.tsx"
-      ],
-      "components": [
-        "authorization@1.0.1",
-        "blob-storage@2.0.3",
-        "http-outcalls@1.1.1",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-2"
       ],
       "confidence": "high"
     }
