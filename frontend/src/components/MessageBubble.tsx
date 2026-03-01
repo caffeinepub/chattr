@@ -1,11 +1,15 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { createPortal } from 'react-dom';
+import { useState, useEffect, useRef } from 'react';
 import type { MessageWithReactions, Reaction } from '../backend';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { formatDistanceToNow } from 'date-fns';
-import { X, Pin, Smile, Reply, Share2, ExternalLink, Flag, Check, Copy, ChevronRight } from 'lucide-react';
+import { X, Pin, Smile, Reply, Share2, ExternalLink } from 'lucide-react';
 import { Button } from './ui/button';
-import { usePinVideo, useUnpinVideo, useAddReaction, useRemoveReaction, useReportMessage } from '../hooks/useQueries';
+import { usePinVideo, useUnpinVideo, useAddReaction, useRemoveReaction } from '../hooks/useQueries';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from './ui/popover';
 import { 
   getYouTubeVideoId, 
   getTwitchEmbedUrl,
@@ -30,7 +34,6 @@ interface MessageBubbleProps {
 }
 
 const COMMON_EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '🔥', '👏', '🎉'];
-const REPORT_REASONS = ['Spam', 'Inappropriate', 'Harassment', 'Other'];
 
 // URL detection regex
 const URL_REGEX = /https?:\/\/[^\s<>"{}|\\^`[\]]+/gi;
@@ -64,6 +67,7 @@ function loadTwitterScript(): Promise<void> {
       resolve();
       return;
     }
+
     const script = document.createElement('script');
     script.src = 'https://platform.twitter.com/widgets.js';
     script.async = true;
@@ -107,6 +111,12 @@ function isGiphyUrl(url: string): boolean {
   return lowerUrl.includes('giphy.com') || lowerUrl.includes('media.giphy.com') || lowerUrl.includes('i.giphy.com');
 }
 
+// Replace X/Twitter URLs in text with plain text "X Post"
+function replaceTwitterUrlsWithText(text: string): string {
+  const twitterUrlPattern = /https?:\/\/(www\.)?(twitter\.com|x\.com)\/[^\s]+/gi;
+  return text.replace(twitterUrlPattern, 'X Post');
+}
+
 // Render text with detected links
 function renderTextWithLinks(
   text: string,
@@ -122,10 +132,12 @@ function renderTextWithLinks(
     const url = match[0];
     const start = match.index;
 
+    // Push text before the URL
     if (start > lastIndex) {
       parts.push(text.slice(lastIndex, start));
     }
 
+    // Push the link element
     parts.push(
       <span
         key={start}
@@ -145,220 +157,13 @@ function renderTextWithLinks(
     lastIndex = start + url.length;
   }
 
+  // Push remaining text
   if (lastIndex < text.length) {
     parts.push(text.slice(lastIndex));
   }
 
   return parts;
 }
-
-// ─── Custom Context Menu ──────────────────────────────────────────────────────
-
-interface ContextMenuState {
-  x: number;
-  y: number;
-}
-
-interface CustomContextMenuProps {
-  position: ContextMenuState;
-  onClose: () => void;
-  onCopyText: () => void;
-  onReply?: () => void;
-  onReaction: (emoji: string) => void;
-  onShare: () => void;
-  onPinToggle?: () => void;
-  isPinned: boolean;
-  hasVideo: boolean;
-  pinPending: boolean;
-  onReport: (reason: string) => void;
-  reported: boolean;
-  reportPending: boolean;
-}
-
-function CustomContextMenu({
-  position,
-  onClose,
-  onCopyText,
-  onReply,
-  onReaction,
-  onShare,
-  onPinToggle,
-  isPinned,
-  hasVideo,
-  pinPending,
-  onReport,
-  reported,
-  reportPending,
-}: CustomContextMenuProps) {
-  const menuRef = useRef<HTMLDivElement>(null);
-  const [showEmojis, setShowEmojis] = useState(false);
-  const [showReportReasons, setShowReportReasons] = useState(false);
-
-  // Adjust position to stay within viewport
-  const [adjustedPos, setAdjustedPos] = useState(position);
-
-  useEffect(() => {
-    if (menuRef.current) {
-      const rect = menuRef.current.getBoundingClientRect();
-      const vw = window.innerWidth;
-      const vh = window.innerHeight;
-      let { x, y } = position;
-
-      if (x + rect.width > vw) x = vw - rect.width - 8;
-      if (y + rect.height > vh) y = vh - rect.height - 8;
-      if (x < 8) x = 8;
-      if (y < 8) y = 8;
-
-      setAdjustedPos({ x, y });
-    }
-  }, [position]);
-
-  // Close on outside click or ESC
-  useEffect(() => {
-    const handleClick = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        onClose();
-      }
-    };
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    document.addEventListener('mousedown', handleClick);
-    document.addEventListener('keydown', handleKeyDown);
-    return () => {
-      document.removeEventListener('mousedown', handleClick);
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [onClose]);
-
-  const menuItemClass =
-    'flex w-full items-center gap-2 rounded-sm px-3 py-2 text-sm cursor-pointer hover:bg-accent hover:text-accent-foreground transition-colors text-left';
-  const separatorClass = 'my-1 h-px bg-border';
-
-  return createPortal(
-    <div
-      ref={menuRef}
-      className="fixed z-[9999] min-w-[180px] rounded-md border border-border bg-popover shadow-md py-1"
-      style={{ left: adjustedPos.x, top: adjustedPos.y }}
-      onContextMenu={(e) => e.preventDefault()}
-    >
-      {/* Copy Text */}
-      <button
-        className={menuItemClass}
-        onClick={() => { onCopyText(); onClose(); }}
-      >
-        <Copy className="h-4 w-4" />
-        Copy Text
-      </button>
-
-      <div className={separatorClass} />
-
-      {/* Reply */}
-      {onReply && (
-        <button
-          className={menuItemClass}
-          onClick={() => { onReply(); onClose(); }}
-        >
-          <Reply className="h-4 w-4" />
-          Reply
-        </button>
-      )}
-
-      {/* React */}
-      <div className="relative">
-        <button
-          className={`${menuItemClass} justify-between`}
-          onClick={() => { setShowEmojis((v) => !v); setShowReportReasons(false); }}
-        >
-          <span className="flex items-center gap-2">
-            <Smile className="h-4 w-4" />
-            React
-          </span>
-          <ChevronRight className="h-3.5 w-3.5 opacity-60" />
-        </button>
-        {showEmojis && (
-          <div className="absolute left-full top-0 ml-1 rounded-md border border-border bg-popover shadow-md p-2 flex flex-wrap gap-1 w-44">
-            {COMMON_EMOJIS.map((emoji) => (
-              <button
-                key={emoji}
-                onClick={() => { onReaction(emoji); onClose(); }}
-                className="flex h-8 w-8 items-center justify-center rounded-md text-lg hover:bg-muted transition-colors"
-              >
-                {emoji}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Share / Copy Link */}
-      <button
-        className={menuItemClass}
-        onClick={() => { onShare(); onClose(); }}
-      >
-        <Share2 className="h-4 w-4" />
-        Copy Link
-      </button>
-
-      {/* Pin/Unpin (only for video messages) */}
-      {hasVideo && onPinToggle && (
-        <button
-          className={menuItemClass}
-          onClick={() => { onPinToggle(); onClose(); }}
-          disabled={pinPending}
-        >
-          <Pin className={`h-4 w-4 ${isPinned ? 'fill-current' : ''}`} />
-          {isPinned ? 'Unpin Video' : 'Pin Video'}
-        </button>
-      )}
-
-      <div className={separatorClass} />
-
-      {/* Flag / Report */}
-      <div className="relative">
-        <button
-          className={`${menuItemClass} text-destructive hover:text-destructive justify-between`}
-          onClick={() => { setShowReportReasons((v) => !v); setShowEmojis(false); }}
-          disabled={reported || reportPending}
-        >
-          <span className="flex items-center gap-2">
-            {reported ? (
-              <>
-                <Check className="h-4 w-4" />
-                Reported
-              </>
-            ) : (
-              <>
-                <Flag className="h-4 w-4" />
-                Flag
-              </>
-            )}
-          </span>
-          {!reported && <ChevronRight className="h-3.5 w-3.5 opacity-60" />}
-        </button>
-        {showReportReasons && !reported && (
-          <div className="absolute left-full top-0 ml-1 rounded-md border border-border bg-popover shadow-md py-1 w-40">
-            <div className="px-3 py-1 text-xs font-medium text-muted-foreground">Report reason</div>
-            <div className="my-1 h-px bg-border" />
-            {REPORT_REASONS.map((reason) => (
-              <button
-                key={reason}
-                className={menuItemClass}
-                onClick={() => { onReport(reason); onClose(); }}
-                disabled={reportPending}
-              >
-                {reason}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>,
-    document.body
-  );
-}
-
-// ─── MessageBubble ────────────────────────────────────────────────────────────
 
 export default function MessageBubble({ 
   message, 
@@ -371,19 +176,15 @@ export default function MessageBubble({
   isHighlighted 
 }: MessageBubbleProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [tweetLoading, setTweetLoading] = useState(true);
   const [disclaimerOpen, setDisclaimerOpen] = useState(false);
   const [pendingUrl, setPendingUrl] = useState<string | null>(null);
-  const [reported, setReported] = useState(false);
-  const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
   const tweetContainerRef = useRef<HTMLDivElement>(null);
-  const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const longPressTriggeredRef = useRef(false);
   const pinVideo = usePinVideo();
   const unpinVideo = useUnpinVideo();
   const addReaction = useAddReaction();
   const removeReaction = useRemoveReaction();
-  const reportMutation = useReportMessage();
 
   const getInitials = (name: string) => {
     if (!name) return '?';
@@ -401,10 +202,10 @@ export default function MessageBubble({
     return distance.replace(/^about\s+/i, '');
   };
 
-  const hasVideo = !!(message.mediaType && (
+  const hasVideo = message.mediaType && (
     (message.mediaType === 'youtube' && message.mediaUrl && isYouTubeUrl(message.mediaUrl)) ||
     (message.mediaType === 'twitch' && message.mediaUrl && isTwitchUrl(message.mediaUrl))
-  ));
+  );
 
   const handlePinToggle = async () => {
     if (isPinned) {
@@ -416,8 +217,8 @@ export default function MessageBubble({
 
   const handleReaction = async (emoji: string) => {
     const userId = getUserId();
-    const reactionsList = listToArray<Reaction>(message.reactions);
-    const existingReaction = reactionsList.find((r) => r.emoji === emoji);
+    const reactions = listToArray<Reaction>(message.reactions);
+    const existingReaction = reactions.find((r) => r.emoji === emoji);
     const chatroomIdStr = chatroomId.toString();
     
     if (existingReaction) {
@@ -430,6 +231,8 @@ export default function MessageBubble({
     } else {
       await addReaction.mutateAsync({ messageId: message.id, emoji, chatroomId: chatroomIdStr });
     }
+    
+    setShowEmojiPicker(false);
   };
 
   const handleReplyClick = () => {
@@ -461,6 +264,7 @@ export default function MessageBubble({
   };
 
   const handleShareClick = async () => {
+    // Zero-pad the message ID to 9 digits for the share link
     const paddedMessageId = message.id.toString().padStart(9, '0');
     const url = `${window.location.origin}/chatroom/${chatroomId}?messageId=${paddedMessageId}`;
     
@@ -469,26 +273,6 @@ export default function MessageBubble({
       toast.success('Link copied to clipboard!');
     } catch {
       toast.error('Failed to copy link');
-    }
-  };
-
-  const handleCopyText = async () => {
-    try {
-      await navigator.clipboard.writeText(message.content);
-      toast.success('Text copied!');
-    } catch {
-      toast.error('Failed to copy text');
-    }
-  };
-
-  const handleReport = async (reason: string) => {
-    if (reported) return;
-    try {
-      await reportMutation.mutateAsync({ messageId: message.id, reason });
-      setReported(true);
-      setTimeout(() => setReported(false), 3000);
-    } catch {
-      // silent
     }
   };
 
@@ -510,56 +294,6 @@ export default function MessageBubble({
     setPendingUrl(null);
   };
 
-  const openContextMenu = useCallback((x: number, y: number) => {
-    setContextMenu({ x, y });
-  }, []);
-
-  const closeContextMenu = useCallback(() => {
-    setContextMenu(null);
-  }, []);
-
-  // Right-click handler — suppress native context menu
-  const handleContextMenu = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    openContextMenu(e.clientX, e.clientY);
-  }, [openContextMenu]);
-
-  // Long press handlers for mobile
-  const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    longPressTriggeredRef.current = false;
-    const touch = e.touches[0];
-    const x = touch.clientX;
-    const y = touch.clientY;
-    longPressTimerRef.current = setTimeout(() => {
-      longPressTriggeredRef.current = true;
-      openContextMenu(x, y);
-    }, 500);
-  }, [openContextMenu]);
-
-  const handleTouchEnd = useCallback((_e: React.TouchEvent) => {
-    if (longPressTimerRef.current) {
-      clearTimeout(longPressTimerRef.current);
-      longPressTimerRef.current = null;
-    }
-  }, []);
-
-  const handleTouchMove = useCallback((_e: React.TouchEvent) => {
-    if (longPressTimerRef.current) {
-      clearTimeout(longPressTimerRef.current);
-      longPressTimerRef.current = null;
-    }
-  }, []);
-
-  // Cleanup timer on unmount
-  useEffect(() => {
-    return () => {
-      if (longPressTimerRef.current) {
-        clearTimeout(longPressTimerRef.current);
-      }
-    };
-  }, []);
-
   // Load Twitter embed when message contains Twitter URL
   useEffect(() => {
     if (message.mediaType === 'twitter' && message.mediaUrl && isTwitterUrl(message.mediaUrl)) {
@@ -569,23 +303,24 @@ export default function MessageBubble({
         
         loadTwitterScript()
           .then(() => {
-            if (!tweetContainerRef.current) return;
-            // Clear previous tweet
-            tweetContainerRef.current.innerHTML = '';
-            
-            return window.twttr?.widgets.createTweet(
-              tweetId,
-              tweetContainerRef.current,
-              {
-                theme: document.documentElement.classList.contains('dark') ? 'dark' : 'light',
-                align: 'center',
-                conversation: 'none',
-                dnt: true,
-              }
-            );
-          })
-          .then(() => {
-            setTweetLoading(false);
+            if (window.twttr && tweetContainerRef.current) {
+              const isDark = document.documentElement.classList.contains('dark');
+              
+              window.twttr.widgets.createTweet(
+                tweetId,
+                tweetContainerRef.current,
+                {
+                  theme: isDark ? 'dark' : 'light',
+                  align: 'center',
+                  conversation: 'none',
+                  dnt: true,
+                }
+              ).then(() => {
+                setTweetLoading(false);
+              }).catch(() => {
+                setTweetLoading(false);
+              });
+            }
           })
           .catch(() => {
             setTweetLoading(false);
@@ -594,267 +329,333 @@ export default function MessageBubble({
     }
   }, [message.mediaType, message.mediaUrl]);
 
-  const reactionsList = listToArray<Reaction>(message.reactions);
-  const userId = getUserId();
-
-  // Find the replied-to message
-  const repliedToMessage = message.replyToMessageId != null && allMessages
+  // Find the message this is replying to
+  const parentMessage = message.replyToMessageId && allMessages
     ? allMessages.find((m) => m.id === message.replyToMessageId)
     : null;
 
-  const isCreatorMessage = message.sender === 'Creator' && message.senderId === 'creator';
+  const renderMedia = () => {
+    if (!message.mediaUrl || !message.mediaType) return null;
 
-  const bubbleContainerStyle: React.CSSProperties = {
-    userSelect: 'none',
-    WebkitUserSelect: 'none',
-    // @ts-ignore - webkit-touch-callout is valid CSS but not in TS types
-    WebkitTouchCallout: 'none',
+    const mediaUrl = message.mediaUrl;
+
+    if (message.mediaType === 'giphy' && isGiphyUrl(mediaUrl)) {
+      return (
+        <div className="mt-2 w-full max-w-[300px]">
+          <img
+            src={mediaUrl}
+            alt="GIF"
+            className="w-full rounded-lg object-cover cursor-pointer hover:opacity-90 transition-opacity"
+            onClick={() => setIsExpanded(true)}
+          />
+        </div>
+      );
+    }
+
+    if (message.mediaType === 'youtube' && isYouTubeUrl(mediaUrl)) {
+      const videoId = getYouTubeVideoId(mediaUrl);
+      if (videoId) {
+        return (
+          <div className="mt-2 w-full max-w-[600px]">
+            <div className="relative aspect-video w-full overflow-hidden rounded-lg">
+              <iframe
+                src={`https://www.youtube.com/embed/${videoId}`}
+                title="YouTube video"
+                className="h-full w-full"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
+            <div className="mt-2 flex justify-end">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handlePinToggle}
+                disabled={pinVideo.isPending || unpinVideo.isPending}
+                className="gap-2 text-xs"
+              >
+                <Pin className={`h-3 w-3 ${isPinned ? 'fill-current' : ''}`} />
+                {isPinned ? 'Unpin' : 'Pin'}
+              </Button>
+            </div>
+          </div>
+        );
+      }
+    }
+
+    if (message.mediaType === 'twitch' && isTwitchUrl(mediaUrl)) {
+      const embedUrl = getTwitchEmbedUrl(mediaUrl);
+      if (embedUrl) {
+        return (
+          <div className="mt-2 w-full max-w-[600px]">
+            <div className="relative aspect-video w-full overflow-hidden rounded-lg">
+              <iframe
+                src={embedUrl}
+                title="Twitch video"
+                className="h-full w-full"
+                allowFullScreen
+              />
+            </div>
+            <div className="mt-2 flex justify-end">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handlePinToggle}
+                disabled={pinVideo.isPending || unpinVideo.isPending}
+                className="gap-2 text-xs"
+              >
+                <Pin className={`h-3 w-3 ${isPinned ? 'fill-current' : ''}`} />
+                {isPinned ? 'Unpin' : 'Pin'}
+              </Button>
+            </div>
+          </div>
+        );
+      }
+    }
+
+    if (message.mediaType === 'twitter' && isTwitterUrl(mediaUrl)) {
+      const postId = getTwitterPostId(mediaUrl);
+      if (postId) {
+        return (
+          <div className="mt-2 w-full twitter-embed-container" style={{ maxWidth: '300px' }}>
+            <div 
+              ref={tweetContainerRef}
+              className="rounded-lg overflow-hidden"
+              style={{ maxWidth: '300px', overflow: 'hidden' }}
+            />
+            {tweetLoading && (
+              <div className="rounded-lg border border-border bg-card p-4">
+                <div className="flex items-center justify-center">
+                  <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                  <span className="ml-2 text-sm text-muted-foreground">Loading tweet...</span>
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      }
+    }
+
+    if (message.mediaType === 'audio') {
+      return <VoiceMessagePlayer audioUrl={mediaUrl} isOwnMessage={isOwnMessage} />;
+    }
+
+    if (message.mediaType === 'image') {
+      return (
+        <div className="mt-2 w-full max-w-[300px]">
+          <img
+            src={mediaUrl}
+            alt="Uploaded media"
+            className="w-full rounded-lg object-cover cursor-pointer hover:opacity-90 transition-opacity"
+            onClick={() => setIsExpanded(true)}
+          />
+        </div>
+      );
+    }
+
+    return null;
   };
 
-  return (
-    <div
-      className={`flex gap-2 px-3 py-1 ${isOwnMessage ? 'flex-row-reverse' : 'flex-row'} ${
-        isHighlighted ? 'bg-primary/10 rounded-lg transition-colors duration-300' : ''
-      }`}
-      style={bubbleContainerStyle}
-      onContextMenu={handleContextMenu}
-      onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
-      onTouchMove={handleTouchMove}
-    >
-      {/* Avatar — aligned to top */}
-      {!isCreatorMessage && (
-        <div className="flex-shrink-0 self-start mt-1">
-          <Avatar className="h-8 w-8">
-            {message.avatarUrl ? (
-              <AvatarImage src={message.avatarUrl} alt={message.sender} />
-            ) : null}
-            <AvatarFallback className="text-xs bg-muted">
-              {getInitials(message.sender)}
-            </AvatarFallback>
-          </Avatar>
-        </div>
-      )}
+  const renderExpandedMedia = () => {
+    if (!isExpanded || !message.mediaUrl || !message.mediaType) return null;
 
-      {/* Message content */}
-      <div className={`flex flex-col gap-0.5 max-w-[75%] ${isOwnMessage ? 'items-end' : 'items-start'}`}>
-        {/* Sender name — slightly larger font */}
-        {!isCreatorMessage && (
-          <span className={`text-sm font-medium text-muted-foreground px-1 ${isOwnMessage ? 'text-right' : 'text-left'}`}>
-            {message.sender}
-          </span>
-        )}
+    if (message.mediaType !== 'image' && message.mediaType !== 'giphy') return null;
 
-        {/* Reply preview */}
-        {repliedToMessage && (
-          <div
-            className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs border-l-2 border-primary/60 bg-muted/60 cursor-pointer max-w-full ${
-              isOwnMessage ? 'self-end' : 'self-start'
-            }`}
-            onClick={() => onScrollToMessage && onScrollToMessage(repliedToMessage.id)}
-          >
-            <Reply className="h-3 w-3 flex-shrink-0 text-primary/70" />
-            <div className="min-w-0">
-              <div className="font-semibold text-foreground/80 truncate">{repliedToMessage.sender}</div>
-              <div className="text-muted-foreground truncate">
-                {repliedToMessage.mediaType && repliedToMessage.mediaUrl ? (
-                  <span className="italic">
-                    {repliedToMessage.mediaType === 'audio' ? '🎵 Voice message' :
-                     repliedToMessage.mediaType === 'image' ? '🖼️ Image' :
-                     repliedToMessage.mediaType === 'giphy' ? '🎞️ GIF' :
-                     repliedToMessage.mediaType === 'youtube' ? '▶️ YouTube' :
-                     repliedToMessage.mediaType === 'twitch' ? '🎮 Twitch' :
-                     repliedToMessage.mediaType === 'twitter' ? '🐦 Tweet' :
-                     truncateText(repliedToMessage.content, 60)}
-                  </span>
-                ) : (
-                  truncateText(repliedToMessage.content, 60)
-                )}
-              </div>
-            </div>
-          </div>
-        )}
+    const mediaUrl = message.mediaUrl;
 
-        {/* Bubble */}
-        <div
-          className={`relative rounded-2xl px-3 pt-2 pb-2 text-sm leading-relaxed break-words ${
-            isCreatorMessage
-              ? 'bg-muted/50 text-foreground rounded-xl w-full'
-              : isOwnMessage
-              ? 'bg-primary text-primary-foreground rounded-tr-sm'
-              : 'bg-muted text-foreground rounded-tl-sm'
-          }`}
+    return (
+      <div 
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+        onClick={() => setIsExpanded(false)}
+      >
+        <button
+          className="absolute top-4 right-4 z-10 rounded-full bg-white/10 p-2 text-white hover:bg-white/20 transition-colors"
+          onClick={() => setIsExpanded(false)}
+          aria-label="Close"
         >
-          {/* Media content */}
-          {message.mediaUrl && message.mediaType && (
-            <div className="mb-2">
-              {message.mediaType === 'image' && (
-                <img
-                  src={message.mediaUrl}
-                  alt="Shared image"
-                  className="rounded-lg max-w-full max-h-64 object-cover cursor-pointer"
-                  onClick={() => window.open(message.mediaUrl!, '_blank')}
-                />
-              )}
-              {message.mediaType === 'giphy' && isGiphyUrl(message.mediaUrl) && (
-                <img
-                  src={message.mediaUrl}
-                  alt="GIF"
-                  className="rounded-lg max-w-full max-h-48 object-cover"
-                />
-              )}
-              {message.mediaType === 'youtube' && isYouTubeUrl(message.mediaUrl) && (
-                <div className="rounded-lg overflow-hidden">
-                  {isExpanded ? (
-                    <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
-                      <iframe
-                        className="absolute inset-0 w-full h-full"
-                        src={`https://www.youtube.com/embed/${getYouTubeVideoId(message.mediaUrl)}`}
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                        title="YouTube video"
-                      />
-                    </div>
-                  ) : (
-                    <div
-                      className="relative cursor-pointer group"
-                      onClick={() => setIsExpanded(true)}
-                    >
-                      <img
-                        src={`https://img.youtube.com/vi/${getYouTubeVideoId(message.mediaUrl)}/hqdefault.jpg`}
-                        alt="YouTube thumbnail"
-                        className="w-full rounded-lg max-h-48 object-cover"
-                      />
-                      <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/40 transition-colors rounded-lg">
-                        <div className="bg-red-600 rounded-full p-3">
-                          <svg className="w-6 h-6 text-white fill-current" viewBox="0 0 24 24">
-                            <path d="M8 5v14l11-7z" />
-                          </svg>
-                        </div>
-                      </div>
-                    </div>
-                  )}
+          <X className="h-6 w-6" />
+        </button>
+
+        <div 
+          className="relative max-h-[90vh] max-w-[90vw] w-full flex items-center justify-center"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <img
+            src={mediaUrl}
+            alt="Expanded media"
+            className="max-h-[90vh] max-w-full rounded-lg object-contain"
+          />
+        </div>
+      </div>
+    );
+  };
+
+  const reactions = listToArray<Reaction>(message.reactions);
+  const userId = getUserId();
+
+  // Process message content to replace X/Twitter URLs with plain text
+  const displayContent = replaceTwitterUrlsWithText(message.content);
+
+  return (
+    <>
+      <div 
+        className={`flex gap-3 ${isOwnMessage ? 'flex-row-reverse' : 'flex-row'} transition-all duration-300 ${
+          isHighlighted ? 'bg-primary/10 -mx-2 px-2 py-1 rounded-lg' : ''
+        }`}
+      >
+        <Avatar className="h-8 w-8 flex-shrink-0">
+          {message.avatarUrl ? (
+            <AvatarImage src={message.avatarUrl} alt={message.sender} />
+          ) : null}
+          <AvatarFallback
+            className={`text-xs ${
+              isOwnMessage
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-secondary text-secondary-foreground'
+            }`}
+          >
+            {getInitials(message.sender)}
+          </AvatarFallback>
+        </Avatar>
+
+        <div className={`flex flex-col ${isOwnMessage ? 'items-end' : 'items-start'} ${hasVideo ? 'w-full max-w-[600px]' : 'max-w-[70%]'}`}>
+          {/* Message header: for own messages order is Message ID → Timestamp → Username (left to right);
+              for other messages order is Username → Timestamp → Message ID (left to right) */}
+          <div className="mb-1 flex items-center gap-2">
+            {isOwnMessage ? (
+              <>
+                {message.messageId && (
+                  <span className="text-xs font-mono text-muted-foreground">
+                    #{message.messageId}
+                  </span>
+                )}
+                <span className="text-xs text-muted-foreground">
+                  {formatTimestamp(message.timestamp)}
+                </span>
+                <span className="text-xs font-medium text-foreground">{message.sender}</span>
+              </>
+            ) : (
+              <>
+                <span className="text-xs font-medium text-foreground">{message.sender}</span>
+                <span className="text-xs text-muted-foreground">
+                  {formatTimestamp(message.timestamp)}
+                </span>
+                {message.messageId && (
+                  <span className="text-xs font-mono text-muted-foreground">
+                    #{message.messageId}
+                  </span>
+                )}
+              </>
+            )}
+          </div>
+
+          <div
+            className={`rounded-2xl px-4 py-2.5 shadow-sm ${
+              isOwnMessage
+                ? 'rounded-tr-sm bg-primary text-primary-foreground'
+                : 'rounded-tl-sm bg-card text-card-foreground border border-border'
+            } ${hasVideo ? 'w-full' : ''}`}
+          >
+            {/* Reply preview inside bubble */}
+            {parentMessage && (
+              <div
+                className={`mb-2 rounded-lg px-3 py-2 text-xs cursor-pointer ${
+                  isOwnMessage
+                    ? 'bg-primary-foreground/10 border border-primary-foreground/20'
+                    : 'bg-muted border border-border'
+                }`}
+                onClick={() => onScrollToMessage && onScrollToMessage(parentMessage.id)}
+              >
+                <div className={`font-semibold mb-0.5 ${isOwnMessage ? 'text-primary-foreground/80' : 'text-foreground'}`}>
+                  {parentMessage.sender}
                 </div>
-              )}
-              {message.mediaType === 'twitch' && isTwitchUrl(message.mediaUrl) && (
-                <div className="rounded-lg overflow-hidden">
-                  {isExpanded ? (
-                    <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
-                      <iframe
-                        className="absolute inset-0 w-full h-full"
-                        src={getTwitchEmbedUrl(message.mediaUrl) ?? undefined}
-                        allowFullScreen
-                        title="Twitch stream"
-                      />
-                    </div>
-                  ) : (
-                    <div
-                      className="relative cursor-pointer group"
-                      onClick={() => setIsExpanded(true)}
-                    >
-                      <div className="w-full h-32 bg-purple-900/30 rounded-lg flex items-center justify-center">
-                        <img
-                          src="/assets/generated/twitch-icon-transparent.dim_32x32.png"
-                          alt="Twitch"
-                          className="h-12 w-12 opacity-80"
-                        />
-                      </div>
-                      <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/30 transition-colors rounded-lg">
-                        <div className="bg-purple-600 rounded-full p-3">
-                          <svg className="w-6 h-6 text-white fill-current" viewBox="0 0 24 24">
-                            <path d="M8 5v14l11-7z" />
-                          </svg>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-              {message.mediaType === 'twitter' && isTwitterUrl(message.mediaUrl) && (
-                <div className="rounded-lg overflow-hidden max-w-sm">
-                  {tweetLoading && (
-                    <div className="flex items-center justify-center h-24 bg-muted/30 rounded-lg">
-                      <div className="animate-spin h-5 w-5 border-2 border-primary border-t-transparent rounded-full" />
-                    </div>
-                  )}
-                  <div
-                    ref={tweetContainerRef}
-                    className={tweetLoading ? 'hidden' : 'block'}
+                {parentMessage.mediaUrl && parentMessage.mediaType === 'image' && (
+                  <img
+                    src={parentMessage.mediaUrl}
+                    alt="Reply media"
+                    className="mb-1 h-10 w-10 rounded object-cover"
                   />
+                )}
+                <div className={`line-clamp-2 ${isOwnMessage ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
+                  {truncateText(replaceTwitterUrlsWithText(parentMessage.content), 80)}
                 </div>
-              )}
-              {message.mediaType === 'audio' && (
-                <VoiceMessagePlayer audioUrl={message.mediaUrl} isOwnMessage={isOwnMessage} />
-              )}
+              </div>
+            )}
+
+            <p className="text-sm leading-relaxed break-words whitespace-pre-wrap">
+              {renderTextWithLinks(displayContent, handleLinkClick, isOwnMessage)}
+            </p>
+            {renderMedia()}
+          </div>
+
+          {/* Reactions */}
+          {reactions.length > 0 && (
+            <div className="mt-1 flex flex-wrap gap-1">
+              {reactions.map((reaction) => {
+                const reactionUsers = listToArray<string>(reaction.users);
+                const hasReacted = reactionUsers.includes(userId);
+                return (
+                  <button
+                    key={reaction.emoji}
+                    onClick={() => handleReaction(reaction.emoji)}
+                    className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs transition-colors ${
+                      hasReacted
+                        ? 'bg-primary/20 text-primary border border-primary/30'
+                        : 'bg-muted text-muted-foreground border border-border hover:bg-muted/80'
+                    }`}
+                  >
+                    <span>{reaction.emoji}</span>
+                    <span>{Number(reaction.count)}</span>
+                  </button>
+                );
+              })}
             </div>
           )}
 
-          {/* Message text */}
-          {message.content && message.content !== 'Media content posted by creator' && (
-            <p className="whitespace-pre-wrap">
-              {renderTextWithLinks(message.content, handleLinkClick, isOwnMessage)}
-            </p>
-          )}
+          {/* Action buttons */}
+          <div className={`mt-1 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity`}>
+            <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-6 w-6">
+                  <Smile className="h-3.5 w-3.5" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-2" align={isOwnMessage ? 'end' : 'start'}>
+                <div className="flex gap-1">
+                  {COMMON_EMOJIS.map((emoji) => (
+                    <button
+                      key={emoji}
+                      onClick={() => handleReaction(emoji)}
+                      className="rounded p-1 text-lg hover:bg-muted transition-colors"
+                    >
+                      {emoji}
+                    </button>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
 
-          {/* Timestamp inside bubble — bottom right */}
-          <div className="flex justify-end mt-1">
-            <span className={`text-xs opacity-60 ${isOwnMessage ? 'text-primary-foreground' : 'text-foreground'}`}>
-              {formatTimestamp(message.timestamp)}
-            </span>
+            {onReply && (
+              <Button variant="ghost" size="icon" className="h-6 w-6" onClick={handleReplyClick}>
+                <Reply className="h-3.5 w-3.5" />
+              </Button>
+            )}
+
+            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={handleShareClick}>
+              <Share2 className="h-3.5 w-3.5" />
+            </Button>
           </div>
         </div>
-
-        {/* Reactions */}
-        {reactionsList.length > 0 && (
-          <div className={`flex flex-wrap gap-1 px-1 ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
-            {reactionsList.map((reaction) => {
-              const users = listToArray<string>(reaction.users);
-              const hasReacted = users.includes(userId);
-              return (
-                <button
-                  key={reaction.emoji}
-                  onClick={() => handleReaction(reaction.emoji)}
-                  className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs border transition-colors ${
-                    hasReacted
-                      ? 'bg-primary/20 border-primary/40 text-primary'
-                      : 'bg-muted border-border hover:bg-muted/80'
-                  }`}
-                >
-                  <span>{reaction.emoji}</span>
-                  <span>{Number(reaction.count)}</span>
-                </button>
-              );
-            })}
-          </div>
-        )}
       </div>
 
-      {/* Context menu */}
-      {contextMenu && (
-        <CustomContextMenu
-          position={contextMenu}
-          onClose={closeContextMenu}
-          onCopyText={handleCopyText}
-          onReply={onReply ? handleReplyClick : undefined}
-          onReaction={handleReaction}
-          onShare={handleShareClick}
-          onPinToggle={hasVideo ? handlePinToggle : undefined}
-          isPinned={isPinned}
-          hasVideo={hasVideo}
-          pinPending={pinVideo.isPending || unpinVideo.isPending}
-          onReport={handleReport}
-          reported={reported}
-          reportPending={reportMutation.isPending}
-        />
-      )}
+      {renderExpandedMedia()}
 
-      {/* External link disclaimer */}
       <ExternalLinkDisclaimerModal
         isOpen={disclaimerOpen}
-        targetUrl={pendingUrl || ''}
+        targetUrl={pendingUrl ?? ''}
         onConfirm={handleDisclaimerConfirm}
         onClose={handleDisclaimerClose}
       />
-    </div>
+    </>
   );
 }

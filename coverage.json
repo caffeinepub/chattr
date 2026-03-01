@@ -1,51 +1,18 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-03-01T08:05:40.893Z",
+  "generatedAt": "2026-03-01T09:59:36.633Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 4,
-    "implemented": 4,
+    "total": 1,
+    "implemented": 1,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "In MessageBubble.tsx, align the avatar to the top of the message bubble (use items-start or align-self: flex-start) instead of the current bottom alignment.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/MessageBubble.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/MessageBubble.tsx"
-        ]
-      },
-      {
-        "id": "REQ-2",
-        "summary": "In MessageBubble.tsx, slightly increase the font size of the avatar username label (e.g., from text-xs to text-sm, or apply a modest size bump). Do NOT change the font size of the timestamp.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/MessageBubble.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/MessageBubble.tsx"
-        ]
-      },
-      {
-        "id": "REQ-3",
-        "summary": "In MessageBubble.tsx, move the timestamp so it appears inside the message bubble (e.g., at the bottom-right or bottom-left of the bubble content area) rather than outside or below it.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/MessageBubble.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/MessageBubble.tsx"
-        ]
-      },
-      {
-        "id": "REQ-4",
-        "summary": "In MessageBubble.tsx (and any wrapper elements involved in long-press detection), suppress the default mobile long-press browser behavior by applying CSS properties such as `user-select: none`, `-webkit-user-select: none`, and `-webkit-touch-callout: none` on the message bubble container, and call `event.preventDefault()` on the `onContextMenu` handler to prevent the native context menu from appearing on mobile.",
+        "summary": "For messages sent by the current user, reorder the header elements left-to-right as: Message ID → Timestamp → Username → Avatar. This must mirror the exact same left-to-right order used for other users' messages. No styles, colors, spacing, font sizes, or any other visual properties may be changed — only the structural DOM order/positioning of these four elements.",
         "status": "implemented",
         "plannedFiles": [
           "frontend/src/components/MessageBubble.tsx"

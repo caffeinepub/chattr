@@ -49,13 +49,11 @@ export interface Message {
   'chatroomId' : bigint,
   'sender' : string,
   'mediaUrl' : [] | [string],
-  'reportReasons' : Array<string>,
   'avatarUrl' : [] | [string],
   'replyToMessageId' : [] | [bigint],
   'timestamp' : bigint,
   'mediaType' : [] | [string],
   'senderId' : string,
-  'flagCount' : bigint,
 }
 export interface MessageWithReactions {
   'id' : bigint,
@@ -64,14 +62,12 @@ export interface MessageWithReactions {
   'chatroomId' : bigint,
   'sender' : string,
   'mediaUrl' : [] | [string],
-  'reportReasons' : Array<string>,
   'avatarUrl' : [] | [string],
   'replyToMessageId' : [] | [bigint],
   'timestamp' : bigint,
   'mediaType' : [] | [string],
   'reactions' : List_1,
   'senderId' : string,
-  'flagCount' : bigint,
 }
 export interface Reaction { 'count' : bigint, 'emoji' : string, 'users' : List }
 export interface ReplyPreview {
@@ -153,7 +149,6 @@ export interface _SERVICE {
   'getCallerUserRole' : ActorMethod<[], UserRole>,
   'getChatroom' : ActorMethod<[bigint], [] | [ChatroomWithLiveStatus]>,
   'getChatrooms' : ActorMethod<[], Array<ChatroomWithLiveStatus>>,
-  'getFlaggedMessages' : ActorMethod<[], Array<Message>>,
   'getLobbyChatroomCards' : ActorMethod<[], Array<LobbyChatroomCard>>,
   'getMessageWithReactionsAndReplies' : ActorMethod<
     [bigint],
@@ -170,7 +165,6 @@ export interface _SERVICE {
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'pinVideo' : ActorMethod<[bigint, bigint], undefined>,
   'removeReaction' : ActorMethod<[bigint, string, string], undefined>,
-  'reportMessage' : ActorMethod<[bigint, string], undefined>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
   'searchChatrooms' : ActorMethod<[string], Array<ChatroomWithLiveStatus>>,
   'sendMessage' : ActorMethod<
