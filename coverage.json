@@ -1,45 +1,73 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-03-01T20:32:36.641Z",
+  "generatedAt": "2026-03-02T00:28:19.016Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 2,
+    "total": 3,
     "implemented": 2,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "In the PinnedVideo component, overlay the unpin (X) button absolutely at the top-right corner of the video container (top-2 right-2), styled as a small circular button (bg-black/50 text-white rounded-full w-6 h-6) with a hover effect (hover:bg-black/70). Remove any separate header row or dedicated section that previously housed the unpin button.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/PinnedVideo.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/PinnedVideo.tsx"
-        ]
+        "summary": "Remove every caller/principal check from every function in backend/main.mo. This includes any use of 'caller', 'Principal.isAnonymous', ownership guards, or any other access control validation on any function. No caller checks should remain anywhere in the backend after this change.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
       },
       {
         "id": "REQ-2",
-        "summary": "In the PinnedVideo component, add a non-clickable pin icon (Lucide Pin icon) absolutely overlaid at the top-left corner of the video container (top-2 left-2), styled identically to the X button (bg-black/50 text-white rounded-full w-6 h-6) as a visual indicator that the video is pinned.",
+        "summary": "Re-enable message deletion on the admin page (frontend/src/pages/AdminDeleteChatroomsPage.tsx or a dedicated admin messages page). Expose a backend function to delete a message by ID with no caller check, and wire a delete button per message in the admin UI so admins can delete individual messages.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/PinnedVideo.tsx"
+          "frontend/src/pages/AdminDeleteChatroomsPage.tsx",
+          "frontend/src/hooks/useQueries.ts"
         ],
         "matchedFiles": [
-          "frontend/src/components/PinnedVideo.tsx"
+          "frontend/src/pages/AdminDeleteChatroomsPage.tsx",
+          "frontend/src/hooks/useQueries.ts"
+        ]
+      },
+      {
+        "id": "REQ-3",
+        "summary": "Change pinned video storage in the backend to be per-user rather than per-chatroom global. Each user's pinned video should be stored keyed by (chatroomId, userId) so that pinning or unpinning a video only affects the calling user's view. Other users in the same chatroom should not see or inherit another user's pinned video. Update the frontend to pass the current user's identity when fetching and mutating pinned videos, and render the pinned video only for the user who pinned it.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/components/ChatArea.tsx",
+          "frontend/src/components/PinnedVideo.tsx",
+          "frontend/src/components/MessageBubble.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/components/ChatArea.tsx",
+          "frontend/src/components/PinnedVideo.tsx",
+          "frontend/src/components/MessageBubble.tsx"
         ]
       }
     ]
   },
   "changedFiles": [
+    "backend/main.mo",
+    "backend/migration.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
+    "frontend/src/backend.d.ts",
+    "frontend/src/backend.ts",
+    "frontend/src/components/ChatArea.tsx",
+    "frontend/src/components/ChatroomCard.tsx",
+    "frontend/src/components/MessageBubble.tsx",
     "frontend/src/components/PinnedVideo.tsx",
+    "frontend/src/declarations/backend.did.d.ts",
+    "frontend/src/declarations/backend.did.js",
+    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/pages/AdminDeleteChatroomsPage.tsx",
+    "frontend/src/pages/ChatroomPage.tsx",
+    "frontend/src/pages/LobbyPage.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

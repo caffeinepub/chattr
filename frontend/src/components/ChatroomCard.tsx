@@ -1,26 +1,26 @@
 import { useState, useEffect } from 'react';
-import type { ChatroomWithLiveStatus } from '../backend';
+import type { LobbyChatroomCard } from '../backend';
 import { formatDistanceToNow } from 'date-fns';
 import { MessageCircle, Play, Users, Eye } from 'lucide-react';
 import { SiX, SiTwitch } from 'react-icons/si';
 import { Badge } from './ui/badge';
 import { formatCompactNumber } from '../lib/formatters';
-import { 
-  getYouTubeVideoId, 
-  getYouTubeThumbnailUrl, 
+import {
+  getYouTubeVideoId,
+  getYouTubeThumbnailUrl,
   getTwitchClipSlug,
   getTwitchVideoId,
   getTwitchChannelName,
   getTwitchThumbnailUrl,
-  isYouTubeUrl, 
-  isTwitchUrl, 
+  isYouTubeUrl,
+  isTwitchUrl,
   isTwitterUrl,
   getTwitterPostId
 } from '../lib/videoUtils';
 import { fetchTwitterOEmbedPreview, type TwitterPreview } from '../lib/twitterOEmbedPreview';
 
 interface ChatroomCardProps {
-  chatroom: ChatroomWithLiveStatus;
+  chatroom: LobbyChatroomCard;
   onClick: () => void;
 }
 
@@ -39,9 +39,8 @@ export default function ChatroomCard({ chatroom, onClick }: ChatroomCardProps) {
   useEffect(() => {
     if (chatroom.mediaType === 'twitch' && chatroom.mediaUrl && isTwitchUrl(chatroom.mediaUrl)) {
       const thumbnailUrl = getTwitchThumbnailUrl(chatroom.mediaUrl);
-      
+
       if (thumbnailUrl) {
-        // Test if thumbnail is available
         const img = new Image();
         img.onload = () => setTwitchThumbnail(thumbnailUrl);
         img.onerror = () => setTwitchThumbnail(null);
@@ -50,11 +49,11 @@ export default function ChatroomCard({ chatroom, onClick }: ChatroomCardProps) {
     }
   }, [chatroom.mediaUrl, chatroom.mediaType]);
 
-  // Fetch Twitter oEmbed preview (no html2canvas)
+  // Fetch Twitter oEmbed preview
   useEffect(() => {
     if (chatroom.mediaType === 'twitter' && chatroom.mediaUrl && isTwitterUrl(chatroom.mediaUrl)) {
       let cancelled = false;
-      
+
       const fetchPreview = async () => {
         setTwitterPreviewLoading(true);
         try {
@@ -70,9 +69,9 @@ export default function ChatroomCard({ chatroom, onClick }: ChatroomCardProps) {
           }
         }
       };
-      
+
       fetchPreview();
-      
+
       return () => {
         cancelled = true;
       };
@@ -115,20 +114,19 @@ export default function ChatroomCard({ chatroom, onClick }: ChatroomCardProps) {
       }
     }
 
-    // Twitch thumbnail with enhanced detection and type labels
+    // Twitch thumbnail
     if (chatroom.mediaType === 'twitch' && isTwitchUrl(chatroom.mediaUrl)) {
       const clipSlug = getTwitchClipSlug(chatroom.mediaUrl);
       const videoId = getTwitchVideoId(chatroom.mediaUrl);
       const channelName = getTwitchChannelName(chatroom.mediaUrl);
-      
+
       let contentType = 'Stream';
       if (clipSlug) {
         contentType = 'Clip';
       } else if (videoId) {
         contentType = 'VOD';
       }
-      
-      // If we have a thumbnail, show it
+
       if (twitchThumbnail) {
         return (
           <div className="absolute inset-0 overflow-hidden rounded-lg flex items-center justify-center">
@@ -159,8 +157,7 @@ export default function ChatroomCard({ chatroom, onClick }: ChatroomCardProps) {
           </div>
         );
       }
-      
-      // Fallback to icon-based thumbnail
+
       return (
         <div className="absolute inset-0 overflow-hidden rounded-lg">
           <div className="h-full w-full bg-gradient-to-br from-purple-900/50 to-purple-600/50">
@@ -187,11 +184,10 @@ export default function ChatroomCard({ chatroom, onClick }: ChatroomCardProps) {
       );
     }
 
-    // Twitter/X thumbnail with reconstructed oEmbed preview
+    // Twitter/X thumbnail
     if (chatroom.mediaType === 'twitter' && isTwitterUrl(chatroom.mediaUrl)) {
       const tweetId = getTwitterPostId(chatroom.mediaUrl);
-      
-      // If we have a preview with an image, show it
+
       if (twitterPreview?.imageUrl) {
         return (
           <div className="absolute inset-0 overflow-hidden rounded-lg">
@@ -201,7 +197,6 @@ export default function ChatroomCard({ chatroom, onClick }: ChatroomCardProps) {
               className="h-full w-full object-cover transition-transform group-hover:scale-105"
               onError={(e) => {
                 e.currentTarget.style.display = 'none';
-                // Fall back to text-only preview
                 setTwitterPreview(prev => prev ? { ...prev, imageUrl: undefined } : null);
               }}
             />
@@ -220,8 +215,7 @@ export default function ChatroomCard({ chatroom, onClick }: ChatroomCardProps) {
           </div>
         );
       }
-      
-      // If we have a text-only preview, show it
+
       if (twitterPreview) {
         return (
           <div className="absolute inset-0 overflow-hidden rounded-lg">
@@ -248,8 +242,7 @@ export default function ChatroomCard({ chatroom, onClick }: ChatroomCardProps) {
           </div>
         );
       }
-      
-      // Fallback to icon-based thumbnail while loading or on failure
+
       return (
         <div className="absolute inset-0 overflow-hidden rounded-lg">
           <div className="h-full w-full bg-gradient-to-br from-slate-900/60 to-slate-700/60">
@@ -287,9 +280,9 @@ export default function ChatroomCard({ chatroom, onClick }: ChatroomCardProps) {
     );
   };
 
-  // Determine which count to show: activeUserCount if > 0, otherwise viewCount
+  // Determine which count to show: activeUserCount if > 0, otherwise presenceIndicator
   const showActiveUsers = chatroom.activeUserCount > 0;
-  const displayCount = showActiveUsers ? chatroom.activeUserCount : chatroom.viewCount;
+  const displayCount = showActiveUsers ? chatroom.activeUserCount : chatroom.presenceIndicator;
 
   return (
     <div
@@ -324,7 +317,7 @@ export default function ChatroomCard({ chatroom, onClick }: ChatroomCardProps) {
         <div className="flex items-center gap-3 text-sm text-muted-foreground md:text-sm">
           <div className="flex items-center gap-1">
             <MessageCircle className="h-3 w-3" />
-            <span>{Number(chatroom.messageCount)}</span>
+            <span>{formatCompactNumber(chatroom.messageCount)}</span>
           </div>
           <div className="flex items-center gap-1">
             {showActiveUsers ? (
@@ -332,7 +325,7 @@ export default function ChatroomCard({ chatroom, onClick }: ChatroomCardProps) {
             ) : (
               <Eye className="h-3 w-3" />
             )}
-            <span>{Number(displayCount)}</span>
+            <span>{formatCompactNumber(displayCount)}</span>
           </div>
           <span>•</span>
           <span>{formatTimestamp(chatroom.lastActivity)}</span>

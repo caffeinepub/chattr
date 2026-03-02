@@ -23,7 +23,6 @@ export interface ChatroomWithLiveStatus {
   'messageCount' : bigint,
   'mediaType' : [] | [string],
   'category' : string,
-  'pinnedVideoId' : [] | [bigint],
 }
 export type List = [] | [[string, List]];
 export type List_1 = [] | [[Reaction, List_1]];
@@ -39,7 +38,6 @@ export interface LobbyChatroomCard {
   'messageCount' : bigint,
   'mediaType' : [] | [string],
   'category' : string,
-  'pinnedVideoId' : [] | [bigint],
   'presenceIndicator' : bigint,
 }
 export interface Message {
@@ -139,6 +137,7 @@ export interface _SERVICE {
     bigint
   >,
   'deleteChatroomWithPassword' : ActorMethod<[bigint, string], undefined>,
+  'deleteMessage' : ActorMethod<[bigint], undefined>,
   'fetchGiphyResults' : ActorMethod<[string], string>,
   'fetchTrendingGiphyGifs' : ActorMethod<[], string>,
   'fetchTwitchThumbnail' : ActorMethod<[string], string>,
@@ -160,7 +159,7 @@ export interface _SERVICE {
     Array<MessageWithReactions>
   >,
   'getMessages' : ActorMethod<[bigint], Array<Message>>,
-  'getPinnedVideo' : ActorMethod<[bigint], [] | [bigint]>,
+  'getPinnedVideo' : ActorMethod<[bigint, string], [] | [bigint]>,
   'getReactions' : ActorMethod<[bigint], Array<Reaction>>,
   'getReplies' : ActorMethod<[bigint, bigint], Array<Message>>,
   'getReplyPreview' : ActorMethod<[bigint, bigint], [] | [ReplyPreview]>,
@@ -168,7 +167,7 @@ export interface _SERVICE {
   'incrementViewCount' : ActorMethod<[bigint, string], undefined>,
   'initializeAccessControl' : ActorMethod<[], undefined>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
-  'pinVideo' : ActorMethod<[bigint, bigint], undefined>,
+  'pinVideo' : ActorMethod<[bigint, string, bigint], undefined>,
   'removeReaction' : ActorMethod<[bigint, string, string], undefined>,
   'reportMessage' : ActorMethod<[bigint, string], undefined>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
@@ -187,7 +186,7 @@ export interface _SERVICE {
     undefined
   >,
   'transform' : ActorMethod<[TransformationInput], TransformationOutput>,
-  'unpinVideo' : ActorMethod<[bigint], undefined>,
+  'unpinVideo' : ActorMethod<[bigint, string], undefined>,
   'updateAvatarRetroactively' : ActorMethod<[string, [] | [string]], undefined>,
   'updateUsernameRetroactively' : ActorMethod<[string, string], undefined>,
 }

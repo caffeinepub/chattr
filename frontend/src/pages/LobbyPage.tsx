@@ -10,7 +10,7 @@ import { Alert, AlertDescription, AlertTitle } from '../components/ui/alert';
 import { Badge } from '../components/ui/badge';
 import ChatroomCard from '../components/ChatroomCard';
 import CreateChatroomDialog from '../components/CreateChatroomDialog';
-import type { ChatroomWithLiveStatus } from '../backend';
+import type { LobbyChatroomCard } from '../backend';
 
 const CATEGORIES = [
   'General',
@@ -27,21 +27,21 @@ const CATEGORIES = [
   'Other',
 ];
 
-// Algorithmic sorting function for chatrooms
-function sortChatroomsAlgorithmically(chatrooms: ChatroomWithLiveStatus[]): ChatroomWithLiveStatus[] {
+// Algorithmic sorting function for lobby chatroom cards
+function sortChatroomsAlgorithmically(chatrooms: LobbyChatroomCard[]): LobbyChatroomCard[] {
   return [...chatrooms].sort((a, b) => {
     // 1. Live rooms first (rooms with activeUsers > 0)
     const aIsLive = Number(a.activeUserCount) > 0;
     const bIsLive = Number(b.activeUserCount) > 0;
-    
+
     if (aIsLive && !bIsLive) return -1;
     if (!aIsLive && bIsLive) return 1;
-    
-    // 2. Within each group, sort by viewCount descending (most viewed first)
-    const viewCountDiff = Number(b.viewCount) - Number(a.viewCount);
-    if (viewCountDiff !== 0) return viewCountDiff;
-    
-    // 3. If viewCount is identical, sort by createdAt descending (newest first)
+
+    // 2. Within each group, sort by presenceIndicator descending (most viewed first)
+    const presenceDiff = Number(b.presenceIndicator) - Number(a.presenceIndicator);
+    if (presenceDiff !== 0) return presenceDiff;
+
+    // 3. If identical, sort by createdAt descending (newest first)
     return Number(b.createdAt) - Number(a.createdAt);
   });
 }
@@ -68,13 +68,13 @@ export default function LobbyPage() {
   }, [searchTerm]);
 
   // Fetch base chatrooms only (canonical query)
-  const { 
-    data: allChatrooms, 
-    isLoading, 
+  const {
+    data: allChatrooms,
+    isLoading,
     isFetching,
-    error, 
-    isError, 
-    refetch 
+    error,
+    isError,
+    refetch
   } = useGetChatrooms();
 
   // Client-side filtering: compute visible chatrooms from base data
@@ -90,7 +90,7 @@ export default function LobbyPage() {
         const lowerTopic = chatroom.topic.toLowerCase();
         const lowerDescription = chatroom.description.toLowerCase();
         const lowerCategory = chatroom.category.toLowerCase();
-        
+
         return (
           lowerTopic.includes(lowerSearchTerm) ||
           lowerDescription.includes(lowerSearchTerm) ||
@@ -101,7 +101,7 @@ export default function LobbyPage() {
 
     // Apply category filter
     if (selectedCategory !== null) {
-      filtered = filtered.filter((chatroom) => 
+      filtered = filtered.filter((chatroom) =>
         chatroom.category.toLowerCase() === selectedCategory
       );
     }
@@ -128,8 +128,7 @@ export default function LobbyPage() {
     setSearchTerm('');
     setDebouncedSearchTerm('');
     setSelectedCategory(null);
-    
-    // Restore focus to search input
+
     setTimeout(() => {
       searchInputRef.current?.focus();
     }, 0);
@@ -137,10 +136,6 @@ export default function LobbyPage() {
 
   const hasActiveFilters = searchTerm.trim() || selectedCategory !== null;
 
-  // Show loading when:
-  // 1. Actor is still connecting, OR
-  // 2. We're loading data and don't have it yet (allChatrooms is undefined), OR
-  // 3. Recovery is in progress (purging persisted empty cache)
   const showLoading = actorFetching || (isLoading && allChatrooms === undefined) || isRecovering;
 
   if (showLoading) {
@@ -156,7 +151,6 @@ export default function LobbyPage() {
     );
   }
 
-  // Show error only if actor is available but we have an error and no cached data
   if (isError && actor && !allChatrooms) {
     return (
       <div className="flex h-full items-center justify-center p-4">
@@ -267,20 +261,24 @@ export default function LobbyPage() {
                 {hasActiveFilters ? 'No chats found' : 'No chats found yet'}
               </h3>
               <p className="mt-1 text-sm text-muted-foreground">
-                {hasActiveFilters 
-                  ? 'Try adjusting your search or filters' 
+                {hasActiveFilters
+                  ? 'Try adjusting your search or filters'
                   : 'Be the first to create a chat!'}
               </p>
-              {!hasActiveFilters && (
-                <Button onClick={() => setIsCreateDialogOpen(true)} className="mt-4 gap-2">
-                  <Plus className="h-5 w-5" />
-                  Create Chat
+              {hasActiveFilters && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleClearFilters}
+                  className="mt-3"
+                >
+                  Clear Filters
                 </Button>
               )}
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
             {visibleChatrooms?.map((chatroom) => (
               <ChatroomCard
                 key={chatroom.id.toString()}
@@ -288,6 +286,11 @@ export default function LobbyPage() {
                 onClick={() => handleChatroomClick(chatroom.id)}
               />
             ))}
+            {isFetching && allChatrooms && allChatrooms.length > 0 && (
+              <div className="col-span-full flex items-center justify-center py-4">
+                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+              </div>
+            )}
           </div>
         )}
       </div>

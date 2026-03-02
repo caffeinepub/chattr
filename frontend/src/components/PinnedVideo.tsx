@@ -1,23 +1,24 @@
 import type { MessageWithReactions } from '../backend';
 import { X, Pin } from 'lucide-react';
 import { useUnpinVideo } from '../hooks/useQueries';
-import { 
-  getYouTubeVideoId, 
+import {
+  getYouTubeVideoId,
   getTwitchEmbedUrl,
-  isYouTubeUrl, 
-  isTwitchUrl 
+  isYouTubeUrl,
+  isTwitchUrl
 } from '../lib/videoUtils';
 
 interface PinnedVideoProps {
   message: MessageWithReactions;
   chatroomId: bigint;
+  userId: string;
 }
 
-export default function PinnedVideo({ message, chatroomId }: PinnedVideoProps) {
+export default function PinnedVideo({ message, chatroomId, userId }: PinnedVideoProps) {
   const unpinVideo = useUnpinVideo();
 
   const handleUnpin = async () => {
-    await unpinVideo.mutateAsync(chatroomId);
+    await unpinVideo.mutateAsync({ chatroomId, userId });
   };
 
   if (!message.mediaUrl || !message.mediaType) return null;

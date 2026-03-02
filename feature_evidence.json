@@ -2,31 +2,11 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-in-the-pinnedvideo-component-overlay-the-unpin-x-button-absolutely-at-the-top-right-corner-of-the-video-container-top-2-right-2-styled-as-a-small-circular-button-bg-black-50-text-white-rounded-full-w-6-h-6-with-a-hover-effect-hover-bg-black-70-remove-any-separate-header-row-or-dedicated-section-that-previously-housed-the-unpin-button",
-      "featureTitle": "In the PinnedVideo component, overlay the unpin (X) button absolutely at the top-right corner of the video container (top-2 right-2), styled as a small circular button (bg-black/50 text-white rounded-full w-6 h-6) with a hover effect (hover:bg-black/70). Remove any separate header row or dedicated section that previously housed the unpin button.",
+      "featureId": "feature-re-enable-message-deletion-on-the-admin-page-frontend-src-pages-admindeletechatroomspage-tsx-or-a-dedicated-admin-messages-page-expose-a-backend-function-to-delete-a-message-by-id-with-no-caller-check-and-wire-a-delete-button-per-message-in-the-admin-ui-so-admins-can-delete-individual-messages",
+      "featureTitle": "Re-enable message deletion on the admin page (frontend/src/pages/AdminDeleteChatroomsPage.tsx or a dedicated admin messages page). Expose a backend function to delete a message by ID with no caller check, and wire a delete button per message in the admin UI so admins can delete individual messages.",
       "files": [
-        "frontend/src/components/PinnedVideo.tsx"
-      ],
-      "components": [
-        "authorization@1.0.1",
-        "blob-storage@2.0.3",
-        "http-outcalls@1.1.1",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-1"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-in-the-pinnedvideo-component-add-a-non-clickable-pin-icon-lucide-pin-icon-absolutely-overlaid-at-the-top-left-corner-of-the-video-container-top-2-left-2-styled-identically-to-the-x-button-bg-black-50-text-white-rounded-full-w-6-h-6-as-a-visual-indicator-that-the-video-is-pinned",
-      "featureTitle": "In the PinnedVideo component, add a non-clickable pin icon (Lucide Pin icon) absolutely overlaid at the top-left corner of the video container (top-2 left-2), styled identically to the X button (bg-black/50 text-white rounded-full w-6 h-6) as a visual indicator that the video is pinned.",
-      "files": [
-        "frontend/src/components/PinnedVideo.tsx"
+        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/pages/AdminDeleteChatroomsPage.tsx"
       ],
       "components": [
         "authorization@1.0.1",
@@ -40,6 +20,30 @@
       ],
       "testIds": [
         "REQ-2"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-change-pinned-video-storage-in-the-backend-to-be-per-user-rather-than-per-chatroom-global-each-user-s-pinned-video-should-be-stored-keyed-by-chatroomid-userid-so-that-pinning-or-unpinning-a-video-only-affects-the-calling-user-s-view-other-users-in-the-same-chatroom-should-not-see-or-inherit-another-user-s-pinned-video-update-the-frontend-to-pass-the-current-user-s-identity-when-fetching-and-mutating-pinned-videos-and-render-the-pinned-video-only-for-the-user-who-pinned-it",
+      "featureTitle": "Change pinned video storage in the backend to be per-user rather than per-chatroom global. Each user's pinned video should be stored keyed by (chatroomId, userId) so that pinning or unpinning a video only affects the calling user's view. Other users in the same chatroom should not see or inherit another user's pinned video. Update the frontend to pass the current user's identity when fetching and mutating pinned videos, and render the pinned video only for the user who pinned it.",
+      "files": [
+        "frontend/src/components/ChatArea.tsx",
+        "frontend/src/components/MessageBubble.tsx",
+        "frontend/src/components/PinnedVideo.tsx",
+        "frontend/src/hooks/useQueries.ts"
+      ],
+      "components": [
+        "authorization@1.0.1",
+        "blob-storage@2.0.3",
+        "http-outcalls@1.1.1",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-3"
       ],
       "confidence": "high"
     }

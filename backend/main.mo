@@ -7,13 +7,13 @@ import Iter "mo:base/Iter";
 import Int "mo:base/Int";
 import Array "mo:base/Array";
 import Principal "mo:base/Principal";
-
+import Migration "migration";
 import Storage "blob-storage/Storage";
 import MixinStorage "blob-storage/Mixin";
 import OutCall "http-outcalls/outcall";
 import AccessControl "authorization/access-control";
 
-
+(with migration = Migration.run)
 actor {
   type Message = {
     id : Nat;
@@ -46,9 +46,13 @@ actor {
     createdAt : Int;
     messageCount : Nat;
     viewCount : Nat;
-    pinnedVideoId : ?Nat;
     category : Text;
     lastActivity : Int;
+  };
+
+  type PinnedVideoKey = {
+    chatroomId : Nat;
+    userId : Text;
   };
 
   type UserProfile = {
@@ -72,7 +76,6 @@ actor {
     createdAt : Int;
     messageCount : Nat;
     viewCount : Nat;
-    pinnedVideoId : ?Nat;
     isLive : Bool;
     activeUserCount : Nat;
     category : Text;
@@ -88,7 +91,6 @@ actor {
     createdAt : Int;
     messageCount : Nat;
     presenceIndicator : Nat;
-    pinnedVideoId : ?Nat;
     isLive : Bool;
     activeUserCount : Nat;
     category : Text;
@@ -128,6 +130,9 @@ actor {
   let storage = Storage.new();
   include MixinStorage(storage);
 
+  // Access control state  
+  let accessControlState = AccessControl.initState();
+
   var nextMessageId = 0;
   var nextChatroomId = 0;
   var siteMessageCounter : Nat = 0;
@@ -138,9 +143,22 @@ actor {
   var activeUsers : OrderedMap.Map<Nat, List.List<ActiveUser>> = natMap.empty();
   var reactions : OrderedMap.Map<Nat, List.List<Reaction>> = natMap.empty();
 
-  let accessControlState = AccessControl.initState();
+  transient let pinnedVideoMap = OrderedMap.Make<PinnedVideoKey>(
+    func(a : PinnedVideoKey, b : PinnedVideoKey) : { #less; #equal; #greater } {
+      if (a.chatroomId < b.chatroomId) { #less } else if (a.chatroomId > b.chatroomId) {
+        #greater;
+      } else {
+        Text.compare(a.userId, b.userId);
+      };
+    }
+  );
+  var pinnedVideos : OrderedMap.Map<PinnedVideoKey, Nat> = pinnedVideoMap.empty();
 
-  // Authorization functions
+  transient let principalMap = OrderedMap.Make<Principal>(Principal.compare);
+  var userProfiles = principalMap.empty<UserProfile>();
+
+  // ─── Access Control Management Functions ───────────────────────────────────
+
   public shared ({ caller }) func initializeAccessControl() : async () {
     AccessControl.initialize(accessControlState, caller);
   };
@@ -150,6 +168,7 @@ actor {
   };
 
   public shared ({ caller }) func assignCallerUserRole(user : Principal, role : AccessControl.UserRole) : async () {
+    // Admin-only check happens inside AccessControl.assignRole
     AccessControl.assignRole(accessControlState, caller, user, role);
   };
 
@@ -157,8 +176,7 @@ actor {
     AccessControl.isAdmin(accessControlState, caller);
   };
 
-  transient let principalMap = OrderedMap.Make<Principal>(Principal.compare);
-  var userProfiles = principalMap.empty<UserProfile>();
+  // ─── User Profile Functions ─────────────────────────────────────────────────
 
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
@@ -180,6 +198,8 @@ actor {
     };
     userProfiles := principalMap.put(userProfiles, caller, profile);
   };
+
+  // ─── Chatroom Functions ─────────────────────────────────────────────────────
 
   public func createChatroom(topic : Text, description : Text, mediaUrl : Text, mediaType : Text, category : Text) : async Nat {
     if (Text.size(topic) == 0 or Text.size(description) == 0) {
@@ -206,7 +226,6 @@ actor {
       createdAt = Time.now();
       messageCount = 1;
       viewCount = 0;
-      pinnedVideoId = null;
       category;
       lastActivity = Time.now();
     };
@@ -234,7 +253,6 @@ actor {
     nextMessageId += 1;
     nextChatroomId += 1;
     siteMessageCounter += 1;
-
     chatroom.id;
   };
 
@@ -249,7 +267,6 @@ actor {
     } else if (counter < 10000000) { "00" } else if (counter < 100000000) {
       "0";
     } else { "" };
-
     padding # paddedId;
   };
 
@@ -280,9 +297,7 @@ actor {
     if (isBlobStorage) {
       return true;
     };
-
     let hasImageExtension = Text.endsWith(url, #text ".jpg") or Text.endsWith(url, #text ".jpeg") or Text.endsWith(url, #text ".png") or Text.endsWith(url, #text ".gif");
-
     hasImageExtension;
   };
 
@@ -303,7 +318,6 @@ actor {
     if (isBlobStorage) {
       return true;
     };
-
     let hasAudioExtension = Text.endsWith(url, #text ".mp3") or Text.endsWith(url, #text ".ogg") or Text.endsWith(url, #text ".wav");
     hasAudioExtension;
   };
@@ -342,7 +356,6 @@ actor {
     if (Text.size(content) == 0) {
       assert false;
     };
-
     switch (natMap.get(chatrooms, chatroomId)) {
       case (null) { assert false };
       case (?chatroom) {
@@ -398,6 +411,33 @@ actor {
         activeUsers := natMap.put(activeUsers, chatroomId, updatedActiveUsers);
       };
     };
+  };
+
+  public func deleteMessage(messageId : Nat) : async () {
+    var messageFound = false;
+    var updatedMessages = messages;
+
+    for ((chatroomId, chatroomMessages) in natMap.entries(messages)) {
+      if (not messageFound) {
+        let filteredMessages = List.filter<Message>(
+          chatroomMessages,
+          func(message) { message.id != messageId },
+        );
+        let originalSize = List.size(chatroomMessages);
+        let newSize = List.size(filteredMessages);
+        if (newSize < originalSize) {
+          messageFound := true;
+        };
+        updatedMessages := natMap.put(updatedMessages, chatroomId, filteredMessages);
+      };
+    };
+
+    if (not messageFound) {
+      assert false;
+    };
+
+    messages := updatedMessages;
+    reactions := natMap.delete(reactions, messageId);
   };
 
   public func reportMessage(messageId : Nat, reason : Text) : async () {
@@ -505,37 +545,28 @@ actor {
     };
   };
 
-  public func pinVideo(chatroomId : Nat, messageId : Nat) : async () {
-    switch (natMap.get(chatrooms, chatroomId)) {
-      case (null) { assert false };
-      case (?chatroom) {
-        let updatedChatroom = {
-          chatroom with
-          pinnedVideoId = ?messageId
-        };
-        chatrooms := natMap.put(chatrooms, chatroomId, updatedChatroom);
-      };
+  public func pinVideo(chatroomId : Nat, userId : Text, messageId : Nat) : async () {
+    let key : PinnedVideoKey = {
+      chatroomId;
+      userId;
     };
+    pinnedVideos := pinnedVideoMap.put(pinnedVideos, key, messageId);
   };
 
-  public func unpinVideo(chatroomId : Nat) : async () {
-    switch (natMap.get(chatrooms, chatroomId)) {
-      case (null) { assert false };
-      case (?chatroom) {
-        let updatedChatroom = {
-          chatroom with
-          pinnedVideoId = null
-        };
-        chatrooms := natMap.put(chatrooms, chatroomId, updatedChatroom);
-      };
+  public func unpinVideo(chatroomId : Nat, userId : Text) : async () {
+    let key : PinnedVideoKey = {
+      chatroomId;
+      userId;
     };
+    pinnedVideos := pinnedVideoMap.delete(pinnedVideos, key);
   };
 
-  public query func getPinnedVideo(chatroomId : Nat) : async ?Nat {
-    switch (natMap.get(chatrooms, chatroomId)) {
-      case (null) { null };
-      case (?chatroom) { chatroom.pinnedVideoId };
+  public query func getPinnedVideo(chatroomId : Nat, userId : Text) : async ?Nat {
+    let key : PinnedVideoKey = {
+      chatroomId;
+      userId;
     };
+    pinnedVideoMap.get(pinnedVideos, key);
   };
 
   public query func getLobbyChatroomCards() : async [LobbyChatroomCard] {

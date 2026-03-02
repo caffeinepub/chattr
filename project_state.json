@@ -1,24 +1,27 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Video chat/streaming app with pinned video functionality and GIF picker. UI improvements ongoing.",
-  "architectural_notes": [],
+  "summary": "Project involves an admin page with message deletion and per-user pinned videos functionality on a backend system.",
+  "architectural_notes": [
+    "Do not add any caller/principal checks to any backend function",
+    "Only make changes explicitly requested; do not modify unrelated pages or functions"
+  ],
   "known_issues": [],
   "isFixRequest": false,
   "existing_features": [
     {
-      "id": "feature-in-the-pinnedvideo-component-overlay-the-unpin-x-button-absolutely-at-the-top-right-corner-of-the-video-container-top-2-right-2-styled-as-a-small-circular-button-bg-black-50-text-white-rounded-full-w-6-h-6-with-a-hover-effect-hover-bg-black-70-remove-any-separate-header-row-or-dedicated-section-that-previously-housed-the-unpin-button",
-      "title": "In the PinnedVideo component, overlay the unpin (X) button absolutely at the top-right corner of the video container (top-2 right-2), styled as a small circular button (bg-black/50 text-white rounded-full w-6 h-6) with a hover effect (hover:bg-black/70). Remove any separate header row or dedicated section that previously housed the unpin button.",
+      "id": "feature-re-enable-message-deletion-on-the-admin-page-frontend-src-pages-admindeletechatroomspage-tsx-or-a-dedicated-admin-messages-page-expose-a-backend-function-to-delete-a-message-by-id-with-no-caller-check-and-wire-a-delete-button-per-message-in-the-admin-ui-so-admins-can-delete-individual-messages",
+      "title": "Re-enable message deletion on the admin page (frontend/src/pages/AdminDeleteChatroomsPage.tsx or a dedicated admin messages page). Expose a backend function to delete a message by ID with no caller check, and wire a delete button per message in the admin UI so admins can delete individual messages.",
       "reqIds": [
-        "REQ-1"
+        "REQ-2"
       ],
       "version": 1
     },
     {
-      "id": "feature-in-the-pinnedvideo-component-add-a-non-clickable-pin-icon-lucide-pin-icon-absolutely-overlaid-at-the-top-left-corner-of-the-video-container-top-2-left-2-styled-identically-to-the-x-button-bg-black-50-text-white-rounded-full-w-6-h-6-as-a-visual-indicator-that-the-video-is-pinned",
-      "title": "In the PinnedVideo component, add a non-clickable pin icon (Lucide Pin icon) absolutely overlaid at the top-left corner of the video container (top-2 left-2), styled identically to the X button (bg-black/50 text-white rounded-full w-6 h-6) as a visual indicator that the video is pinned.",
+      "id": "feature-change-pinned-video-storage-in-the-backend-to-be-per-user-rather-than-per-chatroom-global-each-user-s-pinned-video-should-be-stored-keyed-by-chatroomid-userid-so-that-pinning-or-unpinning-a-video-only-affects-the-calling-user-s-view-other-users-in-the-same-chatroom-should-not-see-or-inherit-another-user-s-pinned-video-update-the-frontend-to-pass-the-current-user-s-identity-when-fetching-and-mutating-pinned-videos-and-render-the-pinned-video-only-for-the-user-who-pinned-it",
+      "title": "Change pinned video storage in the backend to be per-user rather than per-chatroom global. Each user's pinned video should be stored keyed by (chatroomId, userId) so that pinning or unpinning a video only affects the calling user's view. Other users in the same chatroom should not see or inherit another user's pinned video. Update the frontend to pass the current user's identity when fetching and mutating pinned videos, and render the pinned video only for the user who pinned it.",
       "reqIds": [
-        "REQ-2"
+        "REQ-3"
       ],
       "version": 1
     }
@@ -26,8 +29,28 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Overlay X (remove pin) button on top-right of pinned video, and pin icon on top-left, to save space",
+      "summary": "Re-enable message deletion on the admin page",
       "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Remove all caller/principal checks from every backend function and do not add new ones",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Make pinned videos per-user — each user only sees their own pinned videos, not other users'",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-4",
+      "summary": "Remove every caller/principal check from every function in backend/main.mo. This includes any use of 'caller', 'Principal.isAnonymous', ownership guards, or any other access control validation on any function. No caller checks should remain anywhere in the backend after this change.",
+      "reqIds": [
+        "REQ-1"
+      ],
       "status": "pending"
     }
   ],

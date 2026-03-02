@@ -13,17 +13,17 @@ export default function ChatroomPage() {
   const search = useSearch({ from: '/chatroom/$chatroomId' });
   const chatroomIdBigInt = BigInt(chatroomId);
   const { actor, isFetching: actorFetching } = useActor();
-  const { 
-    data: chatroom, 
-    isLoading: chatroomLoading, 
-    error, 
+  const {
+    data: chatroom,
+    isLoading: chatroomLoading,
+    error,
     isError,
-    isFetched 
+    isFetched
   } = useGetChatroom(chatroomIdBigInt);
   const incrementViewCount = useIncrementViewCount();
   const hasIncrementedView = useRef(false);
 
-  // Extract messageId from query params
+  // Extract messageId from query params — keep as bigint for ChatArea
   const targetMessageId = search.messageId ? BigInt(search.messageId) : undefined;
 
   // Increment view count when chatroom is loaded
@@ -34,20 +34,7 @@ export default function ChatroomPage() {
     }
   }, [chatroom, chatroomIdBigInt, incrementViewCount]);
 
-  // Show loading while actor is initializing or chatroom is being fetched
   const isLoading = actorFetching || chatroomLoading;
-
-  console.log('[ChatroomPage] State:', {
-    chatroomId,
-    actorFetching,
-    chatroomLoading,
-    isLoading,
-    isFetched,
-    hasChatroom: !!chatroom,
-    isError,
-    error: error ? String(error) : null,
-    targetMessageId: targetMessageId?.toString(),
-  });
 
   if (isLoading) {
     return (
@@ -62,7 +49,6 @@ export default function ChatroomPage() {
     );
   }
 
-  // Show error if chatroom not found after fetching is complete
   if (isFetched && (isError || !chatroom)) {
     return (
       <div className="flex h-full items-center justify-center p-4">
@@ -82,7 +68,6 @@ export default function ChatroomPage() {
     );
   }
 
-  // Don't render ChatArea until we have the chatroom data
   if (!chatroom) {
     return (
       <div className="flex h-full items-center justify-center">
