@@ -1,22 +1,22 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Video chat/streaming app with pinned video functionality and GIF picker. UI improvements ongoing.",
+  "summary": "Chatroom app with live streaming rooms. User is refining the room header UI.",
   "architectural_notes": [],
   "known_issues": [],
   "isFixRequest": false,
   "existing_features": [
     {
-      "id": "feature-in-the-pinnedvideo-component-overlay-the-unpin-x-button-absolutely-at-the-top-right-corner-of-the-video-container-top-2-right-2-styled-as-a-small-circular-button-bg-black-50-text-white-rounded-full-w-6-h-6-with-a-hover-effect-hover-bg-black-70-remove-any-separate-header-row-or-dedicated-section-that-previously-housed-the-unpin-button",
-      "title": "In the PinnedVideo component, overlay the unpin (X) button absolutely at the top-right corner of the video container (top-2 right-2), styled as a small circular button (bg-black/50 text-white rounded-full w-6 h-6) with a hover effect (hover:bg-black/70). Remove any separate header row or dedicated section that previously housed the unpin button.",
+      "id": "feature-in-the-chatroom-header-component-remove-the-live-badge-entirely",
+      "title": "In the chatroom header component, remove the LIVE badge entirely.",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-in-the-pinnedvideo-component-add-a-non-clickable-pin-icon-lucide-pin-icon-absolutely-overlaid-at-the-top-left-corner-of-the-video-container-top-2-left-2-styled-identically-to-the-x-button-bg-black-50-text-white-rounded-full-w-6-h-6-as-a-visual-indicator-that-the-video-is-pinned",
-      "title": "In the PinnedVideo component, add a non-clickable pin icon (Lucide Pin icon) absolutely overlaid at the top-left corner of the video container (top-2 left-2), styled identically to the X button (bg-black/50 text-white rounded-full w-6 h-6) as a visual indicator that the video is pinned.",
+      "id": "feature-in-the-chatroom-header-component-move-the-category-tag-into-the-same-row-as-the-messages-count-and-live-viewer-count-positioned-to-the-right-of-the-live-viewer-count-do-not-change-any-styles-on-the-category-tag-or-any-other-elements",
+      "title": "In the chatroom header component, move the category tag into the same row as the messages count and live viewer count, positioned to the right of the live viewer count. Do not change any styles on the category tag or any other elements.",
       "reqIds": [
         "REQ-2"
       ],
@@ -26,7 +26,7 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Overlay X (remove pin) button on top-right of pinned video, and pin icon on top-left, to save space",
+      "summary": "Move category tag to the right of the live viewer count in the same row, and remove the LIVE badge from the chatroom header. No style changes.",
       "reqIds": [],
       "status": "pending"
     }

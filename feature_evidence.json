@@ -2,10 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-in-the-pinnedvideo-component-overlay-the-unpin-x-button-absolutely-at-the-top-right-corner-of-the-video-container-top-2-right-2-styled-as-a-small-circular-button-bg-black-50-text-white-rounded-full-w-6-h-6-with-a-hover-effect-hover-bg-black-70-remove-any-separate-header-row-or-dedicated-section-that-previously-housed-the-unpin-button",
-      "featureTitle": "In the PinnedVideo component, overlay the unpin (X) button absolutely at the top-right corner of the video container (top-2 right-2), styled as a small circular button (bg-black/50 text-white rounded-full w-6 h-6) with a hover effect (hover:bg-black/70). Remove any separate header row or dedicated section that previously housed the unpin button.",
+      "featureId": "feature-in-the-chatroom-header-component-remove-the-live-badge-entirely",
+      "featureTitle": "In the chatroom header component, remove the LIVE badge entirely.",
       "files": [
-        "frontend/src/components/PinnedVideo.tsx"
+        "frontend/src/components/ChatArea.tsx"
       ],
       "components": [
         "authorization@1.0.1",
@@ -23,10 +23,10 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-in-the-pinnedvideo-component-add-a-non-clickable-pin-icon-lucide-pin-icon-absolutely-overlaid-at-the-top-left-corner-of-the-video-container-top-2-left-2-styled-identically-to-the-x-button-bg-black-50-text-white-rounded-full-w-6-h-6-as-a-visual-indicator-that-the-video-is-pinned",
-      "featureTitle": "In the PinnedVideo component, add a non-clickable pin icon (Lucide Pin icon) absolutely overlaid at the top-left corner of the video container (top-2 left-2), styled identically to the X button (bg-black/50 text-white rounded-full w-6 h-6) as a visual indicator that the video is pinned.",
+      "featureId": "feature-in-the-chatroom-header-component-move-the-category-tag-into-the-same-row-as-the-messages-count-and-live-viewer-count-positioned-to-the-right-of-the-live-viewer-count-do-not-change-any-styles-on-the-category-tag-or-any-other-elements",
+      "featureTitle": "In the chatroom header component, move the category tag into the same row as the messages count and live viewer count, positioned to the right of the live viewer count. Do not change any styles on the category tag or any other elements.",
       "files": [
-        "frontend/src/components/PinnedVideo.tsx"
+        "frontend/src/components/ChatArea.tsx"
       ],
       "components": [
         "authorization@1.0.1",

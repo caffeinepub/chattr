@@ -162,19 +162,6 @@ export default function ChatArea({ chatroomId, chatroom, targetMessageId }: Chat
               <div className="md:text-center">
                 <div className="flex items-center gap-2 md:justify-center">
                   <h2 className="text-base font-semibold text-foreground">{chatroom.topic}</h2>
-                  {chatroom.category && (
-                    <Badge variant="secondary" className="px-2 py-0.5 text-xs">
-                      {chatroom.category.toLowerCase()}
-                    </Badge>
-                  )}
-                  {chatroom.isLive && (
-                    <div className="flex items-center gap-1.5 rounded-md bg-primary px-2 py-0.5">
-                      <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" />
-                      <span className="text-xs font-bold uppercase tracking-wide text-white">
-                        LIVE
-                      </span>
-                    </div>
-                  )}
                   <Button
                     variant="ghost"
                     size="icon"
@@ -197,6 +184,11 @@ export default function ChatArea({ chatroomId, chatroom, targetMessageId }: Chat
                   <Users className="h-3.5 w-3.5" />
                   <span>{formatCompactNumber(chatroom.activeUserCount)}</span>
                 </div>
+                {chatroom.category && (
+                  <Badge variant="secondary" className="px-2 py-0.5 text-xs">
+                    {chatroom.category.toLowerCase()}
+                  </Badge>
+                )}
               </div>
             </div>
           </div>
@@ -205,14 +197,6 @@ export default function ChatArea({ chatroomId, chatroom, targetMessageId }: Chat
           <div className="flex items-center justify-between gap-2 px-4 py-2 md:justify-center">
             <div className="flex min-w-0 flex-1 items-center gap-2 md:flex-initial md:min-w-0">
               <h2 className="truncate text-base font-semibold text-foreground">{chatroom.topic}</h2>
-              {chatroom.isLive && (
-                <div className="flex items-center gap-1.5 rounded-md bg-primary px-2 py-0.5">
-                  <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" />
-                  <span className="text-xs font-bold uppercase tracking-wide text-white">
-                    LIVE
-                  </span>
-                </div>
-              )}
             </div>
             <div className="flex items-center gap-3 text-sm text-muted-foreground">
               <div className="flex items-center gap-1.5">
@@ -223,6 +207,11 @@ export default function ChatArea({ chatroomId, chatroom, targetMessageId }: Chat
                 <Users className="h-3.5 w-3.5" />
                 <span>{formatCompactNumber(chatroom.activeUserCount)}</span>
               </div>
+              {chatroom.category && (
+                <Badge variant="secondary" className="px-2 py-0.5 text-xs">
+                  {chatroom.category.toLowerCase()}
+                </Badge>
+              )}
             </div>
             <Button
               variant="ghost"

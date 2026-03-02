@@ -1,11 +1,11 @@
 # Specification
 
 ## Summary
-**Goal:** Overlay both the unpin (X) button and a pin indicator icon directly on the pinned video thumbnail, removing the separate header row.
+**Goal:** Adjust the chatroom header layout by removing the LIVE badge and repositioning the category tag next to the live viewer count.
 
 **Planned changes:**
-- Remove the existing separate header row/section that housed the unpin button in the PinnedVideo component
-- Overlay the X (unpin) button absolutely at the top-right corner of the video container, styled as a small circular semi-transparent button with hover effect
-- Overlay a non-clickable Lucide Pin icon absolutely at the top-left corner of the video container, styled identically to the X button
+- Remove the LIVE badge from the chatroom header component
+- Move the category tag into the same row as the messages count and live viewer count, placed to the right of the live viewer count
+- No style changes — structural/positional changes only
 
-**User-visible outcome:** The pinned video thumbnail displays both a pin icon (top-left) and an X button (top-right) overlaid directly on the video, with no separate header row, giving a cleaner look and more vertical space for the video.
+**User-visible outcome:** The chatroom header no longer shows a redundant LIVE badge, and the category tag appears inline with the viewer and message counts.

@@ -1,40 +1,37 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Overlay pin icon and X button on pinned video thumbnail",
+  "title": "Move category tag next to live viewer count and remove LIVE badge in chatroom header",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Overlay the unpin (X) button absolutely at the top-right corner of the pinned video container with hover effect, removing any separate header row that previously housed it.",
+      "summary": "Remove the LIVE badge from the chatroom header component",
       "acceptanceCriteria": [
-        "The X (unpin) button is absolutely positioned at the top-right corner of the pinned video container.",
-        "The button is styled as a small circular icon button with a semi-transparent dark background.",
-        "Hovering the button darkens its background.",
-        "Clicking the button unpins the video (calls useUnpinVideo mutation).",
-        "No separate header row for the unpin button exists; the space previously used by it is reclaimed."
+        "The LIVE badge is no longer rendered anywhere in the chatroom header.",
+        "No other elements are affected by this removal."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/PinnedVideo.tsx",
+          "path": "frontend/src/components/ChatArea.tsx",
           "operation": "modify",
-          "description": "Refactor the PinnedVideo component to remove any existing header row or dedicated unpin button section. Move the unpin button to be absolutely positioned at top-2 right-2 within the video container. Style the button as a small circular element (w-6 h-6 rounded-full bg-black/50 text-white) with hover:bg-black/70. Ensure the video embed container has position relative to support absolute positioning of the overlaid button. The button should display an X icon (from Lucide) and call the useUnpinVideo mutation on click."
+          "description": "Remove the LIVE badge element from the chatroom header section. Locate the badge rendering logic (likely conditional on isLive status) and delete it entirely, preserving all other header elements and their structure."
         }
       ]
     },
     {
       "id": "REQ-2",
-      "summary": "Add a non-clickable pin icon absolutely overlaid at the top-left corner of the pinned video container as a visual indicator.",
+      "summary": "Move the category tag into the same row as the messages count and live viewer count, positioned to the right of the live viewer count",
       "acceptanceCriteria": [
-        "A Lucide Pin icon is absolutely positioned at the top-left corner of the pinned video container.",
-        "The pin icon is styled with the same circular semi-transparent dark background as the X button.",
-        "The pin icon is non-interactive (no click handler, pointer-events-none).",
-        "Both icons (pin top-left, X top-right) are visible simultaneously over the video embed."
+        "The category tag appears in the same row as the messages count and live viewer count.",
+        "The category tag is positioned to the right of the live viewer count.",
+        "The title has its own line above with full available width, unaffected by the category tag.",
+        "No CSS classes, colors, sizes, or any other styles are changed on any elements."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/PinnedVideo.tsx",
+          "path": "frontend/src/components/ChatArea.tsx",
           "operation": "modify",
-          "description": "Add a Lucide Pin icon component to the PinnedVideo component, absolutely positioned at top-2 left-2 within the video container. Style it identically to the X button (w-6 h-6 rounded-full bg-black/50 text-white) but add pointer-events-none to make it non-interactive. Ensure both the pin icon and the X button are rendered as children of the video container so they appear overlaid on the video embed. No click handler should be attached to the pin icon."
+          "description": "Restructure the chatroom header layout to move the category tag element into the same flex row as the messages count and live viewer count. Position it to the right of the live viewer count without modifying any className, style, or other attributes on any element. Ensure the chatroom title remains on its own separate line above this row with full width available."
         }
       ]
     }
