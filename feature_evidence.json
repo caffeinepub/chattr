@@ -2,8 +2,8 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-in-the-chatroom-header-component-remove-the-live-badge-entirely",
-      "featureTitle": "In the chatroom header component, remove the LIVE badge entirely.",
+      "featureId": "feature-in-the-chatroom-header-chatarea-tsx-move-the-chevron-icon-so-it-appears-directly-next-to-the-category-tag-when-the-header-is-in-its-expanded-non-collapsed-state-do-not-change-any-styles-colors-sizing-or-any-other-part-of-the-component",
+      "featureTitle": "In the chatroom header (ChatArea.tsx), move the chevron icon so it appears directly next to the category tag when the header is in its expanded (non-collapsed) state. Do not change any styles, colors, sizing, or any other part of the component.",
       "files": [
         "frontend/src/components/ChatArea.tsx"
       ],
@@ -19,27 +19,6 @@
       ],
       "testIds": [
         "REQ-1"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-in-the-chatroom-header-component-move-the-category-tag-into-the-same-row-as-the-messages-count-and-live-viewer-count-positioned-to-the-right-of-the-live-viewer-count-do-not-change-any-styles-on-the-category-tag-or-any-other-elements",
-      "featureTitle": "In the chatroom header component, move the category tag into the same row as the messages count and live viewer count, positioned to the right of the live viewer count. Do not change any styles on the category tag or any other elements.",
-      "files": [
-        "frontend/src/components/ChatArea.tsx"
-      ],
-      "components": [
-        "authorization@1.0.1",
-        "blob-storage@2.0.3",
-        "http-outcalls@1.1.1",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-2"
       ],
       "confidence": "high"
     }

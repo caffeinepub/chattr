@@ -1,11 +1,10 @@
 # Specification
 
 ## Summary
-**Goal:** Adjust the chatroom header layout by removing the LIVE badge and repositioning the category tag next to the live viewer count.
+**Goal:** Move the chevron icon to appear directly next to the category tag in the expanded chatroom header.
 
 **Planned changes:**
-- Remove the LIVE badge from the chatroom header component
-- Move the category tag into the same row as the messages count and live viewer count, placed to the right of the live viewer count
-- No style changes — structural/positional changes only
+- In `ChatArea.tsx`, reposition the chevron icon in the JSX so it renders adjacent to the category tag when the header is in its expanded (non-collapsed) state
+- No style, color, sizing, or any other changes are made
 
-**User-visible outcome:** The chatroom header no longer shows a redundant LIVE badge, and the category tag appears inline with the viewer and message counts.
+**User-visible outcome:** When the chatroom header is expanded, the chevron icon appears next to the category tag instead of its previous position.

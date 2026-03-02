@@ -1,58 +1,40 @@
 {
   "kind": "build_request",
-  "title": "Move category tag next to live viewer count and remove LIVE badge in chatroom header",
-  "projectName": "Chattr",
+  "title": "Move chevron next to category tag in expanded chatroom header",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "In the chatroom header component, remove the LIVE badge entirely.",
+      "text": "In the chatroom header (ChatArea.tsx), move the chevron icon so it appears directly next to the category tag when the header is in its expanded (non-collapsed) state. Do not change any styles, colors, sizing, or any other part of the component.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-recent-6"
+          "msg-recent-1",
+          "msg-recent-2"
         ],
         "quotes": [
-          "remove the live badge since it's redundant"
+          "move the chevron next to the category tag in the chatroom header because it's not there yet when it's not collapsed",
+          "Don't make any other changes. Don't change any styles either"
         ]
       },
       "acceptanceCriteria": [
-        "The LIVE badge is no longer rendered anywhere in the chatroom header.",
-        "No other elements are affected by this removal."
-      ]
-    },
-    {
-      "id": "REQ-2",
-      "text": "In the chatroom header component, move the category tag into the same row as the messages count and live viewer count, positioned to the right of the live viewer count. Do not change any styles on the category tag or any other elements.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-recent-5",
-          "msg-recent-6"
-        ],
-        "quotes": [
-          "place the category tag to the right of the live viewer count",
-          "Don't change any styles either"
-        ]
-      },
-      "acceptanceCriteria": [
-        "The category tag appears in the same row as the messages count and live viewer count.",
-        "The category tag is positioned to the right of the live viewer count.",
-        "The title has its own line above with full available width, unaffected by the category tag.",
-        "No CSS classes, colors, sizes, or any other styles are changed on any elements."
+        "The chevron icon is rendered adjacent to the category tag in the chatroom header when the panel is expanded (not collapsed).",
+        "No visual style changes (colors, font sizes, spacing, layout) are introduced anywhere in the component.",
+        "The chevron continues to function correctly (toggling collapse/expand) after being repositioned.",
+        "The collapsed state of the header remains unchanged."
       ]
     }
   ],
   "constraints": [
-    "No style changes whatsoever — only structural/positional changes to element placement.",
-    "Only the chatroom header component is to be modified.",
-    "No other components, files, or logic may be changed."
+    "Do not change any CSS classes, Tailwind styles, or inline styles.",
+    "Do not modify any component other than the chatroom header section in ChatArea.tsx.",
+    "Only move the chevron element's position in the JSX — no other changes."
   ],
   "nonGoals": [
-    "Restyling or resizing the category tag or any other badge.",
-    "Changes to the lobby/chatroom card components.",
+    "Changing the collapsed state behavior or appearance.",
+    "Modifying any other header elements (viewer count, topic text, etc.).",
     "Any backend changes.",
-    "Adding new UI elements or features."
+    "Any style or design updates."
   ],
   "imageRequirements": {
     "required": [],

@@ -162,16 +162,6 @@ export default function ChatArea({ chatroomId, chatroom, targetMessageId }: Chat
               <div className="md:text-center">
                 <div className="flex items-center gap-2 md:justify-center">
                   <h2 className="text-base font-semibold text-foreground">{chatroom.topic}</h2>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={toggleHeader}
-                    className="h-7 w-7 flex-shrink-0"
-                    aria-label="Collapse header"
-                    aria-expanded={isHeaderExpanded}
-                  >
-                    <ChevronUp className="h-4 w-4" />
-                  </Button>
                 </div>
                 <p className="text-sm text-muted-foreground">{chatroom.description}</p>
               </div>
@@ -189,6 +179,16 @@ export default function ChatArea({ chatroomId, chatroom, targetMessageId }: Chat
                     {chatroom.category.toLowerCase()}
                   </Badge>
                 )}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={toggleHeader}
+                  className="h-7 w-7 flex-shrink-0"
+                  aria-label="Collapse header"
+                  aria-expanded={isHeaderExpanded}
+                >
+                  <ChevronUp className="h-4 w-4" />
+                </Button>
               </div>
             </div>
           </div>
