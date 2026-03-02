@@ -2,8 +2,8 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-move-the-image-gif-button-inside-the-chat-input-field-on-the-left-side-when-clicked-it-should-open-a-floating-popover-modal-overlay-anchored-above-the-chat-input-not-a-dropdown-that-contains-image-upload-and-gif-picker-options",
-      "featureTitle": "Move the image/GIF button inside the chat input field on the left side. When clicked, it should open a floating popover/modal overlay anchored above the chat input (not a dropdown) that contains image upload and GIF picker options.",
+      "featureId": "feature-fix-the-send-button-in-the-messageinput-component-so-it-is-fully-visible-and-not-clipped-or-cut-off-ensure-the-input-area-layout-provides-sufficient-padding-minimum-width-and-flex-constraints-so-the-send-button-always-renders-completely-within-bounds-without-overflow-or-truncation",
+      "featureTitle": "Fix the send button in the MessageInput component so it is fully visible and not clipped or cut off. Ensure the input area layout provides sufficient padding, minimum width, and flex constraints so the send button always renders completely within bounds without overflow or truncation.",
       "files": [
         "frontend/src/components/MessageInput.tsx"
       ],
@@ -19,27 +19,6 @@
       ],
       "testIds": [
         "REQ-1"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-show-the-voice-message-button-by-default-on-the-right-side-of-the-chat-input-when-the-chat-input-becomes-active-focused-or-has-text-hide-the-voice-button-and-show-the-send-button-in-its-place-when-the-input-loses-focus-and-is-empty-swap-back-to-the-voice-button",
-      "featureTitle": "Show the voice message button by default on the right side of the chat input. When the chat input becomes active (focused or has text), hide the voice button and show the send button in its place. When the input loses focus and is empty, swap back to the voice button.",
-      "files": [
-        "frontend/src/components/MessageInput.tsx"
-      ],
-      "components": [
-        "authorization@1.0.1",
-        "blob-storage@2.0.3",
-        "http-outcalls@1.1.1",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-2"
       ],
       "confidence": "high"
     }

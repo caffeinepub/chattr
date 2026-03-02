@@ -1,42 +1,22 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Image/GIF button popover, send/voice button swap in chat input",
+  "title": "Fix send button clipping in chat input area",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Move image/GIF button inside chat input field with popover overlay for image upload and GIF picker",
+      "summary": "Fix the send button in the MessageInput component so it is fully visible and not clipped or cut off",
       "acceptanceCriteria": [
-        "Image/GIF button is rendered inside the chat input container on the left side",
-        "Clicking the button opens a floating popover/modal panel positioned above the chat input",
-        "The popover contains image upload and GIF search/picker options (matching existing functionality in MessageInput.tsx)",
-        "Clicking outside the popover or pressing Escape closes it",
-        "The popover does not use a dropdown pattern"
+        "The send button is fully visible in the chat input area at all viewport sizes",
+        "No part of the send button is clipped, hidden, or overflowing its container",
+        "The input textarea and send button coexist in the same row without overlapping",
+        "Existing functionality (text input, character counter, GIF/image/voice buttons) remains unchanged"
       ],
       "file_operations": [
         {
           "path": "frontend/src/components/MessageInput.tsx",
           "operation": "modify",
-          "description": "Move the image/GIF button from its current position into the left side of the chat input field. Add state to control popover visibility. Implement a floating popover/modal overlay component that anchors above the chat input and contains both the image upload interface (file input with preview) and the Giphy GIF picker (search input, trending GIFs, search results). The popover must close on outside clicks and Escape key press. Preserve all existing image upload and Giphy functionality (compression, progress tracking, result rendering). Use absolute positioning or a portal to render the popover above the input without obstructing the message list."
-        }
-      ]
-    },
-    {
-      "id": "REQ-2",
-      "summary": "Show voice button by default, swap to send button when input is active or has text",
-      "acceptanceCriteria": [
-        "Voice message button is visible by default when the chat input is not focused and empty",
-        "Send button is hidden by default",
-        "When the chat input is focused, the voice button is hidden and the send button appears in the same position",
-        "When the input loses focus and contains no text, the send button hides and the voice button reappears",
-        "If the input has text and loses focus, the send button remains visible",
-        "The swap is visually smooth (e.g., transition or instant swap)"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/MessageInput.tsx",
-          "operation": "modify",
-          "description": "Implement conditional rendering logic to swap between the voice message button and the send button on the right side of the chat input. Add state to track whether the input is focused and whether it contains text. Show the voice button by default. When the input gains focus or has non-empty text, hide the voice button and show the send button in the same position. When the input loses focus and is empty, revert to showing the voice button. Ensure both buttons occupy the same visual space and the transition is smooth (either instant swap or CSS transition). Preserve all existing voice recording and message sending functionality."
+          "description": "Fix the send button layout to prevent clipping by adjusting flex constraints, padding, and minimum width on the input container and button wrapper. Ensure the send button has sufficient space and is not cut off by adding proper flex-shrink: 0 to the button, adjusting the textarea flex-grow properties, and verifying adequate right padding on the container. Preserve the light gray background (bg-muted), borderless styling, circular character counter, and all existing functionality (GIF/image/voice buttons)."
         }
       ]
     }

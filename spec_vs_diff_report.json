@@ -1,11 +1,11 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-03-02T08:59:57.793Z",
-  "summary": "The diff modifies MessageInput.tsx to implement both REQ-1 (image/GIF button inside chat input on the left, opening a floating popover with outside-click and Escape dismissal) and REQ-2 (voice/send button swap based on focus and text state). The file summary and state JSON confirm both features are implemented. All key acceptance criteria appear to be addressed based on the available evidence.",
+  "generatedAt": "2026-03-02T08:28:38.486Z",
+  "summary": "The diff modifies MessageInput.tsx to fix the send button clipping issue by placing mic/send buttons outside the pill as flex-shrink-0 elements, which directly addresses REQ-1. The file summary confirms the fix was implemented. No constraints appear to have been violated based on available evidence.",
   "missing_requirements": [],
   "hallucinated_features": [],
-  "confidence": 0.82,
+  "confidence": 0.85,
   "changed_files": [
     "frontend-file-summaries.txt",
     "frontend/src/components/MessageInput.tsx",

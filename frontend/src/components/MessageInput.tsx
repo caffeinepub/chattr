@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { ScrollArea } from './ui/scroll-area';
+import { Button } from './ui/button';
 import { uploadImage } from '../hooks/useQueries';
 import { isYouTubeUrl, isTwitchUrl, isTwitterUrl, getYouTubeVideoId } from '../lib/videoUtils';
 import { searchGiphy, fetchTrendingGiphy, GiphyGif } from '../lib/giphy';
@@ -36,23 +37,16 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
   const [giphyGifs, setGiphyGifs] = useState<GiphyGif[]>([]);
   const [isLoadingGiphy, setIsLoadingGiphy] = useState(false);
   const [giphyError, setGiphyError] = useState('');
-  const [isInputFocused, setIsInputFocused] = useState(false);
-
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const recordingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
-  const popoverRef = useRef<HTMLDivElement>(null);
-  const imageButtonRef = useRef<HTMLButtonElement>(null);
 
   const MAX_MESSAGE_LENGTH = 2000;
 
   const debouncedGiphySearch = useDebouncedValue(giphySearch, 500);
-
-  // Show send button when input is focused OR has text
-  const showSendButton = isInputFocused || message.trim().length > 0;
 
   useEffect(() => {
     return () => {
@@ -65,35 +59,6 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
       }
     };
   }, []);
-
-  // Close popover on outside click or Escape key
-  useEffect(() => {
-    if (!showMediaInput) return;
-
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        popoverRef.current &&
-        !popoverRef.current.contains(event.target as Node) &&
-        imageButtonRef.current &&
-        !imageButtonRef.current.contains(event.target as Node)
-      ) {
-        setShowMediaInput(false);
-      }
-    };
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setShowMediaInput(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    document.addEventListener('keydown', handleKeyDown as unknown as EventListener);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('keydown', handleKeyDown as unknown as EventListener);
-    };
-  }, [showMediaInput]);
 
   // Auto-detect media URLs in message text
   useEffect(() => {
@@ -377,10 +342,8 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
 
   const handleImageButtonClick = () => {
     if (isRecording) return;
-    setShowMediaInput(prev => !prev);
-    if (!showMediaInput) {
-      setMediaTab('image');
-    }
+    setShowMediaInput(!showMediaInput);
+    setMediaTab('image');
   };
 
   const handleMicButtonClick = () => {
@@ -474,24 +437,8 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
         <>
           {renderMediaPreview()}
 
-          {/* Floating popover for image/GIF picker — anchored above the input */}
           {showMediaInput && (
-            <div
-              ref={popoverRef}
-              className="mb-2 rounded-xl border bg-card shadow-lg p-4 animate-in fade-in slide-in-from-bottom-2 duration-150"
-            >
-              {/* Close button */}
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-sm font-semibold text-foreground">Add Media</span>
-                <button
-                  onClick={() => setShowMediaInput(false)}
-                  className="rounded-full p-1 hover:bg-muted transition-colors"
-                  title="Close"
-                >
-                  <X className="h-4 w-4 text-muted-foreground" />
-                </button>
-              </div>
-
+            <div className="mb-2 rounded-lg border bg-card p-4">
               <Tabs value={mediaTab} onValueChange={(v) => setMediaTab(v as 'image' | 'giphy')}>
                 <TabsList className="mb-3 w-full">
                   <TabsTrigger value="image" className="flex-1">Image</TabsTrigger>
@@ -526,16 +473,6 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
                     {mediaError && (
                       <div className="text-sm text-destructive">{mediaError}</div>
                     )}
-                    {selectedFile && !isUploading && (
-                      <button
-                        onClick={handleSend}
-                        disabled={disabled || isUploading || isSending}
-                        className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
-                      >
-                        <Send className="h-4 w-4" />
-                        Send Image
-                      </button>
-                    )}
                   </div>
                 </TabsContent>
 
@@ -551,16 +488,20 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
                     )}
                     <ScrollArea className="h-48">
                       {isLoadingGiphy ? (
-                        <div className="flex items-center justify-center h-32">
-                          <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                        <div className="flex items-center justify-center h-full text-sm text-muted-foreground">
+                          Loading GIFs...
                         </div>
-                      ) : giphyGifs.length > 0 ? (
-                        <div className="grid grid-cols-3 gap-1.5 pr-3">
+                      ) : giphyGifs.length === 0 ? (
+                        <div className="flex items-center justify-center h-full text-sm text-muted-foreground">
+                          No GIFs found
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-3 gap-1">
                           {giphyGifs.map((gif) => (
                             <button
                               key={gif.id}
                               onClick={() => handleGifSelect(gif)}
-                              className="relative aspect-square overflow-hidden rounded-md hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-primary"
+                              className="aspect-square overflow-hidden rounded hover:opacity-80 transition-opacity"
                             >
                               <img
                                 src={gif.previewUrl}
@@ -570,10 +511,6 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
                             </button>
                           ))}
                         </div>
-                      ) : (
-                        <div className="flex items-center justify-center h-32 text-sm text-muted-foreground">
-                          {giphySearch ? 'No GIFs found' : 'Loading trending GIFs...'}
-                        </div>
                       )}
                     </ScrollArea>
                   </div>
@@ -582,24 +519,22 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
             </div>
           )}
 
-          {/* Main input row */}
-          <div className="flex items-end gap-2">
-            {/* Pill-shaped input container with image button inside on the left */}
-            <div className="relative flex flex-1 items-end rounded-full border bg-background shadow-sm focus-within:ring-2 focus-within:ring-primary/30 transition-all">
-              {/* Image/GIF button — left side inside input */}
-              <button
-                ref={imageButtonRef}
-                onClick={handleImageButtonClick}
-                disabled={isRecording || disabled}
-                className={`flex-shrink-0 ml-2 mb-1.5 inline-flex items-center justify-center h-8 w-8 rounded-full transition-all ${
-                  showMediaInput
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-                } disabled:opacity-40`}
-                title={showMediaInput ? 'Close media picker' : 'Add image or GIF'}
-              >
-                <ImageIcon className="h-4 w-4" />
-              </button>
+          {/* Main input row — flex with no overflow:hidden so send button is never clipped */}
+          <div className="flex items-end gap-2 w-full">
+            {/* Pill-shaped input area — flex-1 with min-w-0 so it shrinks, not the buttons */}
+            <div className="relative flex flex-1 min-w-0 items-end rounded-full bg-muted px-3 py-2">
+              {/* Left action buttons */}
+              <div className="flex items-center gap-0.5 flex-shrink-0 mr-1 pb-0.5">
+                <button
+                  type="button"
+                  onClick={handleImageButtonClick}
+                  disabled={isRecording}
+                  className="p-1 rounded-full text-muted-foreground hover:text-foreground hover:bg-background/50 transition-colors disabled:opacity-40"
+                  title="Upload image or GIF"
+                >
+                  <ImageIcon className="h-4 w-4" />
+                </button>
+              </div>
 
               {/* Textarea */}
               <textarea
@@ -607,75 +542,92 @@ export default function MessageInput({ onSendMessage, disabled, isSending }: Mes
                 value={message}
                 onChange={handleInput}
                 onKeyDown={handleKeyDown}
-                onFocus={() => setIsInputFocused(true)}
-                onBlur={() => setIsInputFocused(false)}
                 placeholder="Message..."
-                disabled={disabled}
+                disabled={disabled || isRecording}
                 rows={1}
-                maxLength={MAX_MESSAGE_LENGTH + 100}
-                className="flex-1 resize-none bg-transparent px-2 py-2.5 text-sm placeholder:text-muted-foreground focus:outline-none disabled:opacity-50 min-h-[40px] max-h-[120px] leading-5"
+                className="flex-1 min-w-0 bg-transparent border-0 outline-none resize-none text-sm placeholder:text-muted-foreground py-0.5 leading-5 max-h-[120px] overflow-y-auto"
                 style={{ scrollbarWidth: 'none' }}
               />
 
-              {/* Character counter ring — right side inside input */}
-              {isNearLimit && (
-                <div className="flex-shrink-0 mr-2 mb-1.5 flex items-center justify-center">
-                  <svg width="24" height="24" viewBox="0 0 24 24" className="rotate-[-90deg]">
+              {/* Character counter ring — inside pill, flex-shrink-0 */}
+              {message.length > 0 && (
+                <div className="flex-shrink-0 ml-1 pb-0.5">
+                  <svg
+                    width="22"
+                    height="22"
+                    viewBox="0 0 24 24"
+                    className="rotate-[-90deg]"
+                    aria-label={`${message.length}/${MAX_MESSAGE_LENGTH} characters`}
+                  >
                     <circle
-                      cx="12"
-                      cy="12"
-                      r={ringRadius}
+                      cx="12" cy="12" r={ringRadius}
                       fill="none"
                       stroke="currentColor"
-                      strokeWidth="2"
-                      className="text-muted/30"
+                      strokeWidth="2.5"
+                      className="text-muted-foreground/20"
                     />
                     <circle
-                      cx="12"
-                      cy="12"
-                      r={ringRadius}
+                      cx="12" cy="12" r={ringRadius}
                       fill="none"
                       stroke="currentColor"
-                      strokeWidth="2"
+                      strokeWidth="2.5"
                       strokeDasharray={ringCircumference}
                       strokeDashoffset={ringDashOffset}
                       strokeLinecap="round"
-                      className={isOverLimit ? 'text-destructive' : 'text-primary'}
+                      className={
+                        isOverLimit
+                          ? 'text-destructive'
+                          : isNearLimit
+                          ? 'text-yellow-500'
+                          : 'text-primary'
+                      }
                     />
                   </svg>
                 </div>
               )}
             </div>
 
-            {/* Right-side button: voice (default) ↔ send (when focused or has text) */}
-            <div className="flex-shrink-0 relative h-10 w-10">
-              {/* Voice button */}
-              <button
+            {/* Mic button — outside pill, flex-shrink-0 */}
+            <div className="flex-shrink-0">
+              <Button
+                type="button"
+                size="icon"
+                variant="ghost"
                 onClick={handleMicButtonClick}
                 disabled={disabled || showMediaInput}
-                className={`absolute inset-0 inline-flex items-center justify-center rounded-full border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground transition-all duration-150 disabled:opacity-40 ${
-                  showSendButton ? 'opacity-0 pointer-events-none scale-75' : 'opacity-100 pointer-events-auto scale-100'
-                }`}
-                title="Record voice message"
+                className="rounded-full h-10 w-10 text-muted-foreground hover:text-foreground"
+                title={isRecording ? 'Cancel recording' : 'Record voice message'}
               >
                 <Mic className="h-5 w-5" />
-              </button>
+              </Button>
+            </div>
 
-              {/* Send button */}
-              <button
+            {/* Send button — outside pill, flex-shrink-0, always fully visible */}
+            <div className="flex-shrink-0">
+              <Button
+                type="button"
+                size="icon"
                 onClick={handleSend}
-                disabled={disabled || isUploading || isSending || isOverLimit}
-                className={`absolute inset-0 inline-flex items-center justify-center rounded-full bg-primary text-primary-foreground shadow hover:bg-primary/90 transition-all duration-150 disabled:opacity-40 ${
-                  showSendButton ? 'opacity-100 pointer-events-auto scale-100' : 'opacity-0 pointer-events-none scale-75'
-                }`}
+                disabled={
+                  disabled ||
+                  isUploading ||
+                  isSending ||
+                  isRecording ||
+                  isOverLimit ||
+                  (!message.trim() && !showMediaInput)
+                }
+                className="rounded-full h-10 w-10"
                 title="Send message"
               >
                 {isSending ? (
-                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
+                  <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                  </svg>
                 ) : (
                   <Send className="h-4 w-4" />
                 )}
-              </button>
+              </Button>
             </div>
           </div>
         </>
