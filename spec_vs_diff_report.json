@@ -1,14 +1,14 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-03-02T02:03:14.392Z",
-  "summary": "REQ-1 appears to be correctly implemented. The diff shows that in ChatArea.tsx, the chevron button was moved from the topic title row to sit directly after the category tag in the stats row (expanded header state). The file summary explicitly confirms: 'In the expanded header state, the chevron button has been moved from the topic title row to sit directly after the category tag in the stats row.' No style changes are indicated, and the collapsed state behavior is noted as unchanged.",
+  "generatedAt": "2026-03-02T08:59:57.793Z",
+  "summary": "The diff modifies MessageInput.tsx to implement both REQ-1 (image/GIF button inside chat input on the left, opening a floating popover with outside-click and Escape dismissal) and REQ-2 (voice/send button swap based on focus and text state). The file summary and state JSON confirm both features are implemented. All key acceptance criteria appear to be addressed based on the available evidence.",
   "missing_requirements": [],
   "hallucinated_features": [],
-  "confidence": 0.88,
+  "confidence": 0.82,
   "changed_files": [
     "frontend-file-summaries.txt",
-    "frontend/src/components/ChatArea.tsx",
+    "frontend/src/components/MessageInput.tsx",
     "project_state.json"
   ]
 }

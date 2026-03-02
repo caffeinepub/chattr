@@ -1,24 +1,35 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-03-02T02:03:14.394Z",
+  "generatedAt": "2026-03-02T08:59:57.795Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 1,
-    "implemented": 1,
+    "total": 2,
+    "implemented": 2,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "In the chatroom header (ChatArea.tsx), move the chevron icon so it appears directly next to the category tag when the header is in its expanded (non-collapsed) state. Do not change any styles, colors, sizing, or any other part of the component.",
+        "summary": "Move the image/GIF button inside the chat input field on the left side. When clicked, it should open a floating popover/modal overlay anchored above the chat input (not a dropdown) that contains image upload and GIF picker options.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/ChatArea.tsx"
+          "frontend/src/components/MessageInput.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/ChatArea.tsx"
+          "frontend/src/components/MessageInput.tsx"
+        ]
+      },
+      {
+        "id": "REQ-2",
+        "summary": "Show the voice message button by default on the right side of the chat input. When the chat input becomes active (focused or has text), hide the voice button and show the send button in its place. When the input loses focus and is empty, swap back to the voice button.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/MessageInput.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/MessageInput.tsx"
         ]
       }
     ]
@@ -28,7 +39,7 @@
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/components/ChatArea.tsx",
+    "frontend/src/components/MessageInput.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

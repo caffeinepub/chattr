@@ -1,22 +1,42 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Move chevron next to category tag in expanded chatroom header",
+  "title": "Image/GIF button popover, send/voice button swap in chat input",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Reposition the chevron icon to appear directly adjacent to the category tag in the chatroom header when in expanded (non-collapsed) state",
+      "summary": "Move image/GIF button inside chat input field with popover overlay for image upload and GIF picker",
       "acceptanceCriteria": [
-        "The chevron icon is rendered adjacent to the category tag in the chatroom header when the panel is expanded (not collapsed).",
-        "No visual style changes (colors, font sizes, spacing, layout) are introduced anywhere in the component.",
-        "The chevron continues to function correctly (toggling collapse/expand) after being repositioned.",
-        "The collapsed state of the header remains unchanged."
+        "Image/GIF button is rendered inside the chat input container on the left side",
+        "Clicking the button opens a floating popover/modal panel positioned above the chat input",
+        "The popover contains image upload and GIF search/picker options (matching existing functionality in MessageInput.tsx)",
+        "Clicking outside the popover or pressing Escape closes it",
+        "The popover does not use a dropdown pattern"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/ChatArea.tsx",
+          "path": "frontend/src/components/MessageInput.tsx",
           "operation": "modify",
-          "description": "Move the chevron button element in the JSX so it appears directly next to the category tag in the expanded header state. Locate the chevron button (likely wrapped in a button with collapse/expand toggle logic) and reposition it adjacent to the category tag element within the header's expanded layout. Do not modify any className props, inline styles, or other attributes—only change the element's position in the JSX tree. Ensure the collapsed state header layout remains unchanged."
+          "description": "Move the image/GIF button from its current position into the left side of the chat input field. Add state to control popover visibility. Implement a floating popover/modal overlay component that anchors above the chat input and contains both the image upload interface (file input with preview) and the Giphy GIF picker (search input, trending GIFs, search results). The popover must close on outside clicks and Escape key press. Preserve all existing image upload and Giphy functionality (compression, progress tracking, result rendering). Use absolute positioning or a portal to render the popover above the input without obstructing the message list."
+        }
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "summary": "Show voice button by default, swap to send button when input is active or has text",
+      "acceptanceCriteria": [
+        "Voice message button is visible by default when the chat input is not focused and empty",
+        "Send button is hidden by default",
+        "When the chat input is focused, the voice button is hidden and the send button appears in the same position",
+        "When the input loses focus and contains no text, the send button hides and the voice button reappears",
+        "If the input has text and loses focus, the send button remains visible",
+        "The swap is visually smooth (e.g., transition or instant swap)"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/MessageInput.tsx",
+          "operation": "modify",
+          "description": "Implement conditional rendering logic to swap between the voice message button and the send button on the right side of the chat input. Add state to track whether the input is focused and whether it contains text. Show the voice button by default. When the input gains focus or has non-empty text, hide the voice button and show the send button in the same position. When the input loses focus and is empty, revert to showing the voice button. Ensure both buttons occupy the same visual space and the transition is smooth (either instant swap or CSS transition). Preserve all existing voice recording and message sending functionality."
         }
       ]
     }
