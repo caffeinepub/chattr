@@ -35,11 +35,11 @@ export default function ExternalLinkDisclaimerModal({
           </DialogDescription>
         </DialogHeader>
         {targetUrl && (
-          <div className="rounded-md bg-muted px-3 py-2 text-xs text-muted-foreground break-all">
+          <div className="rounded-md bg-muted px-3 py-2 text-xs text-muted-foreground break-all font-mono">
             {targetUrl}
           </div>
         )}
-        <DialogFooter className="gap-2 sm:gap-0">
+        <DialogFooter className="gap-4 sm:gap-4">
           <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>

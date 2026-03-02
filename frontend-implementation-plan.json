@@ -1,22 +1,35 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Fix send button clipping in chat input area",
+  "title": "Fix link popup button spacing and apply font-mono to URL",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Fix the send button in the MessageInput component so it is fully visible and not clipped or cut off",
+      "summary": "Add sufficient spacing between Continue and Cancel buttons in ExternalLinkDisclaimerModal",
       "acceptanceCriteria": [
-        "The send button is fully visible in the chat input area at all viewport sizes",
-        "No part of the send button is clipped, hidden, or overflowing its container",
-        "The input textarea and send button coexist in the same row without overlapping",
-        "Existing functionality (text input, character counter, GIF/image/voice buttons) remains unchanged"
+        "The Continue and Cancel buttons in the external link disclaimer popup have visible spacing between them on desktop",
+        "Buttons do not visually touch or overlap each other"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/MessageInput.tsx",
+          "path": "frontend/src/components/ExternalLinkDisclaimerModal.tsx",
           "operation": "modify",
-          "description": "Fix the send button layout to prevent clipping by adjusting flex constraints, padding, and minimum width on the input container and button wrapper. Ensure the send button has sufficient space and is not cut off by adding proper flex-shrink: 0 to the button, adjusting the textarea flex-grow properties, and verifying adequate right padding on the container. Preserve the light gray background (bg-muted), borderless styling, circular character counter, and all existing functionality (GIF/image/voice buttons)."
+          "description": "Add horizontal or vertical spacing between the Continue and Cancel buttons using Tailwind spacing utilities (e.g., gap-2, gap-3, or space-x-2) in the button container element to ensure buttons are visually separated and do not touch each other."
+        }
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "summary": "Apply font-mono class to the external URL display in ExternalLinkDisclaimerModal",
+      "acceptanceCriteria": [
+        "The displayed URL in the external link disclaimer popup uses a monospace font",
+        "No other text in the popup is affected by this font change"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/ExternalLinkDisclaimerModal.tsx",
+          "operation": "modify",
+          "description": "Add the `font-mono` Tailwind class to the element that displays the target external URL, ensuring only the URL text (not the surrounding dialog content) receives the monospace font styling."
         }
       ]
     }

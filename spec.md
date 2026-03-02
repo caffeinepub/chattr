@@ -1,10 +1,10 @@
 # Specification
 
 ## Summary
-**Goal:** Fix the send button in the chat input area so it is fully visible and never clipped or cut off.
+**Goal:** Fix minor UI issues in the ExternalLinkDisclaimerModal — button spacing and URL font style.
 
 **Planned changes:**
-- Update the `MessageInput` component layout to ensure the send button has sufficient padding, minimum width, and proper flex constraints
-- Ensure the textarea and send button coexist in the same row without overlapping or overflow at all viewport sizes
+- Add spacing between the Continue and Cancel buttons in the ExternalLinkDisclaimerModal so they are not cramped
+- Apply `font-mono` Tailwind class to the URL displayed in the modal
 
-**User-visible outcome:** The send button is always fully visible in the chat input area, with no clipping or truncation, while all existing functionality remains unchanged.
+**User-visible outcome:** The external link disclaimer popup shows clearly separated buttons and displays the target URL in a monospace font.

@@ -1,24 +1,35 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-03-02T08:28:38.489Z",
+  "generatedAt": "2026-03-02T21:16:53.625Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 1,
-    "implemented": 1,
+    "total": 2,
+    "implemented": 2,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Fix the send button in the MessageInput component so it is fully visible and not clipped or cut off. Ensure the input area layout provides sufficient padding, minimum width, and flex constraints so the send button always renders completely within bounds without overflow or truncation.",
+        "summary": "In the ExternalLinkDisclaimerModal component, add sufficient horizontal or vertical spacing between the Continue and Cancel buttons so they are not cramped against each other.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/MessageInput.tsx"
+          "frontend/src/components/ExternalLinkDisclaimerModal.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/MessageInput.tsx"
+          "frontend/src/components/ExternalLinkDisclaimerModal.tsx"
+        ]
+      },
+      {
+        "id": "REQ-2",
+        "summary": "In the ExternalLinkDisclaimerModal component, apply the `font-mono` Tailwind class to the element displaying the target external URL.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/ExternalLinkDisclaimerModal.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/ExternalLinkDisclaimerModal.tsx"
         ]
       }
     ]
@@ -28,7 +39,7 @@
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/components/MessageInput.tsx",
+    "frontend/src/components/ExternalLinkDisclaimerModal.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

@@ -2,10 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-fix-the-send-button-in-the-messageinput-component-so-it-is-fully-visible-and-not-clipped-or-cut-off-ensure-the-input-area-layout-provides-sufficient-padding-minimum-width-and-flex-constraints-so-the-send-button-always-renders-completely-within-bounds-without-overflow-or-truncation",
-      "featureTitle": "Fix the send button in the MessageInput component so it is fully visible and not clipped or cut off. Ensure the input area layout provides sufficient padding, minimum width, and flex constraints so the send button always renders completely within bounds without overflow or truncation.",
+      "featureId": "feature-in-the-externallinkdisclaimermodal-component-add-sufficient-horizontal-or-vertical-spacing-between-the-continue-and-cancel-buttons-so-they-are-not-cramped-against-each-other",
+      "featureTitle": "In the ExternalLinkDisclaimerModal component, add sufficient horizontal or vertical spacing between the Continue and Cancel buttons so they are not cramped against each other.",
       "files": [
-        "frontend/src/components/MessageInput.tsx"
+        "frontend/src/components/ExternalLinkDisclaimerModal.tsx"
       ],
       "components": [
         "authorization@1.0.1",
@@ -19,6 +19,27 @@
       ],
       "testIds": [
         "REQ-1"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-in-the-externallinkdisclaimermodal-component-apply-the-font-mono-tailwind-class-to-the-element-displaying-the-target-external-url",
+      "featureTitle": "In the ExternalLinkDisclaimerModal component, apply the `font-mono` Tailwind class to the element displaying the target external URL.",
+      "files": [
+        "frontend/src/components/ExternalLinkDisclaimerModal.tsx"
+      ],
+      "components": [
+        "authorization@1.0.1",
+        "blob-storage@2.0.3",
+        "http-outcalls@1.1.1",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-2"
       ],
       "confidence": "high"
     }

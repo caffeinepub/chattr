@@ -158,38 +158,36 @@ export default function ChatArea({ chatroomId, chatroom, targetMessageId }: Chat
         {isHeaderExpanded ? (
           // Expanded header
           <div className="px-4 py-3">
-            <div className="md:flex md:items-center md:justify-center md:gap-8">
-              <div className="md:text-center">
-                <div className="flex items-center gap-2 md:justify-center">
-                  <h2 className="text-base font-semibold text-foreground">{chatroom.topic}</h2>
-                </div>
-                <p className="text-sm text-muted-foreground">{chatroom.description}</p>
+            <div className="md:text-center">
+              <div className="flex items-center gap-2 md:justify-center">
+                <h2 className="text-base font-semibold text-foreground">{chatroom.topic}</h2>
               </div>
-              <div className="mt-2 flex items-center gap-4 text-sm text-muted-foreground md:mt-0">
-                <div className="flex items-center gap-1.5">
-                  <MessageCircle className="h-3.5 w-3.5" />
-                  <span>{formatCompactNumber(chatroom.messageCount)}</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <Users className="h-3.5 w-3.5" />
-                  <span>{formatCompactNumber(chatroom.activeUserCount)}</span>
-                </div>
-                {chatroom.category && (
-                  <Badge variant="secondary" className="px-2 py-0.5 text-xs">
-                    {chatroom.category.toLowerCase()}
-                  </Badge>
-                )}
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={toggleHeader}
-                  className="h-7 w-7 flex-shrink-0"
-                  aria-label="Collapse header"
-                  aria-expanded={isHeaderExpanded}
-                >
-                  <ChevronUp className="h-4 w-4" />
-                </Button>
+              <p className="text-sm text-muted-foreground">{chatroom.description}</p>
+            </div>
+            <div className="mt-2 flex items-center gap-4 text-sm text-muted-foreground md:justify-center">
+              <div className="flex items-center gap-1.5">
+                <MessageCircle className="h-3.5 w-3.5" />
+                <span>{formatCompactNumber(chatroom.messageCount)}</span>
               </div>
+              <div className="flex items-center gap-1.5">
+                <Users className="h-3.5 w-3.5" />
+                <span>{formatCompactNumber(chatroom.activeUserCount)}</span>
+              </div>
+              {chatroom.category && (
+                <Badge variant="secondary" className="px-2 py-0.5 text-xs">
+                  {chatroom.category.toLowerCase()}
+                </Badge>
+              )}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={toggleHeader}
+                className="h-7 w-7 flex-shrink-0"
+                aria-label="Collapse header"
+                aria-expanded={isHeaderExpanded}
+              >
+                <ChevronUp className="h-4 w-4" />
+              </Button>
             </div>
           </div>
         ) : (
