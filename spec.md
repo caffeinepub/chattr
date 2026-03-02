@@ -1,11 +1,11 @@
 # Specification
 
 ## Summary
-**Goal:** Remove all backend caller/principal checks, re-enable admin message deletion, and make pinned videos per-user instead of global per-chatroom.
+**Goal:** Overlay both the unpin (X) button and a pin indicator icon directly on the pinned video thumbnail, removing the separate header row.
 
 **Planned changes:**
-- Remove every reference to `caller`, `Principal.isAnonymous`, and all access control/ownership guards from every function in `backend/main.mo`
-- Add a backend function to delete a message by ID (no caller check), and wire a delete button per message in the admin UI so admins can remove individual messages
-- Change pinned video storage from per-chatroom global to per `(chatroomId, userId)` so each user only sees their own pinned video; update frontend to pass the user identity when fetching and mutating pinned videos
+- Remove the existing separate header row/section that housed the unpin button in the PinnedVideo component
+- Overlay the X (unpin) button absolutely at the top-right corner of the video container, styled as a small circular semi-transparent button with hover effect
+- Overlay a non-clickable Lucide Pin icon absolutely at the top-left corner of the video container, styled identically to the X button
 
-**User-visible outcome:** All backend functions are open with no identity restrictions; admins can delete individual messages from the admin page; pinning or unpinning a video in a chatroom only affects the current user's view and does not impact other users in the same chatroom.
+**User-visible outcome:** The pinned video thumbnail displays both a pin icon (top-left) and an X button (top-right) overlaid directly on the video, with no separate header row, giving a cleaner look and more vertical space for the video.

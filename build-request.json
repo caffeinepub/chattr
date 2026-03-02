@@ -1,77 +1,61 @@
 {
   "kind": "build_request",
-  "title": "Re-enable message deletion, remove all caller checks, and make pinned videos per-user",
+  "title": "Overlay pin icon and X button on pinned video thumbnail",
   "projectName": "Chattr",
-  "priority": "high",
+  "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Remove every caller/principal check from every function in backend/main.mo. This includes any use of 'caller', 'Principal.isAnonymous', ownership guards, or any other access control validation on any function. No caller checks should remain anywhere in the backend after this change.",
-      "target": "backend",
+      "text": "In the PinnedVideo component, overlay the unpin (X) button absolutely at the top-right corner of the video container (top-2 right-2), styled as a small circular button (bg-black/50 text-white rounded-full w-6 h-6) with a hover effect (hover:bg-black/70). Remove any separate header row or dedicated section that previously housed the unpin button.",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-1",
+          "msg-2"
         ],
         "quotes": [
-          "No caller/principal checks anywhere — remove all existing caller checks from every backend function, and do not add any new ones."
+          "overlay the x to remove the pin on the top right of the video",
+          "X button on the top-right"
         ]
       },
       "acceptanceCriteria": [
-        "No references to 'caller' exist anywhere in backend/main.mo",
-        "No Principal-based access control checks exist in any function",
-        "All backend functions are callable without any identity or ownership restrictions"
+        "The X (unpin) button is absolutely positioned at the top-right corner of the pinned video container.",
+        "The button is styled as a small circular icon button with a semi-transparent dark background.",
+        "Hovering the button darkens its background.",
+        "Clicking the button unpins the video (calls useUnpinVideo mutation).",
+        "No separate header row for the unpin button exists; the space previously used by it is reclaimed."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Re-enable message deletion on the admin page (frontend/src/pages/AdminDeleteChatroomsPage.tsx or a dedicated admin messages page). Expose a backend function to delete a message by ID with no caller check, and wire a delete button per message in the admin UI so admins can delete individual messages.",
-      "target": "both",
+      "text": "In the PinnedVideo component, add a non-clickable pin icon (Lucide Pin icon) absolutely overlaid at the top-left corner of the video container (top-2 left-2), styled identically to the X button (bg-black/50 text-white rounded-full w-6 h-6) as a visual indicator that the video is pinned.",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-3",
+          "msg-4"
         ],
         "quotes": [
-          "Re-enable message deletion on the admin page"
+          "pin icon could sit at top-2 left-2 (opposite corner from the X)",
+          "X button + pin icon overlay (both corners)"
         ]
       },
       "acceptanceCriteria": [
-        "A backend function exists to delete a message by ID with no caller/principal check",
-        "The admin page displays messages with a delete button per message",
-        "Clicking delete removes the message from the backend and updates the UI",
-        "No caller check is added to the delete function"
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "text": "Change pinned video storage in the backend to be per-user rather than per-chatroom global. Each user's pinned video should be stored keyed by (chatroomId, userId) so that pinning or unpinning a video only affects the calling user's view. Other users in the same chatroom should not see or inherit another user's pinned video. Update the frontend to pass the current user's identity when fetching and mutating pinned videos, and render the pinned video only for the user who pinned it.",
-      "target": "both",
-      "source": {
-        "messageIds": [
-          "msg-6"
-        ],
-        "quotes": [
-          "pinned videos are only supposed to be for the current user. Other users shouldn't inherit it",
-          "Make pinned videos per-user — each user only sees their own pinned videos"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Pinning a video in a chatroom only affects the pinning user's view",
-        "Other users in the same chatroom do not see the pinned video unless they pinned it themselves",
-        "Unpinning a video only removes it for the user who unpinned it",
-        "The pinned video state is stored per (chatroomId, userId) in the backend",
-        "No caller checks are used — user identity is passed as an explicit parameter or derived from an anonymous/anonymous-safe mechanism consistent with the no-caller-check requirement"
+        "A Lucide Pin icon is absolutely positioned at the top-left corner of the pinned video container.",
+        "The pin icon is styled with the same circular semi-transparent dark background as the X button.",
+        "The pin icon is non-interactive (no click handler, pointer-events-none).",
+        "Both icons (pin top-left, X top-right) are visible simultaneously over the video embed."
       ]
     }
   ],
   "constraints": [
-    "Do not modify any pages, functions, or components unrelated to the three specified features",
-    "Do not add any caller/principal checks to any function — existing ones must also be removed",
-    "Do not change any other backend data models, message structures, or chatroom logic beyond what is needed for these three changes"
+    "Do not modify any immutable frontend paths (hooks, main.tsx, ui components).",
+    "Only the PinnedVideo component should be changed; do not alter ChatArea or other components unless strictly necessary to remove the old unpin button header row."
   ],
   "nonGoals": [
-    "Adding authentication or login-gating to any feature",
-    "Modifying the lobby page, chatroom creation, reactions, or any other unrelated features",
-    "Changing visual design or styling of any page other than what is minimally needed to surface the delete button"
+    "Adding any other controls or metadata overlays to the pinned video.",
+    "Changes to the video embed itself or its sizing.",
+    "Any backend changes."
   ],
   "imageRequirements": {
     "required": [],

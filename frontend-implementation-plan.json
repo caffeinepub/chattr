@@ -1,60 +1,40 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Re-enable message deletion, remove all caller checks, and make pinned videos per-user",
+  "title": "Overlay pin icon and X button on pinned video thumbnail",
   "requirements": [
     {
-      "id": "REQ-2",
-      "summary": "Re-enable message deletion on the admin page with backend function and UI delete button per message",
+      "id": "REQ-1",
+      "summary": "Overlay the unpin (X) button absolutely at the top-right corner of the pinned video container with hover effect, removing any separate header row that previously housed it.",
       "acceptanceCriteria": [
-        "A backend function exists to delete a message by ID with no caller/principal check",
-        "The admin page displays messages with a delete button per message",
-        "Clicking delete removes the message from the backend and updates the UI",
-        "No caller check is added to the delete function"
+        "The X (unpin) button is absolutely positioned at the top-right corner of the pinned video container.",
+        "The button is styled as a small circular icon button with a semi-transparent dark background.",
+        "Hovering the button darkens its background.",
+        "Clicking the button unpins the video (calls useUnpinVideo mutation).",
+        "No separate header row for the unpin button exists; the space previously used by it is reclaimed."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/AdminDeleteChatroomsPage.tsx",
+          "path": "frontend/src/components/PinnedVideo.tsx",
           "operation": "modify",
-          "description": "Add a new section to display flagged messages with individual delete buttons. Fetch flagged messages using getFlaggedMessages from the backend interface. For each message, render a delete button that calls the deleteMessage backend function with the message ID. Update the UI by refetching the flagged messages list after successful deletion. Include error handling for deletion failures."
-        },
-        {
-          "path": "frontend/src/hooks/useQueries.ts",
-          "operation": "modify",
-          "description": "Add a useGetFlaggedMessages query hook that calls actor.getFlaggedMessages() and returns an array of Message objects. Add a useDeleteMessage mutation hook that accepts a messageId (bigint) and calls actor.deleteMessage(messageId). The mutation should invalidate the flagged messages query cache on success to trigger a refetch. Both hooks should follow the existing query/mutation patterns in this file."
+          "description": "Refactor the PinnedVideo component to remove any existing header row or dedicated unpin button section. Move the unpin button to be absolutely positioned at top-2 right-2 within the video container. Style the button as a small circular element (w-6 h-6 rounded-full bg-black/50 text-white) with hover:bg-black/70. Ensure the video embed container has position relative to support absolute positioning of the overlaid button. The button should display an X icon (from Lucide) and call the useUnpinVideo mutation on click."
         }
       ]
     },
     {
-      "id": "REQ-3",
-      "summary": "Change pinned video storage to be per-user so each user only sees their own pinned videos",
+      "id": "REQ-2",
+      "summary": "Add a non-clickable pin icon absolutely overlaid at the top-left corner of the pinned video container as a visual indicator.",
       "acceptanceCriteria": [
-        "Pinning a video in a chatroom only affects the pinning user's view",
-        "Other users in the same chatroom do not see the pinned video unless they pinned it themselves",
-        "Unpinning a video only removes it for the user who unpinned it",
-        "The pinned video state is stored per (chatroomId, userId) in the backend",
-        "No caller checks are used — user identity is passed as an explicit parameter or derived from an anonymous/anonymous-safe mechanism consistent with the no-caller-check requirement"
+        "A Lucide Pin icon is absolutely positioned at the top-left corner of the pinned video container.",
+        "The pin icon is styled with the same circular semi-transparent dark background as the X button.",
+        "The pin icon is non-interactive (no click handler, pointer-events-none).",
+        "Both icons (pin top-left, X top-right) are visible simultaneously over the video embed."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/hooks/useQueries.ts",
-          "operation": "modify",
-          "description": "Update the useGetPinnedVideo query hook to pass a userId parameter when calling actor.getPinnedVideo(chatroomId, userId). Derive the userId from the current user's profile or generate a stable anonymous identifier if no profile exists. Update the usePinVideo mutation hook to pass userId when calling actor.pinVideo(chatroomId, userId, messageId). Update the useUnpinVideo mutation hook to pass userId when calling actor.unpinVideo(chatroomId, userId). Ensure all three hooks consistently use the same userId derivation logic. Update query key dependencies to include userId so different users get separate cached pinned video states."
-        },
-        {
-          "path": "frontend/src/components/ChatArea.tsx",
-          "operation": "modify",
-          "description": "Update the pinned video fetching and rendering logic to pass the current user's userId to the useGetPinnedVideo hook. Ensure the userId is consistently derived from the user profile (via getCallerUserProfile) or from a stable anonymous identifier if not logged in. Update the pinVideo action to pass the userId. Verify that the pinned video only appears for the user who pinned it by confirming the query key includes userId."
-        },
-        {
           "path": "frontend/src/components/PinnedVideo.tsx",
           "operation": "modify",
-          "description": "Update the useUnpinVideo mutation call to pass the current user's userId as a parameter. Ensure the userId is derived consistently with the ChatArea component. Update any conditional rendering logic if needed to ensure the unpin button only appears when the current user is the one who pinned the video."
-        },
-        {
-          "path": "frontend/src/components/MessageBubble.tsx",
-          "operation": "modify",
-          "description": "Update the pin button onClick handler to pass the current user's userId when calling the pinVideo mutation. Derive the userId consistently with other components (from user profile or anonymous identifier). Ensure the pin action is scoped to the current user only."
+          "description": "Add a Lucide Pin icon component to the PinnedVideo component, absolutely positioned at top-2 left-2 within the video container. Style it identically to the X button (w-6 h-6 rounded-full bg-black/50 text-white) but add pointer-events-none to make it non-interactive. Ensure both the pin icon and the X button are rendered as children of the video container so they appear overlaid on the video embed. No click handler should be attached to the pin icon."
         }
       ]
     }

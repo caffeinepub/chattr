@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
-import { useGetMessages, useSendMessage, useCurrentUsername, useGetPinnedVideo, getUserId } from '../hooks/useQueries';
+import { useEffect, useRef, useState } from 'react';
+import { useGetMessages, useSendMessage, useCurrentUsername } from '../hooks/useQueries';
 import type { ChatroomWithLiveStatus, MessageWithReactions } from '../backend';
 import MessageBubble from './MessageBubble';
 import MessageInput from './MessageInput';
@@ -35,37 +35,30 @@ export default function ChatArea({ chatroomId, chatroom, targetMessageId }: Chat
   const [isHeaderExpanded, setIsHeaderExpanded] = useState(true);
   const hasScrolledToTarget = useRef(false);
 
-  // Get stable userId for per-user pinned video
-  const userId = getUserId();
-  const { data: pinnedVideoMessageId } = useGetPinnedVideo(chatroomId, userId);
-
   const scrollToBottom = (behavior: ScrollBehavior = 'smooth') => {
     messagesEndRef.current?.scrollIntoView({ behavior });
   };
 
   // Filter out Creator messages that don't have media
   const filteredMessages = messages?.filter((message) => {
+    // If it's a Creator message without media, hide it
     if (message.sender === 'Creator' && !message.mediaUrl) {
       return false;
     }
     return true;
   });
 
-  // Find pinned video message using per-user pinnedVideoMessageId
-  const pinnedVideoMessage = pinnedVideoMessageId != null
-    ? filteredMessages?.find((msg) => msg.id === pinnedVideoMessageId)
-    : undefined;
-
   // Auto-scroll to bottom when new messages arrive (only if no target message)
   useEffect(() => {
     if (filteredMessages && !targetMessageId) {
       const currentMessageCount = filteredMessages.length;
       const previousMessageCount = previousMessageCountRef.current;
-
+      
+      // If this is the first load or new messages arrived, scroll to bottom
       if (previousMessageCount === 0 || currentMessageCount > previousMessageCount) {
         scrollToBottom();
       }
-
+      
       previousMessageCountRef.current = currentMessageCount;
     }
   }, [filteredMessages, targetMessageId]);
@@ -75,15 +68,17 @@ export default function ChatArea({ chatroomId, chatroom, targetMessageId }: Chat
     if (targetMessageId && filteredMessages && filteredMessages.length > 0 && !hasScrolledToTarget.current) {
       const messageElement = messageRefs.current.get(targetMessageId.toString());
       if (messageElement && scrollContainerRef.current) {
+        // Wait a bit for rendering to complete
         setTimeout(() => {
           messageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
           setHighlightedMessageId(targetMessageId);
-
+          
+          // Remove highlight after 3 seconds
           setTimeout(() => {
             setHighlightedMessageId(null);
           }, 3000);
         }, 100);
-
+        
         hasScrolledToTarget.current = true;
       }
     }
@@ -91,22 +86,23 @@ export default function ChatArea({ chatroomId, chatroom, targetMessageId }: Chat
 
   const handleSendMessage = async (content: string, mediaUrl?: string, mediaType?: string) => {
     if (!content.trim() && !mediaUrl) return;
-
-    await sendMessage.mutateAsync({
+    
+    await sendMessage.mutateAsync({ 
       content: content.trim() || (
-        mediaType === 'image' ? 'Image' :
-        mediaType === 'youtube' ? 'YouTube Video' :
-        mediaType === 'twitch' ? 'Twitch Video' :
+        mediaType === 'image' ? 'Image' : 
+        mediaType === 'youtube' ? 'YouTube Video' : 
+        mediaType === 'twitch' ? 'Twitch Video' : 
         mediaType === 'twitter' ? 'Twitter Post' :
         mediaType === 'audio' ? 'Voice message' :
         'Message'
-      ),
+      ), 
       chatroomId,
       mediaUrl,
       mediaType,
       replyToMessageId: replyingTo?.messageId,
     });
-
+    
+    // Scroll to bottom after sending message
     scrollToBottom();
     setReplyingTo(null);
   };
@@ -122,8 +118,13 @@ export default function ChatArea({ chatroomId, chatroom, targetMessageId }: Chat
   const handleScrollToMessage = (messageId: bigint) => {
     const messageElement = messageRefs.current.get(messageId.toString());
     if (messageElement && scrollContainerRef.current) {
+      // Scroll to message
       messageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      
+      // Highlight message
       setHighlightedMessageId(messageId);
+      
+      // Remove highlight after 2 seconds
       setTimeout(() => {
         setHighlightedMessageId(null);
       }, 2000);
@@ -133,6 +134,11 @@ export default function ChatArea({ chatroomId, chatroom, targetMessageId }: Chat
   const toggleHeader = () => {
     setIsHeaderExpanded(!isHeaderExpanded);
   };
+
+  // Find pinned video message
+  const pinnedVideoMessage = filteredMessages?.find(
+    (msg) => chatroom.pinnedVideoId && msg.id === chatroom.pinnedVideoId
+  );
 
   if (isLoading) {
     return (
@@ -150,6 +156,7 @@ export default function ChatArea({ chatroomId, chatroom, targetMessageId }: Chat
       {/* Chatroom Info Header - Collapsible */}
       <div className="flex-shrink-0 border-b border-border bg-card">
         {isHeaderExpanded ? (
+          // Expanded header
           <div className="px-4 py-3">
             <div className="md:flex md:items-center md:justify-center md:gap-8">
               <div className="md:text-center">
@@ -194,6 +201,7 @@ export default function ChatArea({ chatroomId, chatroom, targetMessageId }: Chat
             </div>
           </div>
         ) : (
+          // Collapsed header - compact bar
           <div className="flex items-center justify-between gap-2 px-4 py-2 md:justify-center">
             <div className="flex min-w-0 flex-1 items-center gap-2 md:flex-initial md:min-w-0">
               <h2 className="truncate text-base font-semibold text-foreground">{chatroom.topic}</h2>
@@ -230,14 +238,14 @@ export default function ChatArea({ chatroomId, chatroom, targetMessageId }: Chat
         )}
       </div>
 
-      {/* Pinned Video Area - Fixed above messages, per-user */}
+      {/* Pinned Video Area - Fixed above messages */}
       {pinnedVideoMessage && (
         <div className="flex-shrink-0 border-b border-border bg-card/50">
-          <PinnedVideo message={pinnedVideoMessage} chatroomId={chatroomId} userId={userId} />
+          <PinnedVideo message={pinnedVideoMessage} chatroomId={chatroomId} />
         </div>
       )}
 
-      {/* Messages Area */}
+      {/* Messages Area - Scrollable with flex-1 and min-h-0 to constrain height */}
       <div
         ref={scrollContainerRef}
         className="flex-1 min-h-0 overflow-y-auto px-4 py-4"
@@ -259,12 +267,11 @@ export default function ChatArea({ chatroomId, chatroom, targetMessageId }: Chat
                   message={message}
                   isOwnMessage={currentUsername === message.sender}
                   chatroomId={chatroomId}
-                  isPinned={pinnedVideoMessageId === message.id}
+                  isPinned={chatroom.pinnedVideoId === message.id}
                   onReply={handleReply}
                   onScrollToMessage={handleScrollToMessage}
                   allMessages={filteredMessages}
                   isHighlighted={highlightedMessageId === message.id}
-                  userId={userId}
                 />
               </div>
             ))
@@ -277,7 +284,7 @@ export default function ChatArea({ chatroomId, chatroom, targetMessageId }: Chat
         </div>
       </div>
 
-      {/* Reply Preview */}
+      {/* Reply Preview - Fixed above input */}
       {replyingTo && (
         <div className="flex-shrink-0 border-t border-border bg-card/50 px-4 py-2">
           <div className="mx-auto flex max-w-3xl items-center justify-between gap-3">
@@ -310,14 +317,10 @@ export default function ChatArea({ chatroomId, chatroom, targetMessageId }: Chat
         </div>
       )}
 
-      {/* Message Input */}
+      {/* Message Input - Fixed at bottom */}
       <div className="flex-shrink-0 border-t border-border bg-card">
         <div className="mx-auto max-w-3xl px-4 py-3">
-          <MessageInput
-            onSendMessage={handleSendMessage}
-            disabled={sendMessage.isPending}
-            isSending={sendMessage.isPending}
-          />
+          <MessageInput onSendMessage={handleSendMessage} disabled={sendMessage.isPending} />
         </div>
       </div>
     </div>

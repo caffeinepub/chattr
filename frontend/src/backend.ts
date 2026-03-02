@@ -101,6 +101,7 @@ export interface LobbyChatroomCard {
     messageCount: bigint;
     mediaType?: string;
     category: string;
+    pinnedVideoId?: bigint;
     presenceIndicator: bigint;
 }
 export interface UserProfile {
@@ -186,6 +187,7 @@ export interface ChatroomWithLiveStatus {
     messageCount: bigint;
     mediaType?: string;
     category: string;
+    pinnedVideoId?: bigint;
 }
 export interface _CaffeineStorageRefillResult {
     success?: boolean;
@@ -213,7 +215,6 @@ export interface backendInterface {
     cleanupInactiveUsers(): Promise<void>;
     createChatroom(topic: string, description: string, mediaUrl: string, mediaType: string, category: string): Promise<bigint>;
     deleteChatroomWithPassword(chatroomId: bigint, _password: string): Promise<void>;
-    deleteMessage(messageId: bigint): Promise<void>;
     fetchGiphyResults(searchTerm: string): Promise<string>;
     fetchTrendingGiphyGifs(): Promise<string>;
     fetchTwitchThumbnail(channelName: string): Promise<string>;
@@ -229,7 +230,7 @@ export interface backendInterface {
     getLobbyChatroomCards(): Promise<Array<LobbyChatroomCard>>;
     getMessageWithReactionsAndReplies(chatroomId: bigint): Promise<Array<MessageWithReactions>>;
     getMessages(chatroomId: bigint): Promise<Array<Message>>;
-    getPinnedVideo(chatroomId: bigint, userId: string): Promise<bigint | null>;
+    getPinnedVideo(chatroomId: bigint): Promise<bigint | null>;
     getReactions(messageId: bigint): Promise<Array<Reaction>>;
     getReplies(chatroomId: bigint, parentMessageId: bigint): Promise<Array<Message>>;
     getReplyPreview(chatroomId: bigint, messageId: bigint): Promise<ReplyPreview | null>;
@@ -237,14 +238,14 @@ export interface backendInterface {
     incrementViewCount(chatroomId: bigint, userId: string): Promise<void>;
     initializeAccessControl(): Promise<void>;
     isCallerAdmin(): Promise<boolean>;
-    pinVideo(chatroomId: bigint, userId: string, messageId: bigint): Promise<void>;
+    pinVideo(chatroomId: bigint, messageId: bigint): Promise<void>;
     removeReaction(messageId: bigint, emoji: string, userId: string): Promise<void>;
     reportMessage(messageId: bigint, reason: string): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     searchChatrooms(searchTerm: string): Promise<Array<ChatroomWithLiveStatus>>;
     sendMessage(content: string, sender: string, chatroomId: bigint, mediaUrl: string | null, mediaType: string | null, avatarUrl: string | null, senderId: string, replyToMessageId: bigint | null): Promise<void>;
     transform(input: TransformationInput): Promise<TransformationOutput>;
-    unpinVideo(chatroomId: bigint, userId: string): Promise<void>;
+    unpinVideo(chatroomId: bigint): Promise<void>;
     updateAvatarRetroactively(senderId: string, newAvatarUrl: string | null): Promise<void>;
     updateUsernameRetroactively(senderId: string, newUsername: string): Promise<void>;
 }
@@ -402,20 +403,6 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.deleteChatroomWithPassword(arg0, arg1);
-            return result;
-        }
-    }
-    async deleteMessage(arg0: bigint): Promise<void> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.deleteMessage(arg0);
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.deleteMessage(arg0);
             return result;
         }
     }
@@ -629,17 +616,17 @@ export class Backend implements backendInterface {
             return from_candid_vec_n20(this._uploadFile, this._downloadFile, result);
         }
     }
-    async getPinnedVideo(arg0: bigint, arg1: string): Promise<bigint | null> {
+    async getPinnedVideo(arg0: bigint): Promise<bigint | null> {
         if (this.processError) {
             try {
-                const result = await this.actor.getPinnedVideo(arg0, arg1);
+                const result = await this.actor.getPinnedVideo(arg0);
                 return from_candid_opt_n7(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.getPinnedVideo(arg0, arg1);
+            const result = await this.actor.getPinnedVideo(arg0);
             return from_candid_opt_n7(this._uploadFile, this._downloadFile, result);
         }
     }
@@ -741,17 +728,17 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async pinVideo(arg0: bigint, arg1: string, arg2: bigint): Promise<void> {
+    async pinVideo(arg0: bigint, arg1: bigint): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor.pinVideo(arg0, arg1, arg2);
+                const result = await this.actor.pinVideo(arg0, arg1);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.pinVideo(arg0, arg1, arg2);
+            const result = await this.actor.pinVideo(arg0, arg1);
             return result;
         }
     }
@@ -839,17 +826,17 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async unpinVideo(arg0: bigint, arg1: string): Promise<void> {
+    async unpinVideo(arg0: bigint): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor.unpinVideo(arg0, arg1);
+                const result = await this.actor.unpinVideo(arg0);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.unpinVideo(arg0, arg1);
+            const result = await this.actor.unpinVideo(arg0);
             return result;
         }
     }
@@ -952,6 +939,7 @@ function from_candid_record_n12(_uploadFile: (file: ExternalBlob) => Promise<Uin
     messageCount: bigint;
     mediaType: [] | [string];
     category: string;
+    pinnedVideoId: [] | [bigint];
 }): {
     id: bigint;
     topic: string;
@@ -965,6 +953,7 @@ function from_candid_record_n12(_uploadFile: (file: ExternalBlob) => Promise<Uin
     messageCount: bigint;
     mediaType?: string;
     category: string;
+    pinnedVideoId?: bigint;
 } {
     return {
         id: value.id,
@@ -978,7 +967,8 @@ function from_candid_record_n12(_uploadFile: (file: ExternalBlob) => Promise<Uin
         viewCount: value.viewCount,
         messageCount: value.messageCount,
         mediaType: record_opt_to_undefined(from_candid_opt_n13(_uploadFile, _downloadFile, value.mediaType)),
-        category: value.category
+        category: value.category,
+        pinnedVideoId: record_opt_to_undefined(from_candid_opt_n7(_uploadFile, _downloadFile, value.pinnedVideoId))
     };
 }
 function from_candid_record_n16(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
@@ -1056,6 +1046,7 @@ function from_candid_record_n25(_uploadFile: (file: ExternalBlob) => Promise<Uin
     messageCount: bigint;
     mediaType: [] | [string];
     category: string;
+    pinnedVideoId: [] | [bigint];
     presenceIndicator: bigint;
 }): {
     id: bigint;
@@ -1069,6 +1060,7 @@ function from_candid_record_n25(_uploadFile: (file: ExternalBlob) => Promise<Uin
     messageCount: bigint;
     mediaType?: string;
     category: string;
+    pinnedVideoId?: bigint;
     presenceIndicator: bigint;
 } {
     return {
@@ -1083,6 +1075,7 @@ function from_candid_record_n25(_uploadFile: (file: ExternalBlob) => Promise<Uin
         messageCount: value.messageCount,
         mediaType: record_opt_to_undefined(from_candid_opt_n13(_uploadFile, _downloadFile, value.mediaType)),
         category: value.category,
+        pinnedVideoId: record_opt_to_undefined(from_candid_opt_n7(_uploadFile, _downloadFile, value.pinnedVideoId)),
         presenceIndicator: value.presenceIndicator
     };
 }
